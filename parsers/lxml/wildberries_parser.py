@@ -6,9 +6,8 @@
 #               div class="product-card__brand"
 #                   div class="product-card__price-commission"
 #                       div class="price-commission"
-#                           div class="price-commission__price"
-#                               span class="price-commission__current-price" <- inside-value
-#                               del class="price-commission__old-price" <- inside-value
+#                           span class="price-commission__current-price" <- inside-value
+#                           del class="price-commission__old-price" <- inside-value
 #                   div class="product-card__brand-name"
 #                       span class="goods-name" <- inside-value
 #
@@ -31,10 +30,11 @@ def parse_html(html_source):
     product_cards = product_card_list('div[class=product-card__wrapper]').items()
     for product_card in product_cards:
         img_url = product_card('div[class=product-card__img]')('img').attr('src')
-        prices = product_card('div[class=product-card__price-commission]')('div[class=price-commission]')
+        product_card_brand = product_card('div[class=product-card__brand]')
+        prices = product_card_brand('div[class=product-card__price-commission]')('div[class=price-commission]')
         current_price = prices('span[class=price-commission__current-price]').text()
         old_price = prices('div[class=price-commission__old-price]').text()
-        name = product_card('div[class=product-card__brand-name]')('span[class=goods-name]').text()
+        name = product_card_brand('div[class=product-card__brand-name]')('span[class=goods-name]').text()
         products.append(to_json(name, current_price, old_price, img_url))
     return products
 
