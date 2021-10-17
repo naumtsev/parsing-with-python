@@ -10,3 +10,7 @@ def get_page_source(url):
         time.sleep(5)
         return browser.page_source
     return ''
+
+
+def to_json(name, current_price, old_price, img_url):
+    return {'name': name, 'current_price': current_price, 'old_price': old_price, 'img': img_url}
