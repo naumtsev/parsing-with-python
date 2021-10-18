@@ -12,5 +12,5 @@ def get_page_source(url):
     return ''
 
 
-def to_json(name, current_price, old_price, img_url):
+def to_dict(name, current_price, old_price, img_url):
     return {'name': name, 'current_price': current_price, 'old_price': old_price, 'img': img_url}

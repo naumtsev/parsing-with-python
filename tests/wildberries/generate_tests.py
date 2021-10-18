@@ -1,4 +1,4 @@
-from parsers.pyquery.utils import get_page_source
+from parsers.lxml.utils import get_page_source
 import concurrent.futures as pool
 
 products = [
