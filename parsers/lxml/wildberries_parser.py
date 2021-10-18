@@ -5,9 +5,13 @@
 #                   img src="img_url" <- tag-value
 #               div class="product-card__brand"
 #                   div class="product-card__price-commission"
-#                       div class="price-commission"
-#                           span class="price-commission__current-price" <- inside-value
-#                           del class="price-commission__old-price" <- inside-value
+#
+#                      | div class="price-commission"
+#                      |     span class="price-commission__current-price" <- inside-value
+#                      |     del class="price-commission__old-price" <- inside-value
+#
+#                      | span price
+#                      | span lower-price <- inside-value
 #                   div class="product-card__brand-name"
 #                       span class="goods-name" <- inside-value
 #
