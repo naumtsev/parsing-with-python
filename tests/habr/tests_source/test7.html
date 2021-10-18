@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450016\/"},"headline":"Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python","datePublished":"2019-04-29T17:32:29+03:00","dateModified":"2019-04-30T11:50:09+03:00","author":{"@type":"Person","name":"Якимов Святослав"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Формальная верификация &mdash; это проверка одной программы либо алгоритма с помощью другой.  Это один из самых мощных методов, который позволяет найти в программе все...","url":"https:\/\/habr.com\/ru\/post\/450016\/#post-content-body","about":["h_p2p","h_infosecurity","h_crazydev","h_php","h_python","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/jo\/mj\/5_\/jomj5_tltmq3td9_r-xhyavhhqq.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.
+
+Это один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.
+
+Это один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.
+
+Это один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.
+
+Это один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.
+
+Это один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450016/1136b0fcad4b9dfa632ff21f06f7c173/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450016/1136b0fcad4b9dfa632ff21f06f7c173/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450016/1136b0fcad4b9dfa632ff21f06f7c173/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450016/1136b0fcad4b9dfa632ff21f06f7c173/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450016/1136b0fcad4b9dfa632ff21f06f7c173/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450016" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-29T14:32:29.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450016/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450016/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450016/1136b0fcad4b9dfa632ff21f06f7c173/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/scp1001/" title="scp1001" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/4b0/a76/696/4b0a766969ebd5c4e73ff60f833d6397.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/scp1001/" class="tm-user-info__username">
+      scp1001
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-29T14:32:29.000Z" title="2019-04-29, 17:32">29  апреля  2019 в 17:32</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/p2p/" class="tm-article-snippet__hubs-item-link"><span>Децентрализованные сети</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/infosecurity/" class="tm-article-snippet__hubs-item-link"><span>Информационная безопасность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/crazydev/" class="tm-article-snippet__hubs-item-link"><span>Ненормальное программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/php/" class="tm-article-snippet__hubs-item-link"><span>PHP</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/python/" class="tm-article-snippet__hubs-item-link"><span>Python</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.<br/>
+<br/>
+Это один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их нет.<br/>
+<br/>
+Более подробное описание формальной верификации можно увидеть на примере решения задачи о <a href="https://habr.com/ru/post/449002/">Волке, Козе, и капусте</a> в моей предыдущей статье.<br/>
+<br/>
+В этой статье я перехожу от формальной верификации задач, к программам, и опишу, <br/>
+каким образом можно конвертировать их в системы формальных правил автоматически.<br/>
+<br/>
+Для этого я написал свой аналог виртуальной машины, на символьных принципах.<br/>
+<br/>
+Она разбирает код программы и транслирует его в систему уравнений (SMT), которую уже можно решить программным способом.<br/>
+<br/>
+Так как информация о символьных вычислениях представлена в интернете довольно обрывочно, <br/>
+я вкратце опишу что это такое.<br/>
+<a name="habracut"></a><br/>
+Символьные вычисления представляют собой способ одновременного выполнения программы на широком диапазоне данных и являются главным инструментом для формальной верификации программ.<br/>
+<br/>
+Например, мы можем задать входные условия где первый аргумент может принимать любые положительные значения, второй отрицательные, третий — ноль, а выходной аргумент, к примеру, 42.<br/>
+<br/>
+Символьные вычисления за один запуск дадут нам ответ, возможно ли получение нами нужного результата и пример набора таких входных параметров. Либо же доказательство того, что таких параметров нет.<br/>
+<br/>
+Более того, мы можем задать входные аргументы вообще как все возможные, и выберем только выходной, например пароль администратора.<br/>
+<br/>
+В этом случае мы найдём все уязвимости программы или же получим доказательство того, что пароль админа в безопасности.<br/>
+<br/>
+Можно заметить, что классическое выполнение программы с конкретными входными данными представляет собой частный случай символьного.<br/>
+<br/>
+Поэтому моя символьная VM может работать и в режиме эмуляции стандартной виртуальной машины.<br/>
+<br/>
+В комментариях к предыдущей статье можно найти и справедливую критику формальной верификации с обсуждением её слабых мест.<br/>
+<br/>
+Основные проблемы следующие:<br/>
+<br/>
+<ol>
+<li>Комбинаторный взрыв, так как формальная верификация в конечном итоге упирается в P=NP</li>
+<li>Обработка вызовов к файловой системе, сетям и другим внешним хранилищам сложнее поддаётся верификации</li>
+<li>Баги в спецификации, когда заказчик или программист задумал одно, но недостаточно точно описал это в ТЗ.</li>
+</ol><br/>
+В итоге программа будет верифицирована и соответствовать спецификации, но будет делать совсем не то, чего от неё ждали создатели.<br/>
+<br/>
+Поскольку в этой статье я рассматриваю главным образом применение формальной верификации на практике, то биться лбом о стену пока не буду, и выберу такую систему, где алгоритмическая сложность и число внешних вызовов минимально.<br/>
+<br/>
+Поскольку смарт-контракты подходят под эти требования наилучшим образом, выбор пал на контракты RIDE от платформы Waves: они не являются Тьюринг-полными, и их максимальная сложность искусственно ограничена. <br/>
+<br/>
+Но мы будем рассматривать их исключительно с технической стороны.<br/>
+<br/>
+В дополнение ко всему, для любых контрактов формальная верификация будет особенно востребована: исправить ошибку контракта после его запуска, как правило, невозможно.<br/>
+А цена таких ошибок бывает очень высока, так как на смарт-контрактах зачастую хранятся довольно крупные суммы средств.<br/>
+<br/>
+Моя символьная виртуальная машина написана на PHP и Python, и использует Z3Prover от Microsoft Research для решения получившихся SMT формул.<br/>
+<br/>
+В её ядре заложен мощный мульти-транзакционный поиск, который <br/>
+позволяет находить решения или уязвимости, даже если для этого требуется много транзакций.<br/>
+Даже <a href="https://habr.com/ru/post/442114/">Mythril</a>, один из самых мощных символьных фреймворков для поиска уязвимостей Ethereum, добавил такую возможность лишь несколько месяцев назад.<br/>
+<br/>
+Но стоит заметить, что контракты эфира сложнее и обладают Тьюринг-полнотой.<br/>
+<br/>
+PHP транслирует исходный код смарт-контракта RIDE в python скрипт, в котором программа представлена в виде совместимой с Z3 SMT системы состояний контракта и условий их переходов:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/jo/mj/5_/jomj5_tltmq3td9_r-xhyavhhqq.png"/><br/>
+<br/>
+Теперь опишу, что происходит внутри, поподробней.<br/>
+<br/>
+Но вначале пару слов о языке смарт-контрактов RIDE.<br/>
+<br/>
+Это функциональный и основанный на выражениях язык программирования, ленивый по задумке.<br/>
+RIDE выполняется изолированно внутри блокчейна, и может извлекать и записывать информацию, из в привязанного к кошельку пользователя хранилища.<br/>
+<br/>
+К каждому кошельку можно привязать RIDE контракт, и результатом выполнения будет только TRUE или FALSE.<br/>
+<br/>
+TRUE означает, что смарт-контракт разрешает транзакцию, а FALSE что он её запрещает.<br/>
+Простой пример: скрипт может запрещать перевод, в случае если баланс кошелька меньше чем 100.<br/>
+<br/>
+В качестве примера я возьму всё тех же Волка, Козу, и Капусту, но уже представленных в виде смарт-контракта.<br/>
+<br/>
+Пользователь не сможет вывести деньги с кошелька, на котором развернут контракт, пока не переправит всех на другой берег.<br/>
+<br/>
+<pre><code class="scala">#Извлекаем положение всех объектов из блокчейна
+let contract = tx.sender
+let human= extract(getInteger(contract,"human"))
+let wolf= extract(getInteger(contract,"wolf"))
+let goat= extract(getInteger(contract,"goat"))
+let cabbage= extract(getInteger(contract,"cabbage"))
+
+#Это так называемая дата-транзакция, в которой пользователь присылает новые 4 переменные.
+#Контракт разрешит её только в случае если все объекты останутся в сохранности.
+match tx {
+case t:DataTransaction =>
+   #Извлекаем будущее положение всех объектов из транзакции
+   let newHuman= extract(getInteger(t.data,"human")) 
+   let newWolf= extract(getInteger(t.data,"wolf"))
+   let newGoat= extract(getInteger(t.data,"goat"))
+   let newCabbage= extract(getInteger(t.data,"cabbage"))
+   
+   #0 обозначает, что объект на левом берегу, а 1 что на правом
+   let humanSide= human == 0 || human == 1
+   let wolfSide= wolf == 0 || wolf == 1
+   let goatSide= goat == 0 || goat == 1
+   let cabbageSide= cabbage == 0 || cabbage == 1
+   let side= humanSide &amp;&amp; wolfSide &amp;&amp; goatSide &amp;&amp; cabbageSide
+
+   #Будут разрешены только те транзакции, где с козой никого нет в отсутствии фермера.
+   let safeAlone= newGoat != newWolf &amp;&amp; newGoat != newCabbage
+   let safe= safeAlone || newGoat == newHuman
+   let humanTravel= human != newHuman 
+
+   #Способы путешествия фермера туда и обратно, с кем-то либо в одиночку.
+   let t1= humanTravel &amp;&amp; newWolf == wolf + 1 &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage 
+   let t2= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat + 1 &amp;&amp; newCabbage == cabbage
+   let t3= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage + 1
+   let t4= humanTravel &amp;&amp; newWolf == wolf - 1 &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage
+   let t5= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat - 1 &amp;&amp; newCabbage == cabbage
+   let t6= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage - 1
+   let t7= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage
+   let objectTravel = t1 || t2 || t3 || t4 || t5 || t6 || t7
+   
+   #Последняя строка в разделе транзакции описывает разрешающее транзакцию условие.
+   #Переменные транзакции должны иметь значения 1 или 0, все объекты должны
+   #быть в безопасности, а фермер должен переплывать реку в одиночку 
+   #или с кем-то на каждом шагу
+   side &amp;&amp; safe &amp;&amp; humanTravel &amp;&amp; objectTravel
+case s:TransferTransaction =>
+   #Транзакция вывода средств разрешена только в случае если все переплыли на другой берег
+   human == 1 &amp;&amp; wolf == 1 &amp;&amp; goat == 1 &amp;&amp; cabbage == 1
+
+#Все прочие типы транзакций запрещены
+case _ => false
+
+}
+</code></pre><br/>
+PHP первым делом извлекает из смарт-контракта все переменные в виде их ключей и соответствующего переменной логического выражения.<br/>
+<br/>
+<pre><code class="scala">cabbage: extract ( getInteger ( contract , "cabbage" ) )
+goat: extract ( getInteger ( contract , "goat" ) )
+human: extract ( getInteger ( contract , "human" ) )
+wolf: extract ( getInteger ( contract , "wolf" ) )
+fState: human== 1 &amp;&amp; wolf== 1 &amp;&amp; goat== 1 &amp;&amp; cabbage== 1
+fState: 
+wolf: 
+goat: 
+cabbage: 
+cabbageSide: cabbage== 0 || cabbage== 1
+human: extract ( getInteger ( contract , "human" ) )
+newGoat: extract ( getInteger ( t.data , "goat" ) )
+newHuman: extract ( getInteger ( t.data , "human" ) )
+goatSide: goat== 0 || goat== 1
+humanSide: human== 0 || human== 1
+t7: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage
+t3: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage + 1
+t6: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage - 1
+t2: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat + 1 &amp;&amp; newCabbage== cabbage
+t5: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat - 1 &amp;&amp; newCabbage== cabbage
+t1: humanTravel &amp;&amp; newWolf== wolf + 1 &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage
+t4: humanTravel &amp;&amp; newWolf== wolf - 1 &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage
+safeAlone: newGoat != newWolf &amp;&amp; newGoat != newCabbage
+wolfSide: wolf== 0 || wolf== 1
+humanTravel: human != newHuman
+side: humanSide &amp;&amp; wolfSide &amp;&amp; goatSide &amp;&amp; cabbageSide
+safe: safeAlone || newGoat== newHuman
+objectTravel: t1 || t2 || t3 || t4 || t5 || t6 || t7
+</code></pre><br/>
+Затем PHP преобразует их в совместимое с Z3Prover SMT описание системы на питоне.<br/>
+Данные же заворачиваются в цикл, где переменные хранилища получают индекс i, переменные транзакции индекс i + 1, а переменные с выражениями задают правила перехода из предыдущего состония в следующее.<br/>
+<br/>
+Это- самое сердце нашей виртуальной машины, которое и обеспечивает мульти-транзакционный механизм поиска.<br/>
+<br/>
+<pre><code class="python">fState:  And( And( And( human[Steps]  ==  1 , wolf[Steps]  ==  1 )  , goat[Steps]  ==  1 )  , cabbage[Steps]  ==  1 )  
+final:  fState[Steps] 
+fState:   
+wolf:   
+goat:   
+cabbage:   
+cabbageSide:  Or( cabbage[i]  ==  0 , cabbage[i]  ==  1 )  
+goatSide:  Or( goat[i]  ==  0 , goat[i]  ==  1 )  
+humanSide:  Or( human[i]  ==  0 , human[i]  ==  1 )  
+t7:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] )  
+t3:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] + 1 )  
+t6:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] - 1 )  
+t2:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] + 1 )  , cabbage  ==  cabbage[i] )  
+t5:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] - 1 )  , cabbage  ==  cabbage[i] )  
+t1:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] + 1 )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] )  
+t4:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] - 1 )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] )  
+safeAlone:  And( goat[i+1] != wolf , goat[i+1] != cabbage )  
+wolfSide:  Or( wolf[i]  ==  0 , wolf[i]  ==  1 )  
+humanTravel:  human[i] != human[i+1] 
+side:  And( And( And( humanSide[i] , wolfSide[i] )  , goatSide[i] )  , cabbageSide[i] )  
+safe:  Or( safeAlone[i] , goat[i+1]  ==  human[i+1] )  
+objectTravel:  Or( Or( Or( Or( Or( Or( t1[i] , t2[i] )  , t3[i] )  , t4[i] )  , t5[i] )  , t6[i] )  , t7[i] )  
+data:  And( And( And( side[i] , safe[i] )  , humanTravel[i] )  , objectTravel[i] )  
+</code></pre><br/>
+Условия сортируются и вставляются в шаблон скрипта, предназначенного для описания SMT системы на питоне.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пустой шаблон</b><div class="spoiler_text"><pre><code class="python">
+import json
+
+from z3 import *
+
+s = Solver()
+
+  
+  
+    
+Steps=7
+Num= Steps+1
+
+$code$
+
+
+
+#template, only start rest
+s.add(data + start)
+
+#template
+s.add(final)
+
+
+
+
+ind = 0
+
+f = open("/var/www/html/all/bin/python/log.txt", "a")
+
+
+
+while s.check() == sat:
+  ind = ind +1
+  
+
+  print ind
+  m = s.model()
+  print m
+
+  print "traversing model..." 
+  #for d in m.decls():
+	#print "%s = %s" % (d.name(), m[d])
+
+  
+ 
+  f.write(str(m))
+  f.write("\n\n")
+  exit()
+  #s.add(Or(goat[0] != s.model()[data[0]] )) # prevent next model from using the same assignment as a previous model
+
+
+
+print "Total solution number: "
+print ind  
+
+f.close()
+ 
+
+
+</code></pre><br/>
+</div></div><br/>
+Для последнего состояния из всей цепочки применяются правила, которые заданы в разделе транзакции перевода.<br/>
+<br/>
+А значит, Z3Prover будет искать именно такие совокупности состояний, которые в итоге позволят вывести с контракта средства.<br/>
+<br/>
+В итоге мы автоматически получаем полностью работоспособную SMT модель нашего контракта.<br/>
+Можно заметить, что она весьма похожа на модель из моей предыдущей статьи, которую я составлял ещё вручную.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Заполненный шаблон</b><div class="spoiler_text"><pre><code class="python">
+import json
+
+from z3 import *
+
+s = Solver()
+
+  
+  
+    
+Steps=7
+Num= Steps+1
+
+human = [ Int('human_%i' % (i + 1)) for i in range(Num) ]
+wolf = [ Int('wolf_%i' % (i + 1)) for i in range(Num) ]
+goat = [ Int('goat_%i' % (i + 1)) for i in range(Num) ]
+cabbage = [ Int('cabbage_%i' % (i + 1)) for i in range(Num) ]
+nothing= [  And( human[i] == human[i+1], wolf[i] == wolf[i+1], goat[i] == goat[i+1], cabbage[i] == cabbage[i+1] )   for i in range(Num-1) ]
+
+
+start= [ human[0] == 1, wolf[0] == 0, goat[0] == 1, cabbage[0] == 0 ]
+
+safeAlone= [  And( goat[i+1] != wolf[i+1] , goat[i+1] != cabbage[i+1] )   for i in range(Num-1) ]
+safe= [  Or( safeAlone[i] , goat[i+1]  ==  human[i+1] )   for i in range(Num-1) ]
+humanTravel= [  human[i] != human[i+1]  for i in range(Num-1) ]
+cabbageSide= [  Or( cabbage[i]  ==  0 , cabbage[i]  ==  1 )   for i in range(Num-1) ]
+goatSide= [  Or( goat[i]  ==  0 , goat[i]  ==  1 )   for i in range(Num-1) ]
+humanSide= [  Or( human[i]  ==  0 , human[i]  ==  1 )   for i in range(Num-1) ]
+t7= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]
+t3= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] + 1 )   for i in range(Num-1) ]
+t6= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] - 1 )   for i in range(Num-1) ]
+t2= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] + 1 )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]
+t5= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] - 1 )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]
+t1= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] + 1 )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]
+t4= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] - 1 )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]
+wolfSide= [  Or( wolf[i]  ==  0 , wolf[i]  ==  1 )   for i in range(Num-1) ]
+side= [  And( And( And( humanSide[i] , wolfSide[i] )  , goatSide[i] )  , cabbageSide[i] )   for i in range(Num-1) ]
+objectTravel= [  Or( Or( Or( Or( Or( Or( t1[i] , t2[i] )  , t3[i] )  , t4[i] )  , t5[i] )  , t6[i] )  , t7[i] )   for i in range(Num-1) ]
+data= [ Or(  And( And( And( side[i] , safe[i] )  , humanTravel[i] )  , objectTravel[i] )   , nothing[i]) for i in range(Num-1) ]
+
+
+fState=  And( And( And( human[Steps]  ==  1 , wolf[Steps]  ==  1 )  , goat[Steps]  ==  1 )  , cabbage[Steps]  ==  1 )  
+final=  fState 
+
+
+
+
+#template, only start rest
+s.add(data + start)
+
+#template
+s.add(final)
+
+
+
+
+ind = 0
+
+f = open("/var/www/html/all/bin/python/log.txt", "a")
+
+
+
+while s.check() == sat:
+  ind = ind +1
+  
+
+  print ind
+  m = s.model()
+  print m
+
+  print "traversing model..." 
+  #for d in m.decls():
+	#print "%s = %s" % (d.name(), m[d])
+
+  
+ 
+  f.write(str(m))
+  f.write("\n\n")
+  exit()
+  #s.add(Or(goat[0] != s.model()[data[0]] )) # prevent next model from using the same assignment as a previous model
+
+
+
+print "Total solution number: "
+print ind  
+
+f.close()
+ 
+
+
+</code></pre><br/>
+</div></div><br/>
+После запуска, Z3Prover решает смарт-контракт и выводит нам цепочку транзакций, которая позволит вывести средства:<br/>
+<br/>
+<pre><code class="plaintext">Winning transaction chain found:
+Data transaction: human= 0, wolf= 0, goat= 1, cabbage= 0
+Data transaction: human= 1, wolf= 0, goat= 1, cabbage= 1
+Data transaction: human= 0, wolf= 0, goat= 0, cabbage= 1
+Data transaction: human= 1, wolf= 1, goat= 0, cabbage= 1
+Data transaction: human= 0, wolf= 1, goat= 0, cabbage= 1
+Data transaction: human= 1, wolf= 1, goat= 1, cabbage= 1
+Data transaction: human= 1, wolf= 1, goat= 1, cabbage= 1
+Transfer transaction
+</code></pre><br/>
+Кроме контракта переправы, можно поэкспериментировать с собственными контрактами или попробовать этот простой пример, который решается за 2 транзакции.<br/>
+<br/>
+<pre><code class="scala">let contract = tx.sender
+let a= extract(getInteger(contract,"a"))
+let b= extract(getInteger(contract,"b"))
+let c= extract(getInteger(contract,"c"))
+let d= extract(getInteger(contract,"d"))
+
+match tx {
+case t:DataTransaction =>
+let na= extract(getInteger(t.data,"a")) 
+let nb= extract(getInteger(t.data,"b"))
+let nc= extract(getInteger(t.data,"c"))
+let nd= extract(getInteger(t.data,"d"))
+   
+   nd == 0 || a == 100 - 5
+case s:TransferTransaction =>
+   ( a + b - c ) * d == 12
+
+case _ => true
+
+}
+</code></pre><br/>
+Так как это самая первая версия, то синтаксис весьма ограничен и могут встречаться баги.<br/>
+В следующих статьях я планирую осветить дальнейшую разработку VM, и показать, как можно создавать формально верифицированные смарт-контракты с её помощью, а не только решать их.<br/>
+<br/>
+Символьная виртуальная машина доступна по адресу <a href="http://2.59.42.98/hyperbox/">http://2.59.42.98/hyperbox/</a><br/>
+Исходники доступны на github: <a href="http://github.com/scp1001/hyperbox">http://github.com/scp1001/hyperbox</a><br/>
+Вся логика VM содержится в 2 файлах, hyperbox.php и hyperbox2.php</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F%20%D0%B2%D0%B5%D1%80%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F%5D" class="tm-tags-list__link">формальная верификация</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5%20%D0%BC%D0%B5%D1%82%D0%BE%D0%B4%D1%8B%5D" class="tm-tags-list__link">формальные методы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B5%D1%88%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%5D" class="tm-tags-list__link">решатель</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BB%D0%BE%D0%B3%D0%B8%D0%BA%D0%B0%20%D0%A5%D0%BE%D0%B0%D1%80%D0%B0%5D" class="tm-tags-list__link">логика Хоара</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D0%B8%D0%BC%D0%B2%D0%BE%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5%20%D0%B2%D1%8B%D0%BF%D0%BE%D0%BB%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">символьное выполнение</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bblockchain%5D" class="tm-tags-list__link">blockchain</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BSMT%5D" class="tm-tags-list__link">SMT</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BZ3%5D" class="tm-tags-list__link">Z3</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BNP%5D" class="tm-tags-list__link">NP</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B2%D1%8B%D1%87%D0%B8%D1%81%D0%BB%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F%20%D1%81%D0%BB%D0%BE%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C%5D" class="tm-tags-list__link">вычислительная сложность</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%BE%D0%B1%D0%BB%D0%B5%D0%BC%D0%B0%20%D0%BE%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B8%5D" class="tm-tags-list__link">проблема остановки</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B2%D0%B5%D1%80%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%5D" class="tm-tags-list__link">верификация программ</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%5D" class="tm-tags-list__link">защита программ</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F%20%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C%5D" class="tm-tags-list__link">информационная безопасность</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BRIDE%5D" class="tm-tags-list__link">RIDE</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B8%20%D1%84%D0%B5%D1%80%D0%B7%D0%B5%D0%B9%5D" class="tm-tags-list__link">8 ферзей</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D0%BE%D0%B8%D1%81%D0%BA%20%D1%83%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B5%D0%B9%5D" class="tm-tags-list__link">поиск уязвимостей</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BCoq%5D" class="tm-tags-list__link">Coq</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BIsabelle%5D" class="tm-tags-list__link">Isabelle</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BWhyML%5D" class="tm-tags-list__link">WhyML</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BTLA%5D" class="tm-tags-list__link">TLA</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BseL4%5D" class="tm-tags-list__link">seL4</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/p2p/" class="tm-hubs-list__link">
+    Децентрализованные сети
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/infosecurity/" class="tm-hubs-list__link">
+    Информационная безопасность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/crazydev/" class="tm-hubs-list__link">
+    Ненормальное программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/php/" class="tm-hubs-list__link">
+    PHP
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/python/" class="tm-hubs-list__link">
+    Python
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 17: ↑13 и ↓4</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 17: ↑13 и ↓4" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+9</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">4.5K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    46
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/scp1001/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/4b0/a76/696/4b0a766969ebd5c4e73ff60f833d6397.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 20 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    9.2
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Якимов Святослав</span> <a href="/ru/users/scp1001/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @scp1001
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450016/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 3 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section data-async-called="true" class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Работа</h2> <!----></header> <div class="tm-block__body"><div class="tm-vacancies-block__item"><a href="https://career.habr.com/vacancies/php_programmist" target="_blank" class="tm-vacancies-block__vacancy-title">
+        PHP программист
+      </a> <div class="tm-vacancies-block__vacancies-count">
+        271
+    вакансия
+      </div></div><div class="tm-vacancies-block__item"><a href="https://career.habr.com/vacancies/programmist_laravel" target="_blank" class="tm-vacancies-block__vacancy-title">
+        Разработчик Laravel
+      </a> <div class="tm-vacancies-block__vacancies-count">
+        98
+    вакансий
+      </div></div></div> <footer class="tm-block__footer"><a href="https://career.habr.com/vacancies" class="tm-block-extralink">
+      Все вакансии
+    </a></footer></section></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450016/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450016/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450016":{"id":"450016","timePublished":"2019-04-29T14:32:29+00:00","isCorporative":false,"lang":"ru","titleHtml":"Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python","leadData":{"textHtml":"Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЭто один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их нет.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nБолее подробное описание формальной верификации можно увидеть на примере решения задачи о \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449002\u002F\"\u003EВолке, Козе, и капусте\u003C\u002Fa\u003E в моей предыдущей статье.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ этой статье я перехожу от формальной верификации задач, к программам, и опишу, \u003Cbr\u003E\r\nкаким образом можно конвертировать их в системы формальных правил автоматически.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nДля этого я написал свой аналог виртуальной машины, на символьных принципах.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nОна разбирает код программы и транслирует его в систему уравнений (SMT), которую уже можно решить программным способом.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nТак как информация о символьных вычислениях представлена в интернете довольно обрывочно, \u003Cbr\u003E\r\nя вкратце опишу что это такое.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":9.2,"votesCount":20},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"790475","alias":"scp1001","fullname":"Якимов Святослав","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F4b0\u002Fa76\u002F696\u002F4b0a766969ebd5c4e73ff60f833d6397.png","speciality":"Пользователь"},"statistics":{"commentsCount":3,"favoritesCount":46,"readingCount":4518,"score":9,"votesCount":17},"hubs":[{"relatedData":null,"id":"33","alias":"p2p","type":"collective","title":"Децентрализованные сети","titleHtml":"Децентрализованные сети","isProfiled":false},{"relatedData":null,"id":"50","alias":"infosecurity","type":"collective","title":"Информационная безопасность","titleHtml":"Информационная безопасность","isProfiled":true},{"relatedData":null,"id":"84","alias":"crazydev","type":"collective","title":"Ненормальное программирование","titleHtml":"Ненормальное программирование","isProfiled":true},{"relatedData":null,"id":"260","alias":"php","type":"collective","title":"PHP","titleHtml":"PHP","isProfiled":true},{"relatedData":null,"id":"340","alias":"python","type":"collective","title":"Python","titleHtml":"Python","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EФормальная верификация — это проверка одной программы либо алгоритма с помощью другой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБолее подробное описание формальной верификации можно увидеть на примере решения задачи о \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449002\u002F\"\u003EВолке, Козе, и капусте\u003C\u002Fa\u003E в моей предыдущей статье.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этой статье я перехожу от формальной верификации задач, к программам, и опишу, \u003Cbr\u002F\u003E\r\nкаким образом можно конвертировать их в системы формальных правил автоматически.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля этого я написал свой аналог виртуальной машины, на символьных принципах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОна разбирает код программы и транслирует его в систему уравнений (SMT), которую уже можно решить программным способом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак как информация о символьных вычислениях представлена в интернете довольно обрывочно, \u003Cbr\u002F\u003E\r\nя вкратце опишу что это такое.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nСимвольные вычисления представляют собой способ одновременного выполнения программы на широком диапазоне данных и являются главным инструментом для формальной верификации программ.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример, мы можем задать входные условия где первый аргумент может принимать любые положительные значения, второй отрицательные, третий — ноль, а выходной аргумент, к примеру, 42.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСимвольные вычисления за один запуск дадут нам ответ, возможно ли получение нами нужного результата и пример набора таких входных параметров. Либо же доказательство того, что таких параметров нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБолее того, мы можем задать входные аргументы вообще как все возможные, и выберем только выходной, например пароль администратора.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этом случае мы найдём все уязвимости программы или же получим доказательство того, что пароль админа в безопасности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМожно заметить, что классическое выполнение программы с конкретными входными данными представляет собой частный случай символьного.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоэтому моя символьная VM может работать и в режиме эмуляции стандартной виртуальной машины.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ комментариях к предыдущей статье можно найти и справедливую критику формальной верификации с обсуждением её слабых мест.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОсновные проблемы следующие:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EКомбинаторный взрыв, так как формальная верификация в конечном итоге упирается в P=NP\u003C\u002Fli\u003E\r\n\u003Cli\u003EОбработка вызовов к файловой системе, сетям и другим внешним хранилищам сложнее поддаётся верификации\u003C\u002Fli\u003E\r\n\u003Cli\u003EБаги в спецификации, когда заказчик или программист задумал одно, но недостаточно точно описал это в ТЗ.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nВ итоге программа будет верифицирована и соответствовать спецификации, но будет делать совсем не то, чего от неё ждали создатели.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоскольку в этой статье я рассматриваю главным образом применение формальной верификации на практике, то биться лбом о стену пока не буду, и выберу такую систему, где алгоритмическая сложность и число внешних вызовов минимально.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоскольку смарт-контракты подходят под эти требования наилучшим образом, выбор пал на контракты RIDE от платформы Waves: они не являются Тьюринг-полными, и их максимальная сложность искусственно ограничена. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо мы будем рассматривать их исключительно с технической стороны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ дополнение ко всему, для любых контрактов формальная верификация будет особенно востребована: исправить ошибку контракта после его запуска, как правило, невозможно.\u003Cbr\u002F\u003E\r\nА цена таких ошибок бывает очень высока, так как на смарт-контрактах зачастую хранятся довольно крупные суммы средств.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМоя символьная виртуальная машина написана на PHP и Python, и использует Z3Prover от Microsoft Research для решения получившихся SMT формул.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ её ядре заложен мощный мульти-транзакционный поиск, который \u003Cbr\u002F\u003E\r\nпозволяет находить решения или уязвимости, даже если для этого требуется много транзакций.\u003Cbr\u002F\u003E\r\nДаже \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F442114\u002F\"\u003EMythril\u003C\u002Fa\u003E, один из самых мощных символьных фреймворков для поиска уязвимостей Ethereum, добавил такую возможность лишь несколько месяцев назад.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо стоит заметить, что контракты эфира сложнее и обладают Тьюринг-полнотой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nPHP транслирует исходный код смарт-контракта RIDE в python скрипт, в котором программа представлена в виде совместимой с Z3 SMT системы состояний контракта и условий их переходов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjo\u002Fmj\u002F5_\u002Fjomj5_tltmq3td9_r-xhyavhhqq.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь опишу, что происходит внутри, поподробней.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо вначале пару слов о языке смарт-контрактов RIDE.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто функциональный и основанный на выражениях язык программирования, ленивый по задумке.\u003Cbr\u002F\u003E\r\nRIDE выполняется изолированно внутри блокчейна, и может извлекать и записывать информацию, из в привязанного к кошельку пользователя хранилища.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК каждому кошельку можно привязать RIDE контракт, и результатом выполнения будет только TRUE или FALSE.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nTRUE означает, что смарт-контракт разрешает транзакцию, а FALSE что он её запрещает.\u003Cbr\u002F\u003E\r\nПростой пример: скрипт может запрещать перевод, в случае если баланс кошелька меньше чем 100.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ качестве примера я возьму всё тех же Волка, Козу, и Капусту, но уже представленных в виде смарт-контракта.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПользователь не сможет вывести деньги с кошелька, на котором развернут контракт, пока не переправит всех на другой берег.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"scala\"\u003E#Извлекаем положение всех объектов из блокчейна\nlet contract = tx.sender\nlet human= extract(getInteger(contract,\"human\"))\nlet wolf= extract(getInteger(contract,\"wolf\"))\nlet goat= extract(getInteger(contract,\"goat\"))\nlet cabbage= extract(getInteger(contract,\"cabbage\"))\n\n#Это так называемая дата-транзакция, в которой пользователь присылает новые 4 переменные.\n#Контракт разрешит её только в случае если все объекты останутся в сохранности.\nmatch tx {\ncase t:DataTransaction =\u003E\n   #Извлекаем будущее положение всех объектов из транзакции\n   let newHuman= extract(getInteger(t.data,\"human\")) \n   let newWolf= extract(getInteger(t.data,\"wolf\"))\n   let newGoat= extract(getInteger(t.data,\"goat\"))\n   let newCabbage= extract(getInteger(t.data,\"cabbage\"))\n   \n   #0 обозначает, что объект на левом берегу, а 1 что на правом\n   let humanSide= human == 0 || human == 1\n   let wolfSide= wolf == 0 || wolf == 1\n   let goatSide= goat == 0 || goat == 1\n   let cabbageSide= cabbage == 0 || cabbage == 1\n   let side= humanSide &amp;&amp; wolfSide &amp;&amp; goatSide &amp;&amp; cabbageSide\n\n   #Будут разрешены только те транзакции, где с козой никого нет в отсутствии фермера.\n   let safeAlone= newGoat != newWolf &amp;&amp; newGoat != newCabbage\n   let safe= safeAlone || newGoat == newHuman\n   let humanTravel= human != newHuman \n\n   #Способы путешествия фермера туда и обратно, с кем-то либо в одиночку.\n   let t1= humanTravel &amp;&amp; newWolf == wolf + 1 &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage \n   let t2= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat + 1 &amp;&amp; newCabbage == cabbage\n   let t3= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage + 1\n   let t4= humanTravel &amp;&amp; newWolf == wolf - 1 &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage\n   let t5= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat - 1 &amp;&amp; newCabbage == cabbage\n   let t6= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage - 1\n   let t7= humanTravel &amp;&amp; newWolf == wolf &amp;&amp; newGoat == goat &amp;&amp; newCabbage == cabbage\n   let objectTravel = t1 || t2 || t3 || t4 || t5 || t6 || t7\n   \n   #Последняя строка в разделе транзакции описывает разрешающее транзакцию условие.\n   #Переменные транзакции должны иметь значения 1 или 0, все объекты должны\n   #быть в безопасности, а фермер должен переплывать реку в одиночку \n   #или с кем-то на каждом шагу\n   side &amp;&amp; safe &amp;&amp; humanTravel &amp;&amp; objectTravel\ncase s:TransferTransaction =\u003E\n   #Транзакция вывода средств разрешена только в случае если все переплыли на другой берег\n   human == 1 &amp;&amp; wolf == 1 &amp;&amp; goat == 1 &amp;&amp; cabbage == 1\n\n#Все прочие типы транзакций запрещены\ncase _ =\u003E false\n\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPHP первым делом извлекает из смарт-контракта все переменные в виде их ключей и соответствующего переменной логического выражения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"scala\"\u003Ecabbage: extract ( getInteger ( contract , \"cabbage\" ) )\ngoat: extract ( getInteger ( contract , \"goat\" ) )\nhuman: extract ( getInteger ( contract , \"human\" ) )\nwolf: extract ( getInteger ( contract , \"wolf\" ) )\nfState: human== 1 &amp;&amp; wolf== 1 &amp;&amp; goat== 1 &amp;&amp; cabbage== 1\nfState: \nwolf: \ngoat: \ncabbage: \ncabbageSide: cabbage== 0 || cabbage== 1\nhuman: extract ( getInteger ( contract , \"human\" ) )\nnewGoat: extract ( getInteger ( t.data , \"goat\" ) )\nnewHuman: extract ( getInteger ( t.data , \"human\" ) )\ngoatSide: goat== 0 || goat== 1\nhumanSide: human== 0 || human== 1\nt7: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage\nt3: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage + 1\nt6: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage - 1\nt2: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat + 1 &amp;&amp; newCabbage== cabbage\nt5: humanTravel &amp;&amp; newWolf== wolf &amp;&amp; newGoat== goat - 1 &amp;&amp; newCabbage== cabbage\nt1: humanTravel &amp;&amp; newWolf== wolf + 1 &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage\nt4: humanTravel &amp;&amp; newWolf== wolf - 1 &amp;&amp; newGoat== goat &amp;&amp; newCabbage== cabbage\nsafeAlone: newGoat != newWolf &amp;&amp; newGoat != newCabbage\nwolfSide: wolf== 0 || wolf== 1\nhumanTravel: human != newHuman\nside: humanSide &amp;&amp; wolfSide &amp;&amp; goatSide &amp;&amp; cabbageSide\nsafe: safeAlone || newGoat== newHuman\nobjectTravel: t1 || t2 || t3 || t4 || t5 || t6 || t7\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗатем PHP преобразует их в совместимое с Z3Prover SMT описание системы на питоне.\u003Cbr\u002F\u003E\r\nДанные же заворачиваются в цикл, где переменные хранилища получают индекс i, переменные транзакции индекс i + 1, а переменные с выражениями задают правила перехода из предыдущего состония в следующее.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто- самое сердце нашей виртуальной машины, которое и обеспечивает мульти-транзакционный механизм поиска.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003EfState:  And( And( And( human[Steps]  ==  1 , wolf[Steps]  ==  1 )  , goat[Steps]  ==  1 )  , cabbage[Steps]  ==  1 )  \nfinal:  fState[Steps] \nfState:   \nwolf:   \ngoat:   \ncabbage:   \ncabbageSide:  Or( cabbage[i]  ==  0 , cabbage[i]  ==  1 )  \ngoatSide:  Or( goat[i]  ==  0 , goat[i]  ==  1 )  \nhumanSide:  Or( human[i]  ==  0 , human[i]  ==  1 )  \nt7:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] )  \nt3:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] + 1 )  \nt6:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] - 1 )  \nt2:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] + 1 )  , cabbage  ==  cabbage[i] )  \nt5:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] )  , goat[i+1]  ==  goat[i] - 1 )  , cabbage  ==  cabbage[i] )  \nt1:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] + 1 )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] )  \nt4:  And( And( And( humanTravel[i] , wolf  ==  wolf[i] - 1 )  , goat[i+1]  ==  goat[i] )  , cabbage  ==  cabbage[i] )  \nsafeAlone:  And( goat[i+1] != wolf , goat[i+1] != cabbage )  \nwolfSide:  Or( wolf[i]  ==  0 , wolf[i]  ==  1 )  \nhumanTravel:  human[i] != human[i+1] \nside:  And( And( And( humanSide[i] , wolfSide[i] )  , goatSide[i] )  , cabbageSide[i] )  \nsafe:  Or( safeAlone[i] , goat[i+1]  ==  human[i+1] )  \nobjectTravel:  Or( Or( Or( Or( Or( Or( t1[i] , t2[i] )  , t3[i] )  , t4[i] )  , t5[i] )  , t6[i] )  , t7[i] )  \ndata:  And( And( And( side[i] , safe[i] )  , humanTravel[i] )  , objectTravel[i] )  \n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nУсловия сортируются и вставляются в шаблон скрипта, предназначенного для описания SMT системы на питоне.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПустой шаблон\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"python\"\u003E\nimport json\n\nfrom z3 import *\n\ns = Solver()\n\n  \n  \n    \nSteps=7\nNum= Steps+1\n\n$code$\n\n\n\n#template, only start rest\ns.add(data + start)\n\n#template\ns.add(final)\n\n\n\n\nind = 0\n\nf = open(\"\u002Fvar\u002Fwww\u002Fhtml\u002Fall\u002Fbin\u002Fpython\u002Flog.txt\", \"a\")\n\n\n\nwhile s.check() == sat:\n  ind = ind +1\n  \n\n  print ind\n  m = s.model()\n  print m\n\n  print \"traversing model...\" \n  #for d in m.decls():\n\t#print \"%s = %s\" % (d.name(), m[d])\n\n  \n \n  f.write(str(m))\n  f.write(\"\\n\\n\")\n  exit()\n  #s.add(Or(goat[0] != s.model()[data[0]] )) # prevent next model from using the same assignment as a previous model\n\n\n\nprint \"Total solution number: \"\nprint ind  \n\nf.close()\n \n\n\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДля последнего состояния из всей цепочки применяются правила, которые заданы в разделе транзакции перевода.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА значит, Z3Prover будет искать именно такие совокупности состояний, которые в итоге позволят вывести с контракта средства.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ итоге мы автоматически получаем полностью работоспособную SMT модель нашего контракта.\u003Cbr\u002F\u003E\r\nМожно заметить, что она весьма похожа на модель из моей предыдущей статьи, которую я составлял ещё вручную.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EЗаполненный шаблон\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"python\"\u003E\nimport json\n\nfrom z3 import *\n\ns = Solver()\n\n  \n  \n    \nSteps=7\nNum= Steps+1\n\nhuman = [ Int('human_%i' % (i + 1)) for i in range(Num) ]\nwolf = [ Int('wolf_%i' % (i + 1)) for i in range(Num) ]\ngoat = [ Int('goat_%i' % (i + 1)) for i in range(Num) ]\ncabbage = [ Int('cabbage_%i' % (i + 1)) for i in range(Num) ]\nnothing= [  And( human[i] == human[i+1], wolf[i] == wolf[i+1], goat[i] == goat[i+1], cabbage[i] == cabbage[i+1] )   for i in range(Num-1) ]\n\n\nstart= [ human[0] == 1, wolf[0] == 0, goat[0] == 1, cabbage[0] == 0 ]\n\nsafeAlone= [  And( goat[i+1] != wolf[i+1] , goat[i+1] != cabbage[i+1] )   for i in range(Num-1) ]\nsafe= [  Or( safeAlone[i] , goat[i+1]  ==  human[i+1] )   for i in range(Num-1) ]\nhumanTravel= [  human[i] != human[i+1]  for i in range(Num-1) ]\ncabbageSide= [  Or( cabbage[i]  ==  0 , cabbage[i]  ==  1 )   for i in range(Num-1) ]\ngoatSide= [  Or( goat[i]  ==  0 , goat[i]  ==  1 )   for i in range(Num-1) ]\nhumanSide= [  Or( human[i]  ==  0 , human[i]  ==  1 )   for i in range(Num-1) ]\nt7= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]\nt3= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] + 1 )   for i in range(Num-1) ]\nt6= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] - 1 )   for i in range(Num-1) ]\nt2= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] + 1 )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]\nt5= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] )  , goat[i+1]  ==  goat[i] - 1 )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]\nt1= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] + 1 )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]\nt4= [  And( And( And( humanTravel[i] , wolf[i+1]  ==  wolf[i] - 1 )  , goat[i+1]  ==  goat[i] )  , cabbage[i+1]  ==  cabbage[i] )   for i in range(Num-1) ]\nwolfSide= [  Or( wolf[i]  ==  0 , wolf[i]  ==  1 )   for i in range(Num-1) ]\nside= [  And( And( And( humanSide[i] , wolfSide[i] )  , goatSide[i] )  , cabbageSide[i] )   for i in range(Num-1) ]\nobjectTravel= [  Or( Or( Or( Or( Or( Or( t1[i] , t2[i] )  , t3[i] )  , t4[i] )  , t5[i] )  , t6[i] )  , t7[i] )   for i in range(Num-1) ]\ndata= [ Or(  And( And( And( side[i] , safe[i] )  , humanTravel[i] )  , objectTravel[i] )   , nothing[i]) for i in range(Num-1) ]\n\n\nfState=  And( And( And( human[Steps]  ==  1 , wolf[Steps]  ==  1 )  , goat[Steps]  ==  1 )  , cabbage[Steps]  ==  1 )  \nfinal=  fState \n\n\n\n\n#template, only start rest\ns.add(data + start)\n\n#template\ns.add(final)\n\n\n\n\nind = 0\n\nf = open(\"\u002Fvar\u002Fwww\u002Fhtml\u002Fall\u002Fbin\u002Fpython\u002Flog.txt\", \"a\")\n\n\n\nwhile s.check() == sat:\n  ind = ind +1\n  \n\n  print ind\n  m = s.model()\n  print m\n\n  print \"traversing model...\" \n  #for d in m.decls():\n\t#print \"%s = %s\" % (d.name(), m[d])\n\n  \n \n  f.write(str(m))\n  f.write(\"\\n\\n\")\n  exit()\n  #s.add(Or(goat[0] != s.model()[data[0]] )) # prevent next model from using the same assignment as a previous model\n\n\n\nprint \"Total solution number: \"\nprint ind  \n\nf.close()\n \n\n\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nПосле запуска, Z3Prover решает смарт-контракт и выводит нам цепочку транзакций, которая позволит вывести средства:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003EWinning transaction chain found:\nData transaction: human= 0, wolf= 0, goat= 1, cabbage= 0\nData transaction: human= 1, wolf= 0, goat= 1, cabbage= 1\nData transaction: human= 0, wolf= 0, goat= 0, cabbage= 1\nData transaction: human= 1, wolf= 1, goat= 0, cabbage= 1\nData transaction: human= 0, wolf= 1, goat= 0, cabbage= 1\nData transaction: human= 1, wolf= 1, goat= 1, cabbage= 1\nData transaction: human= 1, wolf= 1, goat= 1, cabbage= 1\nTransfer transaction\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКроме контракта переправы, можно поэкспериментировать с собственными контрактами или попробовать этот простой пример, который решается за 2 транзакции.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"scala\"\u003Elet contract = tx.sender\nlet a= extract(getInteger(contract,\"a\"))\nlet b= extract(getInteger(contract,\"b\"))\nlet c= extract(getInteger(contract,\"c\"))\nlet d= extract(getInteger(contract,\"d\"))\n\nmatch tx {\ncase t:DataTransaction =\u003E\nlet na= extract(getInteger(t.data,\"a\")) \nlet nb= extract(getInteger(t.data,\"b\"))\nlet nc= extract(getInteger(t.data,\"c\"))\nlet nd= extract(getInteger(t.data,\"d\"))\n   \n   nd == 0 || a == 100 - 5\ncase s:TransferTransaction =\u003E\n   ( a + b - c ) * d == 12\n\ncase _ =\u003E true\n\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТак как это самая первая версия, то синтаксис весьма ограничен и могут встречаться баги.\u003Cbr\u002F\u003E\r\nВ следующих статьях я планирую осветить дальнейшую разработку VM, и показать, как можно создавать формально верифицированные смарт-контракты с её помощью, а не только решать их.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСимвольная виртуальная машина доступна по адресу \u003Ca href=\"http:\u002F\u002F2.59.42.98\u002Fhyperbox\u002F\"\u003Ehttp:\u002F\u002F2.59.42.98\u002Fhyperbox\u002F\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nИсходники доступны на github: \u003Ca href=\"http:\u002F\u002Fgithub.com\u002Fscp1001\u002Fhyperbox\"\u003Ehttp:\u002F\u002Fgithub.com\u002Fscp1001\u002Fhyperbox\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nВся логика VM содержится в 2 файлах, hyperbox.php и hyperbox2.php\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"формальная верификация"},{"titleHtml":"формальные методы"},{"titleHtml":"решатель"},{"titleHtml":"логика Хоара"},{"titleHtml":"символьное выполнение"},{"titleHtml":"blockchain"},{"titleHtml":"SMT"},{"titleHtml":"Z3"},{"titleHtml":"NP"},{"titleHtml":"вычислительная сложность"},{"titleHtml":"проблема остановки"},{"titleHtml":"верификация программ"},{"titleHtml":"защита программ"},{"titleHtml":"информационная безопасность"},{"titleHtml":"RIDE"},{"titleHtml":"8 ферзей"},{"titleHtml":"поиск уязвимостей"},{"titleHtml":"Coq"},{"titleHtml":"Isabelle"},{"titleHtml":"WhyML"},{"titleHtml":"TLA"},{"titleHtml":"seL4"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450016\u002F1136b0fcad4b9dfa632ff21f06f7c173\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450016\u002F1136b0fcad4b9dfa632ff21f06f7c173\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450016\\\u002F\"},\"headline\":\"Создание системы формальной верификации с нуля. Часть 1: символьная виртуальная машина на PHP и Python\",\"datePublished\":\"2019-04-29T17:32:29+03:00\",\"dateModified\":\"2019-04-30T11:50:09+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Якимов Святослав\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Формальная верификация &mdash; это проверка одной программы либо алгоритма с помощью другой.  Это один из самых мощных методов, который позволяет найти в программе все...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450016\\\u002F#post-content-body\",\"about\":[\"h_p2p\",\"h_infosecurity\",\"h_crazydev\",\"h_php\",\"h_python\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjo\\\u002Fmj\\\u002F5_\\\u002Fjomj5_tltmq3td9_r-xhyavhhqq.png\"]}","metaDescription":"Формальная верификация — это проверка одной программы либо алгоритма с помощью другой.\r\n\r\nЭто один из самых мощных методов, который позволяет найти в программе все уязвимости либо же доказать, что их...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[{"title":"PHP программист","vacanciesCount":271,"itemUrl":"https:\u002F\u002Fcareer.habr.com\u002Fvacancies\u002Fphp_programmist","itemHubs":["php"]},{"title":"Разработчик Laravel","vacanciesCount":98,"itemUrl":"https:\u002F\u002Fcareer.habr.com\u002Fvacancies\u002Fprogrammist_laravel","itemHubs":["laravel","php"]}],"hubs":"p2p,infosecurity,crazydev,php,python"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

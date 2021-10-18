@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Быстрый кэш на C/C++, потокобезопасность / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450004\/"},"headline":"Быстрый кэш на C\/C++, потокобезопасность","datePublished":"2019-04-29T16:48:10+03:00","dateModified":"2019-04-30T05:08:05+03:00","author":{"@type":"Person","name":"DimaBond174"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Сравнительное тестирование многопоточных кэшей реализованных на C\/C++ и описание как устроен LRU\/MRU кэш серии O(n)Cache**RU За десятки лет было разработано множ...","url":"https:\/\/habr.com\/ru\/post\/450004\/#post-content-body","about":["h_hi","h_programming","h_cpp","h_algorithms","h_github","f_develop"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2af\/2d2\/f31\/2af2d2f3164176a1cf471c2cad1a4046.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/1c7\/217\/af4\/1c7217af425c0aa4df787539f1da5533.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/920\/cc6\/95b\/920cc695bd3a4a41f956a7782a3b65aa.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/1ce\/b9f\/648\/1ceb9f648a8899ed3ac711d236c6c0d1.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d9d\/b3f\/aef\/d9db3faefdd6c2ab68dd86b89fda15a6.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Быстрый кэш на C/C++, потокобезопасность" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Быстрый кэш на C/C++, потокобезопасность" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Быстрый кэш на C/C++, потокобезопасность" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Сравнительное тестирование многопоточных кэшей реализованных на C/C++ и описание как устроен LRU/MRU кэш серии O(n)Cache**RU
+За десятки лет было разработано множество алгоритмов кэширования: LRU,..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Сравнительное тестирование многопоточных кэшей реализованных на C/C++ и описание как устроен LRU/MRU кэш серии O(n)Cache**RU
+За десятки лет было разработано множество алгоритмов кэширования: LRU,..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Сравнительное тестирование многопоточных кэшей реализованных на C/C++ и описание как устроен LRU/MRU кэш серии O(n)Cache**RU
+За десятки лет было разработано множество алгоритмов кэширования: LRU,..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Сравнительное тестирование многопоточных кэшей реализованных на C/C++ и описание как устроен LRU/MRU кэш серии O(n)Cache**RU
+За десятки лет было разработано множество алгоритмов кэширования: LRU,..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Сравнительное тестирование многопоточных кэшей реализованных на C/C++ и описание как устроен LRU/MRU кэш серии O(n)Cache**RU
+За десятки лет было разработано множество алгоритмов кэширования: LRU,..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450004/f4dcfb6d15610aca57a7d10edc8c9b63/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450004/f4dcfb6d15610aca57a7d10edc8c9b63/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450004/f4dcfb6d15610aca57a7d10edc8c9b63/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450004/f4dcfb6d15610aca57a7d10edc8c9b63/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450004/f4dcfb6d15610aca57a7d10edc8c9b63/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450004" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-29T13:48:10.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450004/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450004/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450004/f4dcfb6d15610aca57a7d10edc8c9b63/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/DimaBond174/" title="DimaBond174" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/cf0/9d3/fbc/cf09d3fbce70325d618d2b71ab441e68.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/DimaBond174/" class="tm-user-info__username">
+      DimaBond174
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-29T13:48:10.000Z" title="2019-04-29, 16:48">29  апреля  2019 в 16:48</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Быстрый кэш на C/C++, потокобезопасность</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/hi/" class="tm-article-snippet__hubs-item-link"><span>Высокая производительность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/programming/" class="tm-article-snippet__hubs-item-link"><span>Программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/cpp/" class="tm-article-snippet__hubs-item-link"><span>C++</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/algorithms/" class="tm-article-snippet__hubs-item-link"><span>Алгоритмы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/github/" class="tm-article-snippet__hubs-item-link"><span>GitHub</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><h2>Сравнительное тестирование многопоточных кэшей реализованных на C/C++ и описание как устроен LRU/MRU кэш серии O(n)Cache**RU</h2><a name="habracut"></a><br/>
+<p>За десятки лет было разработано множество алгоритмов кэширования: <a href="https://ru.wikipedia.org/wiki/%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D1%8B_%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F">LRU, MRU, ARC, и другие…</a>. Однако когда понадобился кэш для многопоточной работы, гугление на эту тему дало полтора варианта, а вопрос на StackOverflow вообще остался без ответа. Нашел <a href="https://github.com/facebook/hhvm/blob/master/hphp/util/concurrent-lru-cache.h">решение от Facebook</a> которое опирается на потокобезопасные контейнеры <a href="https://github.com/01org/tbb">репозитория Intel TBB</a>. У последнего также есть <a href="https://github.com/01org/tbb/blob/2ace525889b0c3de9c90da943fac9259220ef35f/include/tbb/concurrent_lru_cache.h">многопоточный LRU кеш</a> пока ещё в стадии бета-тестирования и поэтому для его использования требуется явно указать в проекте:</p><br/>
+<pre><code class="cpp">#define TBB_PREVIEW_CONCURRENT_LRU_CACHE true</code></pre><br/>
+<p>Иначе компилятор покажет ошибку так как в Intel TBB коде стоит проверка:</p><br/>
+<pre><code class="cpp">#if ! TBB_PREVIEW_CONCURRENT_LRU_CACHE
+    #error Set TBB_PREVIEW_CONCURRENT_LRU_CACHE to include concurrent_lru_cache.h
+#endif</code></pre><br/>
+<p>Захотелось как-то сравнить производительность кэшей — какой выбрать? Или написать свой? Ранее, когда сравнивал однопоточные кэши (<a href="https://github.com/DimaBond174/cache_single_thread">ссылка</a>), получил предложения попробовать в других условиях с другими ключами и понял, что требуется более удобный расширяемый стенд для тестирования. Для того, чтобы было удобнее добавлять в тесты конкурирующие алгоритмы, решил оборачивать их в стандартный интерфейс:</p><br/>
+<pre><code class="cpp">class IAlgorithmTester  {
+ public:
+  IAlgorithmTester()  =  default;
+  virtual ~IAlgorithmTester()  {  }
+  virtual void  onStart(std::shared_ptr&lt;IConfig>  &amp;cfg)  =  0;
+  virtual void  onStop()  =  0;
+  virtual void  insert(void  *elem)  =  0;
+  virtual bool  exist(void  *elem)  =  0;
+  virtual const char *  get_algorithm_name()  =  0;
+ private:
+  IAlgorithmTester(const  IAlgorithmTester&amp;)  =  delete;
+  IAlgorithmTester&amp; operator=(const  IAlgorithmTester&amp;)  =  delete;
+};</code></pre><br/>
+<p>Аналогично в интерфейсы обвёрнуты: работа с операционной системой, получение настроек, тест-кейсы и др. <a href="https://github.com/DimaBond174/cache_multi_thread">Исходники выложены в репозиторий</a>. Сейчас на стенде два тест-кейса: вставка/поиск до 1000000 элементов с ключом из случайно сгенерированных чисел и до 100000 элементов со строковым ключом (берётся из 10Мб строк wiki.train.tokens). Для оценки времени выполнения каждый тестируемый кэш сперва прогревается на целевой объем без временных замеров, затем семафор спускает с цепи потоки по добавлению и поиску данных. Количество потоков и настройки тест-кейсов задаются в <a href="https://github.com/DimaBond174/cache_multi_thread/blob/master/assets/settings.json">assets/settings.json</a>. Пошаговые инструкции по компиляции и описание JSON настроек описано в <a href="https://github.com/DimaBond174/cache_multi_thread/wiki">WiKi репозитория</a>. Время засекается с момента спуска семафора и до остановки последней нити. Вот что получилось:</p><br/>
+<p>Тест-кейс1 — ключ в виде массива случайных чисел uint64_t keyArray[3]:</p><br/>
+<p><img src="/img/image-loader.svg" alt="TestCase1.Nthread" data-src="https://habrastorage.org/getpro/habr/post_images/2af/2d2/f31/2af2d2f3164176a1cf471c2cad1a4046.png"/></p><br/>
+<p>Тест-кейс2 — ключ в виде строки:</p><br/>
+<p><img src="/img/image-loader.svg" alt="TestCase2.Nthread" data-src="https://habrastorage.org/getpro/habr/post_images/1c7/217/af4/1c7217af425c0aa4df787539f1da5533.png"/></p><br/>
+<p>Обратите внимание на то что объём вставляемых/искомых данных на каждом шаге тест-кейса увеличивается в 10 раз. Затем время, которое ушло на обработку очередного объёма, я делю соответственно на 10, 100, 1000… Если алгоритм по временной сложности ведёт себя как O(n), то график времени будет оставаться примерно параллельным оси Х. Дальше раскрою сакральные знания, как удалось получить 3-5 кратное превосходство над кешем Facebook в алгоритмах серии O(n)Cache**RU при работе со строковым ключом:</p><br/>
+<ol>
+<li>Хеш функция вместо того, чтобы считать каждую букву строки, просто кастит указатель на данные строки к uint64_t keyArray[3] и считает сумму целых чисел. То есть работает подобно передаче "Угадай мелодию" — а я угадаю мелодию по 3 нотам… 3 * 8 = 24 буквам если латиница, и это уже позволяет достаточно хорошо раскидать строки по хэш-корзинам. Да, в хэш-корзине может собраться много строк, и тут начинает давать ускорение алгоритм:</li>
+<li><a href="https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D1%81_%D0%BF%D1%80%D0%BE%D0%BF%D1%83%D1%81%D0%BA%D0%B0%D0%BC%D0%B8">Skip List</a> в каждой корзине позволяет быстро двигаться скачками сперва по различающимся хэшам (id корзины = хэш % количество корзин, поэтому в одной корзине могут появиться разные хэши), затем в рамках одного хэша по вершинам:<br/>
+<img src="/img/image-loader.svg" alt="skip" data-src="https://habrastorage.org/getpro/habr/post_images/920/cc6/95b/920cc695bd3a4a41f956a7782a3b65aa.gif"/></li>
+<li>Узлы в которых хранятся ключи и данные берутся из предварительно аллоцированного массива узлов, количество узлов совпадает с ёмкостью кэша. Atomic идентификатор указывает, какой узел брать следующим — если доходит до конца пула узлов, то начинает с 0 = так аллокатор ходит по кругу перезатирая старые узлы (<a href="https://github.com/DimaBond174/cache_multi_thread/blob/master/src/caches/oncachemlru.h">LRU кэш в OnCacheMLRU</a>).</li>
+</ol><br/>
+<p>Для случая, когда необходимо, чтобы в кэше сохранялись самые популярные в поисковых запросах элементы, создан <a href="https://github.com/DimaBond174/cache_multi_thread/blob/master/src/caches/oncachemmru.h">второй класс OnCacheMMRU</a>, алгоритм следующий: в конструктор класса кроме ёмкости кэша передаётся вторым параметром uint32_t uselessness граница популярности — если количество поисковых запросов возжелавших текущий узел из циклического пула меньше границы uselessness, то узел переиспользуется под следующую операцию вставки (будет evicted). Если на данном круге популярность узла (std::atomic&lt;uint32_t> used { 0 }) высока, то в момент запроса аллокатора из циклического пула узел сможет выжить, но счётчик популярности будет сброшен в 0. Так узел будет существовать ещё один круг прохода аллокатора по пулу узлов и получит шанс снова набрать популярность, чтобы продолжить существование. То есть это смесь алгоритмов MRU (где самые популярные зависают в кэше навечно) и MQ (где отслеживается время жизни). Кэш постоянно обновляется и при этом работает очень быстро — вместо 10 серверов можно будет поставить 1..</p><br/>
+<p>По-крупному алгоритм кэширования тратит время на следующее:</p><br/>
+<ol>
+<li>Поддержание инфраструктуры кэша (контейнеры, аллокаторы, отслеживание времени жизни и популярности элементов)</li>
+<li>Расчёт хэша и операции сравнения ключа при добавлении/поиске данных</li>
+<li>Алгоритмы поиска: Red-Black Tree, Hash Table, Skip List, ...</li>
+</ol><br/>
+<p>Требовалось просто уменьшить время работы каждого из этих пунктов, учитывая тот факт, что максимально простой алгоритм оказывается по временной сложности зачастую максимально эффективным, так как любая логика занимает такты CPU. То есть что бы Вы ни написали — это операции, которые должны окупиться во времени в сравнении с методом простого перебора: пока происходит вызов очередной функции, перебор успеет пройти ещё сотню-другую узлов. В этом свете многопоточные кэши будут всегда проигрывать однопоточным, так как защита корзин через std::shared_mutex и узлов через std::atomic_flag in_use — это не бесплатно. Поэтому для выдачи на сервере я использую однопоточный кэш <a href="https://github.com/DimaBond174/cache_multi_thread/blob/master/src/caches/oncachesmru.h">OnCacheSMRU</a> в главном потоке Epoll сервера (в параллельные рабочие потоки вынесены только длительные операции по работе с СУБД, диском, криптография). Для сравнительной оценки используется однопоточный вариант тест-кейсов:</p><br/>
+<p>Тест-кейс1 — ключ в виде массива случайных чисел uint64_t keyArray[3]:</p><br/>
+<p><img src="/img/image-loader.svg" alt="TestCase1.1thread" data-src="https://habrastorage.org/getpro/habr/post_images/1ce/b9f/648/1ceb9f648a8899ed3ac711d236c6c0d1.png"/></p><br/>
+<p>Тест-кейс2 — ключ в виде строки:</p><br/>
+<p><img src="/img/image-loader.svg" alt="TestCase2.1thread" data-src="https://habrastorage.org/getpro/habr/post_images/d9d/b3f/aef/d9db3faefdd6c2ab68dd86b89fda15a6.png"/></p><br/>
+<p>В завершение хочу рассказать, чего ещё интересного можно извлечь из исходников тестового стенда: </p><br/>
+<ul>
+<li><a href="https://github.com/DimaBond174/cache_multi_thread/blob/master/src/configs/json/specjson.h">Библиотека парсинга JSON, состоящая из одного файла specjson.h</a> — маленький простой быстрый алгоритм для тех, кто не хочет тащить в свой проект несколько мегабайт чужого кода ради того, чтобы распарсить файл настроек или входящие JSON известного формата.</li>
+<li>Подход с инжектированием реализации платформенно-зависимых операций в виде ( class LinuxSystem: public ISystem {… } ) вместо традиционного ( #ifdef _WIN32 ). Так удобнее оборачивать, например, семафоры, работу с динамически подключаемыми библиотеками, сервисами — в классах только код и заголовки от конкретной операционной системы. Если нужна другая операционная система — инжектируешь другую реализацию (class WindowsSystem: public ISystem {… } ).</li>
+<li>Стенд собирается CMake — проект CMakeLists.txt удобно открывать в Qt Creator или Microsoft Visual Studio 2017. Работа с проектом через CmakeLists.txt позволяет автоматизировать некоторые подготовительные операции — например скопировать файлы тест-кейсов и настроечные файлы в инсталляционный каталог:</li>
+</ul><br/>
+<pre><code class="cmake">     # Coping assets (TODO any change&amp;rerun CMake to copy):
+     FILE(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)
+     FILE(GLOB_RECURSE SpecAssets
+         ${CMAKE_CURRENT_SOURCE_DIR}/assets/*.*
+         ${CMAKE_CURRENT_SOURCE_DIR}/assets/*
+     )
+     FOREACH(file ${SpecAssets})
+         FILE(RELATIVE_PATH
+             ITEM_PATH_REL
+             ${CMAKE_CURRENT_SOURCE_DIR}/assets
+             ${file}
+         )
+         GET_FILENAME_COMPONENT(dirname ${ITEM_PATH_REL} DIRECTORY)
+         FILE(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/${dirname})
+         FILE(COPY ${file} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets/${dirname})
+     ENDFOREACH()</code></pre><br/>
+<ul>
+<li>Для тех, кто осваивает новые возможности C++17, это пример работы с std::shared_mutex, std::allocator&lt;std::shared_mutex>, static thread_local в шаблонах (есть нюансы — где аллоцировать?), запуск большого числа тестов в потоках разными способами с замером времени исполнения:</li>
+</ul><br/>
+<pre><code class="cpp">    //Prepare insert threads:
+    for (i  = cnt_insert_threads;  i;  --i)  {
+      std::promise&lt;InsertResults>  prom;
+      fut_insert_results.emplace_back(prom.get_future());
+      threads.emplace_back(std::thread (&amp;TestCase2::insert_in_thread,
+          this,  curSize,  std::move(prom),  p_tester));
+    } // for insert
+
+    //Prepare find threads:
+    for (i  = cnt_find_threads;  i;  --i)  {
+      std::packaged_task&lt;FindResults(TestCase2  *i, int,  IAlgorithmTester  *)> ta(
+            [](TestCase2  *i, int  count,  IAlgorithmTester  *p_tester){
+         return i->find_in_thread(count,  p_tester);
+      });
+
+      fut_find_results.emplace_back(ta.get_future());
+      threads.emplace_back(
+        std::thread (std::move(ta),  this,  curSize,  p_tester));
+    } // for find
+
+    //Banzai!!!
+    auto  start  =  std::chrono::high_resolution_clock::now();
+    l_cur_system.get()->signal_semaphore(cnt_find_threads  +  cnt_insert_threads);
+    std::for_each(threads.begin(), threads.end(), std::mem_fn(&amp;std::thread::join));
+    auto  end  =  std::chrono::high_resolution_clock::now();</code></pre><br/>
+<ul>
+<li>Пошаговая инструкция как скомпилировать, настроить и запустить этот тестовый стенд — <a href="https://github.com/DimaBond174/cache_multi_thread/wiki">WiKi</a>.<br/>
+Если для удобной Вам операционной системы ещё нет пошаговой инструкции, то буду признателен за вклад в репозиторий за реализацию ISystem и пошаговую инструкцию по компиляции (для WiKi)… Или просто напишите мне — постараюсь найти время, чтобы поднять виртуалку и описать шаги по сборке.</li>
+</ul></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BLRU%5D" class="tm-tags-list__link">LRU</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BMRU%5D" class="tm-tags-list__link">MRU</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcache%5D" class="tm-tags-list__link">cache</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/hi/" class="tm-hubs-list__link">
+    Высокая производительность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/programming/" class="tm-hubs-list__link">
+    Программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/cpp/" class="tm-hubs-list__link">
+    C++
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/algorithms/" class="tm-hubs-list__link">
+    Алгоритмы
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/github/" class="tm-hubs-list__link">
+    GitHub
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 14: ↑14 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 14: ↑14 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+14</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">9.6K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    100
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/DimaBond174/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/cf0/9d3/fbc/cf09d3fbce70325d618d2b71ab441e68.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 15 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    11
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/DimaBond174/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @DimaBond174
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450004/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 9 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450004/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450004/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450004":{"id":"450004","timePublished":"2019-04-29T13:48:10+00:00","isCorporative":false,"lang":"ru","titleHtml":"Быстрый кэш на C\u002FC++, потокобезопасность","leadData":{"textHtml":"\u003Ch2\u003EСравнительное тестирование многопоточных кэшей реализованных на C\u002FC++ и описание как устроен LRU\u002FMRU кэш серии O(n)Cache**RU\u003C\u002Fh2\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":11,"votesCount":15},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"2038727","alias":"DimaBond174","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fcf0\u002F9d3\u002Ffbc\u002Fcf09d3fbce70325d618d2b71ab441e68.jpg","speciality":"Пользователь"},"statistics":{"commentsCount":9,"favoritesCount":100,"readingCount":9612,"score":14,"votesCount":14},"hubs":[{"relatedData":null,"id":"4","alias":"hi","type":"collective","title":"Высокая производительность","titleHtml":"Высокая производительность","isProfiled":true},{"relatedData":null,"id":"359","alias":"programming","type":"collective","title":"Программирование","titleHtml":"Программирование","isProfiled":true},{"relatedData":null,"id":"559","alias":"cpp","type":"collective","title":"C++","titleHtml":"C++","isProfiled":true},{"relatedData":null,"id":"8000","alias":"algorithms","type":"collective","title":"Алгоритмы","titleHtml":"Алгоритмы","isProfiled":true},{"relatedData":null,"id":"18790","alias":"github","type":"collective","title":"GitHub","titleHtml":"GitHub","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Ch2\u003EСравнительное тестирование многопоточных кэшей реализованных на C\u002FC++ и описание как устроен LRU\u002FMRU кэш серии O(n)Cache**RU\u003C\u002Fh2\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗа десятки лет было разработано множество алгоритмов кэширования: \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D1%8B_%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F\"\u003ELRU, MRU, ARC, и другие…\u003C\u002Fa\u003E. Однако когда понадобился кэш для многопоточной работы, гугление на эту тему дало полтора варианта, а вопрос на StackOverflow вообще остался без ответа. Нашел \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Ffacebook\u002Fhhvm\u002Fblob\u002Fmaster\u002Fhphp\u002Futil\u002Fconcurrent-lru-cache.h\"\u003Eрешение от Facebook\u003C\u002Fa\u003E которое опирается на потокобезопасные контейнеры \u003Ca href=\"https:\u002F\u002Fgithub.com\u002F01org\u002Ftbb\"\u003Eрепозитория Intel TBB\u003C\u002Fa\u003E. У последнего также есть \u003Ca href=\"https:\u002F\u002Fgithub.com\u002F01org\u002Ftbb\u002Fblob\u002F2ace525889b0c3de9c90da943fac9259220ef35f\u002Finclude\u002Ftbb\u002Fconcurrent_lru_cache.h\"\u003Eмногопоточный LRU кеш\u003C\u002Fa\u003E пока ещё в стадии бета-тестирования и поэтому для его использования требуется явно указать в проекте:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E#define TBB_PREVIEW_CONCURRENT_LRU_CACHE true\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИначе компилятор покажет ошибку так как в Intel TBB коде стоит проверка:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E#if ! TBB_PREVIEW_CONCURRENT_LRU_CACHE\n    #error Set TBB_PREVIEW_CONCURRENT_LRU_CACHE to include concurrent_lru_cache.h\n#endif\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗахотелось как-то сравнить производительность кэшей — какой выбрать? Или написать свой? Ранее, когда сравнивал однопоточные кэши (\u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_single_thread\"\u003Eссылка\u003C\u002Fa\u003E), получил предложения попробовать в других условиях с другими ключами и понял, что требуется более удобный расширяемый стенд для тестирования. Для того, чтобы было удобнее добавлять в тесты конкурирующие алгоритмы, решил оборачивать их в стандартный интерфейс:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eclass IAlgorithmTester  {\n public:\n  IAlgorithmTester()  =  default;\n  virtual ~IAlgorithmTester()  {  }\n  virtual void  onStart(std::shared_ptr&lt;IConfig\u003E  &amp;cfg)  =  0;\n  virtual void  onStop()  =  0;\n  virtual void  insert(void  *elem)  =  0;\n  virtual bool  exist(void  *elem)  =  0;\n  virtual const char *  get_algorithm_name()  =  0;\n private:\n  IAlgorithmTester(const  IAlgorithmTester&amp;)  =  delete;\n  IAlgorithmTester&amp; operator=(const  IAlgorithmTester&amp;)  =  delete;\n};\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EАналогично в интерфейсы обвёрнуты: работа с операционной системой, получение настроек, тест-кейсы и др. \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\"\u003EИсходники выложены в репозиторий\u003C\u002Fa\u003E. Сейчас на стенде два тест-кейса: вставка\u002Fпоиск до 1000000 элементов с ключом из случайно сгенерированных чисел и до 100000 элементов со строковым ключом (берётся из 10Мб строк wiki.train.tokens). Для оценки времени выполнения каждый тестируемый кэш сперва прогревается на целевой объем без временных замеров, затем семафор спускает с цепи потоки по добавлению и поиску данных. Количество потоков и настройки тест-кейсов задаются в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fblob\u002Fmaster\u002Fassets\u002Fsettings.json\"\u003Eassets\u002Fsettings.json\u003C\u002Fa\u003E. Пошаговые инструкции по компиляции и описание JSON настроек описано в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fwiki\"\u003EWiKi репозитория\u003C\u002Fa\u003E. Время засекается с момента спуска семафора и до остановки последней нити. Вот что получилось:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТест-кейс1 — ключ в виде массива случайных чисел uint64_t keyArray[3]:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"TestCase1.Nthread\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2af\u002F2d2\u002Ff31\u002F2af2d2f3164176a1cf471c2cad1a4046.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТест-кейс2 — ключ в виде строки:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"TestCase2.Nthread\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F1c7\u002F217\u002Faf4\u002F1c7217af425c0aa4df787539f1da5533.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбратите внимание на то что объём вставляемых\u002Fискомых данных на каждом шаге тест-кейса увеличивается в 10 раз. Затем время, которое ушло на обработку очередного объёма, я делю соответственно на 10, 100, 1000… Если алгоритм по временной сложности ведёт себя как O(n), то график времени будет оставаться примерно параллельным оси Х. Дальше раскрою сакральные знания, как удалось получить 3-5 кратное превосходство над кешем Facebook в алгоритмах серии O(n)Cache**RU при работе со строковым ключом:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EХеш функция вместо того, чтобы считать каждую букву строки, просто кастит указатель на данные строки к uint64_t keyArray[3] и считает сумму целых чисел. То есть работает подобно передаче \"Угадай мелодию\" — а я угадаю мелодию по 3 нотам… 3 * 8 = 24 буквам если латиница, и это уже позволяет достаточно хорошо раскидать строки по хэш-корзинам. Да, в хэш-корзине может собраться много строк, и тут начинает давать ускорение алгоритм:\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D1%81_%D0%BF%D1%80%D0%BE%D0%BF%D1%83%D1%81%D0%BA%D0%B0%D0%BC%D0%B8\"\u003ESkip List\u003C\u002Fa\u003E в каждой корзине позволяет быстро двигаться скачками сперва по различающимся хэшам (id корзины = хэш % количество корзин, поэтому в одной корзине могут появиться разные хэши), затем в рамках одного хэша по вершинам:\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"skip\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F920\u002Fcc6\u002F95b\u002F920cc695bd3a4a41f956a7782a3b65aa.gif\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EУзлы в которых хранятся ключи и данные берутся из предварительно аллоцированного массива узлов, количество узлов совпадает с ёмкостью кэша. Atomic идентификатор указывает, какой узел брать следующим — если доходит до конца пула узлов, то начинает с 0 = так аллокатор ходит по кругу перезатирая старые узлы (\u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fblob\u002Fmaster\u002Fsrc\u002Fcaches\u002Foncachemlru.h\"\u003ELRU кэш в OnCacheMLRU\u003C\u002Fa\u003E).\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля случая, когда необходимо, чтобы в кэше сохранялись самые популярные в поисковых запросах элементы, создан \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fblob\u002Fmaster\u002Fsrc\u002Fcaches\u002Foncachemmru.h\"\u003Eвторой класс OnCacheMMRU\u003C\u002Fa\u003E, алгоритм следующий: в конструктор класса кроме ёмкости кэша передаётся вторым параметром uint32_t uselessness граница популярности — если количество поисковых запросов возжелавших текущий узел из циклического пула меньше границы uselessness, то узел переиспользуется под следующую операцию вставки (будет evicted). Если на данном круге популярность узла (std::atomic&lt;uint32_t\u003E used { 0 }) высока, то в момент запроса аллокатора из циклического пула узел сможет выжить, но счётчик популярности будет сброшен в 0. Так узел будет существовать ещё один круг прохода аллокатора по пулу узлов и получит шанс снова набрать популярность, чтобы продолжить существование. То есть это смесь алгоритмов MRU (где самые популярные зависают в кэше навечно) и MQ (где отслеживается время жизни). Кэш постоянно обновляется и при этом работает очень быстро — вместо 10 серверов можно будет поставить 1..\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПо-крупному алгоритм кэширования тратит время на следующее:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EПоддержание инфраструктуры кэша (контейнеры, аллокаторы, отслеживание времени жизни и популярности элементов)\u003C\u002Fli\u003E\r\n\u003Cli\u003EРасчёт хэша и операции сравнения ключа при добавлении\u002Fпоиске данных\u003C\u002Fli\u003E\r\n\u003Cli\u003EАлгоритмы поиска: Red-Black Tree, Hash Table, Skip List, ...\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТребовалось просто уменьшить время работы каждого из этих пунктов, учитывая тот факт, что максимально простой алгоритм оказывается по временной сложности зачастую максимально эффективным, так как любая логика занимает такты CPU. То есть что бы Вы ни написали — это операции, которые должны окупиться во времени в сравнении с методом простого перебора: пока происходит вызов очередной функции, перебор успеет пройти ещё сотню-другую узлов. В этом свете многопоточные кэши будут всегда проигрывать однопоточным, так как защита корзин через std::shared_mutex и узлов через std::atomic_flag in_use — это не бесплатно. Поэтому для выдачи на сервере я использую однопоточный кэш \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fblob\u002Fmaster\u002Fsrc\u002Fcaches\u002Foncachesmru.h\"\u003EOnCacheSMRU\u003C\u002Fa\u003E в главном потоке Epoll сервера (в параллельные рабочие потоки вынесены только длительные операции по работе с СУБД, диском, криптография). Для сравнительной оценки используется однопоточный вариант тест-кейсов:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТест-кейс1 — ключ в виде массива случайных чисел uint64_t keyArray[3]:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"TestCase1.1thread\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F1ce\u002Fb9f\u002F648\u002F1ceb9f648a8899ed3ac711d236c6c0d1.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТест-кейс2 — ключ в виде строки:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"TestCase2.1thread\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd9d\u002Fb3f\u002Faef\u002Fd9db3faefdd6c2ab68dd86b89fda15a6.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ завершение хочу рассказать, чего ещё интересного можно извлечь из исходников тестового стенда: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fblob\u002Fmaster\u002Fsrc\u002Fconfigs\u002Fjson\u002Fspecjson.h\"\u003EБиблиотека парсинга JSON, состоящая из одного файла specjson.h\u003C\u002Fa\u003E — маленький простой быстрый алгоритм для тех, кто не хочет тащить в свой проект несколько мегабайт чужого кода ради того, чтобы распарсить файл настроек или входящие JSON известного формата.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодход с инжектированием реализации платформенно-зависимых операций в виде ( class LinuxSystem: public ISystem {… } ) вместо традиционного ( #ifdef _WIN32 ). Так удобнее оборачивать, например, семафоры, работу с динамически подключаемыми библиотеками, сервисами — в классах только код и заголовки от конкретной операционной системы. Если нужна другая операционная система — инжектируешь другую реализацию (class WindowsSystem: public ISystem {… } ).\u003C\u002Fli\u003E\r\n\u003Cli\u003EСтенд собирается CMake — проект CMakeLists.txt удобно открывать в Qt Creator или Microsoft Visual Studio 2017. Работа с проектом через CmakeLists.txt позволяет автоматизировать некоторые подготовительные операции — например скопировать файлы тест-кейсов и настроечные файлы в инсталляционный каталог:\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cmake\"\u003E     # Coping assets (TODO any change&amp;rerun CMake to copy):\n     FILE(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}\u002Fassets)\n     FILE(GLOB_RECURSE SpecAssets\n         ${CMAKE_CURRENT_SOURCE_DIR}\u002Fassets\u002F*.*\n         ${CMAKE_CURRENT_SOURCE_DIR}\u002Fassets\u002F*\n     )\n     FOREACH(file ${SpecAssets})\n         FILE(RELATIVE_PATH\n             ITEM_PATH_REL\n             ${CMAKE_CURRENT_SOURCE_DIR}\u002Fassets\n             ${file}\n         )\n         GET_FILENAME_COMPONENT(dirname ${ITEM_PATH_REL} DIRECTORY)\n         FILE(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}\u002Fassets\u002F${dirname})\n         FILE(COPY ${file} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}\u002Fassets\u002F${dirname})\n     ENDFOREACH()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EДля тех, кто осваивает новые возможности C++17, это пример работы с std::shared_mutex, std::allocator&lt;std::shared_mutex\u003E, static thread_local в шаблонах (есть нюансы — где аллоцировать?), запуск большого числа тестов в потоках разными способами с замером времени исполнения:\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E    \u002F\u002FPrepare insert threads:\n    for (i  = cnt_insert_threads;  i;  --i)  {\n      std::promise&lt;InsertResults\u003E  prom;\n      fut_insert_results.emplace_back(prom.get_future());\n      threads.emplace_back(std::thread (&amp;TestCase2::insert_in_thread,\n          this,  curSize,  std::move(prom),  p_tester));\n    } \u002F\u002F for insert\n\n    \u002F\u002FPrepare find threads:\n    for (i  = cnt_find_threads;  i;  --i)  {\n      std::packaged_task&lt;FindResults(TestCase2  *i, int,  IAlgorithmTester  *)\u003E ta(\n            [](TestCase2  *i, int  count,  IAlgorithmTester  *p_tester){\n         return i-\u003Efind_in_thread(count,  p_tester);\n      });\n\n      fut_find_results.emplace_back(ta.get_future());\n      threads.emplace_back(\n        std::thread (std::move(ta),  this,  curSize,  p_tester));\n    } \u002F\u002F for find\n\n    \u002F\u002FBanzai!!!\n    auto  start  =  std::chrono::high_resolution_clock::now();\n    l_cur_system.get()-\u003Esignal_semaphore(cnt_find_threads  +  cnt_insert_threads);\n    std::for_each(threads.begin(), threads.end(), std::mem_fn(&amp;std::thread::join));\n    auto  end  =  std::chrono::high_resolution_clock::now();\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EПошаговая инструкция как скомпилировать, настроить и запустить этот тестовый стенд — \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDimaBond174\u002Fcache_multi_thread\u002Fwiki\"\u003EWiKi\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\nЕсли для удобной Вам операционной системы ещё нет пошаговой инструкции, то буду признателен за вклад в репозиторий за реализацию ISystem и пошаговую инструкцию по компиляции (для WiKi)… Или просто напишите мне — постараюсь найти время, чтобы поднять виртуалку и описать шаги по сборке.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"LRU"},{"titleHtml":"MRU"},{"titleHtml":"cache"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450004\u002Ff4dcfb6d15610aca57a7d10edc8c9b63\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450004\u002Ff4dcfb6d15610aca57a7d10edc8c9b63\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450004\\\u002F\"},\"headline\":\"Быстрый кэш на C\\\u002FC++, потокобезопасность\",\"datePublished\":\"2019-04-29T16:48:10+03:00\",\"dateModified\":\"2019-04-30T05:08:05+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"DimaBond174\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Сравнительное тестирование многопоточных кэшей реализованных на C\\\u002FC++ и описание как устроен LRU\\\u002FMRU кэш серии O(n)Cache**RU За десятки лет было разработано множ...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450004\\\u002F#post-content-body\",\"about\":[\"h_hi\",\"h_programming\",\"h_cpp\",\"h_algorithms\",\"h_github\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2af\\\u002F2d2\\\u002Ff31\\\u002F2af2d2f3164176a1cf471c2cad1a4046.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F1c7\\\u002F217\\\u002Faf4\\\u002F1c7217af425c0aa4df787539f1da5533.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F920\\\u002Fcc6\\\u002F95b\\\u002F920cc695bd3a4a41f956a7782a3b65aa.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F1ce\\\u002Fb9f\\\u002F648\\\u002F1ceb9f648a8899ed3ac711d236c6c0d1.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd9d\\\u002Fb3f\\\u002Faef\\\u002Fd9db3faefdd6c2ab68dd86b89fda15a6.png\"]}","metaDescription":"Сравнительное тестирование многопоточных кэшей реализованных на C\u002FC++ и описание как устроен LRU\u002FMRU кэш серии O(n)Cache**RU\r\nЗа десятки лет было разработано множество алгоритмов кэширования: LRU,...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"hi,programming,cpp,algorithms,github"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>
