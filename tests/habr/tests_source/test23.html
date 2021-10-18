@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450050\/"},"headline":"Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables","datePublished":"2019-04-29T22:19:58+03:00","dateModified":"2020-02-10T21:29:09+03:00","author":{"@type":"Person","name":"Денис Макаров"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (д...","url":"https:\/\/habr.com\/ru\/post\/450050\/#post-content-body","about":["h_javascript","h_angular","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/kk\/rj\/yw\/kkrjywqpfptl1uta2ou9bltd-je.png","https:\/\/habrastorage.org\/webt\/5t\/0a\/pf\/5t0apfljjo-5lc9buhsd9455mrk.png","https:\/\/habrastorage.org\/webt\/ld\/bd\/ue\/ldbduelhulehfiqmbm80sm3zgu8.png","https:\/\/habrastorage.org\/webt\/la\/va\/m1\/lavam1n0lygvuyfolgwfd6yfyd0.png","https:\/\/habrastorage.org\/webt\/n1\/rh\/ks\/n1rhksa9atkguhglj7by5p45bew.png","https:\/\/habrastorage.org\/webt\/ie\/ww\/8j\/ieww8j7-t1lnixucckiwzzqrmxc.png","https:\/\/habrastorage.org\/webt\/lw\/0p\/_o\/lw0p_ownbroitrzyxksva1lhexe.png","https:\/\/habrastorage.org\/webt\/ar\/il\/_v\/aril_vrkhr-jrn1jkllqj6io-ec.png","https:\/\/habrastorage.org\/webt\/jv\/wh\/um\/jvwhumoobhmtyejohzsxkc26oae.png","https:\/\/habrastorage.org\/webt\/dz\/cd\/mi\/dzcdmibwf773qa025bqlqfd9oe4.png","https:\/\/habrastorage.org\/webt\/ax\/o3\/tw\/axo3tw1onffl5zq956-ewdjdf8q.png","https:\/\/habrastorage.org\/webt\/ec\/ra\/sm\/ecrasmknkfvubsngt7c_dcrtu1w.png","https:\/\/habrastorage.org\/webt\/2m\/x7\/ur\/2mx7urryxakugfc8srx3lffn92c.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).
+
+Серия статей «Основы..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).
+
+Серия статей «Основы..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).
+
+Серия статей «Основы..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).
+
+Серия статей «Основы..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).
+
+Серия статей «Основы..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450050/79ccf0112256ba68bf3d805ada3a4342/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450050/79ccf0112256ba68bf3d805ada3a4342/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450050/79ccf0112256ba68bf3d805ada3a4342/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450050/79ccf0112256ba68bf3d805ada3a4342/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450050/79ccf0112256ba68bf3d805ada3a4342/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450050" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-29T19:19:58.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450050/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450050/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450050/79ccf0112256ba68bf3d805ada3a4342/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/limitofzero/" title="limitofzero" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/31a/7f5/1fd/31a7f51fd26f8893d419d12b50b536d5.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/limitofzero/" class="tm-user-info__username">
+      limitofzero
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-29T19:19:58.000Z" title="2019-04-29, 22:19">29  апреля  2019 в 22:19</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/javascript/" class="tm-article-snippet__hubs-item-link"><span>JavaScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/angular/" class="tm-article-snippet__hubs-item-link"><span>Angular</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/kk/rj/yw/kkrjywqpfptl1uta2ou9bltd-je.png"/><br/>
+<br/>
+В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).<br/>
+<br/>
+Серия статей «Основы реактивного программирования с использованием RxJS»:<br/>
+<br/>
+<ul>
+<li><a href="https://habr.com/ru/post/438642/">Часть 1. Реактивность и потоки</a></li>
+<li><a href="https://habr.com/ru/post/444290/">Часть 2. Операторы и пайпы</a></li>
+</ul><br/>
+<br/>
+При работе с потоками часто возникает ситуация, когда необходимо в качестве значения одному потоку передать результаты работы другого. Например, мы хотим выполнить ajax запрос и его ответ обработать в текущем потоке, или запустить несколько параллельных запросов, реализовать pooling. Думаю, многие привыкли решать подобные задачи, используя такой механизм как promise. Но можно ли решать их используя RxJS? Конечно, и все куда проще чем вы думаете!<br/>
+<a name="habracut"></a><br/>
+<b>Примечание</b>: для того, чтобы понять теоретическую часть статьи, вам не обязательно читать предыдущие статьи, необходимо лишь знать, что такое observable, операторы и пайпы. В практической части мы будем дорабатывать пример из <a href="https://habr.com/ru/post/444290/">второй статьи</a>, который вы можете найти по <a href="https://stackblitz.com/edit/github-api-with-rxjs?file=index.ts" rel="nofollow">ссылке</a>.<br/>
+<br/>
+<h4>Проблема</h4><br/>
+Давайте представим следующую задачу: нам необходимо каждую секунду узнавать, доступен ли сервер. Как мы можем ее решить?<br/>
+<br/>
+Для начала создадим поток с помощью метода timer:<br/>
+<br/>
+<pre><code class="javascript">timer(0, 1000).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+Метод <a href="https://rxjs.dev/api/index/function/timer" rel="nofollow">timer</a> очень похож по принципу работы на <a href="https://rxjs.dev/api/index/function/interval" rel="nofollow">interval</a>. Но в отличие от него позволяет задать таймаут запуска потока, который передается первым параметром. Вторым параметром указывается интервал, через который будет генерироваться новое значение. Если второй параметр не указывать, то таймер сгенерирует только одно значение и завершит поток.<br/>
+<br/>
+Так как сервера у нас с вами нет, то предлагаю просто написать функцию, эмулирующую запрос, на сервер:<br/>
+<br/>
+<pre><code class="javascript">const makeRequest = () => {
+  return timer(1000).pipe(
+    mapTo('success')
+  )
+}
+</code></pre><br/>
+Что делает этот метод? Он возвращает поток, созданный с помощью метода timer, который испускает значение по прошествию одной секунды и завершается. Так как метод timer генерирует только число, то с помощью оператора mapTo мы заменяем его на строку “success”.<br/>
+<br/>
+Вот как выглядит поток, который создается методом makeRequest:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/5t/0a/pf/5t0apfljjo-5lc9buhsd9455mrk.png"/><br/>
+<br/>
+Теперь у нас стоит выбор: вызывать метод makeRequest внутри потока или возложить эту обязанность на наблюдателя?<br/>
+<br/>
+Первый подход более предпочтительный, так как в этом случае мы сможем использовать весь потенциал RxJS с его операторами и избавим нашего наблюдателя от лишних обязанностей. Воспользуемся методом timer, чтобы выполнять запросы по интервалу:<br/>
+<br/>
+<pre><code class="javascript">timer(0, 1000).pipe(
+  map(() => makeRequest())
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+Когда мы запустим подобный код, то увидим, что в console.log нам приходит не сообщение с текстом “success”, а объект типа Observable:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ld/bd/ue/ldbduelhulehfiqmbm80sm3zgu8.png"/><br/>
+<br/>
+Ответ вполне ожидаем, ведь в map мы возвращаем поток. Чтобы поток заработал, нужно на него подписаться. Что же, давайте посмотрим, как <b>не надо делать</b>:<br/>
+<br/>
+<pre><code class="javascript">timer(0, 1000).pipe(
+  map(() => makeRequest())
+).subscribe({
+  next: observable => observable.subscribe({
+    next: console.log
+  });
+});
+</code></pre><br/>
+Проблема примера выше в том, что мы получаем подписку в подписке. А что если мы захотим сделать более одного запроса в цепочке? Или как быть, если в определенный момент нам нужно будет отписаться от потока внутри? В таком случае наш код все больше будет напоминать “лапшу”. Для решения данной проблемы в RxJS есть специальные операторы, которые носят название HOO.<br/>
+<br/>
+<h4>HOO</h4><br/>
+HOO — это особый тип операторов, которые в качестве значений принимают потоки. Одним из таких операторов является метод mergeAll.<br/>
+<br/>
+Когда на вход mergeAll поступает поток, он подписывается на него. Поток, на который оператор подписался, носит название внутренний. Поток, из которого оператор получает в качестве значений другие потоки, называют внешним.<br/>
+<br/>
+Когда внутренний поток генерирует значение, то mergeAll проталкивает это значение во внешний поток. Таким образом, мы избавляемся от необходимости выполнять подписку вручную. Если мы отпишемся от внешнего потока, то mergeAll автоматически отпишется от внутреннего.<br/>
+<br/>
+Давайте посмотрим, как можно переписать наш пример с помощью mergeAll:<br/>
+<br/>
+<pre><code class="javascript">timer(0, 1000).pipe(
+  map(() => makeRequest())
+  mergeAll()
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+В примере выше внешний поток создан оператором timer. А потоки, которые создаются в операторе map — внутренние. Каждый созданный поток попадает в оператор mergeAll.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/la/va/m1/lavam1n0lygvuyfolgwfd6yfyd0.png"/><br/>
+<br/>
+Комбинация map + mergeAll используются очень часто, поэтому в RxJS существует метод mergeMap:<br/>
+<br/>
+<pre><code class="javascript">timer(0, 1000).pipe(
+  mergeMap(() => makeRequest())
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+Когда внешний поток генерирует значение, оператор mergeMap вызывает переданную в него функцию обратного вызова (callback), которая генерирует новый поток. Затем mergeMap подписывается на сгенерированный поток.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/n1/rh/ks/n1rhksa9atkguhglj7by5p45bew.png"/><br/>
+<br/>
+Особенность mergeAll/mergeMap оператора в том, что, если к нему спускается еще один поток, то он так же подписывается на него. Таким образом, во внешний поток у нас могут попадать значения сразу из нескольких внутренних. Посмотрим следующий пример:<br/>
+<br/>
+<pre><code class="javascript">  timer(0, 1000)
+</code></pre><br/>
+Вот так внешний поток будет выглядеть без оператора mergeMap:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ie/ww/8j/ieww8j7-t1lnixucckiwzzqrmxc.png"/><br/>
+<br/>
+А вот так с mergeMap:<br/>
+<br/>
+<pre><code class="javascript">timer(0, 1000).pipe(
+  mergeMap(() => interval(1000)) 
+)
+</code></pre><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/lw/0p/_o/lw0p_ownbroitrzyxksva1lhexe.png"/><br/>
+<br/>
+Каждую секунду у нас создается новый внутренний поток и mergeMap на него подписывается. Таким образом, у нас одновременно работают множество внутренних потоков, значения из которых попадают во внешний:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ar/il/_v/aril_vrkhr-jrn1jkllqj6io-ec.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/jv/wh/um/jvwhumoobhmtyejohzsxkc26oae.png"/><br/>
+<br/>
+<b>Примечание</b>: будьте аккуратны с применением mergeMap, каждый новый внутренний поток будет работать до тех пор, пока вы не отпишитесь от внешнего. В примере выше количество внутренних потоков растет каждую секунду, в конце концов потоков может стать настолько много, что компьютер не справится с нагрузкой.<br/>
+<br/>
+<h4>concatAll/concatMap</h4><br/>
+Метод mergeMap отлично подходит, когда вам не важен порядок исполнения внутренних потоков, но как быть, если у вас появилась в этом необходимость? Допустим, мы хотим, чтобы следующий запрос на сервер выполнился только после получения ответа от предыдущего?<br/>
+<br/>
+Для подобных целей подойдет HOO оператор concatAll/concatMap. Данный оператор, подписавшись на внутренний поток, ждет, пока тот не завершится, и только потом подписывается на следующий.<br/>
+<br/>
+Если во время выполнения одного потока к нему спускается новый, то он помещается в очередь до тех пор, пока предыдущий не завершится.<br/>
+<br/>
+<pre><code class="javascript">// поток, генерирующий 1 по прошествии одной секунды
+const firstInnerObservable = timer(1000).pipe(
+  mapTo(1)
+);
+
+// поток, генерирующий 2 по прошествии половины секунды
+const secondInnerObservable = timer(500).pipe(
+  mapTo(2)
+);
+
+of(
+  firstInnerObservable,
+  secondInnerObservable
+).pipe(
+  concatAll()
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+В примере выше мы создаем два потока с помощью метода timer. Для наглядности я использовал оператор mapTo для вывода разных значений. Первый поток сгенерирует 1, второй — 2. Внешний поток создается с помощью метода of, который на вход принимает два вышеобъявленных observable.<br/>
+<br/>
+Оператор concatAll сначала получает firstInnerObservable, подписывается на него и ждет, когда он завершится, и только после завершения первого подпишется на secondInnerObservable. Вот как будет выглядеть внешний поток:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/dz/cd/mi/dzcdmibwf773qa025bqlqfd9oe4.png"/><br/>
+<br/>
+Если же мы заменим concatAll на mergeAll, то поток будет выглядеть так:<br/>
+<br/>
+<pre><code class="javascript">of(
+  firstInnerObservable,
+  secondInnerObservable
+).pipe(
+  mergeAll()
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ax/o3/tw/axo3tw1onffl5zq956-ewdjdf8q.png"/><br/>
+<br/>
+<h4>switchAll/switchMap</h4><br/>
+Данный оператор отличается от предыдущих тем, что когда он получает новый поток, то сразу отписывается от предыдущего и подписывается на новый.<br/>
+<br/>
+Возьмем пример выше и заменим concatAll на switchAll, и посмотрим как будет вести себя внешний поток:<br/>
+<br/>
+<pre><code class="javascript">of(
+  firstInnerObservable,
+  secondInnerObservable
+).pipe(
+  switchAll()
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ec/ra/sm/ecrasmknkfvubsngt7c_dcrtu1w.png"/><br/>
+<br/>
+Во внешний поток попало только значение из второго внутреннего потока. Все потому что switchMap отписался от первого, когда получил второй поток.<br/>
+<br/>
+Когда это бывает нужно? Например, при реализации поиска данных. Если ответ с сервера еще не пришел, а мы уже отправили новый запрос, то нам нет смысла ждать предыдущий.<br/>
+<br/>
+<h4>exhaust/exhaustMap</h4><br/>
+exhaust — полная противоположность оператору switchAll, при этом его поведение похоже на concatAll. Данный метод, подписавшись на поток, ждет, когда он завершится. Если к нему спускается новый поток, то он просто отбрасывается.<br/>
+<br/>
+<pre><code class="javascript">of(
+  firstInnerObservable,
+  secondInnerObservable
+).pipe(
+  exhaust()
+).subscribe({
+  next: console.log
+});
+</code></pre><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/2m/x7/ur/2mx7urryxakugfc8srx3lffn92c.png"/><br/>
+<br/>
+В примере выше мы не получили двойку, потому что в этот момент оператор ожидал завершения первого потока, и просто отбросил второй.<br/>
+<br/>
+Думаю, у многих возник вопрос, когда подобное поведение может понадобиться? Хороший пример — форма авторизации. Нет смысла отправлять несколько запросов на сервер, пока не выполнился текущий.<br/>
+<br/>
+<h4>Дорабатываем приложение</h4><br/>
+Вспоминаем <a href="https://stackblitz.com/edit/github-api-with-rxjs?file=index.ts" rel="nofollow">пример</a> из <a href="https://habr.com/ru/post/444290/">второй статьи</a>. В нем мы реализовали поиск по GitHub и использовали оператор mergeMap для отправки запросов к серверу. Теперь мы знаем особенности данного оператора, действительно ли он подходит в нашем случае?<br/>
+<br/>
+<pre><code class="javascript">fromEvent(input, 'keyup').pipe(
+  debounceTime(700),
+  map(event => event.target.value),
+  filter(val => val.length > 2),
+  distinctUntilChanged(),
+  mergeMap(value => {
+    return from(getUsersRepsFromAPI(value)).pipe(
+      catchError(err => of([]))
+    )
+  })
+).subscribe({
+  next: reps => recordRepsToList(reps)
+})
+</code></pre><br/>
+Давайте предположим, что сервер GitHub будет сильно перегружен, тогда обработка нашего ответа будет занимать много времени. Что в этом случае может пойти не так?<br/>
+<br/>
+Допустим, пользователь ввел какие-то данные, не дождался ответа и ввел новые. В этом случае мы отправим уже второй запрос на сервер. При этом никто не гарантирует, что ответ на первый запрос придет раньше.<br/>
+<br/>
+Так как оператору mergeMap все равно в какой последовательности обрабатывать внутренние потоки, то в случае, когда первый запрос выполнится позже второго, мы затрем актуальные данные. Поэтому предлагаю заменить метод mergeMap на switchMap:<br/>
+<br/>
+<pre><code class="javascript">fromEvent(input, 'keyup').pipe(
+  debounceTime(700),
+  map(event => event.target.value),
+  filter(val => val.length > 2),
+  distinctUntilChanged(),
+  switchMap(value => {
+    return from(getUsersRepsFromAPI(value)).pipe(
+      catchError(err => of([]))
+    )
+  })
+).subscribe({
+  next: reps => recordRepsToList(reps)
+})
+</code></pre><br/>
+Теперь, если пользователь введет новые данные, то switchMap отпишется от предыдущего потока и подпишется на новый.<br/>
+<br/>
+Стоит отметить, что наш http запрос будет продолжать висеть до тех пор, пока сервер не даст на него ответ. Но, так как мы отписались от внутреннего потока, ответ не попадет во внешний поток.<br/>
+<br/>
+<b>Примечание</b>: если вы работаете с Angular и применяете HttpClient для работы с http, то можете не беспокоится об отмене самого запроса. HttpClient умеет это делать за вас при отписке.<br/>
+<br/>
+<h4>Отменяем http</h4><br/>
+В fetch api есть возможность отмены http запроса с применением <a href="https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort" rel="nofollow">AbortController</a>. Данный функционал при комбинировании с оператором switchMap позволит экономить трафик пользователя.<br/>
+<br/>
+Давайте перепишем немного наш пример. И создадим метод, который будет оборачивать вызов fetch в observable:<br/>
+<br/>
+<pre><code class="javascript">const createCancellableRequest = (url) => {
+  // создаем контроллер для возможности отмены
+  const controller = new AbortController();
+  const signal = controller.signal;
+
+  return new Observable(observer => {
+
+    fetch(url, { signal })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+
+        throw new Error('Ошибка');
+    })
+    // передаем успешный ответ наблюдателю
+    .then(result => observer.next(result))
+    // завершаем поток
+    .then(() => observer.complete())
+    // в случае ошибки, оповещаем об этом наблюдателя
+    .catch(error => observer.error(error));
+
+    // функция, вызывающаяся при отписке
+    return () => {
+      // отменяем запрос
+      controller.abort();
+    };
+
+  });
+};
+</code></pre><br/>
+Также поменяем метод getUsersRepsFromApi:<br/>
+<br/>
+<pre><code class="javascript">const getUsersRepsFromAPI = (username) => {
+  const url = `https://api.github.com/users/${ username }/repos`;
+  return createCancellableRequest(url);
+}
+</code></pre><br/>
+Теперь метод возвращает не promise, а observable. Поэтому уберем обертку from в switchMap:<br/>
+<br/>
+<pre><code class="javascript">switchMap(value => {
+  return getUsersRepsFromAPI(value).pipe(
+    catchError(err => of([])
+  )
+)
+</code></pre><br/>
+<b>Примечание</b>: в RxJS версии 6.5 добавили оператор <a href="https://rxjs.dev/api/fetch/fromFetch" rel="nofollow">fromFetch</a>, который под капотом сам вызывает метод abort, поэтому вам больше не нужно писать свой “велосипед”.<br/>
+<br/>
+Вот и все! Весь код примера можно найти <a href="https://stackblitz.com/edit/github-api-with-rxjs-2" rel="nofollow">здесь</a>.<br/>
+<br/>
+<h4>Заключение</h4><br/>
+Сегодня мы рассмотрели, что такое HOO и несколько очень полезных операторов из данной категории. Конечно, это были далеко не все из них. Для более детальной и подробной информации рекомендую посетить <a href="https://rxjs.dev/api" rel="nofollow">документацию</a> по RxJS.<br/>
+<br/>
+В следующей статье я планирую рассмотреть, в чем разница между Hot и Cold observables.<br/>
+<br/>
+Напоследок: не используйте подписку в подписке, ведь есть HOO!</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjavascript%5D" class="tm-tags-list__link">javascript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Breactive%20programming%5D" class="tm-tags-list__link">reactive programming</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Breactive%5D" class="tm-tags-list__link">reactive</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Brxjs%5D" class="tm-tags-list__link">rxjs</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bangular%5D" class="tm-tags-list__link">angular</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/javascript/" class="tm-hubs-list__link">
+    JavaScript
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/angular/" class="tm-hubs-list__link">
+    Angular
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 13: ↑13 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 13: ↑13 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+13</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">18K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    79
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/limitofzero/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/31a/7f5/1fd/31a7f51fd26f8893d419d12b50b536d5.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 20 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    13.2
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Денис Макаров</span> <a href="/ru/users/limitofzero/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @limitofzero
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Software engineer</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450050/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 5 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450050/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450050/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450050":{"id":"450050","timePublished":"2019-04-29T19:19:58+00:00","isCorporative":false,"lang":"ru","titleHtml":"Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkk\u002Frj\u002Fyw\u002Fkkrjywqpfptl1uta2ou9bltd-je.png\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nСерия статей «Основы реактивного программирования с использованием RxJS»:\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F438642\u002F\"\u003EЧасть 1. Реактивность и потоки\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F444290\u002F\"\u003EЧасть 2. Операторы и пайпы\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nПри работе с потоками часто возникает ситуация, когда необходимо в качестве значения одному потоку передать результаты работы другого. Например, мы хотим выполнить ajax запрос и его ответ обработать в текущем потоке, или запустить несколько параллельных запросов, реализовать pooling. Думаю, многие привыкли решать подобные задачи, используя такой механизм как promise. Но можно ли решать их используя RxJS? Конечно, и все куда проще чем вы думаете!\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше &rarr;","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":13.2,"votesCount":20},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1927793","alias":"limitofzero","fullname":"Денис Макаров","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F31a\u002F7f5\u002F1fd\u002F31a7f51fd26f8893d419d12b50b536d5.jpg","speciality":"Software engineer"},"statistics":{"commentsCount":5,"favoritesCount":79,"readingCount":17910,"score":13,"votesCount":13},"hubs":[{"relatedData":null,"id":"357","alias":"javascript","type":"collective","title":"JavaScript","titleHtml":"JavaScript","isProfiled":true},{"relatedData":null,"id":"18109","alias":"angular","type":"collective","title":"Angular","titleHtml":"Angular","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkk\u002Frj\u002Fyw\u002Fkkrjywqpfptl1uta2ou9bltd-je.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСерия статей «Основы реактивного программирования с использованием RxJS»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F438642\u002F\"\u003EЧасть 1. Реактивность и потоки\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F444290\u002F\"\u003EЧасть 2. Операторы и пайпы\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри работе с потоками часто возникает ситуация, когда необходимо в качестве значения одному потоку передать результаты работы другого. Например, мы хотим выполнить ajax запрос и его ответ обработать в текущем потоке, или запустить несколько параллельных запросов, реализовать pooling. Думаю, многие привыкли решать подобные задачи, используя такой механизм как promise. Но можно ли решать их используя RxJS? Конечно, и все куда проще чем вы думаете!\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПримечание\u003C\u002Fb\u003E: для того, чтобы понять теоретическую часть статьи, вам не обязательно читать предыдущие статьи, необходимо лишь знать, что такое observable, операторы и пайпы. В практической части мы будем дорабатывать пример из \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F444290\u002F\"\u003Eвторой статьи\u003C\u002Fa\u003E, который вы можете найти по \u003Ca href=\"https:\u002F\u002Fstackblitz.com\u002Fedit\u002Fgithub-api-with-rxjs?file=index.ts\" rel=\"nofollow\"\u003Eссылке\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EПроблема\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДавайте представим следующую задачу: нам необходимо каждую секунду узнавать, доступен ли сервер. Как мы можем ее решить?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля начала создадим поток с помощью метода timer:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Etimer(0, 1000).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМетод \u003Ca href=\"https:\u002F\u002Frxjs.dev\u002Fapi\u002Findex\u002Ffunction\u002Ftimer\" rel=\"nofollow\"\u003Etimer\u003C\u002Fa\u003E очень похож по принципу работы на \u003Ca href=\"https:\u002F\u002Frxjs.dev\u002Fapi\u002Findex\u002Ffunction\u002Finterval\" rel=\"nofollow\"\u003Einterval\u003C\u002Fa\u003E. Но в отличие от него позволяет задать таймаут запуска потока, который передается первым параметром. Вторым параметром указывается интервал, через который будет генерироваться новое значение. Если второй параметр не указывать, то таймер сгенерирует только одно значение и завершит поток.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак как сервера у нас с вами нет, то предлагаю просто написать функцию, эмулирующую запрос, на сервер:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst makeRequest = () =\u003E {\n  return timer(1000).pipe(\n    mapTo('success')\n  )\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЧто делает этот метод? Он возвращает поток, созданный с помощью метода timer, который испускает значение по прошествию одной секунды и завершается. Так как метод timer генерирует только число, то с помощью оператора mapTo мы заменяем его на строку “success”.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот как выглядит поток, который создается методом makeRequest:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F5t\u002F0a\u002Fpf\u002F5t0apfljjo-5lc9buhsd9455mrk.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь у нас стоит выбор: вызывать метод makeRequest внутри потока или возложить эту обязанность на наблюдателя?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервый подход более предпочтительный, так как в этом случае мы сможем использовать весь потенциал RxJS с его операторами и избавим нашего наблюдателя от лишних обязанностей. Воспользуемся методом timer, чтобы выполнять запросы по интервалу:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Etimer(0, 1000).pipe(\n  map(() =\u003E makeRequest())\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКогда мы запустим подобный код, то увидим, что в console.log нам приходит не сообщение с текстом “success”, а объект типа Observable:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fld\u002Fbd\u002Fue\u002Fldbduelhulehfiqmbm80sm3zgu8.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОтвет вполне ожидаем, ведь в map мы возвращаем поток. Чтобы поток заработал, нужно на него подписаться. Что же, давайте посмотрим, как \u003Cb\u003Eне надо делать\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Etimer(0, 1000).pipe(\n  map(() =\u003E makeRequest())\n).subscribe({\n  next: observable =\u003E observable.subscribe({\n    next: console.log\n  });\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПроблема примера выше в том, что мы получаем подписку в подписке. А что если мы захотим сделать более одного запроса в цепочке? Или как быть, если в определенный момент нам нужно будет отписаться от потока внутри? В таком случае наш код все больше будет напоминать “лапшу”. Для решения данной проблемы в RxJS есть специальные операторы, которые носят название HOO.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EHOO\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nHOO — это особый тип операторов, которые в качестве значений принимают потоки. Одним из таких операторов является метод mergeAll.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда на вход mergeAll поступает поток, он подписывается на него. Поток, на который оператор подписался, носит название внутренний. Поток, из которого оператор получает в качестве значений другие потоки, называют внешним.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда внутренний поток генерирует значение, то mergeAll проталкивает это значение во внешний поток. Таким образом, мы избавляемся от необходимости выполнять подписку вручную. Если мы отпишемся от внешнего потока, то mergeAll автоматически отпишется от внутреннего.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДавайте посмотрим, как можно переписать наш пример с помощью mergeAll:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Etimer(0, 1000).pipe(\n  map(() =\u003E makeRequest())\n  mergeAll()\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ примере выше внешний поток создан оператором timer. А потоки, которые создаются в операторе map — внутренние. Каждый созданный поток попадает в оператор mergeAll.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fla\u002Fva\u002Fm1\u002Flavam1n0lygvuyfolgwfd6yfyd0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКомбинация map + mergeAll используются очень часто, поэтому в RxJS существует метод mergeMap:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Etimer(0, 1000).pipe(\n  mergeMap(() =\u003E makeRequest())\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКогда внешний поток генерирует значение, оператор mergeMap вызывает переданную в него функцию обратного вызова (callback), которая генерирует новый поток. Затем mergeMap подписывается на сгенерированный поток.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fn1\u002Frh\u002Fks\u002Fn1rhksa9atkguhglj7by5p45bew.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОсобенность mergeAll\u002FmergeMap оператора в том, что, если к нему спускается еще один поток, то он так же подписывается на него. Таким образом, во внешний поток у нас могут попадать значения сразу из нескольких внутренних. Посмотрим следующий пример:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E  timer(0, 1000)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВот так внешний поток будет выглядеть без оператора mergeMap:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fie\u002Fww\u002F8j\u002Fieww8j7-t1lnixucckiwzzqrmxc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА вот так с mergeMap:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Etimer(0, 1000).pipe(\n  mergeMap(() =\u003E interval(1000)) \n)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flw\u002F0p\u002F_o\u002Flw0p_ownbroitrzyxksva1lhexe.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКаждую секунду у нас создается новый внутренний поток и mergeMap на него подписывается. Таким образом, у нас одновременно работают множество внутренних потоков, значения из которых попадают во внешний:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Far\u002Fil\u002F_v\u002Faril_vrkhr-jrn1jkllqj6io-ec.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjv\u002Fwh\u002Fum\u002Fjvwhumoobhmtyejohzsxkc26oae.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПримечание\u003C\u002Fb\u003E: будьте аккуратны с применением mergeMap, каждый новый внутренний поток будет работать до тех пор, пока вы не отпишитесь от внешнего. В примере выше количество внутренних потоков растет каждую секунду, в конце концов потоков может стать настолько много, что компьютер не справится с нагрузкой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EconcatAll\u002FconcatMap\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nМетод mergeMap отлично подходит, когда вам не важен порядок исполнения внутренних потоков, но как быть, если у вас появилась в этом необходимость? Допустим, мы хотим, чтобы следующий запрос на сервер выполнился только после получения ответа от предыдущего?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля подобных целей подойдет HOO оператор concatAll\u002FconcatMap. Данный оператор, подписавшись на внутренний поток, ждет, пока тот не завершится, и только потом подписывается на следующий.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли во время выполнения одного потока к нему спускается новый, то он помещается в очередь до тех пор, пока предыдущий не завершится.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u002F\u002F поток, генерирующий 1 по прошествии одной секунды\nconst firstInnerObservable = timer(1000).pipe(\n  mapTo(1)\n);\n\n\u002F\u002F поток, генерирующий 2 по прошествии половины секунды\nconst secondInnerObservable = timer(500).pipe(\n  mapTo(2)\n);\n\nof(\n  firstInnerObservable,\n  secondInnerObservable\n).pipe(\n  concatAll()\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ примере выше мы создаем два потока с помощью метода timer. Для наглядности я использовал оператор mapTo для вывода разных значений. Первый поток сгенерирует 1, второй — 2. Внешний поток создается с помощью метода of, который на вход принимает два вышеобъявленных observable.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОператор concatAll сначала получает firstInnerObservable, подписывается на него и ждет, когда он завершится, и только после завершения первого подпишется на secondInnerObservable. Вот как будет выглядеть внешний поток:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fdz\u002Fcd\u002Fmi\u002Fdzcdmibwf773qa025bqlqfd9oe4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли же мы заменим concatAll на mergeAll, то поток будет выглядеть так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eof(\n  firstInnerObservable,\n  secondInnerObservable\n).pipe(\n  mergeAll()\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fax\u002Fo3\u002Ftw\u002Faxo3tw1onffl5zq956-ewdjdf8q.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EswitchAll\u002FswitchMap\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДанный оператор отличается от предыдущих тем, что когда он получает новый поток, то сразу отписывается от предыдущего и подписывается на новый.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВозьмем пример выше и заменим concatAll на switchAll, и посмотрим как будет вести себя внешний поток:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eof(\n  firstInnerObservable,\n  secondInnerObservable\n).pipe(\n  switchAll()\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fec\u002Fra\u002Fsm\u002Fecrasmknkfvubsngt7c_dcrtu1w.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВо внешний поток попало только значение из второго внутреннего потока. Все потому что switchMap отписался от первого, когда получил второй поток.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда это бывает нужно? Например, при реализации поиска данных. Если ответ с сервера еще не пришел, а мы уже отправили новый запрос, то нам нет смысла ждать предыдущий.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003Eexhaust\u002FexhaustMap\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nexhaust — полная противоположность оператору switchAll, при этом его поведение похоже на concatAll. Данный метод, подписавшись на поток, ждет, когда он завершится. Если к нему спускается новый поток, то он просто отбрасывается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eof(\n  firstInnerObservable,\n  secondInnerObservable\n).pipe(\n  exhaust()\n).subscribe({\n  next: console.log\n});\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F2m\u002Fx7\u002Fur\u002F2mx7urryxakugfc8srx3lffn92c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ примере выше мы не получили двойку, потому что в этот момент оператор ожидал завершения первого потока, и просто отбросил второй.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДумаю, у многих возник вопрос, когда подобное поведение может понадобиться? Хороший пример — форма авторизации. Нет смысла отправлять несколько запросов на сервер, пока не выполнился текущий.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EДорабатываем приложение\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nВспоминаем \u003Ca href=\"https:\u002F\u002Fstackblitz.com\u002Fedit\u002Fgithub-api-with-rxjs?file=index.ts\" rel=\"nofollow\"\u003Eпример\u003C\u002Fa\u003E из \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F444290\u002F\"\u003Eвторой статьи\u003C\u002Fa\u003E. В нем мы реализовали поиск по GitHub и использовали оператор mergeMap для отправки запросов к серверу. Теперь мы знаем особенности данного оператора, действительно ли он подходит в нашем случае?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003EfromEvent(input, 'keyup').pipe(\n  debounceTime(700),\n  map(event =\u003E event.target.value),\n  filter(val =\u003E val.length \u003E 2),\n  distinctUntilChanged(),\n  mergeMap(value =\u003E {\n    return from(getUsersRepsFromAPI(value)).pipe(\n      catchError(err =\u003E of([]))\n    )\n  })\n).subscribe({\n  next: reps =\u003E recordRepsToList(reps)\n})\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДавайте предположим, что сервер GitHub будет сильно перегружен, тогда обработка нашего ответа будет занимать много времени. Что в этом случае может пойти не так?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДопустим, пользователь ввел какие-то данные, не дождался ответа и ввел новые. В этом случае мы отправим уже второй запрос на сервер. При этом никто не гарантирует, что ответ на первый запрос придет раньше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак как оператору mergeMap все равно в какой последовательности обрабатывать внутренние потоки, то в случае, когда первый запрос выполнится позже второго, мы затрем актуальные данные. Поэтому предлагаю заменить метод mergeMap на switchMap:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003EfromEvent(input, 'keyup').pipe(\n  debounceTime(700),\n  map(event =\u003E event.target.value),\n  filter(val =\u003E val.length \u003E 2),\n  distinctUntilChanged(),\n  switchMap(value =\u003E {\n    return from(getUsersRepsFromAPI(value)).pipe(\n      catchError(err =\u003E of([]))\n    )\n  })\n).subscribe({\n  next: reps =\u003E recordRepsToList(reps)\n})\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь, если пользователь введет новые данные, то switchMap отпишется от предыдущего потока и подпишется на новый.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСтоит отметить, что наш http запрос будет продолжать висеть до тех пор, пока сервер не даст на него ответ. Но, так как мы отписались от внутреннего потока, ответ не попадет во внешний поток.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПримечание\u003C\u002Fb\u003E: если вы работаете с Angular и применяете HttpClient для работы с http, то можете не беспокоится об отмене самого запроса. HttpClient умеет это делать за вас при отписке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EОтменяем http\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nВ fetch api есть возможность отмены http запроса с применением \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FWeb\u002FAPI\u002FAbortController\u002Fabort\" rel=\"nofollow\"\u003EAbortController\u003C\u002Fa\u003E. Данный функционал при комбинировании с оператором switchMap позволит экономить трафик пользователя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДавайте перепишем немного наш пример. И создадим метод, который будет оборачивать вызов fetch в observable:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst createCancellableRequest = (url) =\u003E {\n  \u002F\u002F создаем контроллер для возможности отмены\n  const controller = new AbortController();\n  const signal = controller.signal;\n\n  return new Observable(observer =\u003E {\n\n    fetch(url, { signal })\n      .then(response =\u003E {\n        if (response.ok) {\n          return response.json();\n        }\n\n        throw new Error('Ошибка');\n    })\n    \u002F\u002F передаем успешный ответ наблюдателю\n    .then(result =\u003E observer.next(result))\n    \u002F\u002F завершаем поток\n    .then(() =\u003E observer.complete())\n    \u002F\u002F в случае ошибки, оповещаем об этом наблюдателя\n    .catch(error =\u003E observer.error(error));\n\n    \u002F\u002F функция, вызывающаяся при отписке\n    return () =\u003E {\n      \u002F\u002F отменяем запрос\n      controller.abort();\n    };\n\n  });\n};\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТакже поменяем метод getUsersRepsFromApi:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst getUsersRepsFromAPI = (username) =\u003E {\n  const url = `https:\u002F\u002Fapi.github.com\u002Fusers\u002F${ username }\u002Frepos`;\n  return createCancellableRequest(url);\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь метод возвращает не promise, а observable. Поэтому уберем обертку from в switchMap:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003EswitchMap(value =\u003E {\n  return getUsersRepsFromAPI(value).pipe(\n    catchError(err =\u003E of([])\n  )\n)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПримечание\u003C\u002Fb\u003E: в RxJS версии 6.5 добавили оператор \u003Ca href=\"https:\u002F\u002Frxjs.dev\u002Fapi\u002Ffetch\u002FfromFetch\" rel=\"nofollow\"\u003EfromFetch\u003C\u002Fa\u003E, который под капотом сам вызывает метод abort, поэтому вам больше не нужно писать свой “велосипед”.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот и все! Весь код примера можно найти \u003Ca href=\"https:\u002F\u002Fstackblitz.com\u002Fedit\u002Fgithub-api-with-rxjs-2\" rel=\"nofollow\"\u003Eздесь\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЗаключение\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nСегодня мы рассмотрели, что такое HOO и несколько очень полезных операторов из данной категории. Конечно, это были далеко не все из них. Для более детальной и подробной информации рекомендую посетить \u003Ca href=\"https:\u002F\u002Frxjs.dev\u002Fapi\" rel=\"nofollow\"\u003Eдокументацию\u003C\u002Fa\u003E по RxJS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ следующей статье я планирую рассмотреть, в чем разница между Hot и Cold observables.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапоследок: не используйте подписку в подписке, ведь есть HOO!\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"javascript"},{"titleHtml":"reactive programming"},{"titleHtml":"reactive"},{"titleHtml":"rxjs"},{"titleHtml":"angular"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450050\u002F79ccf0112256ba68bf3d805ada3a4342\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450050\u002F79ccf0112256ba68bf3d805ada3a4342\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450050\\\u002F\"},\"headline\":\"Основы реактивного программирования с использованием RxJS. Часть 3. Higher Order Observables\",\"datePublished\":\"2019-04-29T22:19:58+03:00\",\"dateModified\":\"2020-02-10T21:29:09+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Денис Макаров\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (д...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450050\\\u002F#post-content-body\",\"about\":[\"h_javascript\",\"h_angular\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkk\\\u002Frj\\\u002Fyw\\\u002Fkkrjywqpfptl1uta2ou9bltd-je.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F5t\\\u002F0a\\\u002Fpf\\\u002F5t0apfljjo-5lc9buhsd9455mrk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fld\\\u002Fbd\\\u002Fue\\\u002Fldbduelhulehfiqmbm80sm3zgu8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fla\\\u002Fva\\\u002Fm1\\\u002Flavam1n0lygvuyfolgwfd6yfyd0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fn1\\\u002Frh\\\u002Fks\\\u002Fn1rhksa9atkguhglj7by5p45bew.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fie\\\u002Fww\\\u002F8j\\\u002Fieww8j7-t1lnixucckiwzzqrmxc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flw\\\u002F0p\\\u002F_o\\\u002Flw0p_ownbroitrzyxksva1lhexe.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Far\\\u002Fil\\\u002F_v\\\u002Faril_vrkhr-jrn1jkllqj6io-ec.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjv\\\u002Fwh\\\u002Fum\\\u002Fjvwhumoobhmtyejohzsxkc26oae.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fdz\\\u002Fcd\\\u002Fmi\\\u002Fdzcdmibwf773qa025bqlqfd9oe4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fax\\\u002Fo3\\\u002Ftw\\\u002Faxo3tw1onffl5zq956-ewdjdf8q.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fec\\\u002Fra\\\u002Fsm\\\u002Fecrasmknkfvubsngt7c_dcrtu1w.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F2m\\\u002Fx7\\\u002Fur\\\u002F2mx7urryxakugfc8srx3lffn92c.png\"]}","metaDescription":"В данной статье мы рассмотрим, как можно в одном потоке обрабатывать другой, для чего это нужно, и как нам в этом помогут операторы Higher Order Observables (дальше HOO).\r\n\r\nСерия статей «Основы...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"javascript,angular"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

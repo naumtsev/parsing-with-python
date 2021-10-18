@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>How to create a dark theme without breaking things: learning with the Yandex Mail team / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/en\/company\/yandex\/blog\/450032\/"},"headline":"How to create a dark theme without breaking things: learning with the Yandex Mail team","datePublished":"2019-05-06T16:46:02+03:00","dateModified":"2019-05-06T17:17:39+03:00","author":{"@type":"Person","name":"Владимир Клепов"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and...","url":"https:\/\/habr.com\/en\/company\/yandex\/blog\/450032\/#post-content-body","about":["c_yandex","h_mobile_dev","h_apps_design","h_design","f_develop","f_design"],"image":["https:\/\/habrastorage.org\/webt\/ji\/4q\/pr\/ji4qprfkpuotssmzabus4cjflrq.png","https:\/\/habrastorage.org\/webt\/cu\/-1\/ka\/cu-1kav8ydvyjxlobshlklgio9u.png","https:\/\/habrastorage.org\/webt\/dr\/3a\/ix\/dr3aix8opihd2nlq6oqzjfbdtvs.png","https:\/\/habrastorage.org\/webt\/ed\/qe\/h1\/edqeh1dpkqv-w2gydobzojuaia0.png","https:\/\/habrastorage.org\/webt\/46\/rl\/mz\/46rlmzxvgus52n7_77t3ydz2ms0.png","https:\/\/habrastorage.org\/webt\/6-\/zz\/nx\/6-zznxvkap9ywdvgjpglm5v6wqc.png","https:\/\/habrastorage.org\/webt\/xo\/at\/cc\/xoatcc7dg3nhb_ufdoyye4hxsoo.png","https:\/\/habrastorage.org\/webt\/fi\/o4\/v9\/fio4v9n1lcpve_wa1jhj5usj4yo.png","https:\/\/habrastorage.org\/webt\/5y\/ba\/tu\/5ybatucrfhczsgc_aqykbgtnop0.png","https:\/\/habrastorage.org\/webt\/sj\/c1\/di\/sjc1diiz68fpljjzii64f9j7nrq.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="How to create a dark theme without breaking things: learning with the Yandex Mail team" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="How to create a dark theme without breaking things: learning with the Yandex Mail team" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="How to create a dark theme without breaking things: learning with the Yandex Mail team" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450032/33287d4efb59c53f7842053f777a2ad8/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450032/33287d4efb59c53f7842053f777a2ad8/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450032/33287d4efb59c53f7842053f777a2ad8/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450032/33287d4efb59c53f7842053f777a2ad8/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450032/33287d4efb59c53f7842053f777a2ad8/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450032" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T13:46:02.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="en_US" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450032/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/en/company/yandex/blog/450032/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450032/33287d4efb59c53f7842053f777a2ad8/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="yandex" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <img src="//habrastorage.org/getpro/habr/branding/907/a84/1d7/907a841d7f3392623972d244da8dae91.png" width="100%" class="tm-company-card__branding-image"></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/yandex/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/b02/d9b/1d4/b02d9b1d4a6e64ff069e2ab32fdedae2.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">491.44</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/yandex/profile/" class="tm-company-card__name">
+        Яндекс
+      </a> <div class="tm-company-card__description">Как мы делаем Яндекс</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/thoughtspile/" title="thoughtspile" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/513/385/9d7/5133859d7199625801f1a60e7855b616.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/thoughtspile/" class="tm-user-info__username">
+      thoughtspile
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T13:46:02.000Z" title="2019-05-06, 16:46">6  мая  2019 в 16:46</time></span></div> <!----></div> <h1 lang="en" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>How to create a dark theme without breaking things: learning with the Yandex Mail team</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/yandex/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Яндекс</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/mobile_dev/" class="tm-article-snippet__hubs-item-link"><span>Разработка мобильных приложений</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/apps_design/" class="tm-article-snippet__hubs-item-link"><span>Дизайн мобильных приложений</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/design/" class="tm-article-snippet__hubs-item-link"><span>Дизайн</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="en" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ji/4q/pr/ji4qprfkpuotssmzabus4cjflrq.png"/></p><br/>
+<p>My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with custom formatting remained light and stood out against the dark interface, hurting our users’ eyes at night. </p><br/>
+<p>Today I'll tell you how we fixed this problem. You will learn about two simple techniques that didn't work for us and the method that finally did the trick — adaptive page recoloring. I'll also share some ideas about adapting images to a dark theme. To be fair, darkening pages with custom CSS is a rather peculiar task, but I believe some of you may find our experience helpful. </p><a name="habracut"></a><br/>
+<h2 id="simple-methods">Simple methods</h2><br/>
+<p>Before settling on our magic color-bending technique, we tried out two really basic options: applying either additional dark styling or a CSS filter to elements. Neither option worked for us, but they might be more suitable in other cases (simple is cool, right?).</p><br/>
+<h3 id="overriding-styles">Overriding styles</h3><br/>
+<p>This is a dead-simple option, which logically extends the app's own dark CSS theme. You just put extra dark styles onto an email container (or, in general, onto a container for the user-generated content to darken):</p><br/>
+<pre><code class="css">.message--dark {
+    background-color: black;
+    color: white;
+}</code></pre><br/>
+<p>However, any styles on the elements inside the email will override our root style. And no, <code>!important</code> doesn't help here. The idea can be taken a step further by preventing inheritance:</p><br/>
+<pre><code class="css">.message--dark * {
+    background-color: black !important;
+    color: white !important;
+    border-color: #333 !important;
+}</code></pre><br/>
+<p>In this case, you can't do without <code>!important</code>, since the selector itself isn't very specific. This also happens to override most inline styles (the ones with inline <code>!important</code> will still find their way in, and there's not much you can do about it).</p><br/>
+<p>Our style eagerly paints everything the same color, thus introducing another problem. There's a chance the designer wanted to say something with the way they arranged the colors (you know, priorities, pairings, all that designer stuff), and we just took their idea and threw it out the window. Not a nice thing to do.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/cu/-1/ka/cu-1kav8ydvyjxlobshlklgio9u.png"/></p><br/>
+<p>If you don't respect designers as much as I do and decide to go with this method, don't forget to handle the not-so-obvious things:</p><br/>
+<ul>
+<li><code>box-shadow</code>. You won't, however, be able to only override the color. Either get rid of the shadows altogether or make peace with the light ones.</li>
+<li>The colors of semantic elements, such as links or inputs.</li>
+<li>Inline SVG. Use <code>fill</code> instead of <code>background</code>, and <code>stroke</code> instead of <code>color</code>, but you can never be sure, it may well be the other way around.</li>
+</ul><br/>
+<p>From a technical point of view, this is a solid method: it takes three lines of code (OK, thirty for a production-ready version with all the edge cases taken care of), it's compatible with all the browsers in the world, it works on dynamic pages out-of-the-box, and the way CSS is attached to the document is completely irrelevant. There's also a nice bonus: you can easily tweak the colors in the style to match the main colors of the application (for example, make the background <code>#bbbbb8</code> instead of black).</p><br/>
+<p>By the way, this is how we used to darken emails before. If an email had any styles of its own, we’d just give up and leave it light just in case.</p><br/>
+<h3 id="using-a-css-filter">Using a CSS filter</h3><br/>
+<p>This is a smart and elegant method. You can darken a page using a CSS filter:</p><br/>
+<pre><code class="css">.message--dark {
+    filter: invert(100) hue-rotate(180deg); /* hue-rotate возвращает тона обратно */
+}</code></pre><br/>
+<p>The images become creepy, but we can easily fix that:</p><br/>
+<pre><code class="css">.message-dark img {
+    filter: invert(100) hue-rotate(180deg);
+}</code></pre><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/dr/3a/ix/dr3aix8opihd2nlq6oqzjfbdtvs.png"/></p><br/>
+<p>However, this doesn't solve the issue of content images attached via the background property (sure, it’s handy for adjusting the aspect ratio, but what about the semantics?). OK, let's assume we can find all these elements, explicitly mark them, and change their colors back, too.</p><br/>
+<p>The good thing about this method is that it preserves the original brightness and contrast balance. On the other hand, it's full of problems that outweigh the advantages:</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ed/qe/h1/edqeh1dpkqv-w2gydobzojuaia0.png" data-width="300"/></p><br/>
+<ol>
+<li>Dark pages become bright. </li>
+<li>You can't control the final colors. What filter do you apply to the background so that it matches your brand <code>#bbbbb8</code>? That's a real head scratcher.</li>
+<li>Double inversion makes the images faded.</li>
+<li>The performance is sluggish, especially on mobile devices — makes sense, instead of simply rendering the page, the browser runs Fourier transforms on every draw.</li>
+</ol><br/>
+<p>This method would work for emails with neutral-colored text, but I've never met anyone with an inbox full of such content. On the other hand, filters are the only way to darken elements without accessing their contents — frames, web components, or images.</p><br/>
+<h2 id="adaptive-dark-theme">Adaptive dark theme</h2><br/>
+<p>And now it's time for magic! Based on the drawbacks of the first two approaches, we made a checklist of what we should take care of:</p><br/>
+<ol>
+<li>Make the background dark, the text light, and the borders somewhere in between.</li>
+<li>Detect dark pages and preserve their colors.</li>
+<li>Maintain the original balance of brightness and contrast.</li>
+<li>Give control over the resulting colors.</li>
+<li>Leave the hues unchanged.</li>
+</ol><br/>
+<p>So, you need to change the colors of the styles to make the background dark. Why not just do that, literally? Take all the styles, extract the color-related rules (<code>color</code>, <code>background</code>, <code>border</code>, <code>box-shadow</code>, and their subproperties), and replace them with their "darkened" versions: darken the background and the borders (but not as much as the background), lighten the text, etc.</p><br/>
+<p>This method has an incredible advantage that will warm any developer's heart. You can configure color conversion rules for each property — yes, using code! With a bit of imagination, you can fit the colors to any external theme, perform any color correction you wish (for example, do a light theme instead of a dark one, or a theme of any color you like), and even add a little bit of contextuality — for example, treat wide and narrow borders differently.</p><br/>
+<p>The disadvantages are what you'd expect from an "everything-in-js" approach. We run scripts, mess up style encapsulation, and parse CSS with regex. The latter, however, isn't as humiliating as with HTML, because CSS grammar is regular (at least at the level we're working with).</p><br/>
+<p>Here's our dark plan:</p><br/>
+<ol>
+<li>Normalize the legacy style properties (<code>bgcolor</code> and others) and move them into <code>style="..."</code>.</li>
+<li>Find all the inline styles.</li>
+<li>Find all the color-related rules in each style (<code>background-color</code>, <code>color</code>, <code>box-shadow</code>, and others).</li>
+<li>Take the colors from the color-related properties and match them with the right converter (darken the background, lighten the text).</li>
+<li>Call the converter.</li>
+<li>Put the converted properties back into the CSS.</li>
+</ol><br/>
+<p>The wrapper code — normalization, locating styles, parsing — is quite trivial. Let's see how exactly our magic converter works.</p><br/>
+<h3 id="hsl-conversions">HSL conversions</h3><br/>
+<p>Darkening a color isn't as simple as it sounds, especially if you want to preserve the hue (for example, turn blue into dark blue, not orange). You can do this in ordinary RGB, but it's problematic. If you're into algorithmic design, you know that in RGB, even gradients are broken. Meanwhile, working with colors in HSL is a real treat: instead of Red, Green and Blue, which you have no idea what to do with, you have the following three channels:</p><br/>
+<ul>
+<li>Hue — the thing we're looking to preserve.</li>
+<li>Saturation, which is not very important to us right now.</li>
+<li>Lightness, which we will be changing.</li>
+</ul><br/>
+<p>You can think of it as a cylinder. We need to turn this cylinder upside down. Color correction does something like this: <code>(h, s, l) => [h, s, 1-l]</code>.</p><br/>
+<h3 id="colors-that-are-already-ok">Colors that are already OK</h3><br/>
+<p>Sometimes we get lucky and the custom design of the email (or a part of it) is already dark. This means we don't need to change anything — the designer probably did a better job at picking the colors than our algorithm could ever dream of. In HSL, you only need to consider the L — Lightness. If its value is higher or lower (for the text and the background, respectively) than the threshold (which you can set), just leave it alone.</p><br/>
+<h3 id="dynamic-circus">Dynamic circus</h3><br/>
+<p>Even though we did not need any of this (many thanks, sanitizer, you saved my day here), I'll list the extra features an adaptive theme needs to darken entire pages and not just goofy static emails from the '90s. Fair warning: this task is not for everyone.</p><br/>
+<h4 id="dynamic-inline-styles">Dynamic inline styles</h4><br/>
+<p>Changing inline styles is the simplest case that messes up our dark pages. It is common, but there's a simple fix: add <a href="https://developer.mozilla.org/ru/docs/Web/API/MutationObserver"><code>MutationObserver</code></a> and fix inline styles as soon as the changes occur.</p><br/>
+<h4 id="external-styles">External styles</h4><br/>
+<p>Working with styles referenced by a <code>&lt;link></code> element from inside the page can be agonizing because of the asynchronicity and the <code>@import</code> statements. And CORS doesn't make things better. It looks like this problem can be solved quite elegantly with a web worker (proxying all <code>*.css</code>).</p><br/>
+<h4 id="dynamic-styles">Dynamic styles</h4><br/>
+<p>To make things worse, scripts can add, remove, or rearrange <code>&lt;style></code> and <code>&lt;link></code> elements as they wish, and even change the rules in <code>&lt;style></code>. Here you'll also need to use <code>MutationObserver</code>, but every change will incur more processing.</p><br/>
+<h4 id="css-variables">CSS variables</h4><br/>
+<p>Things get really wild when CSS variables come into play. You can't darken the variables: even if you guess that a variable contains a color based on its format (although I would advise against this), you still don't know what its role is — background, text, border, or all at once? Moreover, the values of CSS variables are inherited, so you need to track not only the styles, but the elements they are applied to, and this quickly escalates out of control.</p><br/>
+<p>Once the CSS variables make it to the mainstream, we’re in trouble. On the other hand, <code>color()</code> will be supported by then, allowing us to replace all our JS conversions with a <code>color(var(--bg) lightness(-50%))</code>.</p><br/>
+<h3 id="summary">Summary</h3><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/46/rl/mz/46rlmzxvgus52n7_77t3ydz2ms0.png"/></p><br/>
+<p>In our case, when the sanitizer leaves only inline styles, adaptive darkening at the CSS level works like a charm: it gives higher-quality darkening, doesn't disrupt the original structure, and is relatively simple and quick. Extending it to tackle dynamic pages is probably not worth the trouble, though. Fortunately, if you're working with user-generated content and you're not developing a browser, your sanitizer likely works the same way.</p><br/>
+<p>In practice, adaptive mode should be paired with style overrides, since standard elements like <code>&lt;input></code> or <code>&lt;a></code> often use the default light styles.</p><br/>
+<h2 id="how-to-darken-images">How to darken images</h2><br/>
+<p>Image darkening is a separate issue that bothers me personally. It's challenging, and gives me an excuse to finally use the phrase "spectral analysis". There are several typical problems with images in a dark theme.</p><br/>
+<p>Some images are just too bright. These give us the same trouble as the bright emails we started our quest with. This issue often arises in ordinary photos, but it’s not exclusive to these. Since writing newsletter CSS isn't much fun, some guys like to skip corners by inserting complex layout as an image, which prevents darkening. When I see that, my inner perfectionist groans in frustration. These images should be dimmed, but not inverted, unless you want to scare your users.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/6-/zz/nx/6-zznxvkap9ywdvgjpglm5v6wqc.png"/></p><br/>
+<p>Then there are dark images with real transparency. This is a typical problem with logos — they are designed with a light background in mind, and when we replace it with a dark background, the logo disappears into it. These images need to be inverted.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/xo/at/cc/xoatcc7dg3nhb_ufdoyye4hxsoo.png"/></p><br/>
+<p>Somewhere in between are images that use a white background that's supposed to represent transparency. In the dark theme, they simply end up in a weird white triangle. In a perfect world, we could change the white background to a transparent one, but if you've ever used a magic wand tool, you know how hard it is to do that automatically.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fi/o4/v9/fio4v9n1lcpve_wa1jhj5usj4yo.png"/></p><br/>
+<p>Interestingly enough, some images carry no meaning whatsoever. These are usually tracking pixels or "format holders" in particularly bizzare layouts. You can safely make them invisible (say, with <code>opacity: 0</code>).</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/5y/ba/tu/5ybatucrfhczsgc_aqykbgtnop0.png"/></p><br/>
+<h3 id="analyzing-whats-inside">Analyzing what's inside</h3><br/>
+<p>To figure out how to adjust an image for dark theme, we need to look inside and analyze its contents, preferably with a quick and simple method. Here's the first version of an algorithm that solves this.</p><br/>
+<p>First count the image's dark, light, and transparent pixels. As an obvious optimization, just a small subset of pixels can be considered. Next, determine the overall brightness of the image (light, dark, or medium) and whether there's any transparency. Invert dark images with transparency, dim opaque bright images, and leave the rest unchanged.</p><br/>
+<p>I was really happy about this discovery until I came across a charity newsletter featuring a photo of a lesson at an African school. The designer centered it by adding transparent pixels on the sides. We didn't want to get involved in a story about offensive image recognition, so we decided to leave image manipulation out of our first iteration.</p><br/>
+<p>In the future, we can prevent such problems by employing that heuristic I call "spectral analysis". That is, counting the number of different hues in the image and only inverting if there are aren't too many of them. You can use the same method to recognize bright sketchy images and invert them, too.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/sj/c1/di/sjc1diiz68fpljjzii64f9j7nrq.png"/></p><br/>
+<h2 id="conclusion">Conclusion</h2><br/>
+<p>To design a full-fledged dark theme, we had to find a way to darken emails that contain custom formatting — and we did. First, we tried two simple, pure CSS solutions — overriding styles and using a CSS filter. Neither of them hit the mark: the first one was too hard on the original design, and the other simply didn't work well. In the end, we decided to use adaptive darkening. We take the styles apart, replace the colors, and put them back together. We're currently working on applying the dark theme to images. To do that, we need to analyze their contents and then only adjust some of them.</p><br/>
+<p>If you ever need to change the color of custom HTML snipets to fit it into a dark theme, keep three methods in mind:</p><br/>
+<ul>
+<li>Overriding styles. It's a no fuss, no muss method, plus you'll need it for your application anyway. The bad news is that it destroys all the original colors.</li>
+<li>CSS filter. It's fun but leaves much to be desired. Reserve it for elements that aren't easy to access, like frames or web components.</li>
+<li>Style rewriting. This method does a great job at darkening, but it's more complex.</li>
+</ul><br/>
+<p>Even if you never try any of this out, I hope you had a great time reading this article!</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bfrontend%5D" class="tm-tags-list__link">frontend</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdesign%5D" class="tm-tags-list__link">design</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bweb%20development%5D" class="tm-tags-list__link">web development</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/yandex/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Яндекс
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/mobile_dev/" class="tm-hubs-list__link">
+    Разработка мобильных приложений
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/apps_design/" class="tm-hubs-list__link">
+    Дизайн мобильных приложений
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/design/" class="tm-hubs-list__link">
+    Дизайн
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 22: ↑20 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 22: ↑20 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+18</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">6.5K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    3
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/yandex/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/b02/d9b/1d4/b02d9b1d4a6e64ff069e2ab32fdedae2.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/yandex/profile/" class="tm-company-snippet__title">Яндекс</a> <div class="tm-company-snippet__description">Как мы делаем Яндекс</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://github.com/yandex" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Github
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/thoughtspile/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/513/385/9d7/5133859d7199625801f1a60e7855b616.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 48 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    48
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Владимир Клепов</span> <a href="/ru/users/thoughtspile/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @thoughtspile
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Фронтендер</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/yandex/blog/450032/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 1 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="1997-09-22T20:00:00.000Z" title="1997-09-23, 00:00">23  сентября  1997</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://www.yandex.ru/" target="_blank" class="tm-company-basic-info__link">
+      www.yandex.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    свыше 10 000 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2008-08-09T07:42:31.000Z" title="2008-08-09, 11:42">9  августа  2008</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/yandex/blog/450032/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/yandex/blog/450032/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450032":{"id":"450032","timePublished":"2019-05-06T13:46:02+00:00","isCorporative":true,"lang":"en","titleHtml":"How to create a dark theme without breaking things: learning with the Yandex Mail team","leadData":{"textHtml":"\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fji\u002F4q\u002Fpr\u002Fji4qprfkpuotssmzabus4cjflrq.png\"\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EMy name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with custom formatting remained light and stood out against the dark interface, hurting our users’ eyes at night. \u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EToday I'll tell you how we fixed this problem. You will learn about two simple techniques that didn't work for us and the method that finally did the trick — adaptive page recoloring. I'll also share some ideas about adapting images to a dark theme. To be fair, darkening pages with custom CSS is a rather peculiar task, but I believe some of you may find our experience helpful. \u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Read more →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":48,"votesCount":48},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1847251","alias":"thoughtspile","fullname":"Владимир Клепов","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F513\u002F385\u002F9d7\u002F5133859d7199625801f1a60e7855b616.png","speciality":"Фронтендер"},"statistics":{"commentsCount":1,"favoritesCount":3,"readingCount":6526,"score":18,"votesCount":22},"hubs":[{"relatedData":null,"id":"4991","alias":"yandex","type":"corporative","title":"Блог компании Яндекс","titleHtml":"Блог компании Яндекс","isProfiled":false},{"relatedData":null,"id":"6345","alias":"mobile_dev","type":"collective","title":"Разработка мобильных приложений","titleHtml":"Разработка мобильных приложений","isProfiled":true},{"relatedData":null,"id":"19465","alias":"apps_design","type":"collective","title":"Дизайн мобильных приложений","titleHtml":"Дизайн мобильных приложений","isProfiled":true},{"relatedData":null,"id":"21892","alias":"design","type":"collective","title":"Дизайн","titleHtml":"Дизайн","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"2","alias":"design","title":"Дизайн"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fji\u002F4q\u002Fpr\u002Fji4qprfkpuotssmzabus4cjflrq.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EMy name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with custom formatting remained light and stood out against the dark interface, hurting our users’ eyes at night. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EToday I'll tell you how we fixed this problem. You will learn about two simple techniques that didn't work for us and the method that finally did the trick — adaptive page recoloring. I'll also share some ideas about adapting images to a dark theme. To be fair, darkening pages with custom CSS is a rather peculiar task, but I believe some of you may find our experience helpful. \u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"simple-methods\"\u003ESimple methods\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBefore settling on our magic color-bending technique, we tried out two really basic options: applying either additional dark styling or a CSS filter to elements. Neither option worked for us, but they might be more suitable in other cases (simple is cool, right?).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"overriding-styles\"\u003EOverriding styles\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis is a dead-simple option, which logically extends the app's own dark CSS theme. You just put extra dark styles onto an email container (or, in general, onto a container for the user-generated content to darken):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"css\"\u003E.message--dark {\n    background-color: black;\n    color: white;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EHowever, any styles on the elements inside the email will override our root style. And no, \u003Ccode\u003E!important\u003C\u002Fcode\u003E doesn't help here. The idea can be taken a step further by preventing inheritance:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"css\"\u003E.message--dark * {\n    background-color: black !important;\n    color: white !important;\n    border-color: #333 !important;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn this case, you can't do without \u003Ccode\u003E!important\u003C\u002Fcode\u003E, since the selector itself isn't very specific. This also happens to override most inline styles (the ones with inline \u003Ccode\u003E!important\u003C\u002Fcode\u003E will still find their way in, and there's not much you can do about it).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EOur style eagerly paints everything the same color, thus introducing another problem. There's a chance the designer wanted to say something with the way they arranged the colors (you know, priorities, pairings, all that designer stuff), and we just took their idea and threw it out the window. Not a nice thing to do.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcu\u002F-1\u002Fka\u002Fcu-1kav8ydvyjxlobshlklgio9u.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIf you don't respect designers as much as I do and decide to go with this method, don't forget to handle the not-so-obvious things:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Ebox-shadow\u003C\u002Fcode\u003E. You won't, however, be able to only override the color. Either get rid of the shadows altogether or make peace with the light ones.\u003C\u002Fli\u003E\r\n\u003Cli\u003EThe colors of semantic elements, such as links or inputs.\u003C\u002Fli\u003E\r\n\u003Cli\u003EInline SVG. Use \u003Ccode\u003Efill\u003C\u002Fcode\u003E instead of \u003Ccode\u003Ebackground\u003C\u002Fcode\u003E, and \u003Ccode\u003Estroke\u003C\u002Fcode\u003E instead of \u003Ccode\u003Ecolor\u003C\u002Fcode\u003E, but you can never be sure, it may well be the other way around.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EFrom a technical point of view, this is a solid method: it takes three lines of code (OK, thirty for a production-ready version with all the edge cases taken care of), it's compatible with all the browsers in the world, it works on dynamic pages out-of-the-box, and the way CSS is attached to the document is completely irrelevant. There's also a nice bonus: you can easily tweak the colors in the style to match the main colors of the application (for example, make the background \u003Ccode\u003E#bbbbb8\u003C\u002Fcode\u003E instead of black).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBy the way, this is how we used to darken emails before. If an email had any styles of its own, we’d just give up and leave it light just in case.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"using-a-css-filter\"\u003EUsing a CSS filter\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis is a smart and elegant method. You can darken a page using a CSS filter:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"css\"\u003E.message--dark {\n    filter: invert(100) hue-rotate(180deg); \u002F* hue-rotate возвращает тона обратно *\u002F\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe images become creepy, but we can easily fix that:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"css\"\u003E.message-dark img {\n    filter: invert(100) hue-rotate(180deg);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fdr\u002F3a\u002Fix\u002Fdr3aix8opihd2nlq6oqzjfbdtvs.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EHowever, this doesn't solve the issue of content images attached via the background property (sure, it’s handy for adjusting the aspect ratio, but what about the semantics?). OK, let's assume we can find all these elements, explicitly mark them, and change their colors back, too.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe good thing about this method is that it preserves the original brightness and contrast balance. On the other hand, it's full of problems that outweigh the advantages:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fed\u002Fqe\u002Fh1\u002Fedqeh1dpkqv-w2gydobzojuaia0.png\" data-width=\"300\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EDark pages become bright. \u003C\u002Fli\u003E\r\n\u003Cli\u003EYou can't control the final colors. What filter do you apply to the background so that it matches your brand \u003Ccode\u003E#bbbbb8\u003C\u002Fcode\u003E? That's a real head scratcher.\u003C\u002Fli\u003E\r\n\u003Cli\u003EDouble inversion makes the images faded.\u003C\u002Fli\u003E\r\n\u003Cli\u003EThe performance is sluggish, especially on mobile devices — makes sense, instead of simply rendering the page, the browser runs Fourier transforms on every draw.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis method would work for emails with neutral-colored text, but I've never met anyone with an inbox full of such content. On the other hand, filters are the only way to darken elements without accessing their contents — frames, web components, or images.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"adaptive-dark-theme\"\u003EAdaptive dark theme\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAnd now it's time for magic! Based on the drawbacks of the first two approaches, we made a checklist of what we should take care of:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EMake the background dark, the text light, and the borders somewhere in between.\u003C\u002Fli\u003E\r\n\u003Cli\u003EDetect dark pages and preserve their colors.\u003C\u002Fli\u003E\r\n\u003Cli\u003EMaintain the original balance of brightness and contrast.\u003C\u002Fli\u003E\r\n\u003Cli\u003EGive control over the resulting colors.\u003C\u002Fli\u003E\r\n\u003Cli\u003ELeave the hues unchanged.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESo, you need to change the colors of the styles to make the background dark. Why not just do that, literally? Take all the styles, extract the color-related rules (\u003Ccode\u003Ecolor\u003C\u002Fcode\u003E, \u003Ccode\u003Ebackground\u003C\u002Fcode\u003E, \u003Ccode\u003Eborder\u003C\u002Fcode\u003E, \u003Ccode\u003Ebox-shadow\u003C\u002Fcode\u003E, and their subproperties), and replace them with their \"darkened\" versions: darken the background and the borders (but not as much as the background), lighten the text, etc.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis method has an incredible advantage that will warm any developer's heart. You can configure color conversion rules for each property — yes, using code! With a bit of imagination, you can fit the colors to any external theme, perform any color correction you wish (for example, do a light theme instead of a dark one, or a theme of any color you like), and even add a little bit of contextuality — for example, treat wide and narrow borders differently.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe disadvantages are what you'd expect from an \"everything-in-js\" approach. We run scripts, mess up style encapsulation, and parse CSS with regex. The latter, however, isn't as humiliating as with HTML, because CSS grammar is regular (at least at the level we're working with).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EHere's our dark plan:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003ENormalize the legacy style properties (\u003Ccode\u003Ebgcolor\u003C\u002Fcode\u003E and others) and move them into \u003Ccode\u003Estyle=\"...\"\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EFind all the inline styles.\u003C\u002Fli\u003E\r\n\u003Cli\u003EFind all the color-related rules in each style (\u003Ccode\u003Ebackground-color\u003C\u002Fcode\u003E, \u003Ccode\u003Ecolor\u003C\u002Fcode\u003E, \u003Ccode\u003Ebox-shadow\u003C\u002Fcode\u003E, and others).\u003C\u002Fli\u003E\r\n\u003Cli\u003ETake the colors from the color-related properties and match them with the right converter (darken the background, lighten the text).\u003C\u002Fli\u003E\r\n\u003Cli\u003ECall the converter.\u003C\u002Fli\u003E\r\n\u003Cli\u003EPut the converted properties back into the CSS.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe wrapper code — normalization, locating styles, parsing — is quite trivial. Let's see how exactly our magic converter works.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"hsl-conversions\"\u003EHSL conversions\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EDarkening a color isn't as simple as it sounds, especially if you want to preserve the hue (for example, turn blue into dark blue, not orange). You can do this in ordinary RGB, but it's problematic. If you're into algorithmic design, you know that in RGB, even gradients are broken. Meanwhile, working with colors in HSL is a real treat: instead of Red, Green and Blue, which you have no idea what to do with, you have the following three channels:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EHue — the thing we're looking to preserve.\u003C\u002Fli\u003E\r\n\u003Cli\u003ESaturation, which is not very important to us right now.\u003C\u002Fli\u003E\r\n\u003Cli\u003ELightness, which we will be changing.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EYou can think of it as a cylinder. We need to turn this cylinder upside down. Color correction does something like this: \u003Ccode\u003E(h, s, l) =\u003E [h, s, 1-l]\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"colors-that-are-already-ok\"\u003EColors that are already OK\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESometimes we get lucky and the custom design of the email (or a part of it) is already dark. This means we don't need to change anything — the designer probably did a better job at picking the colors than our algorithm could ever dream of. In HSL, you only need to consider the L — Lightness. If its value is higher or lower (for the text and the background, respectively) than the threshold (which you can set), just leave it alone.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"dynamic-circus\"\u003EDynamic circus\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EEven though we did not need any of this (many thanks, sanitizer, you saved my day here), I'll list the extra features an adaptive theme needs to darken entire pages and not just goofy static emails from the '90s. Fair warning: this task is not for everyone.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"dynamic-inline-styles\"\u003EDynamic inline styles\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EChanging inline styles is the simplest case that messes up our dark pages. It is common, but there's a simple fix: add \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fru\u002Fdocs\u002FWeb\u002FAPI\u002FMutationObserver\"\u003E\u003Ccode\u003EMutationObserver\u003C\u002Fcode\u003E\u003C\u002Fa\u003E and fix inline styles as soon as the changes occur.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"external-styles\"\u003EExternal styles\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EWorking with styles referenced by a \u003Ccode\u003E&lt;link\u003E\u003C\u002Fcode\u003E element from inside the page can be agonizing because of the asynchronicity and the \u003Ccode\u003E@import\u003C\u002Fcode\u003E statements. And CORS doesn't make things better. It looks like this problem can be solved quite elegantly with a web worker (proxying all \u003Ccode\u003E*.css\u003C\u002Fcode\u003E).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"dynamic-styles\"\u003EDynamic styles\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ETo make things worse, scripts can add, remove, or rearrange \u003Ccode\u003E&lt;style\u003E\u003C\u002Fcode\u003E and \u003Ccode\u003E&lt;link\u003E\u003C\u002Fcode\u003E elements as they wish, and even change the rules in \u003Ccode\u003E&lt;style\u003E\u003C\u002Fcode\u003E. Here you'll also need to use \u003Ccode\u003EMutationObserver\u003C\u002Fcode\u003E, but every change will incur more processing.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"css-variables\"\u003ECSS variables\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThings get really wild when CSS variables come into play. You can't darken the variables: even if you guess that a variable contains a color based on its format (although I would advise against this), you still don't know what its role is — background, text, border, or all at once? Moreover, the values of CSS variables are inherited, so you need to track not only the styles, but the elements they are applied to, and this quickly escalates out of control.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EOnce the CSS variables make it to the mainstream, we’re in trouble. On the other hand, \u003Ccode\u003Ecolor()\u003C\u002Fcode\u003E will be supported by then, allowing us to replace all our JS conversions with a \u003Ccode\u003Ecolor(var(--bg) lightness(-50%))\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"summary\"\u003ESummary\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F46\u002Frl\u002Fmz\u002F46rlmzxvgus52n7_77t3ydz2ms0.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn our case, when the sanitizer leaves only inline styles, adaptive darkening at the CSS level works like a charm: it gives higher-quality darkening, doesn't disrupt the original structure, and is relatively simple and quick. Extending it to tackle dynamic pages is probably not worth the trouble, though. Fortunately, if you're working with user-generated content and you're not developing a browser, your sanitizer likely works the same way.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn practice, adaptive mode should be paired with style overrides, since standard elements like \u003Ccode\u003E&lt;input\u003E\u003C\u002Fcode\u003E or \u003Ccode\u003E&lt;a\u003E\u003C\u002Fcode\u003E often use the default light styles.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"how-to-darken-images\"\u003EHow to darken images\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EImage darkening is a separate issue that bothers me personally. It's challenging, and gives me an excuse to finally use the phrase \"spectral analysis\". There are several typical problems with images in a dark theme.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESome images are just too bright. These give us the same trouble as the bright emails we started our quest with. This issue often arises in ordinary photos, but it’s not exclusive to these. Since writing newsletter CSS isn't much fun, some guys like to skip corners by inserting complex layout as an image, which prevents darkening. When I see that, my inner perfectionist groans in frustration. These images should be dimmed, but not inverted, unless you want to scare your users.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F6-\u002Fzz\u002Fnx\u002F6-zznxvkap9ywdvgjpglm5v6wqc.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThen there are dark images with real transparency. This is a typical problem with logos — they are designed with a light background in mind, and when we replace it with a dark background, the logo disappears into it. These images need to be inverted.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fxo\u002Fat\u002Fcc\u002Fxoatcc7dg3nhb_ufdoyye4hxsoo.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESomewhere in between are images that use a white background that's supposed to represent transparency. In the dark theme, they simply end up in a weird white triangle. In a perfect world, we could change the white background to a transparent one, but if you've ever used a magic wand tool, you know how hard it is to do that automatically.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffi\u002Fo4\u002Fv9\u002Ffio4v9n1lcpve_wa1jhj5usj4yo.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EInterestingly enough, some images carry no meaning whatsoever. These are usually tracking pixels or \"format holders\" in particularly bizzare layouts. You can safely make them invisible (say, with \u003Ccode\u003Eopacity: 0\u003C\u002Fcode\u003E).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F5y\u002Fba\u002Ftu\u002F5ybatucrfhczsgc_aqykbgtnop0.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"analyzing-whats-inside\"\u003EAnalyzing what's inside\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ETo figure out how to adjust an image for dark theme, we need to look inside and analyze its contents, preferably with a quick and simple method. Here's the first version of an algorithm that solves this.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EFirst count the image's dark, light, and transparent pixels. As an obvious optimization, just a small subset of pixels can be considered. Next, determine the overall brightness of the image (light, dark, or medium) and whether there's any transparency. Invert dark images with transparency, dim opaque bright images, and leave the rest unchanged.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EI was really happy about this discovery until I came across a charity newsletter featuring a photo of a lesson at an African school. The designer centered it by adding transparent pixels on the sides. We didn't want to get involved in a story about offensive image recognition, so we decided to leave image manipulation out of our first iteration.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn the future, we can prevent such problems by employing that heuristic I call \"spectral analysis\". That is, counting the number of different hues in the image and only inverting if there are aren't too many of them. You can use the same method to recognize bright sketchy images and invert them, too.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fsj\u002Fc1\u002Fdi\u002Fsjc1diiz68fpljjzii64f9j7nrq.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"conclusion\"\u003EConclusion\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ETo design a full-fledged dark theme, we had to find a way to darken emails that contain custom formatting — and we did. First, we tried two simple, pure CSS solutions — overriding styles and using a CSS filter. Neither of them hit the mark: the first one was too hard on the original design, and the other simply didn't work well. In the end, we decided to use adaptive darkening. We take the styles apart, replace the colors, and put them back together. We're currently working on applying the dark theme to images. To do that, we need to analyze their contents and then only adjust some of them.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIf you ever need to change the color of custom HTML snipets to fit it into a dark theme, keep three methods in mind:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EOverriding styles. It's a no fuss, no muss method, plus you'll need it for your application anyway. The bad news is that it destroys all the original colors.\u003C\u002Fli\u003E\r\n\u003Cli\u003ECSS filter. It's fun but leaves much to be desired. Reserve it for elements that aren't easy to access, like frames or web components.\u003C\u002Fli\u003E\r\n\u003Cli\u003EStyle rewriting. This method does a great job at darkening, but it's more complex.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EEven if you never try any of this out, I hope you had a great time reading this article!\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"frontend"},{"titleHtml":"design"},{"titleHtml":"web development"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450032\u002F33287d4efb59c53f7842053f777a2ad8\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450032\u002F33287d4efb59c53f7842053f777a2ad8\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fcompany\\\u002Fyandex\\\u002Fblog\\\u002F450032\\\u002F\"},\"headline\":\"How to create a dark theme without breaking things: learning with the Yandex Mail team\",\"datePublished\":\"2019-05-06T16:46:02+03:00\",\"dateModified\":\"2019-05-06T17:17:39+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Владимир Клепов\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fcompany\\\u002Fyandex\\\u002Fblog\\\u002F450032\\\u002F#post-content-body\",\"about\":[\"c_yandex\",\"h_mobile_dev\",\"h_apps_design\",\"h_design\",\"f_develop\",\"f_design\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fji\\\u002F4q\\\u002Fpr\\\u002Fji4qprfkpuotssmzabus4cjflrq.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcu\\\u002F-1\\\u002Fka\\\u002Fcu-1kav8ydvyjxlobshlklgio9u.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fdr\\\u002F3a\\\u002Fix\\\u002Fdr3aix8opihd2nlq6oqzjfbdtvs.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fed\\\u002Fqe\\\u002Fh1\\\u002Fedqeh1dpkqv-w2gydobzojuaia0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F46\\\u002Frl\\\u002Fmz\\\u002F46rlmzxvgus52n7_77t3ydz2ms0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F6-\\\u002Fzz\\\u002Fnx\\\u002F6-zznxvkap9ywdvgjpglm5v6wqc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fxo\\\u002Fat\\\u002Fcc\\\u002Fxoatcc7dg3nhb_ufdoyye4hxsoo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffi\\\u002Fo4\\\u002Fv9\\\u002Ffio4v9n1lcpve_wa1jhj5usj4yo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F5y\\\u002Fba\\\u002Ftu\\\u002F5ybatucrfhczsgc_aqykbgtnop0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fsj\\\u002Fc1\\\u002Fdi\\\u002Fsjc1diiz68fpljjzii64f9j7nrq.png\"]}","metaDescription":"My name is Vladimir, and I develop mobile front-end for Yandex Mail. Our apps have had a dark theme for a while, but it was incomplete: only the interface and plain emails were dark. Messages with...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"yandex":{"alias":"yandex","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Fb02\u002Fd9b\u002F1d4\u002Fb02d9b1d4a6e64ff069e2ab32fdedae2.png","titleHtml":"Яндекс","descriptionHtml":"Как мы делаем Яндекс","relatedData":null,"statistics":{"postsCount":1775,"newsCount":20,"vacanciesCount":18,"employeesCount":732,"careerRating":null,"subscribersCount":115057,"rating":491.44,"invest":null},"foundationDate":{"year":"1997","month":"09","day":"23"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fwww.yandex.ru\u002F","staffNumber":"свыше 10 000 человек","registrationDate":"2008-08-09T07:42:31+00:00","representativeUser":null,"contacts":[{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Fyandex"}],"settings":{"analyticsSettings":[{"type":"ym","trackingId":"55712026"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F907\u002Fa84\u002F1d7\u002F907a841d7f3392623972d244da8dae91.png","linkUrl":"","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"Яндекс, Москва - Как мы делаем Яндекс с 23 сентября 1997 г.","title":"Яндекс, Москва - Как мы делаем Яндекс с 23 сентября 1997 г.","keywords":["Интерфейсы","Высокая производительность","Машинное обучение","Разработка мобильных приложений","C++"],"descriptionHtml":"1 775 статей от авторов компании Яндекс","description":"1 775 статей от авторов компании Яндекс"},"aDeskSettings":null,"careerAlias":"yandex","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

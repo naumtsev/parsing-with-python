@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019 / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/neobit\/blog\/450026\/"},"headline":"Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019","datePublished":"2019-06-10T16:48:50+03:00","dateModified":"2019-06-10T17:47:35+03:00","author":{"@type":"Person","name":"NWOcs"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Акселерометр &mdash; он же G-сенсор &mdash; является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акс...","url":"https:\/\/habr.com\/ru\/company\/neobit\/blog\/450026\/#post-content-body","about":["c_neobit","h_infosecurity","h_zadachki","h_ctf","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/4h\/-k\/x-\/4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg","https:\/\/habrastorage.org\/webt\/la\/za\/w7\/lazaw762f-l6prv0nn7-ng6ky8a.png","https:\/\/habrastorage.org\/webt\/fg\/ln\/je\/fglnje3ljaxl2aqhilflieh3pxq.png","https:\/\/habrastorage.org\/webt\/r1\/ib\/ww\/r1ibwwmhfkfuligj-tmi5gbslpe.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450026/e351f71a0220c4e50cc373615a479963/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450026/e351f71a0220c4e50cc373615a479963/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450026/e351f71a0220c4e50cc373615a479963/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450026/e351f71a0220c4e50cc373615a479963/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450026/e351f71a0220c4e50cc373615a479963/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450026" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-06-10T13:48:50.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450026/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/neobit/blog/450026/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450026/e351f71a0220c4e50cc373615a479963/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="neobit" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/neobit/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/a64/4d8/803/a644d8803d9fb17b922220c6c28c1afb.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">43.4</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/neobit/profile/" class="tm-company-card__name">
+        НеоБИТ
+      </a> <div class="tm-company-card__description"></div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/NWOcs/" title="NWOcs" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/1ae/b1c/80e/1aeb1c80e29f2c8abed5589c861c36b3.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/NWOcs/" class="tm-user-info__username">
+      NWOcs
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-06-10T13:48:50.000Z" title="2019-06-10, 16:48">10  июня  2019 в 16:48</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/neobit/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании НеоБИТ</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/infosecurity/" class="tm-article-snippet__hubs-item-link"><span>Информационная безопасность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/zadachki/" class="tm-article-snippet__hubs-item-link"><span>Занимательные задачки</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/ctf/" class="tm-article-snippet__hubs-item-link"><span>CTF</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/4h/-k/x-/4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg" data-src="https://habrastorage.org/webt/4h/-k/x-/4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg" data-blurred="true"/></div><br/>
+<br/>
+Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую задачу — измеряет ускорение устройства. Давайте посмотрим, как он это делает — разберем механизмы сенсоров API Android на примере задания №7 из online-этапа NeoQUEST-2019.<br/>
+<a name="habracut"></a><br/>
+По легенде нам выдано 2 файла: <b>7.apk</b> и <b>7.txt</b>. Из текста задания (а все задания по-прежнему доступны <a href="https://neoquest.ru/2019/">тут</a>) можно сделать следующие выводы: <b>7.apk</b> – программа-шифратор, которая каким-то образом использует параметры акселерометра устройства; <b>7.txt</b> – криптограмма, сгенерированная шифратором. Записано в ней следующее:<br/>
+<br/>
+<b>[1749054104147639][2.07154922][10.001905][4.5387093][1749056073889025][5.7193284][8.221763][0.01391537][1749058029180773][4.684068][12.05614][0.0377285][1749060105291613][4.6900544][6.9307165][4.7094293][1749062123327502][4.4682417][7.512769][6.037215][1749067640096818][1.0396843][8.798672][4.9335976][1749070016073380][2.3173676][10.180047][4.948362][1749072343679582][4.3660607][12.218135][0.5312999][1749073674459611][2.48394698][10.834006][6.306282][1749075827770391][0.2795044][13.279829][0.19391555]</b><br/>
+<br/>
+Видим, что текст представляет собой повторяющиеся группы из 4 значений, одно из которых целочисленное, а 3 оставшихся – числа с плавающей точкой. Для удобства расставим их по отдельным строкам:<br/>
+<br/>
+<b>[1749054104147639][-2.07154922][10.001905][4.5387093]<br/>
+[1749056073889025][5.7193284][8.221763][0.01391537]<br/>
+[1749058029180773][-4.684068][12.05614][0.0377285]<br/>
+[1749060105291613][4.6900544][6.9307165][-4.7094293]<br/>
+[1749062123327502][4.4682417][7.512769][6.037215]<br/>
+[1749067640096818][1.0396843][8.798672][-4.9335976]<br/>
+[1749070016073380][-2.3173676][10.180047][4.948362]<br/>
+[1749072343679582][-4.3660607][12.218135][0.5312999]<br/>
+[1749073674459611][-2.48394698][10.834006][-6.306282]<br/>
+[1749075827770391][0.2795044][13.279829][-0.19391555]</b><br/>
+<br/>
+С форматом криптограммы разобрались, но что это за значения — неизвестно. Какие-то параметры акселерометра устройства, без всякой конкретики. А давайте-ка зайдем на сайт разработчиков Android и <a href="https://developer.android.com/guide/topics/sensors/sensors_motion">посмотрим</a>, что вообще акселерометр может показать.<br/>
+<br/>
+Видим следующее описание:<br/>
+ <br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/la/za/w7/lazaw762f-l6prv0nn7-ng6ky8a.png"/></div><br/>
+Выяснили, за что отвечают параметры с плавающей точкой — это ускорение устройства вдоль осей X, Y и Z. Но как понять, за какую ось отвечает каждый из них? Самое время запускать приложение. Оно выглядит следующим образом:<br/>
+ <br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fg/ln/je/fglnje3ljaxl2aqhilflieh3pxq.png"/></div><br/>
+<br/>
+Здесь есть 2 возможности определения поведения приложения: декомпиляция <b>.apk</b> и анализ получаемых значений. Далее рассмотрим второй способ и приведем вставки декомпилированного кода, отвечающего за рассматриваемые действия приложения.<br/>
+В криптограмме присутствуют положительные и отрицательные значения (мы знаем, что это ускорения по разным осям), поэтому можно сделать предположение: если вектора наклона устройства по оси будут противоположными, то значения ускорений будут приблизительно равны по модулю, а различие будет лишь в знаке. <br/>
+<br/>
+Ниже представлен листинг кода, отвечающий за хранение информации об ускорениях:<br/>
+<br/>
+<pre><code class="java">public class MotionSnapshot
+{
+    public final float angle_alpha;
+    public final float angle_beta;
+    public final float angle_gamma;
+    public final long  event_time;
+    ...
+}</code></pre><br/>
+Исходя из данных рассуждений, перед нами возникают следующие задачи:<br/>
+<br/>
+<ol>
+<li>Определить, какому значению в криптограмме соответствует наклон устройства</li>
+<li>Определить шаблон отклонений</li>
+<li>Каждой цифре поставить в соответствие шаблон отклонения для расшифрования</li>
+</ol><br/>
+Первые 2 задачи будем выполнять параллельно. На телефоне мы можем тестировать 2 вида наклона:<br/>
+<br/>
+<ol>
+<li>От себя/На себя</li>
+<li>Влево/Вправо</li>
+</ol><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/r1/ib/ww/r1ibwwmhfkfuligj-tmi5gbslpe.jpeg" data-src="https://habrastorage.org/webt/r1/ib/ww/r1ibwwmhfkfuligj-tmi5gbslpe.jpeg" data-blurred="true"/></div><br/>
+<div class="spoiler"><b class="spoiler_title">Код, отвечающий за обработку событий от акселерометра</b><div class="spoiler_text"><pre><code class="java">public class SensorListener implements SensorEventListener
+{
+    private MotionTrace  Trace;
+
+    public SensorListener(MotionTrace trace, MainActivity activity)
+    {
+        Trace = trace;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy)
+    {
+
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event)
+    {
+        Trace.addSnaphot(new MotionSnapshot(event.values, event.timestamp));
+    }
+}</code></pre><br/>
+</div></div><br/>
+<div class="spoiler"><b class="spoiler_title">Код, отвечающий за генерацию трассы наклонов устройства во время нажатия кнопки</b><div class="spoiler_text"><pre><code class="java">public class MotionTrace
+{
+    private ArrayList&lt;MotionSnapshot> Deltas;
+    private long Length;
+    private MotionSnapshot LastSnapshot;
+
+    public MotionTrace(long len)
+    {
+        LastSnapshot = new MotionSnapshot(0,0,0,0);
+        Deltas = new ArrayList&lt;>();
+        Length = len;
+    }
+    public void addSnaphot(MotionSnapshot snapshot)
+    {
+        if (Deltas.size() >= Length)
+        {
+            Deltas.remove(0);
+        }
+
+        MotionSnapshot delta = new MotionSnapshot(0,0,0,0);
+
+        if (Deltas.size() > 0)
+        {
+            delta = snapshot;
+        }
+        Deltas.add(delta);
+    }
+    public ArrayList&lt;MotionSnapshot> getDeltas()
+    {
+        return new ArrayList&lt;>(Deltas);
+    }
+}
+</code></pre><br/>
+</div></div><br/>
+<div class="spoiler"><b class="spoiler_title">Код, отвечающий за генерацию криптограммы</b><div class="spoiler_text"><pre><code class="java">public void SaveCiphertext()
+{
+    Log.d(Config.MAIN_TAG, "SAVING - {{" + Ciphertext + "}}");
+    try
+    {
+        File root = new File(Environment.getExternalStorageDirectory(), Config.DIRNAME);
+        if (!root.exists())
+        {
+            Log.d(Config.MAIN_TAG, "Creating directory - [" + root + "]");
+            if (!root.mkdirs())
+            {
+                Log.d(Config.MAIN_TAG, "Error creating directory");
+            }
+        }
+        File out_file = new File(root, Config.FILENAME);
+        Log.d(Config.MAIN_TAG, "Out - [" + out_file + "]");
+        PrintWriter writer = new PrintWriter(out_file, "UTF-8");
+        writer.println(Ciphertext);
+        writer.close();
+
+        Toast.makeText(this, "Saved to - [" + out_file + "]", Toast.LENGTH_LONG).show();
+    }
+    catch (IOException ex)
+    {
+        Toast.makeText(this, "Error saving data", Toast.LENGTH_SHORT).show();
+    }
+    Ciphertext = "";
+}</code></pre><br/>
+</div></div><br/>
+Начнем по порядку. Для тестирования наклонов первого типа выберем цифры 2 и 8. Нажмем на каждую по 3 раза с возрастающим усилием. Получаем следующий результат:<br/>
+<br/>
+<b>[2687418463227102][-0.23700714][10.764615][-0.9759079]<br/>
+[2687419411042043][-3.5834892][13.591138][-1.7036858]<br/>
+[2687420383026907][-5.575793][13.533228][-1.3104248]<br/>
+[2687421461360546][0.6850295][6.0002656][0.5568123]<br/>
+[2687422317256542][4.1720495][1.8675026][1.545407]<br/>
+[2687423250514599][7.9689393][-3.600097][0.33846742]</b><br/>
+<br/>
+Отлично, различия во 2 параметре видны невооруженным взглядом. Начнем заполнять шаблон. <br/>
+Шаблон представим в виде диапазонов значений соответствующих полей в строке криптограммы. Вопросительным знаком пометим то, что мы еще не знаем.<br/>
+<br/>
+<b>[? ]<br/>
+[ (&lt; 0) — отклонение от себя; (> 0) — отклонение на себя ]<br/>
+[?]<br/>
+[?]</b><br/>
+<br/>
+Аналогично проведем тесты с кнопками 4 и 6. Результаты:<br/>
+<br/>
+<b>[2688019191605386][1.7270225][9.541045][0.0397171]<br/>
+[2688020247971353][1.0615791][9.794326][4.9135437]<br/>
+[2688021887957875][1.0974716][7.5535636][7.8307548]<br/>
+[2688023749896352][1.3328063][9.43923][-0.27600938]<br/>
+[2688024849688832][1.1357567][9.9313135][-2.4410355]<br/>
+[2688026002520864][0.30400848][6.4610033][-8.0956335]</b><br/>
+<br/>
+Обновим шаблон с учетом исследованной закономерности:<br/>
+<br/>
+<b>[? ]<br/>
+[ (&lt; 0) — отклонение от себя; (> 0) — отклонение на себя ]<br/>
+[?]<br/>
+[ (&lt; 0) — отклонение вправо; (> 0) — отклонение влево]</b><br/>
+<br/>
+Очевидно, что третье значение — это отклонение вверх/вниз, так как это единственный оставшийся вектор. И нам особо нет смысла его проверять, потому что для однозначного определения нажатой кнопки нам хватит уже известного шаблона.<br/>
+<br/>
+Теперь создадим шаблон для каждой цифры на клавиатуре, исходя из положения кнопок и разработанного шаблона (* — параметр нас не интересует):<br/>
+<br/>
+<b>1 – [*][ &lt; 0 ][*][> 0]<br/>
+2 – [*][&lt; 0][*][ близко к 0]<br/>
+3 – [*][&lt; 0][*][&lt; 0]<br/>
+4 – [*][][*][]<br/>
+5 – [*][близко к 0][*][близко к 0]<br/>
+6 – [*][близко к 0][*][&lt; 0]<br/>
+7 – [*][> 0][*][> 0]<br/>
+8 – [*][> 0][*][близко к 0]<br/>
+9 – [*][> 0][*][&lt; 0]<br/>
+0 – [*][> 0][*][близко к 0]</b><br/>
+<br/>
+Как видно из рисунка, кнопки 8 и 0 имеют одинаковые параметры, поэтому их расшифрование может быть неоднозначным — при встрече такой комбинации в криптограмме следует попробовать оба варианта. Теперь применим полученные шаблоны к криптограмме, и получим 2 варианта ответа: 1029761235 и 1829761235, верным из которых является <b>1829761235</b>. Задание пройдено!<br/>
+<br/>
+Уже совсем скоро — 26 июня — состоится «Очная ставка» NeoQUEST 2019! Успейте <a href="https://neoconf.ru/#register_page">зарегистрироваться</a> на сайте мероприятия. В ближайшем будущем выйдет хабрастатья с анонсом программы, не пропустите!</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bneoquest%5D" class="tm-tags-list__link">neoquest</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bneoquest2019%5D" class="tm-tags-list__link">neoquest2019</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Baccelerometer%5D" class="tm-tags-list__link">accelerometer</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bctf%5D" class="tm-tags-list__link">ctf</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bsensors%5D" class="tm-tags-list__link">sensors</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bandroid%5D" class="tm-tags-list__link">android</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/neobit/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании НеоБИТ
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/infosecurity/" class="tm-hubs-list__link">
+    Информационная безопасность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/zadachki/" class="tm-hubs-list__link">
+    Занимательные задачки
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/ctf/" class="tm-hubs-list__link">
+    CTF
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 9: ↑9 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 9: ↑9 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+9</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">2.1K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    10
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/neobit/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/a64/4d8/803/a644d8803d9fb17b922220c6c28c1afb.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/neobit/profile/" class="tm-company-snippet__title">НеоБИТ</a> <div class="tm-company-snippet__description">Компания</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <!----> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/NWOcs/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/1ae/b1c/80e/1aeb1c80e29f2c8abed5589c861c36b3.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 164 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    126
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/NWOcs/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @NWOcs
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/neobit/blog/450026/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><!----> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://neobit.ru/" target="_blank" class="tm-company-basic-info__link">
+      neobit.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    51–100 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2012-02-20T11:37:16.000Z" title="2012-02-20, 15:37">20  февраля  2012</time></dd></dl> <!----></div></div> <!----></section> <!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/neobit/blog/450026/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/neobit/blog/450026/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450026":{"id":"450026","timePublished":"2019-06-10T13:48:50+00:00","isCorporative":true,"lang":"ru","titleHtml":"Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019","leadData":{"textHtml":"\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F4h\u002F-k\u002Fx-\u002F4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nАкселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую задачу — измеряет ускорение устройства. Давайте посмотрим, как он это делает — разберем механизмы сенсоров API Android на примере задания №7 из online-этапа NeoQUEST-2019.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":126,"votesCount":164},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"168584","alias":"NWOcs","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F1ae\u002Fb1c\u002F80e\u002F1aeb1c80e29f2c8abed5589c861c36b3.png","speciality":"Пользователь"},"statistics":{"commentsCount":0,"favoritesCount":10,"readingCount":2104,"score":9,"votesCount":9},"hubs":[{"relatedData":null,"id":"17474","alias":"neobit","type":"corporative","title":"Блог компании НеоБИТ","titleHtml":"Блог компании НеоБИТ","isProfiled":false},{"relatedData":null,"id":"50","alias":"infosecurity","type":"collective","title":"Информационная безопасность","titleHtml":"Информационная безопасность","isProfiled":true},{"relatedData":null,"id":"287","alias":"zadachki","type":"collective","title":"Занимательные задачки","titleHtml":"Занимательные задачки","isProfiled":false},{"relatedData":null,"id":"20810","alias":"ctf","type":"collective","title":"CTF","titleHtml":"CTF","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F4h\u002F-k\u002Fx-\u002F4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F4h\u002F-k\u002Fx-\u002F4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАкселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую задачу — измеряет ускорение устройства. Давайте посмотрим, как он это делает — разберем механизмы сенсоров API Android на примере задания №7 из online-этапа NeoQUEST-2019.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nПо легенде нам выдано 2 файла: \u003Cb\u003E7.apk\u003C\u002Fb\u003E и \u003Cb\u003E7.txt\u003C\u002Fb\u003E. Из текста задания (а все задания по-прежнему доступны \u003Ca href=\"https:\u002F\u002Fneoquest.ru\u002F2019\u002F\"\u003Eтут\u003C\u002Fa\u003E) можно сделать следующие выводы: \u003Cb\u003E7.apk\u003C\u002Fb\u003E – программа-шифратор, которая каким-то образом использует параметры акселерометра устройства; \u003Cb\u003E7.txt\u003C\u002Fb\u003E – криптограмма, сгенерированная шифратором. Записано в ней следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E[1749054104147639][2.07154922][10.001905][4.5387093][1749056073889025][5.7193284][8.221763][0.01391537][1749058029180773][4.684068][12.05614][0.0377285][1749060105291613][4.6900544][6.9307165][4.7094293][1749062123327502][4.4682417][7.512769][6.037215][1749067640096818][1.0396843][8.798672][4.9335976][1749070016073380][2.3173676][10.180047][4.948362][1749072343679582][4.3660607][12.218135][0.5312999][1749073674459611][2.48394698][10.834006][6.306282][1749075827770391][0.2795044][13.279829][0.19391555]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВидим, что текст представляет собой повторяющиеся группы из 4 значений, одно из которых целочисленное, а 3 оставшихся – числа с плавающей точкой. Для удобства расставим их по отдельным строкам:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E[1749054104147639][-2.07154922][10.001905][4.5387093]\u003Cbr\u002F\u003E\r\n[1749056073889025][5.7193284][8.221763][0.01391537]\u003Cbr\u002F\u003E\r\n[1749058029180773][-4.684068][12.05614][0.0377285]\u003Cbr\u002F\u003E\r\n[1749060105291613][4.6900544][6.9307165][-4.7094293]\u003Cbr\u002F\u003E\r\n[1749062123327502][4.4682417][7.512769][6.037215]\u003Cbr\u002F\u003E\r\n[1749067640096818][1.0396843][8.798672][-4.9335976]\u003Cbr\u002F\u003E\r\n[1749070016073380][-2.3173676][10.180047][4.948362]\u003Cbr\u002F\u003E\r\n[1749072343679582][-4.3660607][12.218135][0.5312999]\u003Cbr\u002F\u003E\r\n[1749073674459611][-2.48394698][10.834006][-6.306282]\u003Cbr\u002F\u003E\r\n[1749075827770391][0.2795044][13.279829][-0.19391555]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС форматом криптограммы разобрались, но что это за значения — неизвестно. Какие-то параметры акселерометра устройства, без всякой конкретики. А давайте-ка зайдем на сайт разработчиков Android и \u003Ca href=\"https:\u002F\u002Fdeveloper.android.com\u002Fguide\u002Ftopics\u002Fsensors\u002Fsensors_motion\"\u003Eпосмотрим\u003C\u002Fa\u003E, что вообще акселерометр может показать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВидим следующее описание:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fla\u002Fza\u002Fw7\u002Flazaw762f-l6prv0nn7-ng6ky8a.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВыяснили, за что отвечают параметры с плавающей точкой — это ускорение устройства вдоль осей X, Y и Z. Но как понять, за какую ось отвечает каждый из них? Самое время запускать приложение. Оно выглядит следующим образом:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffg\u002Fln\u002Fje\u002Ffglnje3ljaxl2aqhilflieh3pxq.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗдесь есть 2 возможности определения поведения приложения: декомпиляция \u003Cb\u003E.apk\u003C\u002Fb\u003E и анализ получаемых значений. Далее рассмотрим второй способ и приведем вставки декомпилированного кода, отвечающего за рассматриваемые действия приложения.\u003Cbr\u002F\u003E\r\nВ криптограмме присутствуют положительные и отрицательные значения (мы знаем, что это ускорения по разным осям), поэтому можно сделать предположение: если вектора наклона устройства по оси будут противоположными, то значения ускорений будут приблизительно равны по модулю, а различие будет лишь в знаке. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНиже представлен листинг кода, отвечающий за хранение информации об ускорениях:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epublic class MotionSnapshot\n{\n    public final float angle_alpha;\n    public final float angle_beta;\n    public final float angle_gamma;\n    public final long  event_time;\n    ...\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИсходя из данных рассуждений, перед нами возникают следующие задачи:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EОпределить, какому значению в криптограмме соответствует наклон устройства\u003C\u002Fli\u003E\r\n\u003Cli\u003EОпределить шаблон отклонений\u003C\u002Fli\u003E\r\n\u003Cli\u003EКаждой цифре поставить в соответствие шаблон отклонения для расшифрования\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nПервые 2 задачи будем выполнять параллельно. На телефоне мы можем тестировать 2 вида наклона:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EОт себя\u002FНа себя\u003C\u002Fli\u003E\r\n\u003Cli\u003EВлево\u002FВправо\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fr1\u002Fib\u002Fww\u002Fr1ibwwmhfkfuligj-tmi5gbslpe.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fr1\u002Fib\u002Fww\u002Fr1ibwwmhfkfuligj-tmi5gbslpe.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EКод, отвечающий за обработку событий от акселерометра\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epublic class SensorListener implements SensorEventListener\n{\n    private MotionTrace  Trace;\n\n    public SensorListener(MotionTrace trace, MainActivity activity)\n    {\n        Trace = trace;\n    }\n\n    @Override\n    public void onAccuracyChanged(Sensor sensor, int accuracy)\n    {\n\n    }\n\n    @Override\n    public void onSensorChanged(SensorEvent event)\n    {\n        Trace.addSnaphot(new MotionSnapshot(event.values, event.timestamp));\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EКод, отвечающий за генерацию трассы наклонов устройства во время нажатия кнопки\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epublic class MotionTrace\n{\n    private ArrayList&lt;MotionSnapshot\u003E Deltas;\n    private long Length;\n    private MotionSnapshot LastSnapshot;\n\n    public MotionTrace(long len)\n    {\n        LastSnapshot = new MotionSnapshot(0,0,0,0);\n        Deltas = new ArrayList&lt;\u003E();\n        Length = len;\n    }\n    public void addSnaphot(MotionSnapshot snapshot)\n    {\n        if (Deltas.size() \u003E= Length)\n        {\n            Deltas.remove(0);\n        }\n\n        MotionSnapshot delta = new MotionSnapshot(0,0,0,0);\n\n        if (Deltas.size() \u003E 0)\n        {\n            delta = snapshot;\n        }\n        Deltas.add(delta);\n    }\n    public ArrayList&lt;MotionSnapshot\u003E getDeltas()\n    {\n        return new ArrayList&lt;\u003E(Deltas);\n    }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EКод, отвечающий за генерацию криптограммы\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epublic void SaveCiphertext()\n{\n    Log.d(Config.MAIN_TAG, \"SAVING - {{\" + Ciphertext + \"}}\");\n    try\n    {\n        File root = new File(Environment.getExternalStorageDirectory(), Config.DIRNAME);\n        if (!root.exists())\n        {\n            Log.d(Config.MAIN_TAG, \"Creating directory - [\" + root + \"]\");\n            if (!root.mkdirs())\n            {\n                Log.d(Config.MAIN_TAG, \"Error creating directory\");\n            }\n        }\n        File out_file = new File(root, Config.FILENAME);\n        Log.d(Config.MAIN_TAG, \"Out - [\" + out_file + \"]\");\n        PrintWriter writer = new PrintWriter(out_file, \"UTF-8\");\n        writer.println(Ciphertext);\n        writer.close();\n\n        Toast.makeText(this, \"Saved to - [\" + out_file + \"]\", Toast.LENGTH_LONG).show();\n    }\n    catch (IOException ex)\n    {\n        Toast.makeText(this, \"Error saving data\", Toast.LENGTH_SHORT).show();\n    }\n    Ciphertext = \"\";\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНачнем по порядку. Для тестирования наклонов первого типа выберем цифры 2 и 8. Нажмем на каждую по 3 раза с возрастающим усилием. Получаем следующий результат:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E[2687418463227102][-0.23700714][10.764615][-0.9759079]\u003Cbr\u002F\u003E\r\n[2687419411042043][-3.5834892][13.591138][-1.7036858]\u003Cbr\u002F\u003E\r\n[2687420383026907][-5.575793][13.533228][-1.3104248]\u003Cbr\u002F\u003E\r\n[2687421461360546][0.6850295][6.0002656][0.5568123]\u003Cbr\u002F\u003E\r\n[2687422317256542][4.1720495][1.8675026][1.545407]\u003Cbr\u002F\u003E\r\n[2687423250514599][7.9689393][-3.600097][0.33846742]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОтлично, различия во 2 параметре видны невооруженным взглядом. Начнем заполнять шаблон. \u003Cbr\u002F\u003E\r\nШаблон представим в виде диапазонов значений соответствующих полей в строке криптограммы. Вопросительным знаком пометим то, что мы еще не знаем.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E[? ]\u003Cbr\u002F\u003E\r\n[ (&lt; 0) — отклонение от себя; (\u003E 0) — отклонение на себя ]\u003Cbr\u002F\u003E\r\n[?]\u003Cbr\u002F\u003E\r\n[?]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАналогично проведем тесты с кнопками 4 и 6. Результаты:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E[2688019191605386][1.7270225][9.541045][0.0397171]\u003Cbr\u002F\u003E\r\n[2688020247971353][1.0615791][9.794326][4.9135437]\u003Cbr\u002F\u003E\r\n[2688021887957875][1.0974716][7.5535636][7.8307548]\u003Cbr\u002F\u003E\r\n[2688023749896352][1.3328063][9.43923][-0.27600938]\u003Cbr\u002F\u003E\r\n[2688024849688832][1.1357567][9.9313135][-2.4410355]\u003Cbr\u002F\u003E\r\n[2688026002520864][0.30400848][6.4610033][-8.0956335]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбновим шаблон с учетом исследованной закономерности:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E[? ]\u003Cbr\u002F\u003E\r\n[ (&lt; 0) — отклонение от себя; (\u003E 0) — отклонение на себя ]\u003Cbr\u002F\u003E\r\n[?]\u003Cbr\u002F\u003E\r\n[ (&lt; 0) — отклонение вправо; (\u003E 0) — отклонение влево]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОчевидно, что третье значение — это отклонение вверх\u002Fвниз, так как это единственный оставшийся вектор. И нам особо нет смысла его проверять, потому что для однозначного определения нажатой кнопки нам хватит уже известного шаблона.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь создадим шаблон для каждой цифры на клавиатуре, исходя из положения кнопок и разработанного шаблона (* — параметр нас не интересует):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E1 – [*][ &lt; 0 ][*][\u003E 0]\u003Cbr\u002F\u003E\r\n2 – [*][&lt; 0][*][ близко к 0]\u003Cbr\u002F\u003E\r\n3 – [*][&lt; 0][*][&lt; 0]\u003Cbr\u002F\u003E\r\n4 – [*][][*][]\u003Cbr\u002F\u003E\r\n5 – [*][близко к 0][*][близко к 0]\u003Cbr\u002F\u003E\r\n6 – [*][близко к 0][*][&lt; 0]\u003Cbr\u002F\u003E\r\n7 – [*][\u003E 0][*][\u003E 0]\u003Cbr\u002F\u003E\r\n8 – [*][\u003E 0][*][близко к 0]\u003Cbr\u002F\u003E\r\n9 – [*][\u003E 0][*][&lt; 0]\u003Cbr\u002F\u003E\r\n0 – [*][\u003E 0][*][близко к 0]\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак видно из рисунка, кнопки 8 и 0 имеют одинаковые параметры, поэтому их расшифрование может быть неоднозначным — при встрече такой комбинации в криптограмме следует попробовать оба варианта. Теперь применим полученные шаблоны к криптограмме, и получим 2 варианта ответа: 1029761235 и 1829761235, верным из которых является \u003Cb\u003E1829761235\u003C\u002Fb\u003E. Задание пройдено!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУже совсем скоро — 26 июня — состоится «Очная ставка» NeoQUEST 2019! Успейте \u003Ca href=\"https:\u002F\u002Fneoconf.ru\u002F#register_page\"\u003Eзарегистрироваться\u003C\u002Fa\u003E на сайте мероприятия. В ближайшем будущем выйдет хабрастатья с анонсом программы, не пропустите!\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"neoquest"},{"titleHtml":"neoquest2019"},{"titleHtml":"accelerometer"},{"titleHtml":"ctf"},{"titleHtml":"sensors"},{"titleHtml":"android"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450026\u002Fe351f71a0220c4e50cc373615a479963\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450026\u002Fe351f71a0220c4e50cc373615a479963\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fneobit\\\u002Fblog\\\u002F450026\\\u002F\"},\"headline\":\"Шифр ускорением: изучаем акселерометр Android-устройства на примере задания NeoQUEST-2019\",\"datePublished\":\"2019-06-10T16:48:50+03:00\",\"dateModified\":\"2019-06-10T17:47:35+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"NWOcs\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Акселерометр &mdash; он же G-сенсор &mdash; является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акс...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fneobit\\\u002Fblog\\\u002F450026\\\u002F#post-content-body\",\"about\":[\"c_neobit\",\"h_infosecurity\",\"h_zadachki\",\"h_ctf\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F4h\\\u002F-k\\\u002Fx-\\\u002F4h-kx-1xwfcodl9os-dtj6y6cb0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fla\\\u002Fza\\\u002Fw7\\\u002Flazaw762f-l6prv0nn7-ng6ky8a.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffg\\\u002Fln\\\u002Fje\\\u002Ffglnje3ljaxl2aqhilflieh3pxq.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fr1\\\u002Fib\\\u002Fww\\\u002Fr1ibwwmhfkfuligj-tmi5gbslpe.jpeg\"]}","metaDescription":"Акселерометр — он же G-сенсор — является одним из самых распространенных датчиков на сегодня. Встретить его можно практически в каждом современном гаджете. Акселерометр выполняет довольно простую...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"neobit":{"alias":"neobit","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Fa64\u002F4d8\u002F803\u002Fa644d8803d9fb17b922220c6c28c1afb.png","titleHtml":"НеоБИТ","descriptionHtml":null,"relatedData":null,"statistics":{"postsCount":87,"newsCount":0,"vacanciesCount":0,"employeesCount":8,"careerRating":null,"subscribersCount":534,"rating":43.4,"invest":null},"foundationDate":null,"location":{"city":{"id":"447733","title":"Санкт-Петербург"},"region":{"id":"1948","title":"Санкт-Петербург и область"},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fneobit.ru\u002F","staffNumber":"51–100 человек","registrationDate":"2012-02-20T11:37:16+00:00","representativeUser":null,"contacts":[],"settings":{"analyticsSettings":[],"branding":null,"status":"expired"},"metadata":{"titleHtml":"НеоБИТ, Санкт-Петербург - ","title":"НеоБИТ, Санкт-Петербург - ","keywords":["Информационная безопасность","CTF"],"descriptionHtml":"87 статей от авторов компании НеоБИТ","description":"87 статей от авторов компании НеоБИТ"},"aDeskSettings":null,"careerAlias":null,"maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>
