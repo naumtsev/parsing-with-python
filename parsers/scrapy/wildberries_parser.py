@@ -10,8 +10,7 @@ def parse_wildberries_html(html_source):
     for product in product_card:
         name = Selector(text=product).xpath("//span[@class='goods-name']/text()").get()
         prices = Selector(text=product).xpath("//div[@class='price-commission']").get()
-        img_url = Selector(text=product).xpath("//div[@class='product-card__img-wrap']/img/@src").get()
-
+        img_url = Selector(text=product).css('div.product-card__img-wrap').xpath('//img/@src').get()
         if prices:
             current_price = Selector(text=prices).xpath("//span[@class='price-commission__current-price']/text()").get()
             old_price = Selector(text=prices).xpath("//del[@class='price-commission__old-price']/text()").get().strip()
