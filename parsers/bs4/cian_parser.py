@@ -2,7 +2,7 @@ from parsers.utils import cian_apart_to_object
 from bs4 import BeautifulSoup
 
 
-def parse_cian_bs4(html_source):
+def parse_cian_html(html_source):
     response = BeautifulSoup(html_source, 'html.parser')
     cards = response.select(r'[data-name="CardComponent"]')
     for card in cards:
