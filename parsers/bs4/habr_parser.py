@@ -7,4 +7,4 @@ def parse_habr_bs4(html_source):
     tags = [x.text.strip().lower() for x in response.select(".tm-tags-list__link")]
     habs = [x.text.strip().lower() for x in response.select(".tm-hubs-list__link")]
     saved = response.select_one(".bookmarks-button__counter").text.strip()
-    yield habr_article_to_object(times, tags, habs, saved)
+    return habr_article_to_object(times, tags, habs, saved)

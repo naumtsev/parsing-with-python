@@ -38,4 +38,4 @@ def parse_wildberries_html(html_source):
             old_price = 0
 
         name = product_card_brand.find_class('product-card__brand-name')[0].find_class('goods-name')[0].text_content()
-        yield wildberries_product_to_object(name, current_price, old_price, img_url)
+        return wildberries_product_to_object(name, current_price, old_price, img_url)
