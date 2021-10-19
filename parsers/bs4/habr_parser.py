@@ -1,7 +1,7 @@
 from parsers.utils import habr_article_to_object
 from bs4 import BeautifulSoup
 
-def parse_habr_html(html_source):
+def parse_habr_bs4(html_source):
     response = BeautifulSoup(html_source, 'html.parser')
     times = response.select_one(".tm-article-snippet__datetime-published").text.strip()
     tags = [x.text.strip().lower() for x in response.select(".tm-tags-list__link")]
