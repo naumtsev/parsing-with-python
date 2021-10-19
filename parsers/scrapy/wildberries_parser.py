@@ -19,4 +19,4 @@ def parse_wildberries_html(html_source):
             current_price = Selector(text=product).css("span.lower-price::text").get()
             old_price = '0'
 
-        yield wildberries_product_to_object(name, current_price, old_price, img_url)
+        return wildberries_product_to_object(name, current_price, old_price, img_url)

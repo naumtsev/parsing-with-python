@@ -10,4 +10,4 @@ def parse_habr_html(html_source):
     habs = [result.lower().strip()
              for result in response.xpath("//a[@class='tm-hubs-list__link']/text()").getall()],
     saved = response.xpath("//span[@class='bookmarks-button__counter']/text()").get().strip(),
-    yield habr_article_to_object(times, tags, habs, saved)
+    return habr_article_to_object(times, tags, habs, saved)

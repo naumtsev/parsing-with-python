@@ -9,4 +9,4 @@ def parse_cian_html(html_source):
         name = Selector(text=obj.get()).xpath("//span[@data-mark='OfferTitle']/span/text()").get(),
         price = Selector(text=obj.get()).xpath("//span[@data-mark='MainPrice']/span/text()").get(),
         location = Selector(text=obj.get()).xpath("//a[@data-name='GeoLabel']/text()").getall(),
-        yield cian_apart_to_object(name, price, location)
+        return cian_apart_to_object(name, price, location)
