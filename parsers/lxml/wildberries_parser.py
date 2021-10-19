@@ -16,18 +16,11 @@
 #                       span class="goods-name" <- inside-value
 #
 
-from parsers.utils import to_dict
+from parsers.utils import wildberries_product_to_object
 from lxml import html
 
 
-def process_test(test_id):
-    html_source_path = f'../../tests/wildberries/tests_source/test{test_id}.html'
-    with open(html_source_path, 'r') as file:
-        source = file.read()
-        return list(parse_html(source))
-
-
-def parse_html(html_source):
+def parse_wildberries_html(html_source):
     doc = html.fromstring(html_source)
     product_card_list = doc.find_class('product-card-list')[0]
     product_cards = product_card_list.find_class("product-card__wrapper")
@@ -45,7 +38,4 @@ def parse_html(html_source):
             old_price = 0
 
         name = product_card_brand.find_class('product-card__brand-name')[0].find_class('goods-name')[0].text_content()
-        yield to_dict(name, current_price, old_price, img_url)
-
-
-print(process_test(0))
+        yield wildberries_product_to_object(name, current_price, old_price, img_url)
