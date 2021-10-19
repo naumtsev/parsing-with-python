@@ -16,7 +16,7 @@
 #                       span class="goods-name" <- inside-value
 #
 
-from utils import to_dict
+from parsers.utils import to_dict
 from lxml import html
 
 

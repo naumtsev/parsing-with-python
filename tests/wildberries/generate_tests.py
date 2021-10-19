@@ -1,5 +1,16 @@
-from parsers.lxml.utils import get_page_source
+import time
+from contextlib import closing
+from selenium.webdriver import Firefox
 import concurrent.futures as pool
+
+
+def get_page_source(url):
+    with closing(Firefox()) as browser:
+        browser.get(url)
+        time.sleep(5)
+        return browser.page_source
+    return ''
+
 
 products = [
     'книги+для+детей',
