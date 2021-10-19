@@ -1,7 +1,7 @@
 from parsers.utils import wildberries_product_to_object
 from bs4 import BeautifulSoup
 
-def parse_wildberries_html(html_source):
+def parse_wildberries_bs4(html_source):
     response = BeautifulSoup(html_source, 'html.parser')
     cards_list = response.select_one(r".product-card-list")
     cards = cards_list.select(r".product-card__wrapper")
