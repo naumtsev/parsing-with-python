@@ -50,7 +50,7 @@ class QuotesSpider(scrapy.Spider):
 
 
 #тут список файлов html
-def parse_cian_scrapy(html_source_list):
+def parse_habr_scrapy(html_source_list):
     
     process = CrawlerProcess({
         'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
