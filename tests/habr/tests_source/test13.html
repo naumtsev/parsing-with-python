@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Построение сервис-ориентированной архитектуры на Rails + Kafka / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450028\/"},"headline":"Построение сервис-ориентированной архитектуры на Rails + Kafka","datePublished":"2019-04-29T18:22:17+03:00","dateModified":"2019-04-29T18:22:17+03:00","author":{"@type":"Person","name":"Виталий"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи &laquo;Building a...","url":"https:\/\/habr.com\/ru\/post\/450028\/#post-content-body","about":["h_ror","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/ql\/j1\/uy\/qlj1uyapeg_3fmswgflqauwmd7q.png","https:\/\/habrastorage.org\/webt\/i8\/_y\/tr\/i8_ytruescd639f48vmelrmsfu4.png","https:\/\/habrastorage.org\/webt\/i1\/dh\/a8\/i1dha8zycj6ibxydaxja9y8bp10.png","https:\/\/habrastorage.org\/webt\/ox\/ic\/ka\/oxickaiivr5j6hey5fahjkcvsxc.png","https:\/\/habrastorage.org\/webt\/xb\/5b\/mx\/xb5bmxasal6md3bq2xsdgnhfhgg.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Построение сервис-ориентированной архитектуры на Rails + Kafka" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Построение сервис-ориентированной архитектуры на Rails + Kafka" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Построение сервис-ориентированной архитектуры на Rails + Kafka" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи «Building a Service-oriented Architecture with..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи «Building a Service-oriented Architecture with..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи «Building a Service-oriented Architecture with..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи «Building a Service-oriented Architecture with..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи «Building a Service-oriented Architecture with..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450028/761b61918f261775e6da02419c9d264a/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450028/761b61918f261775e6da02419c9d264a/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450028/761b61918f261775e6da02419c9d264a/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450028/761b61918f261775e6da02419c9d264a/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450028/761b61918f261775e6da02419c9d264a/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450028" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-29T15:22:17.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450028/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450028/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450028/761b61918f261775e6da02419c9d264a/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/M1Anderson/" title="M1Anderson" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/634/0f5/a5d/6340f5a5d51c904eae1393a770d027ed.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/M1Anderson/" class="tm-user-info__username">
+      M1Anderson
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-29T15:22:17.000Z" title="2019-04-29, 18:22">29  апреля  2019 в 18:22</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Построение сервис-ориентированной архитектуры на Rails + Kafka</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/ror/" class="tm-article-snippet__hubs-item-link"><span>Ruby on Rails</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления <a href="https://www.youtube.com/watch?v=Rzl4O1oaVy8">Stella Cotton на RailsConf 2018</a> и переводом статьи <a href="https://blog.heroku.com/service-oriented-architecture-rails-kafka">«Building a Service-oriented Architecture with Rails and Kafka»</a> автора Stella Cotton.<br/>
+<br/>
+В последнее время отчетливо виден переход проектов от монолитной архитектуры в пользу микросервисов. В этом гайде мы узнаем основы Kafka и как событийно-ориентированный подход может улучшить ваше Rails приложение. Также мы поговорим о проблемах мониторинга и масштабируемости сервисов, которые работают через событийно-ориентированный подход.<br/>
+ <a name="habracut"></a><br/>
+<h2>Что же такое Kafka?</h2><br/>
+Уверен, что вам хотелось бы иметь информацию о том, как ваши пользователи пришли на вашу платформу или какие страницы они посещают, какие кнопки нажимают и т.д. Действительно популярное приложение может генерировать миллиарды событий и отправлять огромный объем данных в сервисы для аналитики, что может стать серьезным вызовом для вашего приложения.<br/>
+<br/>
+Как правило, неотъемлемая часть веб приложений требует так называемый <i>real-time data flow</i>. Kafka предоставляет отказоустойчивую связь между <b>producers</b>, теми, кто генерирует события, и <b>consumers</b>, теми, кто получает эти события. Может быть даже несколько producers и consumers в одном приложении. В Kafka, каждое событие существует в течение заданного времени, поэтому несколько consumers могут читать одно и то же событие снова и снова. Kafka кластер включает в себя несколько brokers, которые являются инстансами Kafka.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ql/j1/uy/qlj1uyapeg_3fmswgflqauwmd7q.png"/><br/>
+<br/>
+Ключевая особенность Kafka — высокая скорость обработки событий. Традиционные системы очередей, например AMQP, имеют инфраструктуру, которая следит за обработанными событиями для каждого consumer-а. Когда количество consumers вырастает до приличного уровня, система с трудом начинает справляться с нагрузкой, потому что ей приходится отслеживать все большее количество состояний. Также, существуют большие проблемы с согласованностью между consumer и системой обработки событий. Например, стоит ли сразу помечать сообщение как отправленное, как только оно обработано системой? А если consumer на другом конце упадет, так и не получив сообщения?<br/>
+<br/>
+Kafka также имеет отказоустойчивую архитектуру. Система запускается как кластер на одном или нескольких серверах, которые могут горизонтально масштабироваться путем добавления новых машин. Все данные записываются на диск и копируются на несколько брокеров. Для того, чтобы понимать возможности масштабируемости, стоит взглянуть на такие компании как Netflix, LinkedIn, Microsoft. Все они отправляют триллионы сообщений в день через свои Kafka кластеры!<br/>
+<br/>
+<h2>Настройка Kafka в Rails</h2><br/>
+Heroku предоставляет <a href="https://elements.heroku.com/addons/heroku-kafka">Kafka cluster add-on</a>, который может быть использован для любого окружения. Для ruby приложений, мы рекомендуем использовать гем <a href="https://github.com/zendesk/ruby-kafka">ruby-kafka</a>. Минимальная реализация выглядит примерно так:<br/>
+<br/>
+<pre><code class="ruby"># config/initializers/kafka_producer.rb
+require "kafka"
+# Configure the Kafka client with the broker hosts and the Rails
+# logger.
+$kafka = Kafka.new(["kafka1:9092", "kafka2:9092"], logger: Rails.logger)
+# Set up an asynchronous producer that delivers its buffered messages
+# every ten seconds:
+$kafka_producer = $kafka.async_producer(
+  delivery_interval: 10,
+)
+# Make sure to shut down the producer when exiting.
+at_exit { $kafka_producer.shutdown }</code></pre><br/>
+После настройки конфига, вы можете использовать гем для отправки сообщений. Благодаря асинхронной отправки событий, мы можем отправлять сообщения откуда угодно:<br/>
+<br/>
+<pre><code class="ruby">class OrdersController &lt; ApplicationController
+  def create
+    @comment = Order.create!(params)
+    $kafka_producer.produce(order.to_json, topic: "user_event", partition_key: user.id)
+  end
+end</code></pre><br/>
+Мы поговорим о форматах сериализации ниже, а пока используем старый добрый JSON. Аргумент <code>topic</code> ссылается на лог, в который Kafka запишет это событие. Topics размазаны по разным разделам, которые позволяют разделить данные конкретного topic по разным брокерам для лучшей масштабируемости и надежности. И это действительно хорошая идея — иметь два или более раздела для каждого topic, ведь, если один из разделов падает, ваши события все равно будут записаны и обработаны. Kafka гарантирует, что события доставляются в порядке очереди внутри раздела, но не внутри целого topic. Если порядок событий важен, то отправка partition_key гарантирует, что все события определенного типа будут сохранены на одном разделе.<br/>
+<br/>
+<h2>Kafka для ваших сервисов</h2><br/>
+Некоторые особенности, которые делают Kafka полезным инструментом, также делают его отказоустойчивой заменой RPC между сервисами. Взглянем на пример e-commerce приложения:<br/>
+<br/>
+<pre><code class="ruby">def create_order
+  create_order_record
+  charge_credit_card # call to Payments Service
+  send_confirmation_email # call to Email Service
+end</code></pre><br/>
+Когда пользователь оформляет заказ, вызывается функция <code>create_order</code>. Это создает заказ в системе, списывает деньги с карты и отправляет email с подтверждением. Как видно, два последних шага вынесены в отдельные сервисы.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/i8/_y/tr/i8_ytruescd639f48vmelrmsfu4.png"/><br/>
+<br/>
+Одна из проблем такого подхода в том, что вышестоящий в иерархии сервис ответственнен за мониторинг доступности нижестоящего сервиса. Если у сервиса для отправки писем выдался не лучший день, вышестоящему сервису нужно об этом знать. И если сервис отправки недоступен, то необходимо повторить определенный набор действий. Как Kafka может помочь в такой ситуации? <br/>
+<br/>
+Например:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/i1/dh/a8/i1dha8zycj6ibxydaxja9y8bp10.png"/><br/>
+<br/>
+В этом событийно-ориентированном подходе, вышестоящий сервис может записать событие в Kafka о том, что заказ был создан. Из-за так называемого <i>at least once</i> подхода, событие будет записано в Kafka как минимум один раз и будет доступно нижестоящим consumer-ам для чтения. Если сервис отправки писем лежит, событие будет ждать на диске, пока consumer не поднимется и не прочтет его.<br/>
+<br/>
+Еще одна проблема RPC-ориентированной архиектуры — в быстрорастущих системах: добавление нового нижестоящего сервиса влечет за собой изменения в вышестоящем. Например, вы бы хотели добавить еще один шаг после создания заказа. В событийно-ориентированном мире вам нужно будет добавить еще один consumer для обработки нового типа событий.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ox/ic/ka/oxickaiivr5j6hey5fahjkcvsxc.png"/><br/>
+<br/>
+<h2>Включение событий в сервис-ориентированную архитектуру</h2><br/>
+В посте под названием “<a href="https://martinfowler.com/articles/201701-event-driven.html">What do you mean by “Event-Driven</a>” Мартина Фаулера обсуждается путаница вокруг событийно-ориентированных приложений. Когда разработчики обсуждают подобные системы, они на самом деле говорят об огромном количестве различных приложений. Для того, чтобы дать общее понимание о природе таких систем, Фаулер определил несколько архитектурных шаблонов.<br/>
+<br/>
+Давайте взглянем, что это за паттерны. Если вы хотите узнать больше, то советую прочитать его <a href="https://www.youtube.com/watch?v=STKCRSUsyP0">доклад</a> на GOTO Chicago 2017.<br/>
+<br/>
+<h3>Event Notification</h3><br/>
+Первый шаблон Фаулера называется <i>Event Notification</i>. В этом сценарии producer сервис оповещает consumer-ов о произошедшем событии с помощью минимального объема информации:<br/>
+<br/>
+<pre><code class="json">{
+  "event": "order_created",
+  "published_at": "2016-03-15T16:35:04Z"
+}</code></pre><br/>
+Если consumer-ам требуется больше информации о событии, они делают запрос к producer и получают больше данных.<br/>
+<br/>
+<h3>Event-Carried State Transfer</h3><br/>
+Второй шаблон называется <i>Event-Carried State Transfer</i>. В этом сценарии producer предоставляет дополнительную информацию о событии и consumer может хранить копию эти данных, не делая дополнительных вызовов:<br/>
+<br/>
+<pre><code class="json">{
+  "event": "order_created",
+  "order": {
+    "order_id": 98765,
+    "size": "medium",
+    "color": "blue"
+  },
+  "published_at": "2016-03-15T16:35:04Z"
+}</code></pre><br/>
+<h3>Event-Sourced</h3><br/>
+Третий шаблон Фаулер назвал <i>Event-Sourced</i> и он является скорее архитектурным. Релизация шаблона предполагает не просто коммуникацию между вашими сервисами, но и сохранение представления события. Это гарантирует, что, даже потеряв базы данных, вы все равно можете восстановить состояние приложения, просто запустив сохраненный поток событий. Другими словами, каждое событие сохраняет определенное состояние приложения в определенный момент.<br/>
+<br/>
+Большой проблемой такого подхода является то, что код приложения всегда меняется, а с ним может меняться формат или объем данных, которые отдает producer. Это делает проблемным восстановление состояния приложения.<br/>
+<br/>
+<h3>Command Query Responsibility Segregation</h3><br/>
+И последний шаблон —<i> Command Query Responsibility Segregation</i>, или CQRS. Идея в том, что действия, которые вы применяете к объекту, например: создание, чтение, обновление, должны быть разделены на различные домены. Это значит, что один сервис должен отвечать за создание, другой за обновление и т.д. В объектно-ориентированных системах же все часто хранится в одном сервисе.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/xb/5b/mx/xb5bmxasal6md3bq2xsdgnhfhgg.png"/><br/>
+<br/>
+Сервис, который пишет в базу, будет считывать поток событий и обрабатывать команды. Но любые запросы происходят только в read-only базе. Разделение логики чтения и записи на два разных сервиса увеличивает сложность, но позволяет оптимизировать производительность отдельно для этих систем.<br/>
+<br/>
+<h2>Проблемы</h2><br/>
+Давайте поговорим о некоторых проблемах, с которыми вы можете столкнуться при интеграции Kafka в ваше сервис-ориентированное приложение.<br/>
+<br/>
+Первая проблема может заключаться в медленных consumer-ах. В событийно-ориентированной системе ваши сервисы должны иметь возможность обрабатывать события моментально при получении их от вышестоящего сервиса. Иначе они будут просто висеть без каких-либо оповещений о проблеме или таймаутах. Единственное место, где можно определить таймауты — сокетное соединение с брокерами Kafka. Если сервис не обрабатывает событие достаточно быстро, то соединение может быть прервано по таймауту, но восстановление сервиса требует дополнительных затрат времени, потому что создание таких сокетов обходится дорого.<br/>
+<br/>
+Если consumer медленный, как можно увеличить скорость обработки событий? В Kafka вы можете увеличить количество consumer-ов в группе, таким образом, большее количество событий может быть обработано параллельно. Но потребуется как минимум 2 consumer-а на один сервис: в случае, если один упадет, поврежденные разделы можно переназначить.<br/>
+<br/>
+Также очень важно иметь метрики и оповещения, чтобы следить за скоростью обработки событий. <a href="https://github.com/zendesk/ruby-kafka">ruby-kafka</a> может работать с ActiveSupport оповещениями, также он имеет StatsD и Datadog модули, которые по-умолчанию включены. Кроме того, гем предоставляет <a href="https://github.com/zendesk/ruby-kafka#what-to-monitor">список</a> рекоммендованных метрик для мониторинга.<br/>
+<br/>
+Еще одним важным аспектом построения систем с Kafka является проектирование consumer-ов с возможностью обработки отказов. Kafka гарантированно отправит событие хотя бы один раз; исключен случай, когда сообщение не отправилось совсем. Но важно, чтобы consumer-ы были готовы обработать повторяющиеся события. Один из способов сделать это — всегда использовать <code>UPSERT</code> для добавления новых записей в базу данных. Если запись уже существует с такими же атрибутами, вызов по сути будет неактивным. Кроме того, вы можете добавить уникальный идентификатор в каждое событие и просто пропускать события, которые уже были обработаны ранее.<br/>
+<br/>
+<h2>Форматы данных</h2><br/>
+Одним из сюрпризов при работе с Kafka может стать его простое отношение к формату данных. Вы может отправить что угодно в байтах и данные будут отправлены consumer-у без какой-либо верификации. С одной стороны, это дает гибкость и позволяет не заботиться о формате данных. С другой стороны, если producer решит изменить отправляемые данные, есть шанс, что какой-нибудь consumer в итоге сломается.<br/>
+<br/>
+Перед тем как строить событийно-ориентированную архитектуру, выберите формат данных и проанализируйте, как он поможет в дальнейшем регистрировать и развивать схемы.<br/>
+<br/>
+Один из форматов, рекоммендованных к использованию, конечно же, JSON. Этот формат человекочитаем и поддерживается всеми известными языками программирования. Но есть и подводные камни. Например, размеры конечных данных на JSON могут стать пугающе большими. Формат обязует хранить пары ключ-значение, что достаточно гибко, но при этом данные дублируются в каждом событии. Изменение схемы также является сложной задачей, поскольку нет встроенной поддержки для наложения одного ключа на другой, если вам небходимо переименовать поле.<br/>
+<br/>
+Команда, создавшая Kafka, советует использовать в качестве системы сериализации <a href="https://avro.apache.org/docs/current/">Avro</a>. Данные отправляются в бинарном виде, и это не самый человекочитаемый формат, зато внутри есть более надежная поддержка схем. Конечный объект в Avro включает в себя одновременно схему и данные. Также Avro поддерживает как простые типы, вроде чисел, так и сложные: даты, массивы и пр. Кроме того, он позволяет включать документацию внутри схемы, что позволяет понимать назначения определенного поля в системе и содержит множество других встроенных инструментов для работы со схемой.<br/>
+<br/>
+<a href="https://github.com/salsify/avro-builder">avro-builder </a>— гем, созданный Salsify, который предлагает ruby-подобный DSL для создания схем. Более подробно про Avro можно прочесть в <a href="https://www.salsify.com/blog/engineering/adventures-in-avro">этой статье</a>.<br/>
+<br/>
+<h2>Дополнительная информация</h2><br/>
+Если вы интересуетесь как хостить Kafka или как он используется в Heroku, есть несколько докладов, которые могут быть вам интересны.<br/>
+<br/>
+Jeff Chao’s на конфереции DataEngConf SF ’17 “<a href="https://www.datacouncil.ai/talks/beyond-50000-partitions-how-heroku-pushes-the-limits-of-kafka-at-scale">Beyond 50,000 Partitions: How Heroku Operates and Pushes the Limits of Kafka at Scale</a>”<br/>
+<br/>
+Pavel Pravosud на конфереции Dreamforce ’16 “ <a href="https://www.salesforce.com/video/302281/">Dogfooding Kafka: How We Built Heroku’s Real-Time Platform Event Stream</a>”<br/>
+<br/>
+Приятного просмотра!</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Brails%5D" class="tm-tags-list__link">rails</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bkafka%5D" class="tm-tags-list__link">kafka</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bsoa%5D" class="tm-tags-list__link">soa</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/ror/" class="tm-hubs-list__link">
+    Ruby on Rails
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 7: ↑7 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 7: ↑7 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+7</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">3.8K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    19
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/M1Anderson/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/634/0f5/a5d/6340f5a5d51c904eae1393a770d027ed.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 4 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    4
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Виталий</span> <a href="/ru/users/M1Anderson/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @M1Anderson
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Программист</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450028/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450028/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450028/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450028":{"id":"450028","timePublished":"2019-04-29T15:22:17+00:00","isCorporative":false,"lang":"ru","titleHtml":"Построение сервис-ориентированной архитектуры на Rails + Kafka","leadData":{"textHtml":"Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления \u003Ca href=\"https:\u002F\u002Fwww.youtube.com\u002Fwatch?v=Rzl4O1oaVy8\"\u003EStella Cotton на RailsConf 2018\u003C\u002Fa\u003E и переводом статьи \u003Ca href=\"https:\u002F\u002Fblog.heroku.com\u002Fservice-oriented-architecture-rails-kafka\"\u003E«Building a Service-oriented Architecture with Rails and Kafka»\u003C\u002Fa\u003E автора Stella Cotton.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ последнее время отчетливо виден переход проектов от монолитной архитектуры в пользу микросервисов. В этом гайде мы узнаем основы Kafka и как событийно-ориентированный подход может улучшить ваше Rails приложение. Также мы поговорим о проблемах мониторинга и масштабируемости сервисов, которые работают через событийно-ориентированный подход.\u003Cbr\u002F\u003E\r\n ","imageUrl":null,"buttonTextHtml":"Читать дальше &rarr;","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":4,"votesCount":4},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"584639","alias":"M1Anderson","fullname":"Виталий","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F634\u002F0f5\u002Fa5d\u002F6340f5a5d51c904eae1393a770d027ed.jpg","speciality":"Программист"},"statistics":{"commentsCount":0,"favoritesCount":19,"readingCount":3847,"score":7,"votesCount":7},"hubs":[{"relatedData":null,"id":"8279","alias":"ror","type":"collective","title":"Ruby on Rails","titleHtml":"Ruby on Rails","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EПривет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления \u003Ca href=\"https:\u002F\u002Fwww.youtube.com\u002Fwatch?v=Rzl4O1oaVy8\"\u003EStella Cotton на RailsConf 2018\u003C\u002Fa\u003E и переводом статьи \u003Ca href=\"https:\u002F\u002Fblog.heroku.com\u002Fservice-oriented-architecture-rails-kafka\"\u003E«Building a Service-oriented Architecture with Rails and Kafka»\u003C\u002Fa\u003E автора Stella Cotton.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ последнее время отчетливо виден переход проектов от монолитной архитектуры в пользу микросервисов. В этом гайде мы узнаем основы Kafka и как событийно-ориентированный подход может улучшить ваше Rails приложение. Также мы поговорим о проблемах мониторинга и масштабируемости сервисов, которые работают через событийно-ориентированный подход.\u003Cbr\u002F\u003E\r\n \u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЧто же такое Kafka?\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nУверен, что вам хотелось бы иметь информацию о том, как ваши пользователи пришли на вашу платформу или какие страницы они посещают, какие кнопки нажимают и т.д. Действительно популярное приложение может генерировать миллиарды событий и отправлять огромный объем данных в сервисы для аналитики, что может стать серьезным вызовом для вашего приложения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак правило, неотъемлемая часть веб приложений требует так называемый \u003Ci\u003Ereal-time data flow\u003C\u002Fi\u003E. Kafka предоставляет отказоустойчивую связь между \u003Cb\u003Eproducers\u003C\u002Fb\u003E, теми, кто генерирует события, и \u003Cb\u003Econsumers\u003C\u002Fb\u003E, теми, кто получает эти события. Может быть даже несколько producers и consumers в одном приложении. В Kafka, каждое событие существует в течение заданного времени, поэтому несколько consumers могут читать одно и то же событие снова и снова. Kafka кластер включает в себя несколько brokers, которые являются инстансами Kafka.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fql\u002Fj1\u002Fuy\u002Fqlj1uyapeg_3fmswgflqauwmd7q.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКлючевая особенность Kafka — высокая скорость обработки событий. Традиционные системы очередей, например AMQP, имеют инфраструктуру, которая следит за обработанными событиями для каждого consumer-а. Когда количество consumers вырастает до приличного уровня, система с трудом начинает справляться с нагрузкой, потому что ей приходится отслеживать все большее количество состояний. Также, существуют большие проблемы с согласованностью между consumer и системой обработки событий. Например, стоит ли сразу помечать сообщение как отправленное, как только оно обработано системой? А если consumer на другом конце упадет, так и не получив сообщения?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nKafka также имеет отказоустойчивую архитектуру. Система запускается как кластер на одном или нескольких серверах, которые могут горизонтально масштабироваться путем добавления новых машин. Все данные записываются на диск и копируются на несколько брокеров. Для того, чтобы понимать возможности масштабируемости, стоит взглянуть на такие компании как Netflix, LinkedIn, Microsoft. Все они отправляют триллионы сообщений в день через свои Kafka кластеры!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EНастройка Kafka в Rails\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nHeroku предоставляет \u003Ca href=\"https:\u002F\u002Felements.heroku.com\u002Faddons\u002Fheroku-kafka\"\u003EKafka cluster add-on\u003C\u002Fa\u003E, который может быть использован для любого окружения. Для ruby приложений, мы рекомендуем использовать гем \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fzendesk\u002Fruby-kafka\"\u003Eruby-kafka\u003C\u002Fa\u003E. Минимальная реализация выглядит примерно так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"ruby\"\u003E# config\u002Finitializers\u002Fkafka_producer.rb\nrequire \"kafka\"\n# Configure the Kafka client with the broker hosts and the Rails\n# logger.\n$kafka = Kafka.new([\"kafka1:9092\", \"kafka2:9092\"], logger: Rails.logger)\n# Set up an asynchronous producer that delivers its buffered messages\n# every ten seconds:\n$kafka_producer = $kafka.async_producer(\n  delivery_interval: 10,\n)\n# Make sure to shut down the producer when exiting.\nat_exit { $kafka_producer.shutdown }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПосле настройки конфига, вы можете использовать гем для отправки сообщений. Благодаря асинхронной отправки событий, мы можем отправлять сообщения откуда угодно:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"ruby\"\u003Eclass OrdersController &lt; ApplicationController\n  def create\n    @comment = Order.create!(params)\n    $kafka_producer.produce(order.to_json, topic: \"user_event\", partition_key: user.id)\n  end\nend\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМы поговорим о форматах сериализации ниже, а пока используем старый добрый JSON. Аргумент \u003Ccode\u003Etopic\u003C\u002Fcode\u003E ссылается на лог, в который Kafka запишет это событие. Topics размазаны по разным разделам, которые позволяют разделить данные конкретного topic по разным брокерам для лучшей масштабируемости и надежности. И это действительно хорошая идея — иметь два или более раздела для каждого topic, ведь, если один из разделов падает, ваши события все равно будут записаны и обработаны. Kafka гарантирует, что события доставляются в порядке очереди внутри раздела, но не внутри целого topic. Если порядок событий важен, то отправка partition_key гарантирует, что все события определенного типа будут сохранены на одном разделе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EKafka для ваших сервисов\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНекоторые особенности, которые делают Kafka полезным инструментом, также делают его отказоустойчивой заменой RPC между сервисами. Взглянем на пример e-commerce приложения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"ruby\"\u003Edef create_order\n  create_order_record\n  charge_credit_card # call to Payments Service\n  send_confirmation_email # call to Email Service\nend\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКогда пользователь оформляет заказ, вызывается функция \u003Ccode\u003Ecreate_order\u003C\u002Fcode\u003E. Это создает заказ в системе, списывает деньги с карты и отправляет email с подтверждением. Как видно, два последних шага вынесены в отдельные сервисы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fi8\u002F_y\u002Ftr\u002Fi8_ytruescd639f48vmelrmsfu4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдна из проблем такого подхода в том, что вышестоящий в иерархии сервис ответственнен за мониторинг доступности нижестоящего сервиса. Если у сервиса для отправки писем выдался не лучший день, вышестоящему сервису нужно об этом знать. И если сервис отправки недоступен, то необходимо повторить определенный набор действий. Как Kafka может помочь в такой ситуации? \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fi1\u002Fdh\u002Fa8\u002Fi1dha8zycj6ibxydaxja9y8bp10.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этом событийно-ориентированном подходе, вышестоящий сервис может записать событие в Kafka о том, что заказ был создан. Из-за так называемого \u003Ci\u003Eat least once\u003C\u002Fi\u003E подхода, событие будет записано в Kafka как минимум один раз и будет доступно нижестоящим consumer-ам для чтения. Если сервис отправки писем лежит, событие будет ждать на диске, пока consumer не поднимется и не прочтет его.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕще одна проблема RPC-ориентированной архиектуры — в быстрорастущих системах: добавление нового нижестоящего сервиса влечет за собой изменения в вышестоящем. Например, вы бы хотели добавить еще один шаг после создания заказа. В событийно-ориентированном мире вам нужно будет добавить еще один consumer для обработки нового типа событий.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fox\u002Fic\u002Fka\u002Foxickaiivr5j6hey5fahjkcvsxc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EВключение событий в сервис-ориентированную архитектуру\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ посте под названием “\u003Ca href=\"https:\u002F\u002Fmartinfowler.com\u002Farticles\u002F201701-event-driven.html\"\u003EWhat do you mean by “Event-Driven\u003C\u002Fa\u003E” Мартина Фаулера обсуждается путаница вокруг событийно-ориентированных приложений. Когда разработчики обсуждают подобные системы, они на самом деле говорят об огромном количестве различных приложений. Для того, чтобы дать общее понимание о природе таких систем, Фаулер определил несколько архитектурных шаблонов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДавайте взглянем, что это за паттерны. Если вы хотите узнать больше, то советую прочитать его \u003Ca href=\"https:\u002F\u002Fwww.youtube.com\u002Fwatch?v=STKCRSUsyP0\"\u003Eдоклад\u003C\u002Fa\u003E на GOTO Chicago 2017.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EEvent Notification\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПервый шаблон Фаулера называется \u003Ci\u003EEvent Notification\u003C\u002Fi\u003E. В этом сценарии producer сервис оповещает consumer-ов о произошедшем событии с помощью минимального объема информации:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"json\"\u003E{\n  \"event\": \"order_created\",\n  \"published_at\": \"2016-03-15T16:35:04Z\"\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЕсли consumer-ам требуется больше информации о событии, они делают запрос к producer и получают больше данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EEvent-Carried State Transfer\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВторой шаблон называется \u003Ci\u003EEvent-Carried State Transfer\u003C\u002Fi\u003E. В этом сценарии producer предоставляет дополнительную информацию о событии и consumer может хранить копию эти данных, не делая дополнительных вызовов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"json\"\u003E{\n  \"event\": \"order_created\",\n  \"order\": {\n    \"order_id\": 98765,\n    \"size\": \"medium\",\n    \"color\": \"blue\"\n  },\n  \"published_at\": \"2016-03-15T16:35:04Z\"\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EEvent-Sourced\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nТретий шаблон Фаулер назвал \u003Ci\u003EEvent-Sourced\u003C\u002Fi\u003E и он является скорее архитектурным. Релизация шаблона предполагает не просто коммуникацию между вашими сервисами, но и сохранение представления события. Это гарантирует, что, даже потеряв базы данных, вы все равно можете восстановить состояние приложения, просто запустив сохраненный поток событий. Другими словами, каждое событие сохраняет определенное состояние приложения в определенный момент.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБольшой проблемой такого подхода является то, что код приложения всегда меняется, а с ним может меняться формат или объем данных, которые отдает producer. Это делает проблемным восстановление состояния приложения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003ECommand Query Responsibility Segregation\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nИ последний шаблон —\u003Ci\u003E Command Query Responsibility Segregation\u003C\u002Fi\u003E, или CQRS. Идея в том, что действия, которые вы применяете к объекту, например: создание, чтение, обновление, должны быть разделены на различные домены. Это значит, что один сервис должен отвечать за создание, другой за обновление и т.д. В объектно-ориентированных системах же все часто хранится в одном сервисе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fxb\u002F5b\u002Fmx\u002Fxb5bmxasal6md3bq2xsdgnhfhgg.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСервис, который пишет в базу, будет считывать поток событий и обрабатывать команды. Но любые запросы происходят только в read-only базе. Разделение логики чтения и записи на два разных сервиса увеличивает сложность, но позволяет оптимизировать производительность отдельно для этих систем.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПроблемы\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДавайте поговорим о некоторых проблемах, с которыми вы можете столкнуться при интеграции Kafka в ваше сервис-ориентированное приложение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервая проблема может заключаться в медленных consumer-ах. В событийно-ориентированной системе ваши сервисы должны иметь возможность обрабатывать события моментально при получении их от вышестоящего сервиса. Иначе они будут просто висеть без каких-либо оповещений о проблеме или таймаутах. Единственное место, где можно определить таймауты — сокетное соединение с брокерами Kafka. Если сервис не обрабатывает событие достаточно быстро, то соединение может быть прервано по таймауту, но восстановление сервиса требует дополнительных затрат времени, потому что создание таких сокетов обходится дорого.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли consumer медленный, как можно увеличить скорость обработки событий? В Kafka вы можете увеличить количество consumer-ов в группе, таким образом, большее количество событий может быть обработано параллельно. Но потребуется как минимум 2 consumer-а на один сервис: в случае, если один упадет, поврежденные разделы можно переназначить.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакже очень важно иметь метрики и оповещения, чтобы следить за скоростью обработки событий. \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fzendesk\u002Fruby-kafka\"\u003Eruby-kafka\u003C\u002Fa\u003E может работать с ActiveSupport оповещениями, также он имеет StatsD и Datadog модули, которые по-умолчанию включены. Кроме того, гем предоставляет \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fzendesk\u002Fruby-kafka#what-to-monitor\"\u003Eсписок\u003C\u002Fa\u003E рекоммендованных метрик для мониторинга.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕще одним важным аспектом построения систем с Kafka является проектирование consumer-ов с возможностью обработки отказов. Kafka гарантированно отправит событие хотя бы один раз; исключен случай, когда сообщение не отправилось совсем. Но важно, чтобы consumer-ы были готовы обработать повторяющиеся события. Один из способов сделать это — всегда использовать \u003Ccode\u003EUPSERT\u003C\u002Fcode\u003E для добавления новых записей в базу данных. Если запись уже существует с такими же атрибутами, вызов по сути будет неактивным. Кроме того, вы можете добавить уникальный идентификатор в каждое событие и просто пропускать события, которые уже были обработаны ранее.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EФорматы данных\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nОдним из сюрпризов при работе с Kafka может стать его простое отношение к формату данных. Вы может отправить что угодно в байтах и данные будут отправлены consumer-у без какой-либо верификации. С одной стороны, это дает гибкость и позволяет не заботиться о формате данных. С другой стороны, если producer решит изменить отправляемые данные, есть шанс, что какой-нибудь consumer в итоге сломается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПеред тем как строить событийно-ориентированную архитектуру, выберите формат данных и проанализируйте, как он поможет в дальнейшем регистрировать и развивать схемы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдин из форматов, рекоммендованных к использованию, конечно же, JSON. Этот формат человекочитаем и поддерживается всеми известными языками программирования. Но есть и подводные камни. Например, размеры конечных данных на JSON могут стать пугающе большими. Формат обязует хранить пары ключ-значение, что достаточно гибко, но при этом данные дублируются в каждом событии. Изменение схемы также является сложной задачей, поскольку нет встроенной поддержки для наложения одного ключа на другой, если вам небходимо переименовать поле.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКоманда, создавшая Kafka, советует использовать в качестве системы сериализации \u003Ca href=\"https:\u002F\u002Favro.apache.org\u002Fdocs\u002Fcurrent\u002F\"\u003EAvro\u003C\u002Fa\u003E. Данные отправляются в бинарном виде, и это не самый человекочитаемый формат, зато внутри есть более надежная поддержка схем. Конечный объект в Avro включает в себя одновременно схему и данные. Также Avro поддерживает как простые типы, вроде чисел, так и сложные: даты, массивы и пр. Кроме того, он позволяет включать документацию внутри схемы, что позволяет понимать назначения определенного поля в системе и содержит множество других встроенных инструментов для работы со схемой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fsalsify\u002Favro-builder\"\u003Eavro-builder \u003C\u002Fa\u003E— гем, созданный Salsify, который предлагает ruby-подобный DSL для создания схем. Более подробно про Avro можно прочесть в \u003Ca href=\"https:\u002F\u002Fwww.salsify.com\u002Fblog\u002Fengineering\u002Fadventures-in-avro\"\u003Eэтой статье\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EДополнительная информация\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЕсли вы интересуетесь как хостить Kafka или как он используется в Heroku, есть несколько докладов, которые могут быть вам интересны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nJeff Chao’s на конфереции DataEngConf SF ’17 “\u003Ca href=\"https:\u002F\u002Fwww.datacouncil.ai\u002Ftalks\u002Fbeyond-50000-partitions-how-heroku-pushes-the-limits-of-kafka-at-scale\"\u003EBeyond 50,000 Partitions: How Heroku Operates and Pushes the Limits of Kafka at Scale\u003C\u002Fa\u003E”\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nPavel Pravosud на конфереции Dreamforce ’16 “ \u003Ca href=\"https:\u002F\u002Fwww.salesforce.com\u002Fvideo\u002F302281\u002F\"\u003EDogfooding Kafka: How We Built Heroku’s Real-Time Platform Event Stream\u003C\u002Fa\u003E”\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПриятного просмотра!\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"rails"},{"titleHtml":"kafka"},{"titleHtml":"soa"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450028\u002F761b61918f261775e6da02419c9d264a\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450028\u002F761b61918f261775e6da02419c9d264a\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450028\\\u002F\"},\"headline\":\"Построение сервис-ориентированной архитектуры на Rails + Kafka\",\"datePublished\":\"2019-04-29T18:22:17+03:00\",\"dateModified\":\"2019-04-29T18:22:17+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Виталий\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи &laquo;Building a...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450028\\\u002F#post-content-body\",\"about\":[\"h_ror\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fql\\\u002Fj1\\\u002Fuy\\\u002Fqlj1uyapeg_3fmswgflqauwmd7q.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fi8\\\u002F_y\\\u002Ftr\\\u002Fi8_ytruescd639f48vmelrmsfu4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fi1\\\u002Fdh\\\u002Fa8\\\u002Fi1dha8zycj6ibxydaxja9y8bp10.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fox\\\u002Fic\\\u002Fka\\\u002Foxickaiivr5j6hey5fahjkcvsxc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fxb\\\u002F5b\\\u002Fmx\\\u002Fxb5bmxasal6md3bq2xsdgnhfhgg.png\"]}","metaDescription":"Привет, Хабр! Представляю вашему вниманию пост, который является текстовой адаптацией выступления Stella Cotton на RailsConf 2018 и переводом статьи «Building a Service-oriented Architecture with...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"ror"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>﻿Finding Bugs in LLVM 8 with PVS-Studio / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/en\/company\/pvs-studio\/blog\/450002\/"},"headline":"﻿Finding Bugs in LLVM 8 with PVS-Studio","datePublished":"2019-04-29T16:43:52+03:00","dateModified":"2019-04-29T17:08:34+03:00","author":{"@type":"Person","name":"Andrey Karpov"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"It's been two years since we last checked the code of the LLVM project with PVS-Studio, so let's see if PVS-Studio is still the leader among tools for...","url":"https:\/\/habr.com\/en\/company\/pvs-studio\/blog\/450002\/#post-content-body","about":["c_pvs-studio","h_open_source","h_cpp","h_compilers","h_devops","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2f2\/8d4\/5bf\/2f28d45bf369270d9330bfbe2ea78f00.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d5d\/183\/d4e\/d5d183d4e2d3107bc512e52d893fda25.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/8a2\/f86\/58f\/8a2f8658fdacb0dde918807666d1cd39.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="﻿Finding Bugs in LLVM 8 with PVS-Studio" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="﻿Finding Bugs in LLVM 8 with PVS-Studio" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="﻿Finding Bugs in LLVM 8 with PVS-Studio" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="It&amp;#039;s been two years since we last checked the code of the LLVM project with PVS-Studio, so let&amp;#039;s see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We&amp;#039;ll..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="It&amp;#039;s been two years since we last checked the code of the LLVM project with PVS-Studio, so let&amp;#039;s see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We&amp;#039;ll..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="It&amp;#039;s been two years since we last checked the code of the LLVM project with PVS-Studio, so let&amp;#039;s see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We&amp;#039;ll..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="It&amp;#039;s been two years since we last checked the code of the LLVM project with PVS-Studio, so let&amp;#039;s see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We&amp;#039;ll..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="It&amp;#039;s been two years since we last checked the code of the LLVM project with PVS-Studio, so let&amp;#039;s see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We&amp;#039;ll..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450002/4c5ecd995ac337e95ba01a325e60859b/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450002/4c5ecd995ac337e95ba01a325e60859b/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450002/4c5ecd995ac337e95ba01a325e60859b/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450002/4c5ecd995ac337e95ba01a325e60859b/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450002/4c5ecd995ac337e95ba01a325e60859b/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450002" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-29T13:43:52.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="en_US" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450002/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/en/company/pvs-studio/blog/450002/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450002/4c5ecd995ac337e95ba01a325e60859b/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="pvs-studio" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/pvs-studio/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/95a/244/327/95a244327fc36477b6048c0f8b67df8b.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">215.63</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/pvs-studio/profile/" class="tm-company-card__name">
+        PVS-Studio
+      </a> <div class="tm-company-card__description">Статический анализ кода для C, C++, C# и Java</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Andrey2008/" title="Andrey2008" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/71b/4ac/f13/71b4acf131d3d675b999b4a47f573b0a.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Andrey2008/" class="tm-user-info__username">
+      Andrey2008
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-29T13:43:52.000Z" title="2019-04-29, 16:43">29  апреля  2019 в 16:43</time></span></div> <!----></div> <h1 lang="en" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>﻿Finding Bugs in LLVM 8 with PVS-Studio</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/pvs-studio/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании PVS-Studio</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/open_source/" class="tm-article-snippet__hubs-item-link"><span>Open source</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/cpp/" class="tm-article-snippet__hubs-item-link"><span>C++</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/compilers/" class="tm-article-snippet__hubs-item-link"><span>Компиляторы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/devops/" class="tm-article-snippet__hubs-item-link"><span>DevOps</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="en" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><div style="text-align:center;"><img src="/img/image-loader.svg" alt="PVS-Studio and LLVM 8.0.0" data-src="https://habrastorage.org/getpro/habr/post_images/2f2/8d4/5bf/2f28d45bf369270d9330bfbe2ea78f00.png"/></div><br/>
+It's been two years since we last checked the code of the LLVM project with PVS-Studio, so let's see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We'll do that by scanning the LLVM 8.0.0 release for new bugs.<br/>
+<a name="habracut"></a><br/>
+<h2>The article that must be written</h2><br/>
+Frankly, I didn't feel like writing this article. It's not much fun talking about the project that we already checked more than once (<a href="https://www.viva64.com/en/b/0108/">1</a>, <a href="https://www.viva64.com/en/b/0155/">2</a>, <a href="https://www.viva64.com/en/b/0446/">3</a>). I'd prefer something new instead, but I had no choice.<br/>
+<br/>
+Every time a new version of LLVM is released or <a href="https://clang-analyzer.llvm.org/">Clang Static Analyzer</a> is updated, we get emails reading along these lines:<br/>
+<br/>
+<i>Hey, the new version of Clang Static Analyzer got new diagnostics! PVS-Studio seems to be getting less relevant. Clang can detect more bugs than before and is now catching up with PVS-Studio. What'd you say?</i><br/>
+<br/>
+To that I'd gladly respond:<br/>
+<br/>
+<b>We haven't been lazing around either!</b> We've significantly increased PVS-Studio's capabilities, so no worries — we are still the best.<br/>
+<br/>
+But that's a bad answer, I'm afraid. It offers no proofs, and that's the reason why I'm writing this article. So, I've checked LLVM one more time and found tons of bugs of all kinds. Those that I liked the most will be discussed further. Clang Static Analyzer can't detect these bugs (or makes the process very troublesome) — and we can. And, by the way, it took me only one evening to write all those bugs down.<br/>
+<br/>
+The article, though, took me several weeks to complete. I just couldn't bring myself to put the gathered material into text :).<br/>
+<br/>
+By the way, if you wonder what techniques PVS-Studio employs to detect bugs and vulnerabilities, take a look at this <a href="https://www.viva64.com/en/b/0592/">post</a>.<br/>
+<br/>
+<h2>New and existing diagnostics</h2><br/>
+As I already said, the last of the many checks of LLVM was done two years ago, and the bugs found then were fixed by the authors. This article will show a new portion of errors. How come there are new bugs at all? There are three reasons:<br/>
+<br/>
+<ol>
+<li>The LLVM project is evolving; the authors modify existing code and add new code. Both modified and new parts naturally have new bugs. This fact is a strong argument for running static analysis regularly rather than every now and then. The format of our articles is perfect for showcasing PVS-Studio's capabilities, but it has nothing to do with improving code quality or making bug-fixing less costly. Do use static analysis regularly!</li>
+<li>We modify and improve existing diagnostics, enabling the analyzer to detect bugs it wasn't able to spot before.</li>
+<li>PVS-Studio has been enhanced with new diagnostics, which didn't exist two years ago. I grouped such warnings into a separate section so that PVS-Studio's progress is seen more distinctly.</li>
+</ol><br/>
+<h2>Defects found by existing diagnostics</h2><br/>
+<b>Snippet No. 1: Copy-Paste</b><br/>
+<br/>
+<pre><code class="cpp">static bool ShouldUpgradeX86Intrinsic(Function *F, StringRef Name) {
+  if (Name == "addcarryx.u32" || // Added in 8.0
+    ....
+    Name == "avx512.mask.cvtps2pd.128" || // Added in 7.0
+    Name == "avx512.mask.cvtps2pd.256" || // Added in 7.0
+    Name == "avx512.cvtusi2sd" || // Added in 7.0
+    Name.startswith("avx512.mask.permvar.") || // Added in 7.0     // &lt;=
+    Name.startswith("avx512.mask.permvar.") || // Added in 7.0     // &lt;=
+    Name == "sse2.pmulu.dq" || // Added in 7.0
+    Name == "sse41.pmuldq" || // Added in 7.0
+    Name == "avx2.pmulu.dq" || // Added in 7.0
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v501/">V501</a> [CWE-570] There are identical sub-expressions 'Name.startswith(«avx512.mask.permvar.»)' to the left and to the right of the '||' operator. AutoUpgrade.cpp 73<br/>
+<br/>
+The occurrence of the «avx512.mask.permvar.» substring is checked twice. The second condition obviously was to check something else, but the programmer forgot to change the copied line.<br/>
+<br/>
+<b>Snippet No. 2: Typo</b><br/>
+<br/>
+<pre><code class="cpp">enum CXNameRefFlags {
+  CXNameRange_WantQualifier = 0x1,
+  CXNameRange_WantTemplateArgs = 0x2,
+  CXNameRange_WantSinglePiece = 0x4
+};
+
+void AnnotateTokensWorker::HandlePostPonedChildCursor(
+    CXCursor Cursor, unsigned StartTokenIndex) {
+  const auto flags = CXNameRange_WantQualifier | CXNameRange_WantQualifier;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V501 There are identical sub-expressions 'CXNameRange_WantQualifier' to the left and to the right of the '|' operator. CIndex.cpp 7245<br/>
+<br/>
+The named constant <i>CXNameRange_WantQualifier</i> is used twice because of a typo.<br/>
+<br/>
+<b>Snippet No. 3: Confusion over operator precedence</b><br/>
+<br/>
+<pre><code class="cpp">int PPCTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val, unsigned Index) {
+  ....
+  if (ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; Index == ST->isLittleEndian() ? 1 : 0)
+    return 0;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v502/">V502</a> [CWE-783] Perhaps the '?:' operator works in a different way than it was expected. The '?:' operator has a lower priority than the '==' operator. PPCTargetTransformInfo.cpp 404<br/>
+<br/>
+I find this bug very cute. Yes, I know that I have a strange taste :).<br/>
+<br/>
+As dictated by <a href="https://www.viva64.com/en/t/0064/">operator precedence</a>, the original expression is evaluated as follows:<br/>
+<br/>
+<pre><code class="cpp">(ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; (Index == ST->isLittleEndian())) ? 1 : 0</code></pre><br/>
+From the practical point of view, though, this condition doesn't make sense as it can be reduced to:<br/>
+<br/>
+<pre><code class="cpp">(ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; Index == ST->isLittleEndian())</code></pre><br/>
+This is obviously a bug. It must have been the <i>Index</i> variable that the programmer wanted to check for 0/1. To fix the code, the ternary operator should be enclosed in parentheses:<br/>
+<br/>
+<pre><code class="cpp">if (ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; Index == (ST->isLittleEndian() ? 1 : 0))</code></pre><br/>
+The ternary operator is actually very tricky and may lead to logic errors. Use it carefully and don't hesitate to put additional parentheses around it. This subject is discussed in more detail <a href="https://www.viva64.com/en/b/0391/">here</a>, in the section «Beware of the ?: operator and enclose it in parentheses».<br/>
+<br/>
+<b>Snippets No. 4, 5: Null pointer</b><br/>
+<br/>
+<pre><code class="cpp">Init *TGParser::ParseValue(Record *CurRec, RecTy *ItemType, IDParseMode Mode) {
+  ....
+  TypedInit *LHS = dyn_cast&lt;TypedInit>(Result);
+  ....
+  LHS = dyn_cast&lt;TypedInit>(
+    UnOpInit::get(UnOpInit::CAST, LHS, StringRecTy::get())
+      ->Fold(CurRec));
+  if (!LHS) {
+    Error(PasteLoc, Twine("can't cast '") + LHS->getAsString() +
+                    "' to string");
+    return nullptr;
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v522/">V522</a> [CWE-476] Dereferencing of the null pointer 'LHS' might take place. TGParser.cpp 2152<br/>
+<br/>
+If the <i>LHS </i> pointer happens to be null, the program is expected to generate a warning. Instead, it will dereference that very null pointer: <i>LHS->getAsString()</i>.<br/>
+<br/>
+It's quite a typical situation for error handlers to contain bugs because developers don't test them properly. Static analyzers check all reachable code no matter how often it's actually executed. This is a good example of how static analysis complements other code testing and protection means.<br/>
+<br/>
+A similar faulty handler for the <i>RHS </i> pointer is found a bit further: V522 [CWE-476] Dereferencing of the null pointer 'RHS' might take place. TGParser.cpp 2186<br/>
+<br/>
+<b>Snippet No. 6: Using a pointer after a move</b><br/>
+<br/>
+<pre><code class="cpp">static Expected&lt;bool>
+ExtractBlocks(....)
+{
+  ....
+  std::unique_ptr&lt;Module> ProgClone = CloneModule(BD.getProgram(), VMap);
+  ....
+  BD.setNewProgram(std::move(ProgClone));                                // &lt;=
+  MiscompiledFunctions.clear();
+
+  for (unsigned i = 0, e = MisCompFunctions.size(); i != e; ++i) {
+    Function *NewF = ProgClone->getFunction(MisCompFunctions[i].first);  // &lt;=
+    assert(NewF &amp;&amp; "Function not found??");
+    MiscompiledFunctions.push_back(NewF);
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'ProgClone' might take place. Miscompilation.cpp 601<br/>
+<br/>
+The smart pointer <i>ProgClone </i> first releases the object ownership:<br/>
+<br/>
+<pre><code class="cpp">BD.setNewProgram(std::move(ProgClone));</code></pre><br/>
+In fact, <i>ProgClone </i> has become a null pointer — so, technically, a null pointer gets dereferenced a bit further:<br/>
+<br/>
+<pre><code class="cpp">Function *NewF = ProgClone->getFunction(MisCompFunctions[i].first);</code></pre><br/>
+But that won't happen! Note that the loop doesn't actually execute at all.<br/>
+<br/>
+The <i>MiscompiledFunctions </i> container is first cleared:<br/>
+<br/>
+<pre><code class="cpp">MiscompiledFunctions.clear();</code></pre><br/>
+And then its size is used in the loop condition:<br/>
+<br/>
+<pre><code class="cpp">for (unsigned i = 0, e = MisCompFunctions.size(); i != e; ++i) {</code></pre><br/>
+Obviously, the loop just won't start. I think it's a bug too, and the code was meant to look somehow differently.<br/>
+<br/>
+I guess what we see here is that notorious error parity, where one bug acts as a disguise for another :).<br/>
+<br/>
+<b>Snippet No. 7: Using a pointer after a move</b><br/>
+<br/>
+<pre><code class="cpp">static Expected&lt;bool> TestOptimizer(BugDriver &amp;BD, std::unique_ptr&lt;Module> Test,
+                                    std::unique_ptr&lt;Module> Safe) {
+  outs() &lt;&lt; "  Optimizing functions being tested: ";
+  std::unique_ptr&lt;Module> Optimized =
+      BD.runPassesOn(Test.get(), BD.getPassesToRun());
+  if (!Optimized) {
+    errs() &lt;&lt; " Error running this sequence of passes"
+           &lt;&lt; " on the input program!\n";
+    BD.setNewProgram(std::move(Test));                       // &lt;=
+    BD.EmitProgressBitcode(*Test, "pass-error", false);      // &lt;=
+    if (Error E = BD.debugOptimizerCrash())
+      return std::move(E);
+    return false;
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'Test' might take place. Miscompilation.cpp 709<br/>
+<br/>
+This one is similar to the previous case. The object's contents are first moved and then it's used as if nothing happened. This error has been growing ever more common after move semantics were added to C++. That's what I like about this language! You are given new ways to shoot yourself in the foot, which means PVS-Studio will always have work to do :).<br/>
+<br/>
+<b>Snippet No. 8: Null pointer</b><br/>
+<br/>
+<pre><code class="cpp">void FunctionDumper::dump(const PDBSymbolTypeFunctionArg &amp;Symbol) {
+  uint32_t TypeId = Symbol.getTypeId();
+  auto Type = Symbol.getSession().getSymbolById(TypeId);
+  if (Type)
+    Printer &lt;&lt; "&lt;unknown-type>";
+  else
+    Type->dump(*this);
+}</code></pre><br/>
+PVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'Type' might take place. PrettyFunctionDumper.cpp 233<br/>
+<br/>
+Just like error handlers, test functions printing debug data don't usually get adequate test coverage either, and this is one example of that. Instead of helping the user solve their problems, the function is waiting for them to fix it.<br/>
+<br/>
+Fixed code:<br/>
+<br/>
+<pre><code class="cpp">if (Type)
+  Type->dump(*this);
+else
+  Printer &lt;&lt; "&lt;unknown-type>";</code></pre><br/>
+<b>Snippet No. 9: Null pointer</b><br/>
+<br/>
+<pre><code class="cpp">void SearchableTableEmitter::collectTableEntries(
+    GenericTable &amp;Table, const std::vector&lt;Record *> &amp;Items) {
+  ....
+  RecTy *Ty = resolveTypes(Field.RecType, TI->getType());
+  if (!Ty)                                                              // &lt;=
+    PrintFatalError(Twine("Field '") + Field.Name + "' of table '" +
+                    Table.Name + "' has incompatible type: " +
+                    Ty->getAsString() + " vs. " +                       // &lt;=
+                    TI->getType()->getAsString());
+   ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'Ty' might take place. SearchableTableEmitter.cpp 614<br/>
+<br/>
+I don't think you need any comments on this one.<br/>
+<br/>
+<b>Snippet No. 10: Typo</b><br/>
+<br/>
+<pre><code class="cpp">bool FormatTokenLexer::tryMergeCSharpNullConditionals() {
+  ....
+  auto &amp;Identifier = *(Tokens.end() - 2);
+  auto &amp;Question = *(Tokens.end() - 1);
+  ....
+  Identifier->ColumnWidth += Question->ColumnWidth;
+  Identifier->Type = Identifier->Type;                    // &lt;=
+  Tokens.erase(Tokens.end() - 1);
+  return true;
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v570/">V570</a> The 'Identifier->Type' variable is assigned to itself. FormatTokenLexer.cpp 249<br/>
+<br/>
+Assigning a variable to itself is a meaningless operation. The programmer must have meant to do the following:<br/>
+<br/>
+<pre><code class="cpp">Identifier->Type = Question->Type;</code></pre><br/>
+<b>Snippet No. 11: Suspicious break</b><br/>
+<br/>
+<pre><code class="cpp">void SystemZOperand::print(raw_ostream &amp;OS) const {
+  switch (Kind) {
+    break;
+  case KindToken:
+    OS &lt;&lt; "Token:" &lt;&lt; getToken();
+    break;
+  case KindReg:
+    OS &lt;&lt; "Reg:" &lt;&lt; SystemZInstPrinter::getRegisterName(getReg());
+    break;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v622/">V622</a> [CWE-478] Consider inspecting the 'switch' statement. It's possible that the first 'case' operator is missing. SystemZAsmParser.cpp 652<br/>
+<br/>
+There is a very suspicious <i>break</i> statement at the beginning. Shouldn't there be something else here?<br/>
+<br/>
+<b>Snippet No. 12: Checking a pointer after dereferencing</b><br/>
+<br/>
+<pre><code class="cpp">InlineCost AMDGPUInliner::getInlineCost(CallSite CS) {
+  Function *Callee = CS.getCalledFunction();
+  Function *Caller = CS.getCaller();
+  TargetTransformInfo &amp;TTI = TTIWP->getTTI(*Callee);
+
+  if (!Callee || Callee->isDeclaration())
+    return llvm::InlineCost::getNever("undefined callee");
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v595/">V595</a> [CWE-476] The 'Callee' pointer was utilized before it was verified against nullptr. Check lines: 172, 174. AMDGPUInline.cpp 172<br/>
+<br/>
+The <i>Callee </i> pointer is first dereferenced when the <i>getTTI</i> function is called.<br/>
+<br/>
+And then it turns out that the pointer should be checked for <i>nullptr</i>:<br/>
+<br/>
+<pre><code class="cpp">if (!Callee || Callee->isDeclaration())</code></pre><br/>
+Too late…<br/>
+<br/>
+<b>Snippets No. 13 — No....: Checking a pointer after dereferencing</b><br/>
+<br/>
+The previous example isn't unique. The same problem is found in this snippet:<br/>
+<br/>
+<pre><code class="cpp">static Value *optimizeDoubleFP(CallInst *CI, IRBuilder&lt;> &amp;B,
+                               bool isBinary, bool isPrecise = false) {
+  ....
+  Function *CalleeFn = CI->getCalledFunction();
+  StringRef CalleeNm = CalleeFn->getName();                 // &lt;=
+  AttributeList CalleeAt = CalleeFn->getAttributes();
+  if (CalleeFn &amp;&amp; !CalleeFn->isIntrinsic()) {               // &lt;=
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V595 [CWE-476] The 'CalleeFn' pointer was utilized before it was verified against nullptr. Check lines: 1079, 1081. SimplifyLibCalls.cpp 1079<br/>
+<br/>
+And this one:<br/>
+<br/>
+<pre><code class="cpp">void Sema::InstantiateAttrs(const MultiLevelTemplateArgumentList &amp;TemplateArgs,
+                            const Decl *Tmpl, Decl *New,
+                            LateInstantiatedAttrVec *LateAttrs,
+                            LocalInstantiationScope *OuterMostScope) {
+  ....
+  NamedDecl *ND = dyn_cast&lt;NamedDecl>(New);
+  CXXRecordDecl *ThisContext =
+    dyn_cast_or_null&lt;CXXRecordDecl>(ND->getDeclContext());         // &lt;=
+  CXXThisScopeRAII ThisScope(*this, ThisContext, Qualifiers(),
+                             ND &amp;&amp; ND->isCXXInstanceMember());     // &lt;=
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V595 [CWE-476] The 'ND' pointer was utilized before it was verified against nullptr. Check lines: 532, 534. SemaTemplateInstantiateDecl.cpp 532<br/>
+<br/>
+And here:<br/>
+<br/>
+<ul>
+<li>V595 [CWE-476] The 'U' pointer was utilized before it was verified against nullptr. Check lines: 404, 407. DWARFFormValue.cpp 404</li>
+<li>V595 [CWE-476] The 'ND' pointer was utilized before it was verified against nullptr. Check lines: 2149, 2151. SemaTemplateInstantiate.cpp 2149</li>
+</ul><br/>
+Then I lost interest in tracking V595 warnings, so I can't tell you if there are other bugs of this type besides the ones shown above. I bet there are.<br/>
+<br/>
+<b>Snippets No. 17, 18: Suspicious shift</b><br/>
+<br/>
+<pre><code class="cpp">static inline bool processLogicalImmediate(uint64_t Imm, unsigned RegSize,
+                                           uint64_t &amp;Encoding) {
+  ....
+  unsigned Size = RegSize;
+  ....
+  uint64_t NImms = ~(Size-1) &lt;&lt; 1;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v629/">V629</a> [CWE-190] Consider inspecting the '~(Size — 1) &lt;&lt; 1' expression. Bit shifting of the 32-bit value with a subsequent expansion to the 64-bit type. AArch64AddressingModes.h 260<br/>
+<br/>
+This code might actually be correct, but it does look strange and needs examining.<br/>
+<br/>
+Suppose the <i>Size </i> variable has the value 16; then the <i>NImms</i> variable is expected to get the following value:<br/>
+<br/>
+1111111111111111111111111111111111111111111111111111111111100000<br/>
+<br/>
+But in reality it will get the value:<br/>
+<br/>
+0000000000000000000000000000000011111111111111111111111111100000<br/>
+<br/>
+This happens because all the calculations are done on the 32-bit unsigned type, and only then does it get implicitly promoted to <i>uint64_t</i>, with the most significant bits zeroed out.<br/>
+<br/>
+The problem can be fixed as follows:<br/>
+<br/>
+<pre><code class="cpp">uint64_t NImms = ~static_cast&lt;uint64_t>(Size-1) &lt;&lt; 1;</code></pre><br/>
+Another bug of this type: V629 [CWE-190] Consider inspecting the 'Immr &lt;&lt; 6' expression. Bit shifting of the 32-bit value with a subsequent expansion to the 64-bit type. AArch64AddressingModes.h 269<br/>
+<br/>
+<b>Snippet No. 19: Missing keyword </b><b><i>else</i></b><b>?</b><br/>
+<br/>
+<pre><code class="cpp">void AMDGPUAsmParser::cvtDPP(MCInst &amp;Inst, const OperandVector &amp;Operands) {
+  ....
+  if (Op.isReg() &amp;&amp; Op.Reg.RegNo == AMDGPU::VCC) {
+    // VOP2b (v_add_u32, v_sub_u32 ...) dpp use "vcc" token.
+    // Skip it.
+    continue;
+  } if (isRegOrImmWithInputMods(Desc, Inst.getNumOperands())) {    // &lt;=
+    Op.addRegWithFPInputModsOperands(Inst, 2);
+  } else if (Op.isDPPCtrl()) {
+    Op.addImmOperands(Inst, 1);
+  } else if (Op.isImm()) {
+    // Handle optional arguments
+    OptionalIdx[Op.getImmTy()] = I;
+  } else {
+    llvm_unreachable("Invalid operand type");
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v646/">V646</a> [CWE-670] Consider inspecting the application's logic. It's possible that 'else' keyword is missing. AMDGPUAsmParser.cpp 5655<br/>
+<br/>
+This one is not a bug. Since the <i>then</i> block of the first <i>if </i> statement ends with <i>continue</i>, it doesn't matter if it has the <i>else </i> keyword or not. The behavior will be the same in any case. However, the missing <i>else </i> makes the code less readable and, therefore, potentially dangerous. If <i>continue </i> disappears one day, the behavior will change drastically. I strongly recommend adding <i>else</i>.<br/>
+<br/>
+<b>Snippet No. 20: Four identical typos</b><br/>
+<br/>
+<pre><code class="cpp">LLVM_DUMP_METHOD void Symbol::dump(raw_ostream &amp;OS) const {
+  std::string Result;
+  if (isUndefined())
+    Result += "(undef) ";
+  if (isWeakDefined())
+    Result += "(weak-def) ";
+  if (isWeakReferenced())
+    Result += "(weak-ref) ";
+  if (isThreadLocalValue())
+    Result += "(tlv) ";
+  switch (Kind) {
+  case SymbolKind::GlobalSymbol:
+    Result + Name.str();                        // &lt;=
+    break;
+  case SymbolKind::ObjectiveCClass:
+    Result + "(ObjC Class) " + Name.str();      // &lt;=
+    break;
+  case SymbolKind::ObjectiveCClassEHType:
+    Result + "(ObjC Class EH) " + Name.str();   // &lt;=
+    break;
+  case SymbolKind::ObjectiveCInstanceVariable:
+    Result + "(ObjC IVar) " + Name.str();       // &lt;=
+    break;
+  }
+  OS &lt;&lt; Result;
+}</code></pre><br/>
+PVS-Studio diagnostic messages:<br/>
+<br/>
+<ul>
+<li>V655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + Name.str()' expression. Symbol.cpp 32</li>
+<li>V655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + "(ObjC Class) " + Name.str()' expression. Symbol.cpp 35</li>
+<li>V655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + "(ObjC Class EH) " + Name.str()' expression. Symbol.cpp 38</li>
+<li>V655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + "(ObjC IVar) " + Name.str()' expression. Symbol.cpp 41</li>
+</ul><br/>
+The programmer accidentally used the + operator instead of += and ended up with four meaningless constructs.<br/>
+<br/>
+<b>Snippet No. 21: Undefined behavior</b><br/>
+<br/>
+<pre><code class="cpp">static void getReqFeatures(std::map&lt;StringRef, int> &amp;FeaturesMap,
+                           const std::vector&lt;Record *> &amp;ReqFeatures) {
+  for (auto &amp;R : ReqFeatures) {
+    StringRef AsmCondString = R->getValueAsString("AssemblerCondString");
+
+    SmallVector&lt;StringRef, 4> Ops;
+    SplitString(AsmCondString, Ops, ",");
+    assert(!Ops.empty() &amp;&amp; "AssemblerCondString cannot be empty");
+
+    for (auto &amp;Op : Ops) {
+      assert(!Op.empty() &amp;&amp; "Empty operator");
+      if (FeaturesMap.find(Op) == FeaturesMap.end())
+        FeaturesMap[Op] = FeaturesMap.size();
+    }
+  }
+}</code></pre><br/>
+Try to spot the bug on your own first. I added the image so that you don't peek at the answer right away:<br/>
+<br/>
+<p></p><div style="text-align:center;"><img src="/img/image-loader.svg" alt="???" data-src="https://habrastorage.org/getpro/habr/post_images/d5d/183/d4e/d5d183d4e2d3107bc512e52d893fda25.png"/></div><br/>
+<br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v708/">V708</a> [CWE-758] Dangerous construction is used: 'FeaturesMap[Op] = FeaturesMap.size()', where 'FeaturesMap' is of 'map' class. This may lead to undefined behavior. RISCVCompressInstEmitter.cpp 490<br/>
+<br/>
+The faulty line is this one:<br/>
+<br/>
+<pre><code class="cpp">FeaturesMap[Op] = FeaturesMap.size();</code></pre><br/>
+If the <i>Op </i> element hasn't been found, the program creates a new element in the map and assigns it the total number of elements in this map. You just don't know if the <i>size </i> function will be called before or after adding the new element.<br/>
+<br/>
+<b>Snippets No. 22 — No. 24: Duplicate assignments</b><br/>
+<br/>
+<pre><code class="cpp">Error MachOObjectFile::checkSymbolTable() const {
+  ....
+  } else {
+    MachO::nlist STE = getSymbolTableEntry(SymDRI);
+    NType = STE.n_type;                              // &lt;=
+    NType = STE.n_type;                              // &lt;=
+    NSect = STE.n_sect;
+    NDesc = STE.n_desc;
+    NStrx = STE.n_strx;
+    NValue = STE.n_value;
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v519/">V519</a> [CWE-563] The 'NType' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 1663, 1664. MachOObjectFile.cpp 1664<br/>
+<br/>
+I don't think it's a true error — rather a duplicate assignment. But it's still a defect.<br/>
+<br/>
+Two other cases:<br/>
+<br/>
+<ul>
+<li>V519 [CWE-563] The 'B.NDesc' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 1488, 1489. llvm-nm.cpp 1489</li>
+<li>V519 [CWE-563] The variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 59, 61. coff2yaml.cpp 61</li>
+</ul><br/>
+<b>Snippets No. 25 — No. 27: More duplicate assignments</b><br/>
+<br/>
+These ones deal with slightly different versions of duplicate assignments.<br/>
+<br/>
+<pre><code class="cpp">bool Vectorizer::vectorizeLoadChain(
+    ArrayRef&lt;Instruction *> Chain,
+    SmallPtrSet&lt;Instruction *, 16> *InstructionsProcessed) {
+  ....
+  unsigned Alignment = getAlignment(L0);
+  ....
+  unsigned NewAlign = getOrEnforceKnownAlignment(L0->getPointerOperand(),
+                                                 StackAdjustedAlignment,
+                                                 DL, L0, nullptr, &amp;DT);
+  if (NewAlign != 0)
+    Alignment = NewAlign;
+  Alignment = NewAlign;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V519 [CWE-563] The 'Alignment' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 1158, 1160. LoadStoreVectorizer.cpp 1160<br/>
+<br/>
+This is a very strange snippet, and it probably contains a logic error. The <i>Alignment </i> variable is first assigned the value based on the condition, and then it is assigned the value once again, but without any prior check.<br/>
+<br/>
+Similar defects:<br/>
+<br/>
+<ul>
+<li>V519 [CWE-563] The 'Effects' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 152, 165. WebAssemblyRegStackify.cpp 165</li>
+<li>V519 [CWE-563] The 'ExpectNoDerefChunk' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 4970, 4973. SemaType.cpp 4973</li>
+</ul><br/>
+<b>Snippet No. 28: Always true condition</b><br/>
+<br/>
+<pre><code class="cpp">static int readPrefixes(struct InternalInstruction* insn) {
+  ....
+  uint8_t byte = 0;
+  uint8_t nextByte;
+  ....
+  if (byte == 0xf3 &amp;&amp; (nextByte == 0x88 || nextByte == 0x89 ||
+                       nextByte == 0xc6 || nextByte == 0xc7)) {
+    insn->xAcquireRelease = true;
+    if (nextByte != 0x90) // PAUSE instruction support             // &lt;=
+      break;
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v547/">V547</a> [CWE-571] Expression 'nextByte != 0x90' is always true. X86DisassemblerDecoder.cpp 379<br/>
+<br/>
+The check doesn't make sense. The <i>nextByte </i> variable is never equal to <i>0x90</i>: it just logically follows from the previous check. This must be some logic error.<br/>
+<br/>
+<b>Snippets No. 29 — No....: Always true/false conditions</b><br/>
+<br/>
+There are many warnings about an entire condition (<a href="https://www.viva64.com/en/w/v547/">V547</a>) or part of a condition (<a href="https://www.viva64.com/en/w/v560/">V560</a>) being always true or false. Rather than genuine bugs, these are often simply bad code, the effects of macro expansion, and so on. That said, all such warnings should still be checked because some of them may point at genuine logic errors. For example, the following snippet doesn't look right:<br/>
+<br/>
+<pre><code class="cpp">static DecodeStatus DecodeGPRPairRegisterClass(MCInst &amp;Inst, unsigned RegNo,
+                                   uint64_t Address, const void *Decoder) {
+  DecodeStatus S = MCDisassembler::Success;
+
+  if (RegNo > 13)
+    return MCDisassembler::Fail;
+
+  if ((RegNo &amp; 1) || RegNo == 0xe)
+     S = MCDisassembler::SoftFail;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v560/">V560</a> [CWE-570] A part of conditional expression is always false: RegNo == 0xe. ARMDisassembler.cpp 939<br/>
+<br/>
+The <i>0xE </i> constant is the decimal number 14. The check <i>RegNo == 0xe </i> doesn't make sense because if <i>RegNo > 13</i>, the function will return.<br/>
+<br/>
+I saw a lot of other V547 and V560 warnings, but, like with <a href="https://www.viva64.com/en/w/v595/">V595</a>, I didn't feel excited about checking them since I already had enough material for an article :). So, no figures for the total number of bugs of this type in LLVM.<br/>
+<br/>
+Here's an example to illustrate why checking those warnings is boring. The analyzer is totally correct when issuing a warning on the following code. But it's still not a bug.<br/>
+<br/>
+<pre><code class="cpp">bool UnwrappedLineParser::parseBracedList(bool ContinueOnSemicolons,
+                                          tok::TokenKind ClosingBraceKind) {
+  bool HasError = false;
+  ....
+  HasError = true;
+  if (!ContinueOnSemicolons)
+    return !HasError;
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V547 [CWE-570] Expression '!HasError' is always false. UnwrappedLineParser.cpp 1635<br/>
+<br/>
+<b>Snippet No. 30: Suspicious return</b><br/>
+<br/>
+<pre><code class="cpp">static bool
+isImplicitlyDef(MachineRegisterInfo &amp;MRI, unsigned Reg) {
+  for (MachineRegisterInfo::def_instr_iterator It = MRI.def_instr_begin(Reg),
+      E = MRI.def_instr_end(); It != E; ++It) {
+    return (*It).isImplicitDef();
+  }
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v612/">V612</a> [CWE-670] An unconditional 'return' within a loop. R600OptimizeVectorRegisters.cpp 63<br/>
+<br/>
+It's either a bug or a specific coding technique meant to communicate some idea to fellow programmers. To me it doesn't tell anything except that it's a very suspicious piece of code. Please don't write code like that :).<br/>
+<br/>
+Feeling tired? OK, it's time to make some tea or coffee.<br/>
+<br/>
+<p></p><div style="text-align:center;"><img src="/img/image-loader.svg" alt="coffee" data-src="https://habrastorage.org/getpro/habr/post_images/8a2/f86/58f/8a2f8658fdacb0dde918807666d1cd39.png"/></div><br/>
+<br/>
+<h2>Defects found by new diagnostics</h2><br/>
+I think 30 examples is enough for existing diagnostics. Now let's see if we can find anything interesting with the new diagnostics, which were added after the <a href="https://www.viva64.com/en/b/0446/">previous</a> check. Over the last two years, the C++ analyzer module was extended with 66 new diagnostics.<br/>
+<br/>
+<b>Snippet No. 31: Unreachable code</b><br/>
+<br/>
+<pre><code class="cpp">Error CtorDtorRunner::run() {
+  ....
+  if (auto CtorDtorMap =
+          ES.lookup(JITDylibSearchList({{&amp;JD, true}}), std::move(Names),
+                    NoDependenciesToRegister, true))
+  {
+    ....
+    return Error::success();
+  } else
+    return CtorDtorMap.takeError();
+
+  CtorDtorsByPriority.clear();
+
+  return Error::success();
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v779/">V779</a> [CWE-561] Unreachable code detected. It is possible that an error is present. ExecutionUtils.cpp 146<br/>
+<br/>
+As you can see, both branches of the <i>if </i> statement end with a <i>return</i> statement, which means the <i>CtorDtorsByPriority </i> container will never be cleared.<br/>
+<br/>
+<b>Snippet No. 32: Unreachable code</b><br/>
+<br/>
+<pre><code class="cpp">bool LLParser::ParseSummaryEntry() {
+  ....
+  switch (Lex.getKind()) {
+  case lltok::kw_gv:
+    return ParseGVEntry(SummaryID);
+  case lltok::kw_module:
+    return ParseModuleEntry(SummaryID);
+  case lltok::kw_typeid:
+    return ParseTypeIdEntry(SummaryID);                        // &lt;=
+    break;                                                     // &lt;=
+  default:
+    return Error(Lex.getLoc(), "unexpected summary kind");
+  }
+  Lex.setIgnoreColonInIdentifiers(false);                      // &lt;=
+  return false;
+}</code></pre><br/>
+PVS-Studio diagnostic message: V779 [CWE-561] Unreachable code detected. It is possible that an error is present. LLParser.cpp 835<br/>
+<br/>
+This one is interesting. Take a look at this part first:<br/>
+<br/>
+<pre><code class="cpp">return ParseTypeIdEntry(SummaryID);
+break;</code></pre><br/>
+There seems to be nothing strange about this code; the <i>break </i> statement is unnecessary and can be safely removed. But it's not that simple.<br/>
+<br/>
+The warning is triggered by the following lines:<br/>
+<br/>
+<pre><code class="cpp">Lex.setIgnoreColonInIdentifiers(false);
+return false;</code></pre><br/>
+Indeed, this code is unreachable. All the case labels of the <i>switch </i> statement end with a <i>return</i>, and the meaningless lone <i>break </i> doesn't look that harmless anymore! What if one of the branches was meant to end with a <i>break</i> rather than <i>return</i>?<br/>
+<br/>
+<b>Snippet No. 33: Accidental clearing of the most significant bits</b><br/>
+<br/>
+<pre><code class="cpp">unsigned getStubAlignment() override {
+  if (Arch == Triple::systemz)
+    return 8;
+  else
+    return 1;
+}
+
+Expected&lt;unsigned>
+RuntimeDyldImpl::emitSection(const ObjectFile &amp;Obj,
+                             const SectionRef &amp;Section,
+                             bool IsCode) {
+  ....
+  uint64_t DataSize = Section.getSize();
+  ....
+  if (StubBufSize > 0)
+    DataSize &amp;= ~(getStubAlignment() - 1);
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v784/">V784</a> The size of the bit mask is less than the size of the first operand. This will cause the loss of higher bits. RuntimeDyld.cpp 815<br/>
+<br/>
+Note that the <i>getStubAlignment </i> function returns an <i>unsigned </i> value. Let's see how the expression will evaluate, assuming that the function will return the value 8:<br/>
+<br/>
+~(getStubAlignment() — 1)<br/>
+<br/>
+~(8u-1)<br/>
+<br/>
+0xFFFFFFF8‬u<br/>
+<br/>
+Note now that the <i>DataSize </i> variable's type is 64-bit unsigned. So it turns out that executing the operation DataSize &amp; 0xFFFFFFF8 will result in clearing all 32 most significant bits of the value. I don't think the programmer wanted that. Perhaps they meant it to be DataSize &amp; 0xFFFFFFFFFFFFFFF8‬u.<br/>
+<br/>
+To fix the error, the code should be rewritten like this:<br/>
+<br/>
+<pre><code class="cpp">DataSize &amp;= ~(static_cast&lt;uint64_t>(getStubAlignment()) - 1);</code></pre><br/>
+Or like this:<br/>
+<br/>
+<pre><code class="cpp">DataSize &amp;= ~(getStubAlignment() - 1ULL);</code></pre><br/>
+<b>Snippet No. 34: Bad explicit type conversion</b><br/>
+<br/>
+<pre><code class="cpp">template &lt;typename T>
+void scaleShuffleMask(int Scale, ArrayRef&lt;T> Mask,
+                      SmallVectorImpl&lt;T> &amp;ScaledMask) {
+  assert(0 &lt; Scale &amp;&amp; "Unexpected scaling factor");
+  int NumElts = Mask.size();
+  ScaledMask.assign(static_cast&lt;size_t>(NumElts * Scale), -1);
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v1028/">V1028</a> [CWE-190] Possible overflow. Consider casting operands of the 'NumElts * Scale' operator to the 'size_t' type, not the result. X86ISelLowering.h 1577<br/>
+<br/>
+Explicit type conversion is used to avoid an overflow when multiplying variables of type <i>int</i>. In this case, though, it doesn't work because the multiplication will occur first and only then will the 32-bit result be promoted to type <a href="https://www.viva64.com/en/t/0044/"><i>size_t</i></a>.<br/>
+<br/>
+<b>Snippet No. 35: Bad copy-paste</b><br/>
+<br/>
+<pre><code class="cpp">Instruction *InstCombiner::visitFCmpInst(FCmpInst &amp;I) {
+  ....
+  if (!match(Op0, m_PosZeroFP()) &amp;&amp; isKnownNeverNaN(Op0, &amp;TLI)) {
+    I.setOperand(0, ConstantFP::getNullValue(Op0->getType()));
+    return &amp;I;
+  }
+  if (!match(Op1, m_PosZeroFP()) &amp;&amp; isKnownNeverNaN(Op1, &amp;TLI)) {
+    I.setOperand(1, ConstantFP::getNullValue(Op0->getType()));        // &lt;=
+    return &amp;I;
+  }
+  ....
+}</code></pre><br/>
+<a href="https://www.viva64.com/en/w/v778/">V778</a> [CWE-682] Two similar code fragments were found. Perhaps, this is a typo and 'Op1' variable should be used instead of 'Op0'. InstCombineCompares.cpp 5507<br/>
+<br/>
+This new cool diagnostic detects situations where a code fragment is written using copy-paste, with all the names changed save one.<br/>
+<br/>
+Note that all <i>Op0</i>'s except one were changed to <i>Op1</i> in the second block. The code should probably look like this:<br/>
+<br/>
+<pre><code class="cpp">if (!match(Op1, m_PosZeroFP()) &amp;&amp; isKnownNeverNaN(Op1, &amp;TLI)) {
+  I.setOperand(1, ConstantFP::getNullValue(Op1->getType()));
+  return &amp;I;
+}</code></pre><br/>
+<b>Snippet No. 36: Variables mixed up</b><br/>
+<br/>
+<pre><code class="cpp">struct Status {
+  unsigned Mask;
+  unsigned Mode;
+
+  Status() : Mask(0), Mode(0){};
+
+  Status(unsigned Mask, unsigned Mode) : Mask(Mask), Mode(Mode) {
+    Mode &amp;= Mask;
+  };
+  ....
+};</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v1001/">V1001</a> [CWE-563] The 'Mode' variable is assigned but is not used by the end of the function. SIModeRegister.cpp 48<br/>
+<br/>
+It's very dangerous to have the same names for function arguments as for class members because you risk mixing them up. What you see here is an example of that. The following expression is meaningless:<br/>
+<br/>
+<pre><code class="cpp">Mode &amp;= Mask;</code></pre><br/>
+The argument is changed but never used after that. This snippet should probably look like this:<br/>
+<br/>
+<pre><code class="cpp">Status(unsigned Mask, unsigned Mode) : Mask(Mask), Mode(Mode) {
+  this->Mode &amp;= Mask;
+};</code></pre><br/>
+<b>Snippet No. 37: Variables mixed up</b><br/>
+<br/>
+<pre><code class="cpp">class SectionBase {
+  ....
+  uint64_t Size = 0;
+  ....
+};
+
+class SymbolTableSection : public SectionBase {
+  ....
+};
+
+void SymbolTableSection::addSymbol(Twine Name, uint8_t Bind, uint8_t Type,
+                                   SectionBase *DefinedIn, uint64_t Value,
+                                   uint8_t Visibility, uint16_t Shndx,
+                                   uint64_t Size) {
+  ....
+  Sym.Value = Value;
+  Sym.Visibility = Visibility;
+  Sym.Size = Size;
+  Sym.Index = Symbols.size();
+  Symbols.emplace_back(llvm::make_unique&lt;Symbol>(Sym));
+  Size += this->EntrySize;
+}</code></pre><br/>
+PVS-Studio diagnostic message: V1001 [CWE-563] The 'Size' variable is assigned but is not used by the end of the function. Object.cpp 424<br/>
+<br/>
+This one is similar to the previous example. Correct version:<br/>
+<br/>
+<pre><code class="cpp">this->Size += this->EntrySize;</code></pre><br/>
+<b>Snippets No. 38 — No. 47: Missing pointer check</b><br/>
+<br/>
+We looked at a few examples of the <a href="https://www.viva64.com/en/w/v595/">V595</a> warning a bit earlier. What it detects is a situation when a pointer is first dereferenced and only then checked. The new diagnostic <a href="https://www.viva64.com/en/w/v1004/">V1004</a> is the opposite of that, and it detects tons of errors too. It looks for already tested pointers that are not tested again when necessary. Here are a few errors of this type found in LLVM's code.<br/>
+<br/>
+<pre><code class="cpp">int getGEPCost(Type *PointeeType, const Value *Ptr,
+               ArrayRef&lt;const Value *> Operands) {
+  ....
+  if (Ptr != nullptr) {                                            // &lt;=
+    assert(....);
+    BaseGV = dyn_cast&lt;GlobalValue>(Ptr->stripPointerCasts());
+  }
+  bool HasBaseReg = (BaseGV == nullptr);
+
+  auto PtrSizeBits = DL.getPointerTypeSizeInBits(Ptr->getType());  // &lt;=
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V1004 [CWE-476] The 'Ptr' pointer was used unsafely after it was verified against nullptr. Check lines: 729, 738. TargetTransformInfoImpl.h 738<br/>
+<br/>
+<i>Ptr </i> can be <i>nullptr</i>, which is indicated by the check:<br/>
+<br/>
+<pre><code class="cpp">if (Ptr != nullptr)</code></pre><br/>
+However, the same pointer is dereferenced without such a check a bit further:<br/>
+<br/>
+<pre><code class="cpp">auto PtrSizeBits = DL.getPointerTypeSizeInBits(Ptr->getType());</code></pre><br/>
+Another similar case.<br/>
+<br/>
+<pre><code class="cpp">llvm::DISubprogram *CGDebugInfo::getFunctionFwdDeclOrStub(GlobalDecl GD,
+                                                          bool Stub) {
+  ....
+  auto *FD = dyn_cast&lt;FunctionDecl>(GD.getDecl());
+  SmallVector&lt;QualType, 16> ArgTypes;
+  if (FD)                                                                // &lt;=
+    for (const ParmVarDecl *Parm : FD->parameters())
+      ArgTypes.push_back(Parm->getType());
+  CallingConv CC = FD->getType()->castAs&lt;FunctionType>()->getCallConv(); // &lt;=
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V1004 [CWE-476] The 'FD' pointer was used unsafely after it was verified against nullptr. Check lines: 3228, 3231. CGDebugInfo.cpp 3231<br/>
+<br/>
+Note the <i>FD</i> pointer. This error is straightforward, so no comments on this one.<br/>
+<br/>
+One more here:<br/>
+<br/>
+<pre><code class="cpp">static void computePolynomialFromPointer(Value &amp;Ptr, Polynomial &amp;Result,
+                                         Value *&amp;BasePtr,
+                                         const DataLayout &amp;DL) {
+  PointerType *PtrTy = dyn_cast&lt;PointerType>(Ptr.getType());
+  if (!PtrTy) {                                                   // &lt;=
+    Result = Polynomial();
+    BasePtr = nullptr;
+  }
+  unsigned PointerBits =
+      DL.getIndexSizeInBits(PtrTy->getPointerAddressSpace());     // &lt;=
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: V1004 [CWE-476] The 'PtrTy' pointer was used unsafely after it was verified against nullptr. Check lines: 960, 965. InterleavedLoadCombinePass.cpp 965<br/>
+<br/>
+How do you avoid errors like that? Be very careful when reviewing your code and check it regularly with PVS-Studio.<br/>
+<br/>
+I don't think we should examine other examples of this type, so here's just a list of the warnings:<br/>
+<ul>
+<li>V1004 [CWE-476] The 'Expr' pointer was used unsafely after it was verified against nullptr. Check lines: 1049, 1078. DebugInfoMetadata.cpp 1078</li>
+<li>V1004 [CWE-476] The 'PI' pointer was used unsafely after it was verified against nullptr. Check lines: 733, 753. LegacyPassManager.cpp 753</li>
+<li>V1004 [CWE-476] The 'StatepointCall' pointer was used unsafely after it was verified against nullptr. Check lines: 4371, 4379. Verifier.cpp 4379</li>
+<li>V1004 [CWE-476] The 'RV' pointer was used unsafely after it was verified against nullptr. Check lines: 2263, 2268. TGParser.cpp 2268</li>
+<li>V1004 [CWE-476] The 'CalleeFn' pointer was used unsafely after it was verified against nullptr. Check lines: 1081, 1096. SimplifyLibCalls.cpp 1096</li>
+<li>V1004 [CWE-476] The 'TC' pointer was used unsafely after it was verified against nullptr. Check lines: 1819, 1824. Driver.cpp 1824</li>
+</ul><br/>
+<b>Snippets No. 48 — No. 60: Not critical but still a defect (potential memory leak)</b><br/>
+<br/>
+<pre><code class="cpp">std::unique_ptr&lt;IRMutator> createISelMutator() {
+  ....
+  std::vector&lt;std::unique_ptr&lt;IRMutationStrategy>> Strategies;
+  Strategies.emplace_back(
+      new InjectorIRStrategy(InjectorIRStrategy::getDefaultOps()));
+  ....
+}</code></pre><br/>
+PVS-Studio diagnostic message: <a href="https://www.viva64.com/en/w/v1023/">V1023</a> [CWE-460] A pointer without owner is added to the 'Strategies' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-isel-fuzzer.cpp 58<br/>
+<br/>
+You can't simply write <i>xxx.push_back(new X)</i> to append an element to a container of type <i>std::vector&lt;std::unique_ptr&lt;X>></i> because there is no implicit cast from <i>X* </i> to <i>std::unique_ptr&lt;X></i>.<br/>
+<br/>
+The popular solution is to write <i>xxx.emplace_back(new X)</i> since it is compilable: the <i>emplace_back </i> method constructs the element directly from the arguments and, therefore, can use explicit constructors.<br/>
+<br/>
+But that solution isn't safe. If the vector is full, memory will be reallocated. This operation may fail and end up raising an <i>std::bad_alloc</i> exception. In this case, the pointer will be lost and the program won't be able to delete the object created.<br/>
+<br/>
+A safer solution is to create a <i>unique_ptr</i>, which will retain the pointer until the vector attempts to reallocate the memory:<br/>
+<br/>
+<pre><code class="cpp">xxx.push_back(std::unique_ptr&lt;X>(new X))</code></pre><br/>
+The C++14 standard allows you to use 'std::make_unique':<br/>
+<br/>
+<pre><code class="cpp">xxx.push_back(std::make_unique&lt;X>())</code></pre><br/>
+This type of defect has no effect in LLVM. Compilation will simply terminate if memory allocation fails. That said, it may be quite critical in applications with a long <a href="https://en.wikipedia.org/wiki/Uptime">uptime</a>, which can't simply terminate when a memory allocation failure occurs.<br/>
+<br/>
+So, even though this code isn't dangerous to LLVM, I thought I should still tell you about this bug pattern and the fact that PVS-Studio can now detect it.<br/>
+<br/>
+Other similar cases:<br/>
+<br/>
+<ul>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Passes' container by the 'emplace_back' method. A memory leak will occur in case of an exception. PassManager.h 546</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'AAs' container by the 'emplace_back' method. A memory leak will occur in case of an exception. AliasAnalysis.h 324</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Entries' container by the 'emplace_back' method. A memory leak will occur in case of an exception. DWARFDebugFrame.cpp 519</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'AllEdges' container by the 'emplace_back' method. A memory leak will occur in case of an exception. CFGMST.h 268</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'VMaps' container by the 'emplace_back' method. A memory leak will occur in case of an exception. SimpleLoopUnswitch.cpp 2012</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Records' container by the 'emplace_back' method. A memory leak will occur in case of an exception. FDRLogBuilder.h 30</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'PendingSubmodules' container by the 'emplace_back' method. A memory leak will occur in case of an exception. ModuleMap.cpp 810</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Objects' container by the 'emplace_back' method. A memory leak will occur in case of an exception. DebugMap.cpp 88</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Strategies' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-isel-fuzzer.cpp 60</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 685</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 686</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 688</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 689</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 690</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 691</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 692</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 693</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 694</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Operands' container by the 'emplace_back' method. A memory leak will occur in case of an exception. GlobalISelEmitter.cpp 1911</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Stash' container by the 'emplace_back' method. A memory leak will occur in case of an exception. GlobalISelEmitter.cpp 2100</li>
+<li>V1023 [CWE-460] A pointer without owner is added to the 'Matchers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. GlobalISelEmitter.cpp 2702</li>
+</ul><br/>
+<h2>Conclusion</h2><br/>
+I wrote down 60 warnings and stopped at that. Did PVS-Studio find any other bugs in LLVM? Yes, it did. But as I was writing down the examples, night fell, so I decided to knock off.<br/>
+<br/>
+I hope you enjoyed reading this article and it encouraged you to try the PVS-Studio analyzer for yourself.<br/>
+<br/>
+Visit <a href="https://www.viva64.com/en/pvs-studio-download/">this page</a> to download the analyzer and get a trial key.<br/>
+<br/>
+Most importantly, use static analysis regularly. <b>One-time checks</b>, like those that we do to popularize static analysis and promote PVS-Studio, aren't the normal scenario.<br/>
+<br/>
+Good luck with improving your code's quality and reliability!</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bc%2B%2B%5D" class="tm-tags-list__link">c++</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bclang%5D" class="tm-tags-list__link">clang</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bllvm%5D" class="tm-tags-list__link">llvm</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcompiler%5D" class="tm-tags-list__link">compiler</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpvs-studio%5D" class="tm-tags-list__link">pvs-studio</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bopen%20source%5D" class="tm-tags-list__link">open source</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdevops%5D" class="tm-tags-list__link">devops</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bbugs%5D" class="tm-tags-list__link">bugs</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/pvs-studio/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании PVS-Studio
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/open_source/" class="tm-hubs-list__link">
+    Open source
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/cpp/" class="tm-hubs-list__link">
+    C++
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/compilers/" class="tm-hubs-list__link">
+    Компиляторы
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/devops/" class="tm-hubs-list__link">
+    DevOps
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 26: ↑26 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 26: ↑26 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+26</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">2.2K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    1
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/pvs-studio/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/95a/244/327/95a244327fc36477b6048c0f8b67df8b.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/pvs-studio/profile/" class="tm-company-snippet__title">PVS-Studio</a> <div class="tm-company-snippet__description">Статический анализ кода для C, C++, C# и Java</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://pvs-studio.com/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://facebook.com/StaticCodeAnalyzer" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://twitter.com/Code_Analysis" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://instagram.com/pvsstudio_rus" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Instagram
+    </a><a href="https://telegram.me/pvsstudio_rus" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Andrey2008/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/71b/4ac/f13/71b4acf131d3d675b999b4a47f573b0a.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 1344 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    508.3
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">62.4</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Andrey Karpov</span> <a href="/ru/users/Andrey2008/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Andrey2008
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">DevRel</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/pvs-studio/blog/450002/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><span>
+      2008
+    </span></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://pvs-studio.com/" target="_blank" class="tm-company-basic-info__link">
+      pvs-studio.com
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    31–50 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2013-05-06T12:33:02.000Z" title="2013-05-06, 16:33">6  мая  2013</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/pvs-studio/blog/450002/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/pvs-studio/blog/450002/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450002":{"id":"450002","timePublished":"2019-04-29T13:43:52+00:00","isCorporative":true,"lang":"en","titleHtml":"﻿Finding Bugs in LLVM 8 with PVS-Studio","leadData":{"textHtml":"\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2f2\u002F8d4\u002F5bf\u002F2f28d45bf369270d9330bfbe2ea78f00.png\" alt=\"PVS-Studio and LLVM 8.0.0\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\nIt's been two years since we last checked the code of the LLVM project with PVS-Studio, so let's see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We'll do that by scanning the LLVM 8.0.0 release for new bugs.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Read more →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":508.3,"votesCount":1344},"rating":62.4,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"39063","alias":"Andrey2008","fullname":"Andrey Karpov","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F71b\u002F4ac\u002Ff13\u002F71b4acf131d3d675b999b4a47f573b0a.jpg","speciality":"DevRel"},"statistics":{"commentsCount":0,"favoritesCount":1,"readingCount":2201,"score":26,"votesCount":26},"hubs":[{"relatedData":null,"id":"18095","alias":"pvs-studio","type":"corporative","title":"Блог компании PVS-Studio","titleHtml":"Блог компании PVS-Studio","isProfiled":false},{"relatedData":null,"id":"144","alias":"open_source","type":"collective","title":"Open source","titleHtml":"Open source","isProfiled":true},{"relatedData":null,"id":"559","alias":"cpp","type":"collective","title":"C++","titleHtml":"C++","isProfiled":true},{"relatedData":null,"id":"17188","alias":"compilers","type":"collective","title":"Компиляторы","titleHtml":"Компиляторы","isProfiled":true},{"relatedData":null,"id":"20788","alias":"devops","type":"collective","title":"DevOps","titleHtml":"DevOps","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"PVS-Studio and LLVM 8.0.0\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2f2\u002F8d4\u002F5bf\u002F2f28d45bf369270d9330bfbe2ea78f00.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nIt's been two years since we last checked the code of the LLVM project with PVS-Studio, so let's see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We'll do that by scanning the LLVM 8.0.0 release for new bugs.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EThe article that must be written\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nFrankly, I didn't feel like writing this article. It's not much fun talking about the project that we already checked more than once (\u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fb\u002F0108\u002F\"\u003E1\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fb\u002F0155\u002F\"\u003E2\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fb\u002F0446\u002F\"\u003E3\u003C\u002Fa\u003E). I'd prefer something new instead, but I had no choice.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nEvery time a new version of LLVM is released or \u003Ca href=\"https:\u002F\u002Fclang-analyzer.llvm.org\u002F\"\u003EClang Static Analyzer\u003C\u002Fa\u003E is updated, we get emails reading along these lines:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EHey, the new version of Clang Static Analyzer got new diagnostics! PVS-Studio seems to be getting less relevant. Clang can detect more bugs than before and is now catching up with PVS-Studio. What'd you say?\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nTo that I'd gladly respond:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EWe haven't been lazing around either!\u003C\u002Fb\u003E We've significantly increased PVS-Studio's capabilities, so no worries — we are still the best.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nBut that's a bad answer, I'm afraid. It offers no proofs, and that's the reason why I'm writing this article. So, I've checked LLVM one more time and found tons of bugs of all kinds. Those that I liked the most will be discussed further. Clang Static Analyzer can't detect these bugs (or makes the process very troublesome) — and we can. And, by the way, it took me only one evening to write all those bugs down.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe article, though, took me several weeks to complete. I just couldn't bring myself to put the gathered material into text :).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nBy the way, if you wonder what techniques PVS-Studio employs to detect bugs and vulnerabilities, take a look at this \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fb\u002F0592\u002F\"\u003Epost\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ENew and existing diagnostics\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nAs I already said, the last of the many checks of LLVM was done two years ago, and the bugs found then were fixed by the authors. This article will show a new portion of errors. How come there are new bugs at all? There are three reasons:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EThe LLVM project is evolving; the authors modify existing code and add new code. Both modified and new parts naturally have new bugs. This fact is a strong argument for running static analysis regularly rather than every now and then. The format of our articles is perfect for showcasing PVS-Studio's capabilities, but it has nothing to do with improving code quality or making bug-fixing less costly. Do use static analysis regularly!\u003C\u002Fli\u003E\r\n\u003Cli\u003EWe modify and improve existing diagnostics, enabling the analyzer to detect bugs it wasn't able to spot before.\u003C\u002Fli\u003E\r\n\u003Cli\u003EPVS-Studio has been enhanced with new diagnostics, which didn't exist two years ago. I grouped such warnings into a separate section so that PVS-Studio's progress is seen more distinctly.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EDefects found by existing diagnostics\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 1: Copy-Paste\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic bool ShouldUpgradeX86Intrinsic(Function *F, StringRef Name) {\n  if (Name == \"addcarryx.u32\" || \u002F\u002F Added in 8.0\n    ....\n    Name == \"avx512.mask.cvtps2pd.128\" || \u002F\u002F Added in 7.0\n    Name == \"avx512.mask.cvtps2pd.256\" || \u002F\u002F Added in 7.0\n    Name == \"avx512.cvtusi2sd\" || \u002F\u002F Added in 7.0\n    Name.startswith(\"avx512.mask.permvar.\") || \u002F\u002F Added in 7.0     \u002F\u002F &lt;=\n    Name.startswith(\"avx512.mask.permvar.\") || \u002F\u002F Added in 7.0     \u002F\u002F &lt;=\n    Name == \"sse2.pmulu.dq\" || \u002F\u002F Added in 7.0\n    Name == \"sse41.pmuldq\" || \u002F\u002F Added in 7.0\n    Name == \"avx2.pmulu.dq\" || \u002F\u002F Added in 7.0\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv501\u002F\"\u003EV501\u003C\u002Fa\u003E [CWE-570] There are identical sub-expressions 'Name.startswith(«avx512.mask.permvar.»)' to the left and to the right of the '||' operator. AutoUpgrade.cpp 73\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe occurrence of the «avx512.mask.permvar.» substring is checked twice. The second condition obviously was to check something else, but the programmer forgot to change the copied line.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 2: Typo\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eenum CXNameRefFlags {\n  CXNameRange_WantQualifier = 0x1,\n  CXNameRange_WantTemplateArgs = 0x2,\n  CXNameRange_WantSinglePiece = 0x4\n};\n\nvoid AnnotateTokensWorker::HandlePostPonedChildCursor(\n    CXCursor Cursor, unsigned StartTokenIndex) {\n  const auto flags = CXNameRange_WantQualifier | CXNameRange_WantQualifier;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V501 There are identical sub-expressions 'CXNameRange_WantQualifier' to the left and to the right of the '|' operator. CIndex.cpp 7245\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe named constant \u003Ci\u003ECXNameRange_WantQualifier\u003C\u002Fi\u003E is used twice because of a typo.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 3: Confusion over operator precedence\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eint PPCTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val, unsigned Index) {\n  ....\n  if (ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; Index == ST-\u003EisLittleEndian() ? 1 : 0)\n    return 0;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv502\u002F\"\u003EV502\u003C\u002Fa\u003E [CWE-783] Perhaps the '?:' operator works in a different way than it was expected. The '?:' operator has a lower priority than the '==' operator. PPCTargetTransformInfo.cpp 404\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI find this bug very cute. Yes, I know that I have a strange taste :).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAs dictated by \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Ft\u002F0064\u002F\"\u003Eoperator precedence\u003C\u002Fa\u003E, the original expression is evaluated as follows:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E(ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; (Index == ST-\u003EisLittleEndian())) ? 1 : 0\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nFrom the practical point of view, though, this condition doesn't make sense as it can be reduced to:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E(ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; Index == ST-\u003EisLittleEndian())\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThis is obviously a bug. It must have been the \u003Ci\u003EIndex\u003C\u002Fi\u003E variable that the programmer wanted to check for 0\u002F1. To fix the code, the ternary operator should be enclosed in parentheses:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eif (ISD == ISD::EXTRACT_VECTOR_ELT &amp;&amp; Index == (ST-\u003EisLittleEndian() ? 1 : 0))\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThe ternary operator is actually very tricky and may lead to logic errors. Use it carefully and don't hesitate to put additional parentheses around it. This subject is discussed in more detail \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fb\u002F0391\u002F\"\u003Ehere\u003C\u002Fa\u003E, in the section «Beware of the ?: operator and enclose it in parentheses».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 4, 5: Null pointer\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EInit *TGParser::ParseValue(Record *CurRec, RecTy *ItemType, IDParseMode Mode) {\n  ....\n  TypedInit *LHS = dyn_cast&lt;TypedInit\u003E(Result);\n  ....\n  LHS = dyn_cast&lt;TypedInit\u003E(\n    UnOpInit::get(UnOpInit::CAST, LHS, StringRecTy::get())\n      -\u003EFold(CurRec));\n  if (!LHS) {\n    Error(PasteLoc, Twine(\"can't cast '\") + LHS-\u003EgetAsString() +\n                    \"' to string\");\n    return nullptr;\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv522\u002F\"\u003EV522\u003C\u002Fa\u003E [CWE-476] Dereferencing of the null pointer 'LHS' might take place. TGParser.cpp 2152\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIf the \u003Ci\u003ELHS \u003C\u002Fi\u003E pointer happens to be null, the program is expected to generate a warning. Instead, it will dereference that very null pointer: \u003Ci\u003ELHS-\u003EgetAsString()\u003C\u002Fi\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIt's quite a typical situation for error handlers to contain bugs because developers don't test them properly. Static analyzers check all reachable code no matter how often it's actually executed. This is a good example of how static analysis complements other code testing and protection means.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nA similar faulty handler for the \u003Ci\u003ERHS \u003C\u002Fi\u003E pointer is found a bit further: V522 [CWE-476] Dereferencing of the null pointer 'RHS' might take place. TGParser.cpp 2186\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 6: Using a pointer after a move\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic Expected&lt;bool\u003E\nExtractBlocks(....)\n{\n  ....\n  std::unique_ptr&lt;Module\u003E ProgClone = CloneModule(BD.getProgram(), VMap);\n  ....\n  BD.setNewProgram(std::move(ProgClone));                                \u002F\u002F &lt;=\n  MiscompiledFunctions.clear();\n\n  for (unsigned i = 0, e = MisCompFunctions.size(); i != e; ++i) {\n    Function *NewF = ProgClone-\u003EgetFunction(MisCompFunctions[i].first);  \u002F\u002F &lt;=\n    assert(NewF &amp;&amp; \"Function not found??\");\n    MiscompiledFunctions.push_back(NewF);\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'ProgClone' might take place. Miscompilation.cpp 601\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe smart pointer \u003Ci\u003EProgClone \u003C\u002Fi\u003E first releases the object ownership:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EBD.setNewProgram(std::move(ProgClone));\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nIn fact, \u003Ci\u003EProgClone \u003C\u002Fi\u003E has become a null pointer — so, technically, a null pointer gets dereferenced a bit further:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EFunction *NewF = ProgClone-\u003EgetFunction(MisCompFunctions[i].first);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nBut that won't happen! Note that the loop doesn't actually execute at all.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe \u003Ci\u003EMiscompiledFunctions \u003C\u002Fi\u003E container is first cleared:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EMiscompiledFunctions.clear();\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nAnd then its size is used in the loop condition:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Efor (unsigned i = 0, e = MisCompFunctions.size(); i != e; ++i) {\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nObviously, the loop just won't start. I think it's a bug too, and the code was meant to look somehow differently.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI guess what we see here is that notorious error parity, where one bug acts as a disguise for another :).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 7: Using a pointer after a move\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic Expected&lt;bool\u003E TestOptimizer(BugDriver &amp;BD, std::unique_ptr&lt;Module\u003E Test,\n                                    std::unique_ptr&lt;Module\u003E Safe) {\n  outs() &lt;&lt; \"  Optimizing functions being tested: \";\n  std::unique_ptr&lt;Module\u003E Optimized =\n      BD.runPassesOn(Test.get(), BD.getPassesToRun());\n  if (!Optimized) {\n    errs() &lt;&lt; \" Error running this sequence of passes\"\n           &lt;&lt; \" on the input program!\\n\";\n    BD.setNewProgram(std::move(Test));                       \u002F\u002F &lt;=\n    BD.EmitProgressBitcode(*Test, \"pass-error\", false);      \u002F\u002F &lt;=\n    if (Error E = BD.debugOptimizerCrash())\n      return std::move(E);\n    return false;\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'Test' might take place. Miscompilation.cpp 709\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis one is similar to the previous case. The object's contents are first moved and then it's used as if nothing happened. This error has been growing ever more common after move semantics were added to C++. That's what I like about this language! You are given new ways to shoot yourself in the foot, which means PVS-Studio will always have work to do :).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 8: Null pointer\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid FunctionDumper::dump(const PDBSymbolTypeFunctionArg &amp;Symbol) {\n  uint32_t TypeId = Symbol.getTypeId();\n  auto Type = Symbol.getSession().getSymbolById(TypeId);\n  if (Type)\n    Printer &lt;&lt; \"&lt;unknown-type\u003E\";\n  else\n    Type-\u003Edump(*this);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'Type' might take place. PrettyFunctionDumper.cpp 233\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nJust like error handlers, test functions printing debug data don't usually get adequate test coverage either, and this is one example of that. Instead of helping the user solve their problems, the function is waiting for them to fix it.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nFixed code:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eif (Type)\n  Type-\u003Edump(*this);\nelse\n  Printer &lt;&lt; \"&lt;unknown-type\u003E\";\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 9: Null pointer\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid SearchableTableEmitter::collectTableEntries(\n    GenericTable &amp;Table, const std::vector&lt;Record *\u003E &amp;Items) {\n  ....\n  RecTy *Ty = resolveTypes(Field.RecType, TI-\u003EgetType());\n  if (!Ty)                                                              \u002F\u002F &lt;=\n    PrintFatalError(Twine(\"Field '\") + Field.Name + \"' of table '\" +\n                    Table.Name + \"' has incompatible type: \" +\n                    Ty-\u003EgetAsString() + \" vs. \" +                       \u002F\u002F &lt;=\n                    TI-\u003EgetType()-\u003EgetAsString());\n   ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V522 [CWE-476] Dereferencing of the null pointer 'Ty' might take place. SearchableTableEmitter.cpp 614\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI don't think you need any comments on this one.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 10: Typo\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ebool FormatTokenLexer::tryMergeCSharpNullConditionals() {\n  ....\n  auto &amp;Identifier = *(Tokens.end() - 2);\n  auto &amp;Question = *(Tokens.end() - 1);\n  ....\n  Identifier-\u003EColumnWidth += Question-\u003EColumnWidth;\n  Identifier-\u003EType = Identifier-\u003EType;                    \u002F\u002F &lt;=\n  Tokens.erase(Tokens.end() - 1);\n  return true;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv570\u002F\"\u003EV570\u003C\u002Fa\u003E The 'Identifier-\u003EType' variable is assigned to itself. FormatTokenLexer.cpp 249\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAssigning a variable to itself is a meaningless operation. The programmer must have meant to do the following:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EIdentifier-\u003EType = Question-\u003EType;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 11: Suspicious break\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid SystemZOperand::print(raw_ostream &amp;OS) const {\n  switch (Kind) {\n    break;\n  case KindToken:\n    OS &lt;&lt; \"Token:\" &lt;&lt; getToken();\n    break;\n  case KindReg:\n    OS &lt;&lt; \"Reg:\" &lt;&lt; SystemZInstPrinter::getRegisterName(getReg());\n    break;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv622\u002F\"\u003EV622\u003C\u002Fa\u003E [CWE-478] Consider inspecting the 'switch' statement. It's possible that the first 'case' operator is missing. SystemZAsmParser.cpp 652\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThere is a very suspicious \u003Ci\u003Ebreak\u003C\u002Fi\u003E statement at the beginning. Shouldn't there be something else here?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 12: Checking a pointer after dereferencing\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EInlineCost AMDGPUInliner::getInlineCost(CallSite CS) {\n  Function *Callee = CS.getCalledFunction();\n  Function *Caller = CS.getCaller();\n  TargetTransformInfo &amp;TTI = TTIWP-\u003EgetTTI(*Callee);\n\n  if (!Callee || Callee-\u003EisDeclaration())\n    return llvm::InlineCost::getNever(\"undefined callee\");\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv595\u002F\"\u003EV595\u003C\u002Fa\u003E [CWE-476] The 'Callee' pointer was utilized before it was verified against nullptr. Check lines: 172, 174. AMDGPUInline.cpp 172\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe \u003Ci\u003ECallee \u003C\u002Fi\u003E pointer is first dereferenced when the \u003Ci\u003EgetTTI\u003C\u002Fi\u003E function is called.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAnd then it turns out that the pointer should be checked for \u003Ci\u003Enullptr\u003C\u002Fi\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eif (!Callee || Callee-\u003EisDeclaration())\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nToo late…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 13 — No....: Checking a pointer after dereferencing\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe previous example isn't unique. The same problem is found in this snippet:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic Value *optimizeDoubleFP(CallInst *CI, IRBuilder&lt;\u003E &amp;B,\n                               bool isBinary, bool isPrecise = false) {\n  ....\n  Function *CalleeFn = CI-\u003EgetCalledFunction();\n  StringRef CalleeNm = CalleeFn-\u003EgetName();                 \u002F\u002F &lt;=\n  AttributeList CalleeAt = CalleeFn-\u003EgetAttributes();\n  if (CalleeFn &amp;&amp; !CalleeFn-\u003EisIntrinsic()) {               \u002F\u002F &lt;=\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V595 [CWE-476] The 'CalleeFn' pointer was utilized before it was verified against nullptr. Check lines: 1079, 1081. SimplifyLibCalls.cpp 1079\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAnd this one:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid Sema::InstantiateAttrs(const MultiLevelTemplateArgumentList &amp;TemplateArgs,\n                            const Decl *Tmpl, Decl *New,\n                            LateInstantiatedAttrVec *LateAttrs,\n                            LocalInstantiationScope *OuterMostScope) {\n  ....\n  NamedDecl *ND = dyn_cast&lt;NamedDecl\u003E(New);\n  CXXRecordDecl *ThisContext =\n    dyn_cast_or_null&lt;CXXRecordDecl\u003E(ND-\u003EgetDeclContext());         \u002F\u002F &lt;=\n  CXXThisScopeRAII ThisScope(*this, ThisContext, Qualifiers(),\n                             ND &amp;&amp; ND-\u003EisCXXInstanceMember());     \u002F\u002F &lt;=\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V595 [CWE-476] The 'ND' pointer was utilized before it was verified against nullptr. Check lines: 532, 534. SemaTemplateInstantiateDecl.cpp 532\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAnd here:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EV595 [CWE-476] The 'U' pointer was utilized before it was verified against nullptr. Check lines: 404, 407. DWARFFormValue.cpp 404\u003C\u002Fli\u003E\r\n\u003Cli\u003EV595 [CWE-476] The 'ND' pointer was utilized before it was verified against nullptr. Check lines: 2149, 2151. SemaTemplateInstantiate.cpp 2149\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nThen I lost interest in tracking V595 warnings, so I can't tell you if there are other bugs of this type besides the ones shown above. I bet there are.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 17, 18: Suspicious shift\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic inline bool processLogicalImmediate(uint64_t Imm, unsigned RegSize,\n                                           uint64_t &amp;Encoding) {\n  ....\n  unsigned Size = RegSize;\n  ....\n  uint64_t NImms = ~(Size-1) &lt;&lt; 1;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv629\u002F\"\u003EV629\u003C\u002Fa\u003E [CWE-190] Consider inspecting the '~(Size — 1) &lt;&lt; 1' expression. Bit shifting of the 32-bit value with a subsequent expansion to the 64-bit type. AArch64AddressingModes.h 260\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis code might actually be correct, but it does look strange and needs examining.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nSuppose the \u003Ci\u003ESize \u003C\u002Fi\u003E variable has the value 16; then the \u003Ci\u003ENImms\u003C\u002Fi\u003E variable is expected to get the following value:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n1111111111111111111111111111111111111111111111111111111111100000\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nBut in reality it will get the value:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n0000000000000000000000000000000011111111111111111111111111100000\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis happens because all the calculations are done on the 32-bit unsigned type, and only then does it get implicitly promoted to \u003Ci\u003Euint64_t\u003C\u002Fi\u003E, with the most significant bits zeroed out.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe problem can be fixed as follows:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Euint64_t NImms = ~static_cast&lt;uint64_t\u003E(Size-1) &lt;&lt; 1;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nAnother bug of this type: V629 [CWE-190] Consider inspecting the 'Immr &lt;&lt; 6' expression. Bit shifting of the 32-bit value with a subsequent expansion to the 64-bit type. AArch64AddressingModes.h 269\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 19: Missing keyword \u003C\u002Fb\u003E\u003Cb\u003E\u003Ci\u003Eelse\u003C\u002Fi\u003E\u003C\u002Fb\u003E\u003Cb\u003E?\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid AMDGPUAsmParser::cvtDPP(MCInst &amp;Inst, const OperandVector &amp;Operands) {\n  ....\n  if (Op.isReg() &amp;&amp; Op.Reg.RegNo == AMDGPU::VCC) {\n    \u002F\u002F VOP2b (v_add_u32, v_sub_u32 ...) dpp use \"vcc\" token.\n    \u002F\u002F Skip it.\n    continue;\n  } if (isRegOrImmWithInputMods(Desc, Inst.getNumOperands())) {    \u002F\u002F &lt;=\n    Op.addRegWithFPInputModsOperands(Inst, 2);\n  } else if (Op.isDPPCtrl()) {\n    Op.addImmOperands(Inst, 1);\n  } else if (Op.isImm()) {\n    \u002F\u002F Handle optional arguments\n    OptionalIdx[Op.getImmTy()] = I;\n  } else {\n    llvm_unreachable(\"Invalid operand type\");\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv646\u002F\"\u003EV646\u003C\u002Fa\u003E [CWE-670] Consider inspecting the application's logic. It's possible that 'else' keyword is missing. AMDGPUAsmParser.cpp 5655\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis one is not a bug. Since the \u003Ci\u003Ethen\u003C\u002Fi\u003E block of the first \u003Ci\u003Eif \u003C\u002Fi\u003E statement ends with \u003Ci\u003Econtinue\u003C\u002Fi\u003E, it doesn't matter if it has the \u003Ci\u003Eelse \u003C\u002Fi\u003E keyword or not. The behavior will be the same in any case. However, the missing \u003Ci\u003Eelse \u003C\u002Fi\u003E makes the code less readable and, therefore, potentially dangerous. If \u003Ci\u003Econtinue \u003C\u002Fi\u003E disappears one day, the behavior will change drastically. I strongly recommend adding \u003Ci\u003Eelse\u003C\u002Fi\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 20: Four identical typos\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003ELLVM_DUMP_METHOD void Symbol::dump(raw_ostream &amp;OS) const {\n  std::string Result;\n  if (isUndefined())\n    Result += \"(undef) \";\n  if (isWeakDefined())\n    Result += \"(weak-def) \";\n  if (isWeakReferenced())\n    Result += \"(weak-ref) \";\n  if (isThreadLocalValue())\n    Result += \"(tlv) \";\n  switch (Kind) {\n  case SymbolKind::GlobalSymbol:\n    Result + Name.str();                        \u002F\u002F &lt;=\n    break;\n  case SymbolKind::ObjectiveCClass:\n    Result + \"(ObjC Class) \" + Name.str();      \u002F\u002F &lt;=\n    break;\n  case SymbolKind::ObjectiveCClassEHType:\n    Result + \"(ObjC Class EH) \" + Name.str();   \u002F\u002F &lt;=\n    break;\n  case SymbolKind::ObjectiveCInstanceVariable:\n    Result + \"(ObjC IVar) \" + Name.str();       \u002F\u002F &lt;=\n    break;\n  }\n  OS &lt;&lt; Result;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic messages:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EV655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + Name.str()' expression. Symbol.cpp 32\u003C\u002Fli\u003E\r\n\u003Cli\u003EV655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + \"(ObjC Class) \" + Name.str()' expression. Symbol.cpp 35\u003C\u002Fli\u003E\r\n\u003Cli\u003EV655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + \"(ObjC Class EH) \" + Name.str()' expression. Symbol.cpp 38\u003C\u002Fli\u003E\r\n\u003Cli\u003EV655 [CWE-480] The strings were concatenated but are not utilized. Consider inspecting the 'Result + \"(ObjC IVar) \" + Name.str()' expression. Symbol.cpp 41\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nThe programmer accidentally used the + operator instead of += and ended up with four meaningless constructs.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 21: Undefined behavior\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic void getReqFeatures(std::map&lt;StringRef, int\u003E &amp;FeaturesMap,\n                           const std::vector&lt;Record *\u003E &amp;ReqFeatures) {\n  for (auto &amp;R : ReqFeatures) {\n    StringRef AsmCondString = R-\u003EgetValueAsString(\"AssemblerCondString\");\n\n    SmallVector&lt;StringRef, 4\u003E Ops;\n    SplitString(AsmCondString, Ops, \",\");\n    assert(!Ops.empty() &amp;&amp; \"AssemblerCondString cannot be empty\");\n\n    for (auto &amp;Op : Ops) {\n      assert(!Op.empty() &amp;&amp; \"Empty operator\");\n      if (FeaturesMap.find(Op) == FeaturesMap.end())\n        FeaturesMap[Op] = FeaturesMap.size();\n    }\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nTry to spot the bug on your own first. I added the image so that you don't peek at the answer right away:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"???\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd5d\u002F183\u002Fd4e\u002Fd5d183d4e2d3107bc512e52d893fda25.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv708\u002F\"\u003EV708\u003C\u002Fa\u003E [CWE-758] Dangerous construction is used: 'FeaturesMap[Op] = FeaturesMap.size()', where 'FeaturesMap' is of 'map' class. This may lead to undefined behavior. RISCVCompressInstEmitter.cpp 490\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe faulty line is this one:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EFeaturesMap[Op] = FeaturesMap.size();\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nIf the \u003Ci\u003EOp \u003C\u002Fi\u003E element hasn't been found, the program creates a new element in the map and assigns it the total number of elements in this map. You just don't know if the \u003Ci\u003Esize \u003C\u002Fi\u003E function will be called before or after adding the new element.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 22 — No. 24: Duplicate assignments\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EError MachOObjectFile::checkSymbolTable() const {\n  ....\n  } else {\n    MachO::nlist STE = getSymbolTableEntry(SymDRI);\n    NType = STE.n_type;                              \u002F\u002F &lt;=\n    NType = STE.n_type;                              \u002F\u002F &lt;=\n    NSect = STE.n_sect;\n    NDesc = STE.n_desc;\n    NStrx = STE.n_strx;\n    NValue = STE.n_value;\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv519\u002F\"\u003EV519\u003C\u002Fa\u003E [CWE-563] The 'NType' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 1663, 1664. MachOObjectFile.cpp 1664\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI don't think it's a true error — rather a duplicate assignment. But it's still a defect.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nTwo other cases:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EV519 [CWE-563] The 'B.NDesc' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 1488, 1489. llvm-nm.cpp 1489\u003C\u002Fli\u003E\r\n\u003Cli\u003EV519 [CWE-563] The variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 59, 61. coff2yaml.cpp 61\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 25 — No. 27: More duplicate assignments\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThese ones deal with slightly different versions of duplicate assignments.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ebool Vectorizer::vectorizeLoadChain(\n    ArrayRef&lt;Instruction *\u003E Chain,\n    SmallPtrSet&lt;Instruction *, 16\u003E *InstructionsProcessed) {\n  ....\n  unsigned Alignment = getAlignment(L0);\n  ....\n  unsigned NewAlign = getOrEnforceKnownAlignment(L0-\u003EgetPointerOperand(),\n                                                 StackAdjustedAlignment,\n                                                 DL, L0, nullptr, &amp;DT);\n  if (NewAlign != 0)\n    Alignment = NewAlign;\n  Alignment = NewAlign;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V519 [CWE-563] The 'Alignment' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 1158, 1160. LoadStoreVectorizer.cpp 1160\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis is a very strange snippet, and it probably contains a logic error. The \u003Ci\u003EAlignment \u003C\u002Fi\u003E variable is first assigned the value based on the condition, and then it is assigned the value once again, but without any prior check.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nSimilar defects:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EV519 [CWE-563] The 'Effects' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 152, 165. WebAssemblyRegStackify.cpp 165\u003C\u002Fli\u003E\r\n\u003Cli\u003EV519 [CWE-563] The 'ExpectNoDerefChunk' variable is assigned values twice successively. Perhaps this is a mistake. Check lines: 4970, 4973. SemaType.cpp 4973\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 28: Always true condition\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic int readPrefixes(struct InternalInstruction* insn) {\n  ....\n  uint8_t byte = 0;\n  uint8_t nextByte;\n  ....\n  if (byte == 0xf3 &amp;&amp; (nextByte == 0x88 || nextByte == 0x89 ||\n                       nextByte == 0xc6 || nextByte == 0xc7)) {\n    insn-\u003ExAcquireRelease = true;\n    if (nextByte != 0x90) \u002F\u002F PAUSE instruction support             \u002F\u002F &lt;=\n      break;\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv547\u002F\"\u003EV547\u003C\u002Fa\u003E [CWE-571] Expression 'nextByte != 0x90' is always true. X86DisassemblerDecoder.cpp 379\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe check doesn't make sense. The \u003Ci\u003EnextByte \u003C\u002Fi\u003E variable is never equal to \u003Ci\u003E0x90\u003C\u002Fi\u003E: it just logically follows from the previous check. This must be some logic error.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 29 — No....: Always true\u002Ffalse conditions\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThere are many warnings about an entire condition (\u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv547\u002F\"\u003EV547\u003C\u002Fa\u003E) or part of a condition (\u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv560\u002F\"\u003EV560\u003C\u002Fa\u003E) being always true or false. Rather than genuine bugs, these are often simply bad code, the effects of macro expansion, and so on. That said, all such warnings should still be checked because some of them may point at genuine logic errors. For example, the following snippet doesn't look right:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic DecodeStatus DecodeGPRPairRegisterClass(MCInst &amp;Inst, unsigned RegNo,\n                                   uint64_t Address, const void *Decoder) {\n  DecodeStatus S = MCDisassembler::Success;\n\n  if (RegNo \u003E 13)\n    return MCDisassembler::Fail;\n\n  if ((RegNo &amp; 1) || RegNo == 0xe)\n     S = MCDisassembler::SoftFail;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv560\u002F\"\u003EV560\u003C\u002Fa\u003E [CWE-570] A part of conditional expression is always false: RegNo == 0xe. ARMDisassembler.cpp 939\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe \u003Ci\u003E0xE \u003C\u002Fi\u003E constant is the decimal number 14. The check \u003Ci\u003ERegNo == 0xe \u003C\u002Fi\u003E doesn't make sense because if \u003Ci\u003ERegNo \u003E 13\u003C\u002Fi\u003E, the function will return.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI saw a lot of other V547 and V560 warnings, but, like with \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv595\u002F\"\u003EV595\u003C\u002Fa\u003E, I didn't feel excited about checking them since I already had enough material for an article :). So, no figures for the total number of bugs of this type in LLVM.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nHere's an example to illustrate why checking those warnings is boring. The analyzer is totally correct when issuing a warning on the following code. But it's still not a bug.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ebool UnwrappedLineParser::parseBracedList(bool ContinueOnSemicolons,\n                                          tok::TokenKind ClosingBraceKind) {\n  bool HasError = false;\n  ....\n  HasError = true;\n  if (!ContinueOnSemicolons)\n    return !HasError;\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V547 [CWE-570] Expression '!HasError' is always false. UnwrappedLineParser.cpp 1635\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 30: Suspicious return\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic bool\nisImplicitlyDef(MachineRegisterInfo &amp;MRI, unsigned Reg) {\n  for (MachineRegisterInfo::def_instr_iterator It = MRI.def_instr_begin(Reg),\n      E = MRI.def_instr_end(); It != E; ++It) {\n    return (*It).isImplicitDef();\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv612\u002F\"\u003EV612\u003C\u002Fa\u003E [CWE-670] An unconditional 'return' within a loop. R600OptimizeVectorRegisters.cpp 63\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIt's either a bug or a specific coding technique meant to communicate some idea to fellow programmers. To me it doesn't tell anything except that it's a very suspicious piece of code. Please don't write code like that :).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nFeeling tired? OK, it's time to make some tea or coffee.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"coffee\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F8a2\u002Ff86\u002F58f\u002F8a2f8658fdacb0dde918807666d1cd39.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EDefects found by new diagnostics\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nI think 30 examples is enough for existing diagnostics. Now let's see if we can find anything interesting with the new diagnostics, which were added after the \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fb\u002F0446\u002F\"\u003Eprevious\u003C\u002Fa\u003E check. Over the last two years, the C++ analyzer module was extended with 66 new diagnostics.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 31: Unreachable code\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EError CtorDtorRunner::run() {\n  ....\n  if (auto CtorDtorMap =\n          ES.lookup(JITDylibSearchList({{&amp;JD, true}}), std::move(Names),\n                    NoDependenciesToRegister, true))\n  {\n    ....\n    return Error::success();\n  } else\n    return CtorDtorMap.takeError();\n\n  CtorDtorsByPriority.clear();\n\n  return Error::success();\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv779\u002F\"\u003EV779\u003C\u002Fa\u003E [CWE-561] Unreachable code detected. It is possible that an error is present. ExecutionUtils.cpp 146\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAs you can see, both branches of the \u003Ci\u003Eif \u003C\u002Fi\u003E statement end with a \u003Ci\u003Ereturn\u003C\u002Fi\u003E statement, which means the \u003Ci\u003ECtorDtorsByPriority \u003C\u002Fi\u003E container will never be cleared.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 32: Unreachable code\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ebool LLParser::ParseSummaryEntry() {\n  ....\n  switch (Lex.getKind()) {\n  case lltok::kw_gv:\n    return ParseGVEntry(SummaryID);\n  case lltok::kw_module:\n    return ParseModuleEntry(SummaryID);\n  case lltok::kw_typeid:\n    return ParseTypeIdEntry(SummaryID);                        \u002F\u002F &lt;=\n    break;                                                     \u002F\u002F &lt;=\n  default:\n    return Error(Lex.getLoc(), \"unexpected summary kind\");\n  }\n  Lex.setIgnoreColonInIdentifiers(false);                      \u002F\u002F &lt;=\n  return false;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V779 [CWE-561] Unreachable code detected. It is possible that an error is present. LLParser.cpp 835\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis one is interesting. Take a look at this part first:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ereturn ParseTypeIdEntry(SummaryID);\nbreak;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThere seems to be nothing strange about this code; the \u003Ci\u003Ebreak \u003C\u002Fi\u003E statement is unnecessary and can be safely removed. But it's not that simple.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe warning is triggered by the following lines:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003ELex.setIgnoreColonInIdentifiers(false);\nreturn false;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nIndeed, this code is unreachable. All the case labels of the \u003Ci\u003Eswitch \u003C\u002Fi\u003E statement end with a \u003Ci\u003Ereturn\u003C\u002Fi\u003E, and the meaningless lone \u003Ci\u003Ebreak \u003C\u002Fi\u003E doesn't look that harmless anymore! What if one of the branches was meant to end with a \u003Ci\u003Ebreak\u003C\u002Fi\u003E rather than \u003Ci\u003Ereturn\u003C\u002Fi\u003E?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 33: Accidental clearing of the most significant bits\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eunsigned getStubAlignment() override {\n  if (Arch == Triple::systemz)\n    return 8;\n  else\n    return 1;\n}\n\nExpected&lt;unsigned\u003E\nRuntimeDyldImpl::emitSection(const ObjectFile &amp;Obj,\n                             const SectionRef &amp;Section,\n                             bool IsCode) {\n  ....\n  uint64_t DataSize = Section.getSize();\n  ....\n  if (StubBufSize \u003E 0)\n    DataSize &amp;= ~(getStubAlignment() - 1);\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv784\u002F\"\u003EV784\u003C\u002Fa\u003E The size of the bit mask is less than the size of the first operand. This will cause the loss of higher bits. RuntimeDyld.cpp 815\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNote that the \u003Ci\u003EgetStubAlignment \u003C\u002Fi\u003E function returns an \u003Ci\u003Eunsigned \u003C\u002Fi\u003E value. Let's see how the expression will evaluate, assuming that the function will return the value 8:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n~(getStubAlignment() — 1)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n~(8u-1)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n0xFFFFFFF8‬u\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNote now that the \u003Ci\u003EDataSize \u003C\u002Fi\u003E variable's type is 64-bit unsigned. So it turns out that executing the operation DataSize &amp; 0xFFFFFFF8 will result in clearing all 32 most significant bits of the value. I don't think the programmer wanted that. Perhaps they meant it to be DataSize &amp; 0xFFFFFFFFFFFFFFF8‬u.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nTo fix the error, the code should be rewritten like this:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EDataSize &amp;= ~(static_cast&lt;uint64_t\u003E(getStubAlignment()) - 1);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nOr like this:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EDataSize &amp;= ~(getStubAlignment() - 1ULL);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 34: Bad explicit type conversion\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Etemplate &lt;typename T\u003E\nvoid scaleShuffleMask(int Scale, ArrayRef&lt;T\u003E Mask,\n                      SmallVectorImpl&lt;T\u003E &amp;ScaledMask) {\n  assert(0 &lt; Scale &amp;&amp; \"Unexpected scaling factor\");\n  int NumElts = Mask.size();\n  ScaledMask.assign(static_cast&lt;size_t\u003E(NumElts * Scale), -1);\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv1028\u002F\"\u003EV1028\u003C\u002Fa\u003E [CWE-190] Possible overflow. Consider casting operands of the 'NumElts * Scale' operator to the 'size_t' type, not the result. X86ISelLowering.h 1577\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nExplicit type conversion is used to avoid an overflow when multiplying variables of type \u003Ci\u003Eint\u003C\u002Fi\u003E. In this case, though, it doesn't work because the multiplication will occur first and only then will the 32-bit result be promoted to type \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Ft\u002F0044\u002F\"\u003E\u003Ci\u003Esize_t\u003C\u002Fi\u003E\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 35: Bad copy-paste\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EInstruction *InstCombiner::visitFCmpInst(FCmpInst &amp;I) {\n  ....\n  if (!match(Op0, m_PosZeroFP()) &amp;&amp; isKnownNeverNaN(Op0, &amp;TLI)) {\n    I.setOperand(0, ConstantFP::getNullValue(Op0-\u003EgetType()));\n    return &amp;I;\n  }\n  if (!match(Op1, m_PosZeroFP()) &amp;&amp; isKnownNeverNaN(Op1, &amp;TLI)) {\n    I.setOperand(1, ConstantFP::getNullValue(Op0-\u003EgetType()));        \u002F\u002F &lt;=\n    return &amp;I;\n  }\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv778\u002F\"\u003EV778\u003C\u002Fa\u003E [CWE-682] Two similar code fragments were found. Perhaps, this is a typo and 'Op1' variable should be used instead of 'Op0'. InstCombineCompares.cpp 5507\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis new cool diagnostic detects situations where a code fragment is written using copy-paste, with all the names changed save one.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNote that all \u003Ci\u003EOp0\u003C\u002Fi\u003E's except one were changed to \u003Ci\u003EOp1\u003C\u002Fi\u003E in the second block. The code should probably look like this:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eif (!match(Op1, m_PosZeroFP()) &amp;&amp; isKnownNeverNaN(Op1, &amp;TLI)) {\n  I.setOperand(1, ConstantFP::getNullValue(Op1-\u003EgetType()));\n  return &amp;I;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 36: Variables mixed up\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estruct Status {\n  unsigned Mask;\n  unsigned Mode;\n\n  Status() : Mask(0), Mode(0){};\n\n  Status(unsigned Mask, unsigned Mode) : Mask(Mask), Mode(Mode) {\n    Mode &amp;= Mask;\n  };\n  ....\n};\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv1001\u002F\"\u003EV1001\u003C\u002Fa\u003E [CWE-563] The 'Mode' variable is assigned but is not used by the end of the function. SIModeRegister.cpp 48\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIt's very dangerous to have the same names for function arguments as for class members because you risk mixing them up. What you see here is an example of that. The following expression is meaningless:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EMode &amp;= Mask;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThe argument is changed but never used after that. This snippet should probably look like this:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EStatus(unsigned Mask, unsigned Mode) : Mask(Mask), Mode(Mode) {\n  this-\u003EMode &amp;= Mask;\n};\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippet No. 37: Variables mixed up\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eclass SectionBase {\n  ....\n  uint64_t Size = 0;\n  ....\n};\n\nclass SymbolTableSection : public SectionBase {\n  ....\n};\n\nvoid SymbolTableSection::addSymbol(Twine Name, uint8_t Bind, uint8_t Type,\n                                   SectionBase *DefinedIn, uint64_t Value,\n                                   uint8_t Visibility, uint16_t Shndx,\n                                   uint64_t Size) {\n  ....\n  Sym.Value = Value;\n  Sym.Visibility = Visibility;\n  Sym.Size = Size;\n  Sym.Index = Symbols.size();\n  Symbols.emplace_back(llvm::make_unique&lt;Symbol\u003E(Sym));\n  Size += this-\u003EEntrySize;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V1001 [CWE-563] The 'Size' variable is assigned but is not used by the end of the function. Object.cpp 424\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis one is similar to the previous example. Correct version:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ethis-\u003ESize += this-\u003EEntrySize;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 38 — No. 47: Missing pointer check\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nWe looked at a few examples of the \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv595\u002F\"\u003EV595\u003C\u002Fa\u003E warning a bit earlier. What it detects is a situation when a pointer is first dereferenced and only then checked. The new diagnostic \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv1004\u002F\"\u003EV1004\u003C\u002Fa\u003E is the opposite of that, and it detects tons of errors too. It looks for already tested pointers that are not tested again when necessary. Here are a few errors of this type found in LLVM's code.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eint getGEPCost(Type *PointeeType, const Value *Ptr,\n               ArrayRef&lt;const Value *\u003E Operands) {\n  ....\n  if (Ptr != nullptr) {                                            \u002F\u002F &lt;=\n    assert(....);\n    BaseGV = dyn_cast&lt;GlobalValue\u003E(Ptr-\u003EstripPointerCasts());\n  }\n  bool HasBaseReg = (BaseGV == nullptr);\n\n  auto PtrSizeBits = DL.getPointerTypeSizeInBits(Ptr-\u003EgetType());  \u002F\u002F &lt;=\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V1004 [CWE-476] The 'Ptr' pointer was used unsafely after it was verified against nullptr. Check lines: 729, 738. TargetTransformInfoImpl.h 738\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EPtr \u003C\u002Fi\u003E can be \u003Ci\u003Enullptr\u003C\u002Fi\u003E, which is indicated by the check:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eif (Ptr != nullptr)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nHowever, the same pointer is dereferenced without such a check a bit further:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eauto PtrSizeBits = DL.getPointerTypeSizeInBits(Ptr-\u003EgetType());\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nAnother similar case.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ellvm::DISubprogram *CGDebugInfo::getFunctionFwdDeclOrStub(GlobalDecl GD,\n                                                          bool Stub) {\n  ....\n  auto *FD = dyn_cast&lt;FunctionDecl\u003E(GD.getDecl());\n  SmallVector&lt;QualType, 16\u003E ArgTypes;\n  if (FD)                                                                \u002F\u002F &lt;=\n    for (const ParmVarDecl *Parm : FD-\u003Eparameters())\n      ArgTypes.push_back(Parm-\u003EgetType());\n  CallingConv CC = FD-\u003EgetType()-\u003EcastAs&lt;FunctionType\u003E()-\u003EgetCallConv(); \u002F\u002F &lt;=\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V1004 [CWE-476] The 'FD' pointer was used unsafely after it was verified against nullptr. Check lines: 3228, 3231. CGDebugInfo.cpp 3231\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNote the \u003Ci\u003EFD\u003C\u002Fi\u003E pointer. This error is straightforward, so no comments on this one.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nOne more here:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic void computePolynomialFromPointer(Value &amp;Ptr, Polynomial &amp;Result,\n                                         Value *&amp;BasePtr,\n                                         const DataLayout &amp;DL) {\n  PointerType *PtrTy = dyn_cast&lt;PointerType\u003E(Ptr.getType());\n  if (!PtrTy) {                                                   \u002F\u002F &lt;=\n    Result = Polynomial();\n    BasePtr = nullptr;\n  }\n  unsigned PointerBits =\n      DL.getIndexSizeInBits(PtrTy-\u003EgetPointerAddressSpace());     \u002F\u002F &lt;=\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: V1004 [CWE-476] The 'PtrTy' pointer was used unsafely after it was verified against nullptr. Check lines: 960, 965. InterleavedLoadCombinePass.cpp 965\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nHow do you avoid errors like that? Be very careful when reviewing your code and check it regularly with PVS-Studio.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI don't think we should examine other examples of this type, so here's just a list of the warnings:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EV1004 [CWE-476] The 'Expr' pointer was used unsafely after it was verified against nullptr. Check lines: 1049, 1078. DebugInfoMetadata.cpp 1078\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1004 [CWE-476] The 'PI' pointer was used unsafely after it was verified against nullptr. Check lines: 733, 753. LegacyPassManager.cpp 753\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1004 [CWE-476] The 'StatepointCall' pointer was used unsafely after it was verified against nullptr. Check lines: 4371, 4379. Verifier.cpp 4379\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1004 [CWE-476] The 'RV' pointer was used unsafely after it was verified against nullptr. Check lines: 2263, 2268. TGParser.cpp 2268\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1004 [CWE-476] The 'CalleeFn' pointer was used unsafely after it was verified against nullptr. Check lines: 1081, 1096. SimplifyLibCalls.cpp 1096\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1004 [CWE-476] The 'TC' pointer was used unsafely after it was verified against nullptr. Check lines: 1819, 1824. Driver.cpp 1824\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ESnippets No. 48 — No. 60: Not critical but still a defect (potential memory leak)\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estd::unique_ptr&lt;IRMutator\u003E createISelMutator() {\n  ....\n  std::vector&lt;std::unique_ptr&lt;IRMutationStrategy\u003E\u003E Strategies;\n  Strategies.emplace_back(\n      new InjectorIRStrategy(InjectorIRStrategy::getDefaultOps()));\n  ....\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nPVS-Studio diagnostic message: \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fw\u002Fv1023\u002F\"\u003EV1023\u003C\u002Fa\u003E [CWE-460] A pointer without owner is added to the 'Strategies' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-isel-fuzzer.cpp 58\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nYou can't simply write \u003Ci\u003Exxx.push_back(new X)\u003C\u002Fi\u003E to append an element to a container of type \u003Ci\u003Estd::vector&lt;std::unique_ptr&lt;X\u003E\u003E\u003C\u002Fi\u003E because there is no implicit cast from \u003Ci\u003EX* \u003C\u002Fi\u003E to \u003Ci\u003Estd::unique_ptr&lt;X\u003E\u003C\u002Fi\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe popular solution is to write \u003Ci\u003Exxx.emplace_back(new X)\u003C\u002Fi\u003E since it is compilable: the \u003Ci\u003Eemplace_back \u003C\u002Fi\u003E method constructs the element directly from the arguments and, therefore, can use explicit constructors.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nBut that solution isn't safe. If the vector is full, memory will be reallocated. This operation may fail and end up raising an \u003Ci\u003Estd::bad_alloc\u003C\u002Fi\u003E exception. In this case, the pointer will be lost and the program won't be able to delete the object created.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nA safer solution is to create a \u003Ci\u003Eunique_ptr\u003C\u002Fi\u003E, which will retain the pointer until the vector attempts to reallocate the memory:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Exxx.push_back(std::unique_ptr&lt;X\u003E(new X))\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThe C++14 standard allows you to use 'std::make_unique':\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Exxx.push_back(std::make_unique&lt;X\u003E())\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThis type of defect has no effect in LLVM. Compilation will simply terminate if memory allocation fails. That said, it may be quite critical in applications with a long \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FUptime\"\u003Euptime\u003C\u002Fa\u003E, which can't simply terminate when a memory allocation failure occurs.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nSo, even though this code isn't dangerous to LLVM, I thought I should still tell you about this bug pattern and the fact that PVS-Studio can now detect it.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nOther similar cases:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Passes' container by the 'emplace_back' method. A memory leak will occur in case of an exception. PassManager.h 546\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'AAs' container by the 'emplace_back' method. A memory leak will occur in case of an exception. AliasAnalysis.h 324\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Entries' container by the 'emplace_back' method. A memory leak will occur in case of an exception. DWARFDebugFrame.cpp 519\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'AllEdges' container by the 'emplace_back' method. A memory leak will occur in case of an exception. CFGMST.h 268\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'VMaps' container by the 'emplace_back' method. A memory leak will occur in case of an exception. SimpleLoopUnswitch.cpp 2012\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Records' container by the 'emplace_back' method. A memory leak will occur in case of an exception. FDRLogBuilder.h 30\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'PendingSubmodules' container by the 'emplace_back' method. A memory leak will occur in case of an exception. ModuleMap.cpp 810\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Objects' container by the 'emplace_back' method. A memory leak will occur in case of an exception. DebugMap.cpp 88\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Strategies' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-isel-fuzzer.cpp 60\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 685\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 686\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 688\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 689\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 690\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 691\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 692\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 693\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Modifiers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. llvm-stress.cpp 694\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Operands' container by the 'emplace_back' method. A memory leak will occur in case of an exception. GlobalISelEmitter.cpp 1911\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Stash' container by the 'emplace_back' method. A memory leak will occur in case of an exception. GlobalISelEmitter.cpp 2100\u003C\u002Fli\u003E\r\n\u003Cli\u003EV1023 [CWE-460] A pointer without owner is added to the 'Matchers' container by the 'emplace_back' method. A memory leak will occur in case of an exception. GlobalISelEmitter.cpp 2702\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EConclusion\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nI wrote down 60 warnings and stopped at that. Did PVS-Studio find any other bugs in LLVM? Yes, it did. But as I was writing down the examples, night fell, so I decided to knock off.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nI hope you enjoyed reading this article and it encouraged you to try the PVS-Studio analyzer for yourself.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nVisit \u003Ca href=\"https:\u002F\u002Fwww.viva64.com\u002Fen\u002Fpvs-studio-download\u002F\"\u003Ethis page\u003C\u002Fa\u003E to download the analyzer and get a trial key.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nMost importantly, use static analysis regularly. \u003Cb\u003EOne-time checks\u003C\u002Fb\u003E, like those that we do to popularize static analysis and promote PVS-Studio, aren't the normal scenario.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nGood luck with improving your code's quality and reliability!\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"c++"},{"titleHtml":"clang"},{"titleHtml":"llvm"},{"titleHtml":"compiler"},{"titleHtml":"pvs-studio"},{"titleHtml":"open source"},{"titleHtml":"devops"},{"titleHtml":"bugs"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450002\u002F4c5ecd995ac337e95ba01a325e60859b\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450002\u002F4c5ecd995ac337e95ba01a325e60859b\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fcompany\\\u002Fpvs-studio\\\u002Fblog\\\u002F450002\\\u002F\"},\"headline\":\"﻿Finding Bugs in LLVM 8 with PVS-Studio\",\"datePublished\":\"2019-04-29T16:43:52+03:00\",\"dateModified\":\"2019-04-29T17:08:34+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Andrey Karpov\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"It's been two years since we last checked the code of the LLVM project with PVS-Studio, so let's see if PVS-Studio is still the leader among tools for...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fcompany\\\u002Fpvs-studio\\\u002Fblog\\\u002F450002\\\u002F#post-content-body\",\"about\":[\"c_pvs-studio\",\"h_open_source\",\"h_cpp\",\"h_compilers\",\"h_devops\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2f2\\\u002F8d4\\\u002F5bf\\\u002F2f28d45bf369270d9330bfbe2ea78f00.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd5d\\\u002F183\\\u002Fd4e\\\u002Fd5d183d4e2d3107bc512e52d893fda25.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F8a2\\\u002Ff86\\\u002F58f\\\u002F8a2f8658fdacb0dde918807666d1cd39.png\"]}","metaDescription":"It&#039;s been two years since we last checked the code of the LLVM project with PVS-Studio, so let&#039;s see if PVS-Studio is still the leader among tools for detecting bugs and security weaknesses. We&#039;ll...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"pvs-studio":{"alias":"pvs-studio","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F95a\u002F244\u002F327\u002F95a244327fc36477b6048c0f8b67df8b.png","titleHtml":"PVS-Studio","descriptionHtml":"Статический анализ кода для C, C++, C# и Java","relatedData":null,"statistics":{"postsCount":639,"newsCount":0,"vacanciesCount":0,"employeesCount":31,"careerRating":null,"subscribersCount":22580,"rating":215.63,"invest":null},"foundationDate":{"year":"2008","month":null,"day":null},"location":{"city":{"id":"448142","title":"Тула"},"region":{"id":"2013","title":"Тульская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fpvs-studio.com\u002F","staffNumber":"31–50 человек","registrationDate":"2013-05-06T12:33:02+00:00","representativeUser":null,"contacts":[{"title":"Сайт","url":"https:\u002F\u002Fpvs-studio.com\u002F"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002FStaticCodeAnalyzer"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002FCode_Analysis"},{"title":"Instagram","url":"https:\u002F\u002Finstagram.com\u002Fpvsstudio_rus"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fpvsstudio_rus"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-58546680-1"}],"branding":null,"status":"active"},"metadata":{"titleHtml":"PVS-Studio, Тула - Статический анализ кода для C, C++, C# и Java с 2008 год","title":"PVS-Studio, Тула - Статический анализ кода для C, C++, C# и Java с 2008 год","keywords":["C++","C#",".NET","Open source","Информационная безопасность"],"descriptionHtml":"639 статей от авторов компании PVS-Studio","description":"639 статей от авторов компании PVS-Studio"},"aDeskSettings":null,"careerAlias":null,"maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>
