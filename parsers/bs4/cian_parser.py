@@ -9,4 +9,4 @@ def parse_cian_bs4(html_source):
         name = card.select_one(r'[data-name="TitleComponent"]').text.strip()
         price = card.select_one(r'[data-mark="MainPrice"]').text.strip()
         location = ','.join([x.text.strip() for x in card.select(r'[data-name="GeoLabel"]')])
-        return cian_apart_to_object(name, price, location)
+        yield cian_apart_to_object(name, price, location)
