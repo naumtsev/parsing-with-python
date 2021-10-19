@@ -1,4 +1,3 @@
-from scrapy.selector import Selector
 from parsers.utils import habr_article_to_object
 from scrapy.http import HtmlResponse
 
