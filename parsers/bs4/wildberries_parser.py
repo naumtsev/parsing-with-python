@@ -19,4 +19,4 @@ def parse_wildberries_bs4(html_source):
             old_price = 0
 
         name = brand.select_one(r'.product-card__brand-name').select_one(r'.goods-name').text.strip()
-        yield wildberries_product_to_object(name, current_price, old_price, img_url)
+        return wildberries_product_to_object(name, current_price, old_price, img_url)
