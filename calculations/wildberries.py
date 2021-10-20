@@ -17,4 +17,4 @@ def get_wildberries_results():
     results = []
     for i in range(53):
         results.append(test(i))
-
+    return results

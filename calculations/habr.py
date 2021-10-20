@@ -17,4 +17,4 @@ def get_habr_results():
     results = []
     for i in range(48):
         results.append(test(i))
-
+    return results

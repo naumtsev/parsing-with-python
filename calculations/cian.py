@@ -17,4 +17,6 @@ def get_cian_results():
     results = []
     for i in range(1, 51):
         results.append(test(i))
+    return results
 
+print(get_cian_results())
