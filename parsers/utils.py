@@ -26,3 +26,10 @@ def get_working_time(f, *args, **kwargs):
     f(*args, **kwargs)
     end_time = time.time()
     return end_time - start_time
+
+
+def get_average_working_time(f, number_launches=3):
+    sum_time = 0
+    for i in range(number_launches):
+        sum_time += f()
+    return sum_time / number_launches
