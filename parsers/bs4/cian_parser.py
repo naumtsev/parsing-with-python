@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 
 def parse_cian_html(html_source):
-    response = BeautifulSoup(html_source, 'html.parser')
+    response = BeautifulSoup(html_source, 'lxml', parse_only=True)
     cards = response.select(r'[data-name="CardComponent"]')
     for card in cards:
         name = card.select_one(r'[data-name="TitleComponent"]').text.strip()

@@ -69,14 +69,16 @@ products = [
 ]
 
 
-def write_test(i, product):
+def write_test(i, product, page):
     file = open(f'tests_source/test{i}.html', 'w')
-    print(get_page_source(f'https://www.wildberries.ru/catalog/0/search.aspx?search={product}'), file=file)
+    source = get_page_source(f'https://www.wildberries.ru/catalog/0/search.aspx?search={product}&page={page}')
+    file.write(source)
     file.close()
 
 
-executor = pool.ThreadPoolExecutor(max_workers=10)
-
-for i, product in enumerate(products):
-    write_test(i, product)
-    executor.submit(write_test, i, product)
+executor = pool.ThreadPoolExecutor(max_workers=5)
+test_id = 0
+for product in products:
+    for page in range(10):
+        executor.submit(write_test, test_id, product, page)
+        test_id += 1

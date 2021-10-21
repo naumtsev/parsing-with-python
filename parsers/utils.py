@@ -31,3 +31,12 @@ def get_working_time(f, *args, **kwargs):
 def get_average_working_time(f, number_launches=3):
     times = [f() for i in range(number_launches)]
     return sum(times) / len(times)
+
+
+def split_into_parts(lst, part_size=1):
+    for i in range(0, len(lst), part_size):
+        yield lst[i:i + part_size]
+
+def parse_several_tests(parse_f, sources):
+    for source in sources:
+       yield parse_f(source)

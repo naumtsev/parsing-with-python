@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 
 def parse_wildberries_html(html_source):
-    response = BeautifulSoup(html_source, 'html.parser')
+    response = BeautifulSoup(html_source, 'lxml')
     cards_list = response.select_one(r".product-card-list")
     cards = cards_list.select(r".product-card")
     for card in cards:
