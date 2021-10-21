@@ -4,6 +4,8 @@ from parsers.bs4.cian_parser import parse_cian_html as bs4_parse
 from parsers.utils import get_working_time, get_average_working_time, split_into_parts, parse_several_tests
 from os import path
 from random import shuffle
+from multiprocessing import Process, Manager
+
 
 def test(indexes, number_launches=1):
     sources = []
@@ -13,11 +15,25 @@ def test(indexes, number_launches=1):
                 sources.append(file.read())
         except:
             pass
-    lxml_time = get_average_working_time(lambda: get_working_time(parse_several_tests, lxml_parse, sources), number_launches)
-    scrapy_time = get_average_working_time(lambda: get_working_time(parse_several_tests, scrapy_parse, sources), number_launches)
-    bs4_time = get_average_working_time(lambda: get_working_time(parse_several_tests, bs4_parse, sources), number_launches)
+
     test_id = ','.join(list(map(str, indexes)))
-    return {'test_id': f'cian_{test_id}', 'lxml_time': lxml_time, 'scrapy_time': scrapy_time, 'bs4_time': bs4_time}
+    result = Manager().dict()
+    result['test_id'] = f'cian_{test_id}'
+
+    def process(results, key, f):
+        results[key] = f()
+
+    scrapy_thread = Process(target=process, args=(result, 'scrapy_time', lambda: get_average_working_time(lambda: get_working_time(parse_several_tests, scrapy_parse, sources[:]), number_launches)))
+    lxml_thread = Process(target=process, args=(result, 'lxml_time', lambda: get_average_working_time(lambda: get_working_time(parse_several_tests, lxml_parse, sources[:]), number_launches)))
+    bs4_thread = Process(target=process, args=(result, 'bs4_time', lambda: get_average_working_time(lambda: get_working_time(parse_several_tests, bs4_parse, sources[:]), number_launches)))
+
+    scrapy_thread.start()
+    bs4_thread.start()
+    lxml_thread.start()
+    scrapy_thread.join()
+    bs4_thread.join()
+    lxml_thread.join()
+    return result
 
 
 def get_cian_results(group_size=1, number_launches=1):
