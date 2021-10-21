@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Поиск похожих изображений, разбор одного алгоритма / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/funcorp\/blog\/450120\/"},"headline":"Поиск похожих изображений, разбор одного алгоритма","datePublished":"2019-05-20T11:39:10+03:00","dateModified":"2019-05-20T14:32:18+03:00","author":{"@type":"Person","name":"Громов Андрей"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.  Существующее решение работает на довольно известной библиотеке, написанной н...","url":"https:\/\/habr.com\/ru\/company\/funcorp\/blog\/450120\/#post-content-body","about":["c_funcorp","h_algorithms","h_image_processing","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/ev\/fs\/n_\/evfsn_lnmvjxrekwbkumg6b4l1a.jpeg","https:\/\/habrastorage.org\/webt\/cl\/yh\/m8\/clyhm8caq35-td519odrgd95msq.png","https:\/\/habrastorage.org\/webt\/ih\/fg\/m_\/ihfgm_-xiyuerpbpntgakzby9ge.png","https:\/\/habrastorage.org\/webt\/ly\/xz\/cx\/lyxzcxnjphjgjtrwyg0val2iix8.png","https:\/\/habrastorage.org\/webt\/67\/kh\/-n\/67kh-n0mxhjpupyqlqo4rjy7-zk.jpeg","https:\/\/habrastorage.org\/webt\/kb\/qp\/1z\/kbqp1zaxngtsxy87lsftecyik5e.png","https:\/\/habrastorage.org\/webt\/_r\/90\/2m\/_r902m_saq21syujszytqxyy8dk.png","https:\/\/habrastorage.org\/webt\/rv\/ii\/rc\/rviircvrfaq65_vrauwnu8kklgq.png","https:\/\/habrastorage.org\/webt\/de\/mb\/dc\/dembdcwlshe2rflj1_3wacthxmk.png","https:\/\/habrastorage.org\/webt\/nx\/c0\/t1\/nxc0t10_wggho3gyao9gx8cvan8.png","https:\/\/habrastorage.org\/webt\/i5\/mt\/tc\/i5mttccaofi_snscaq_lrvecucc.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Поиск похожих изображений, разбор одного алгоритма" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Поиск похожих изображений, разбор одного алгоритма" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Поиск похожих изображений, разбор одного алгоритма" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.
+
+Существующее решение работает на довольно известной библиотеке, написанной на Python, — Image Match, основанной..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.
+
+Существующее решение работает на довольно известной библиотеке, написанной на Python, — Image Match, основанной..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.
+
+Существующее решение работает на довольно известной библиотеке, написанной на Python, — Image Match, основанной..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.
+
+Существующее решение работает на довольно известной библиотеке, написанной на Python, — Image Match, основанной..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.
+
+Существующее решение работает на довольно известной библиотеке, написанной на Python, — Image Match, основанной..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450120/5e0720026e2b5ecb5350b9962897b441/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450120/5e0720026e2b5ecb5350b9962897b441/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450120/5e0720026e2b5ecb5350b9962897b441/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450120/5e0720026e2b5ecb5350b9962897b441/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450120/5e0720026e2b5ecb5350b9962897b441/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450120" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-20T08:39:10.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450120/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/funcorp/blog/450120/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450120/5e0720026e2b5ecb5350b9962897b441/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450120/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="funcorp" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://fun.co/"><img src="//habrastorage.org/getpro/habr/branding/c94/e51/fca/c94e51fca23cf417547a7af7b038e8d1.jpg" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/funcorp/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/f21/9f1/718/f219f1718c640f7b145969eeaad26e7b.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">270.57</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/funcorp/profile/" class="tm-company-card__name">
+        FUNCORP
+      </a> <div class="tm-company-card__description">Разработка развлекательных сервисов</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/rjhdby/" title="rjhdby" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/330/b5e/fbd/330b5efbd4f629e93730d497b8d865e1.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/rjhdby/" class="tm-user-info__username">
+      rjhdby
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-20T08:39:10.000Z" title="2019-05-20, 11:39">20  мая  2019 в 11:39</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Поиск похожих изображений, разбор одного алгоритма</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/funcorp/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании FUNCORP</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/algorithms/" class="tm-article-snippet__hubs-item-link"><span>Алгоритмы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/image_processing/" class="tm-article-snippet__hubs-item-link"><span>Обработка изображений</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/ev/fs/n_/evfsn_lnmvjxrekwbkumg6b4l1a.jpeg" data-src="https://habrastorage.org/webt/ev/fs/n_/evfsn_lnmvjxrekwbkumg6b4l1a.jpeg" data-blurred="true"/><br/>
+<br/>
+Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.<br/>
+<br/>
+Существующее решение работает на довольно известной библиотеке, написанной на Python, — <a href="https://github.com/EdjoLabs/image-match">Image Match</a>, основанной на работе «AN IMAGE SIGNATURE FOR ANY KIND OF IMAGE» за авторством H. Chi Wong, Marshall Bern и David Goldberg.<br/>
+<br/>
+По ряду причин было принято решение переписать всё на Kotlin, заодно отказавшись от хранения и поиска в ElasticSearch, который требует заметно больше ресурсов, как железных, так и человеческих на поддержку и администрирование, в пользу поиска в локальном in-memory кэше.<br/>
+<br/>
+Для понимания того, как оно работает, пришлось с головой погружаться в «эталонный» код на Python, так как оригинальная работа порой не совсем очевидна, а в паре мест заставляет вспомнить мем «как нарисовать сову». Собственно, результатами этого изучения я и хочу поделиться, заодно рассказав про некоторые оптимизации, как по объёму данных, так и по скорости поиска. Может, кому пригодится.<br/>
+<a name="habracut"></a><br/>
+Disclaimer: Существует вероятность, что я где-то напортачил, сделал неправильно или не оптимально. Ну что уж, буду рад любой критике и комментариям. :)<br/>
+<br/>
+Как оно работает:<br/>
+<br/>
+<ol>
+<li>Изображение преобразуется к 8-битному чёрно-белому формату (одна точка — это один байт в значении 0-255)</li>
+<li>Изображение обрезается таким образом, чтобы отбросить 5% накопленной разницы (подробнее ниже) с каждой из четырёх сторон. Например, чёрную рамку вокруг изображения.</li>
+<li>Выбирается рабочая сетка (по умолчанию 9x9), узлы которой будут служить опорными точками сигнатуры изображения.</li>
+<li>Для каждой опорной точки на основании некоторой области вокруг неё рассчитывается её яркость.</li>
+<li>Для каждой опорной точки рассчитывается насколько она ярче/темнее своих восьми соседей. Используется пять градаций, от -2 (сильно темнее) до 2 (сильно ярче).</li>
+<li>Вся эта «радость» разворачивается в одномерный массив (вектор) и обзывается сигнатурой изображения.</li>
+</ol><br/>
+Схожесть двух изображений проверяется следующим образом:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/cl/yh/m8/clyhm8caq35-td519odrgd95msq.png"/></div><br/>
+<br/>
+Чем меньше d — тем лучше. По факту, d&lt;0.3 — это практически гарантия идентичности.<br/>
+<br/>
+Теперь более подробно.<br/>
+<br/>
+<h3>Шаг первый</h3><br/>
+Думаю, что про преобразование в grayscale рассказывать особого смысла нет.<br/>
+<br/>
+<h3>Шаг второй</h3><br/>
+Допустим, у нас есть такая картинка:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ih/fg/m_/ihfgm_-xiyuerpbpntgakzby9ge.png"/></div><br/>
+<i>Видно, что тут присутствует чёрная рамка по 3 пикселя справа и слева и по 2 пикселя сверху и снизу, которая нам в сравнении совсем не нужна</i><br/>
+<br/>
+Граница обрезания определяется по такому алгоритму:<br/>
+<br/>
+<ol>
+<li>Для каждого столбца рассчитываем сумму абсолютных разностей соседних элементов. <br/>
+</li>
+<li>Обрезаем слева и справа такое количество пикселей, вклад которых в общее накопленное различие менее 5%.</li>
+</ol><br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ly/xz/cx/lyxzcxnjphjgjtrwyg0val2iix8.png"/></div><br/>
+Аналогичным же образом поступаем и для столбцов.<br/>
+<br/>
+Важное уточнение: если размеры получившегося изображения недостаточны для осуществления шага 4, то обрезания не делаем!<br/>
+<br/>
+<h3>Шаг третий</h3><br/>
+Ну тут совсем всё просто, делим картинку на равные части и выбираем узловые точки.<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/67/kh/-n/67kh-n0mxhjpupyqlqo4rjy7-zk.jpeg" data-src="https://habrastorage.org/webt/67/kh/-n/67kh-n0mxhjpupyqlqo4rjy7-zk.jpeg" data-blurred="true"/></div><br/>
+<h3>Шаг четвёртый</h3><br/>
+Яркость опорной точки рассчитывается как средняя яркость всех точек в квадратной области вокруг неё. В оригинальной работе используется следующая формула для расчёта стороны этого квадрата:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/kb/qp/1z/kbqp1zaxngtsxy87lsftecyik5e.png"/></div><br/>
+<h3>Шаг пятый</h3><br/>
+Для каждой опорной точки вычисляется разность её яркости с яркостью её восьми соседей. Для тех точек, у которых не достаёт соседей (верхний и нижний ряды, левая и правая колонка), разница принимается за 0.<br/>
+<br/>
+Далее эти разницы приводятся к пяти градациям:<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<th>x-y</th>
+<th>Значение</th>
+<th>Описание</th>
+</tr>
+<tr>
+<td>-2..2</td>
+<td>0</td>
+<td>Идентичны</td>
+</tr>
+<tr>
+<td>-50..-3</td>
+<td>-1</td>
+<td>Темнее</td>
+</tr>
+<tr>
+<td>&lt; -50</td>
+<td>-2</td>
+<td>Сильно темнее</td>
+</tr>
+<tr>
+<td>3..50</td>
+<td>1</td>
+<td>Ярче</td>
+</tr>
+<tr>
+<td>>50</td>
+<td>2</td>
+<td>Сильно ярче</td>
+</tr>
+</table></div><br/>
+Получается примерно вот такая матрица:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/_r/90/2m/_r902m_saq21syujszytqxyy8dk.png"/></div><br/>
+<h3>Шаг шестой</h3><br/>
+Думаю в пояснениях не нуждается.<br/>
+<br/>
+<h3>А теперь про оптимизации</h3><br/>
+В оригинальной работе справедливо указывается, что из получившейся сигнатуры можно совершенно спокойно выкинуть нулевые значения по краям матрицы, так как они будут идентичны для всех изображений.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/rv/ii/rc/rviircvrfaq65_vrauwnu8kklgq.png"/></div><br/>
+Однако если внимательно посмотреть, то видно, что для любых двух соседей их взаимные градации будут равны по модулю. Следовательно, на самом то деле, можно смело выкинуть четыре дублирующихся значения для каждой опорной точки, сократив размер сигнатуры в два раза (без учёта боковых нулей).<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/de/mb/dc/dembdcwlshe2rflj1_3wacthxmk.png"/></div><br/>
+Очевидно, что при расчете суммы квадратов, для каждого <b>x</b> обязательно будет присутствовать равный по модулю <b>x'</b> и формулу расчета нормы можно записать примерно так (не углубляясь в переиндексацию):<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/nx/c0/t1/nxc0t10_wggho3gyao9gx8cvan8.png"/></div><br/>
+Это справедливо как для числителя, так и для обоих слагаемых знаменателя.<br/>
+<br/>
+Далее в оригинальной работе замечается, что для хранения каждой градации достаточно трёх бит. То есть, например, в Unsigned Long влезет 21 градация. Это довольно большая экономия на размере, но, с другой стороны, добавляет сложности при расчёте суммы квадратов разницы двух сигнатур. Надо сказать, что идея эта меня чем-то очень зацепила и не отпускала пару дней, пока однажды вечером не озарило, как можно и <s>рыбку съесть</s>, место сэкономить и расчёт упростить. Следим за руками.<br/>
+<br/>
+Используем для хранения такую схему, по 4 бита на градацию:<br/>
+<div class="scrollable-table"><table>
+<tr>
+<th>Градация</th>
+<th>Храним как</th>
+</tr>
+<tr>
+<td>-2</td>
+<td>0b1100</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>0b0100</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0b0000</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0b0010</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0b0011</td>
+</tr>
+</table></div><br/>
+Да, в один Unsigned Long влезет всего 16 градаций, против 21, но зато массив разницы двух сигнатур будет вычисляться одним xor'ом и 15 сдвигами вправо с вычислением количества выставленных бит на каждой итерации сдвига. Т.е.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/i5/mt/tc/i5mttccaofi_snscaq_lrvecucc.png"/></div><br/>
+<i>Знак нам безразличен, так как все значения будут возводиться в квадрат.</i><br/>
+<br/>
+Кроме того, если заранее определить пороговое значение дистанции, значения больше которой нам не интересны, то, немного поплясав вокруг формулы расчёта, можно вывести довольно легковесное фильтрующее условие по простому количеству выставленных бит. <br/>
+<br/>
+Более подробно про оптимизацию этого алгоритма, с примерами кода, можно прочитать в <a href="https://habr.com/ru/company/funcorp/blog/451622/">предыдущей статье</a>. Отдельно рекомендую почитать комментарии к ней — хабровчанин <a href="https://habr.com/ru/users/masyaman/" class="user_link">masyaman</a> предложил несколько довольно интересных способов по расчету, в том числе и с упаковкой градаций в трёх битах, с использованием битовой магии.<br/>
+<br/>
+Собственно, всё. Спасибо за внимание. :)</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D1%8B%5D" class="tm-tags-list__link">алгоритмы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B9%5D" class="tm-tags-list__link">сравнение изображений</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/funcorp/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании FUNCORP
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/algorithms/" class="tm-hubs-list__link">
+    Алгоритмы
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/image_processing/" class="tm-hubs-list__link">
+    Обработка изображений
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 59: ↑56 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 59: ↑56 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+53</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">18K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    154
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/funcorp/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/f21/9f1/718/f219f1718c640f7b145969eeaad26e7b.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/funcorp/profile/" class="tm-company-snippet__title">FUNCORP</a> <div class="tm-company-snippet__description">Разработка развлекательных сервисов</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <!----> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/rjhdby/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/330/b5e/fbd/330b5efbd4f629e93730d497b8d865e1.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 237 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    154.2
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Громов Андрей</span> <a href="/ru/users/rjhdby/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @rjhdby
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">И то и сё</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/funcorp/blog/450120/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 25 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2004-12-16T21:00:00.000Z" title="2004-12-17, 00:00">17  декабря  2004</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Кипр
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://fun.co" target="_blank" class="tm-company-basic-info__link">
+      fun.co
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    101–200 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2013-08-28T16:20:29.000Z" title="2013-08-28, 20:20">28  августа  2013</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/Account_is_busy/" class="tm-company-basic-info__link">
+      Account_is_busy
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/funcorp/blog/450120/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/funcorp/blog/450120/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450120":{"id":"450120","timePublished":"2019-05-20T08:39:10+00:00","isCorporative":true,"lang":"ru","titleHtml":"Поиск похожих изображений, разбор одного алгоритма","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fev\u002Ffs\u002Fn_\u002Fevfsn_lnmvjxrekwbkumg6b4l1a.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nПришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nСуществующее решение работает на довольно известной библиотеке, написанной на Python, — \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FEdjoLabs\u002Fimage-match\"\u003EImage Match\u003C\u002Fa\u003E, основанной на работе «AN IMAGE SIGNATURE FOR ANY KIND OF IMAGE» за авторством H. Chi Wong, Marshall Bern и David Goldberg.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nПо ряду причин было принято решение переписать всё на Kotlin, заодно отказавшись от хранения и поиска в ElasticSearch, который требует заметно больше ресурсов, как железных, так и человеческих на поддержку и администрирование, в пользу поиска в локальном in-memory кэше.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nДля понимания того, как оно работает, пришлось с головой погружаться в «эталонный» код на Python, так как оригинальная работа порой не совсем очевидна, а в паре мест заставляет вспомнить мем «как нарисовать сову». Собственно, результатами этого изучения я и хочу поделиться, заодно рассказав про некоторые оптимизации, как по объёму данных, так и по скорости поиска. Может, кому пригодится.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":154.2,"votesCount":237},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"471750","alias":"rjhdby","fullname":"Громов Андрей","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F330\u002Fb5e\u002Ffbd\u002F330b5efbd4f629e93730d497b8d865e1.png","speciality":"И то и сё"},"statistics":{"commentsCount":25,"favoritesCount":154,"readingCount":18412,"score":53,"votesCount":59},"hubs":[{"relatedData":null,"id":"18232","alias":"funcorp","type":"corporative","title":"Блог компании FUNCORP","titleHtml":"Блог компании FUNCORP","isProfiled":false},{"relatedData":null,"id":"8000","alias":"algorithms","type":"collective","title":"Алгоритмы","titleHtml":"Алгоритмы","isProfiled":true},{"relatedData":null,"id":"17175","alias":"image_processing","type":"collective","title":"Обработка изображений","titleHtml":"Обработка изображений","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fev\u002Ffs\u002Fn_\u002Fevfsn_lnmvjxrekwbkumg6b4l1a.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fev\u002Ffs\u002Fn_\u002Fevfsn_lnmvjxrekwbkumg6b4l1a.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСуществующее решение работает на довольно известной библиотеке, написанной на Python, — \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FEdjoLabs\u002Fimage-match\"\u003EImage Match\u003C\u002Fa\u003E, основанной на работе «AN IMAGE SIGNATURE FOR ANY KIND OF IMAGE» за авторством H. Chi Wong, Marshall Bern и David Goldberg.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПо ряду причин было принято решение переписать всё на Kotlin, заодно отказавшись от хранения и поиска в ElasticSearch, который требует заметно больше ресурсов, как железных, так и человеческих на поддержку и администрирование, в пользу поиска в локальном in-memory кэше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля понимания того, как оно работает, пришлось с головой погружаться в «эталонный» код на Python, так как оригинальная работа порой не совсем очевидна, а в паре мест заставляет вспомнить мем «как нарисовать сову». Собственно, результатами этого изучения я и хочу поделиться, заодно рассказав про некоторые оптимизации, как по объёму данных, так и по скорости поиска. Может, кому пригодится.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nDisclaimer: Существует вероятность, что я где-то напортачил, сделал неправильно или не оптимально. Ну что уж, буду рад любой критике и комментариям. :)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак оно работает:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EИзображение преобразуется к 8-битному чёрно-белому формату (одна точка — это один байт в значении 0-255)\u003C\u002Fli\u003E\r\n\u003Cli\u003EИзображение обрезается таким образом, чтобы отбросить 5% накопленной разницы (подробнее ниже) с каждой из четырёх сторон. Например, чёрную рамку вокруг изображения.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыбирается рабочая сетка (по умолчанию 9x9), узлы которой будут служить опорными точками сигнатуры изображения.\u003C\u002Fli\u003E\r\n\u003Cli\u003EДля каждой опорной точки на основании некоторой области вокруг неё рассчитывается её яркость.\u003C\u002Fli\u003E\r\n\u003Cli\u003EДля каждой опорной точки рассчитывается насколько она ярче\u002Fтемнее своих восьми соседей. Используется пять градаций, от -2 (сильно темнее) до 2 (сильно ярче).\u003C\u002Fli\u003E\r\n\u003Cli\u003EВся эта «радость» разворачивается в одномерный массив (вектор) и обзывается сигнатурой изображения.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nСхожесть двух изображений проверяется следующим образом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcl\u002Fyh\u002Fm8\u002Fclyhm8caq35-td519odrgd95msq.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧем меньше d — тем лучше. По факту, d&lt;0.3 — это практически гарантия идентичности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь более подробно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EШаг первый\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДумаю, что про преобразование в grayscale рассказывать особого смысла нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EШаг второй\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДопустим, у нас есть такая картинка:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fih\u002Ffg\u002Fm_\u002Fihfgm_-xiyuerpbpntgakzby9ge.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EВидно, что тут присутствует чёрная рамка по 3 пикселя справа и слева и по 2 пикселя сверху и снизу, которая нам в сравнении совсем не нужна\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nГраница обрезания определяется по такому алгоритму:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EДля каждого столбца рассчитываем сумму абсолютных разностей соседних элементов. \u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EОбрезаем слева и справа такое количество пикселей, вклад которых в общее накопленное различие менее 5%.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fly\u002Fxz\u002Fcx\u002Flyxzcxnjphjgjtrwyg0val2iix8.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nАналогичным же образом поступаем и для столбцов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВажное уточнение: если размеры получившегося изображения недостаточны для осуществления шага 4, то обрезания не делаем!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EШаг третий\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nНу тут совсем всё просто, делим картинку на равные части и выбираем узловые точки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F67\u002Fkh\u002F-n\u002F67kh-n0mxhjpupyqlqo4rjy7-zk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F67\u002Fkh\u002F-n\u002F67kh-n0mxhjpupyqlqo4rjy7-zk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EШаг четвёртый\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЯркость опорной точки рассчитывается как средняя яркость всех точек в квадратной области вокруг неё. В оригинальной работе используется следующая формула для расчёта стороны этого квадрата:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkb\u002Fqp\u002F1z\u002Fkbqp1zaxngtsxy87lsftecyik5e.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EШаг пятый\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДля каждой опорной точки вычисляется разность её яркости с яркостью её восьми соседей. Для тех точек, у которых не достаёт соседей (верхний и нижний ряды, левая и правая колонка), разница принимается за 0.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее эти разницы приводятся к пяти градациям:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003Ex-y\u003C\u002Fth\u003E\r\n\u003Cth\u003EЗначение\u003C\u002Fth\u003E\r\n\u003Cth\u003EОписание\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E-2..2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EИдентичны\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E-50..-3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EТемнее\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E&lt; -50\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСильно темнее\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E3..50\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EЯрче\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E\u003E50\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСильно ярче\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nПолучается примерно вот такая матрица:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_r\u002F90\u002F2m\u002F_r902m_saq21syujszytqxyy8dk.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EШаг шестой\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДумаю в пояснениях не нуждается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EА теперь про оптимизации\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВ оригинальной работе справедливо указывается, что из получившейся сигнатуры можно совершенно спокойно выкинуть нулевые значения по краям матрицы, так как они будут идентичны для всех изображений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Frv\u002Fii\u002Frc\u002Frviircvrfaq65_vrauwnu8kklgq.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nОднако если внимательно посмотреть, то видно, что для любых двух соседей их взаимные градации будут равны по модулю. Следовательно, на самом то деле, можно смело выкинуть четыре дублирующихся значения для каждой опорной точки, сократив размер сигнатуры в два раза (без учёта боковых нулей).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fde\u002Fmb\u002Fdc\u002Fdembdcwlshe2rflj1_3wacthxmk.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nОчевидно, что при расчете суммы квадратов, для каждого \u003Cb\u003Ex\u003C\u002Fb\u003E обязательно будет присутствовать равный по модулю \u003Cb\u003Ex'\u003C\u002Fb\u003E и формулу расчета нормы можно записать примерно так (не углубляясь в переиндексацию):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnx\u002Fc0\u002Ft1\u002Fnxc0t10_wggho3gyao9gx8cvan8.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЭто справедливо как для числителя, так и для обоих слагаемых знаменателя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее в оригинальной работе замечается, что для хранения каждой градации достаточно трёх бит. То есть, например, в Unsigned Long влезет 21 градация. Это довольно большая экономия на размере, но, с другой стороны, добавляет сложности при расчёте суммы квадратов разницы двух сигнатур. Надо сказать, что идея эта меня чем-то очень зацепила и не отпускала пару дней, пока однажды вечером не озарило, как можно и \u003Cs\u003Eрыбку съесть\u003C\u002Fs\u003E, место сэкономить и расчёт упростить. Следим за руками.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИспользуем для хранения такую схему, по 4 бита на градацию:\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003EГрадация\u003C\u002Fth\u003E\r\n\u003Cth\u003EХраним как\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E-2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0b1100\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E-1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0b0100\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E0\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0b0000\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0b0010\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0b0011\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДа, в один Unsigned Long влезет всего 16 градаций, против 21, но зато массив разницы двух сигнатур будет вычисляться одним xor'ом и 15 сдвигами вправо с вычислением количества выставленных бит на каждой итерации сдвига. Т.е.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fi5\u002Fmt\u002Ftc\u002Fi5mttccaofi_snscaq_lrvecucc.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EЗнак нам безразличен, так как все значения будут возводиться в квадрат.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКроме того, если заранее определить пороговое значение дистанции, значения больше которой нам не интересны, то, немного поплясав вокруг формулы расчёта, можно вывести довольно легковесное фильтрующее условие по простому количеству выставленных бит. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБолее подробно про оптимизацию этого алгоритма, с примерами кода, можно прочитать в \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Ffuncorp\u002Fblog\u002F451622\u002F\"\u003Eпредыдущей статье\u003C\u002Fa\u003E. Отдельно рекомендую почитать комментарии к ней — хабровчанин \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fusers\u002Fmasyaman\u002F\" class=\"user_link\"\u003Emasyaman\u003C\u002Fa\u003E предложил несколько довольно интересных способов по расчету, в том числе и с упаковкой градаций в трёх битах, с использованием битовой магии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСобственно, всё. Спасибо за внимание. :)\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"алгоритмы"},{"titleHtml":"сравнение изображений"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450120\u002F5e0720026e2b5ecb5350b9962897b441\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450120\u002F5e0720026e2b5ecb5350b9962897b441\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Ffuncorp\\\u002Fblog\\\u002F450120\\\u002F\"},\"headline\":\"Поиск похожих изображений, разбор одного алгоритма\",\"datePublished\":\"2019-05-20T11:39:10+03:00\",\"dateModified\":\"2019-05-20T14:32:18+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Громов Андрей\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.  Существующее решение работает на довольно известной библиотеке, написанной н...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Ffuncorp\\\u002Fblog\\\u002F450120\\\u002F#post-content-body\",\"about\":[\"c_funcorp\",\"h_algorithms\",\"h_image_processing\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fev\\\u002Ffs\\\u002Fn_\\\u002Fevfsn_lnmvjxrekwbkumg6b4l1a.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcl\\\u002Fyh\\\u002Fm8\\\u002Fclyhm8caq35-td519odrgd95msq.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fih\\\u002Ffg\\\u002Fm_\\\u002Fihfgm_-xiyuerpbpntgakzby9ge.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fly\\\u002Fxz\\\u002Fcx\\\u002Flyxzcxnjphjgjtrwyg0val2iix8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F67\\\u002Fkh\\\u002F-n\\\u002F67kh-n0mxhjpupyqlqo4rjy7-zk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkb\\\u002Fqp\\\u002F1z\\\u002Fkbqp1zaxngtsxy87lsftecyik5e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_r\\\u002F90\\\u002F2m\\\u002F_r902m_saq21syujszytqxyy8dk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Frv\\\u002Fii\\\u002Frc\\\u002Frviircvrfaq65_vrauwnu8kklgq.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fde\\\u002Fmb\\\u002Fdc\\\u002Fdembdcwlshe2rflj1_3wacthxmk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnx\\\u002Fc0\\\u002Ft1\\\u002Fnxc0t10_wggho3gyao9gx8cvan8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fi5\\\u002Fmt\\\u002Ftc\\\u002Fi5mttccaofi_snscaq_lrvecucc.png\"]}","metaDescription":"Пришлось мне недавно решать задачку по оптимизации поиска дубликатов изображений.\r\n\r\nСуществующее решение работает на довольно известной библиотеке, написанной на Python, — Image Match, основанной...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"funcorp":{"alias":"funcorp","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Ff21\u002F9f1\u002F718\u002Ff219f1718c640f7b145969eeaad26e7b.jpg","titleHtml":"FUNCORP","descriptionHtml":"Разработка развлекательных сервисов","relatedData":null,"statistics":{"postsCount":181,"newsCount":2,"vacanciesCount":12,"employeesCount":66,"careerRating":null,"subscribersCount":34811,"rating":270.57,"invest":null},"foundationDate":{"year":"2004","month":"12","day":"17"},"location":{"city":{"id":"185290","title":"Лимассол"},"region":{"id":"487","title":"Government controlled area"},"country":{"id":"96","title":"Кипр"}},"siteUrl":"http:\u002F\u002Ffun.co","staffNumber":"101–200 человек","registrationDate":"2013-08-28T16:20:29+00:00","representativeUser":{"alias":"Account_is_busy","fullname":null},"contacts":[],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-75839671-2"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002Fc94\u002Fe51\u002Ffca\u002Fc94e51fca23cf417547a7af7b038e8d1.jpg","linkUrl":"https:\u002F\u002Ffun.co\u002F","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"FUNCORP, Лимассол - Разработка развлекательных сервисов с 17 декабря 2004 г.","title":"FUNCORP, Лимассол - Разработка развлекательных сервисов с 17 декабря 2004 г.","keywords":["Разработка мобильных приложений","Разработка под Android","Kotlin","Тестирование мобильных приложений","Программирование"],"descriptionHtml":"181 статья от авторов компании FUNCORP","description":"181 статья от авторов компании FUNCORP"},"aDeskSettings":null,"careerAlias":"funcorp","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,13 +1,16 @@
 import requests
+import concurrent.futures as pool
 
-cnt = 0
-for i in range(450000, 450100):
-    response = requests.get('https://habr.com/ru/post/{0}/'.format(i))
+def get_test(page_index):
+    response = requests.get(f'https://habr.com/ru/post/{450000+page_index}/')
     if response.status_code == 200:
         response.encoding = 'utf-8'
 
-        file = open('tests_source/test{0}.html'.format(cnt), 'w')
+        file = open(f'tests_source/test{page_index}.html', 'w')
         file.write(response.text)
         file.close()
 
-        cnt += 1
+
+executor = pool.ThreadPoolExecutor(max_workers=20)
+for i in range(1000):
+    executor.submit(get_test, i)

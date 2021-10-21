@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Что нового в Node 12 / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450292\/"},"headline":"Что нового в Node 12","datePublished":"2019-05-01T23:34:20+03:00","dateModified":"2019-05-02T16:28:07+03:00","author":{"@type":"Person","name":"Андрей Апанасик Владимирович"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022. В новой версии много вкусностей и ул...","url":"https:\/\/habr.com\/ru\/post\/450292\/#post-content-body","about":["h_javascript","h_nodejs","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/vp\/xy\/rg\/vpxyrgt8cudhdd1ko70titoavby.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/dd9\/147\/93d\/dd914793da2287196d03f9177e24ba1e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/cf0\/ef2\/fb3\/cf0ef2fb3f971f89e41d6e83217ad7f3.jpg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Что нового в Node 12" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Что нового в Node 12" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Что нового в Node 12" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.
+В новой версии много вкусностей и улучшений рантайма. Помимо этого,..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.
+В новой версии много вкусностей и улучшений рантайма. Помимо этого,..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.
+В новой версии много вкусностей и улучшений рантайма. Помимо этого,..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.
+В новой версии много вкусностей и улучшений рантайма. Помимо этого,..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.
+В новой версии много вкусностей и улучшений рантайма. Помимо этого,..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450292/05b7efb512e9b7c4388c876364396e56/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450292/05b7efb512e9b7c4388c876364396e56/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450292/05b7efb512e9b7c4388c876364396e56/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450292/05b7efb512e9b7c4388c876364396e56/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450292/05b7efb512e9b7c4388c876364396e56/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450292" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T20:34:20.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450292/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450292/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450292/05b7efb512e9b7c4388c876364396e56/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Suvitruf/" title="Suvitruf" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/78c/a06/c52/78ca06c52b5e82548aa9083df9d104ea.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Suvitruf/" class="tm-user-info__username">
+      Suvitruf
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T20:34:20.000Z" title="2019-05-01, 23:34">1  мая  2019 в 23:34</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Что нового в Node 12</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/javascript/" class="tm-article-snippet__hubs-item-link"><span>JavaScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/nodejs/" class="tm-article-snippet__hubs-item-link"><span>Node.JS</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>Недавно <a href="https://medium.com/@nodejs/introducing-node-js-12-76c41a1b3f3f">вышла Node 12</a> с кодовым именем <code>Erbium</code>, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.</p><br/>
+<p>В новой версии <a href="https://suvitruf.ru/2019/04/30/5583/whats-new-in-node-12/">много вкусностей</a> и улучшений рантайма. Помимо этого, учитывая, что под капотом V8, нода также получит все улучшения движка.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/vp/xy/rg/vpxyrgt8cudhdd1ko70titoavby.png"/><br/>
+<a name="habracut"></a><br/>
+<h2>Поддержка <code>import/export</code></h2><br/>
+<p>Нода входит в <a href="https://github.com/nodejs/modules/blob/master/doc/plan-for-new-modules-implementation.md#phase-3-path-to-stability-removing---experimental-modules-flag">3 фазу на пути к ECMAScript Modules</a>. Изначально эта фича была доступна лишь с флагом <code>--experimental-modules</code>. К моменту перехода Node на LTS планируется убрать необходимость использования этого флага.</p><br/>
+<p>Синтаксис с использованием <code>import/export</code> стал предпочтительным при работу с модулями у js разработчиков с момента стандартизации в ES6, и команда, стоящая за Node, старательно работала над нативной поддержкой. Экспериментально эта возможность была доступна с Node 8.0 с 0 фазы. Текущий релиз — это большой шаг в этом направлении. Большинство популярных браузеров уже <a href="https://caniuse.com/#feat=es6-module">поддерживают эту фичу</a> с помощью <code>&lt;script type="module"></code>.</p><br/>
+<p>С 3 фазы будет поддержка трёх вариантов <code>import</code> из ES моделуей:</p><br/>
+<pre><code class="javascript">// экспорт по умолчанию
+import module from 'module'
+
+// именованный экспорт
+import { namedExport } from 'module'
+
+// экспорт всего пространства имён
+import * as module from 'module'</code></pre><br/>
+<p>Ванильные модули можно экспортировать только дефолтным способом:</p><br/>
+<pre><code class="javascript">
+import module from 'cjs-library'
+</code></pre><br/>
+<p>Можно использовать <code>import()</code> для загрузки в рантайме. <code>import()</code> возвращает <code>Promise</code> и работает как с ES моделями, так и с CommonJS библиотеками.</p><br/>
+<h2>V8</h2><br/>
+<p>Node 12 будет первоначально работать на <a href="https://v8.dev/blog/v8-release-74">V8 7.4</a> и в конечном итоге обновится до 7.6. Команда V8 согласилась предоставить ABI (Application Binary Interface). Заметными улучшениями в V8 7.4 являются улучшения производительности для более быстрого исполнения JavaScript, лучшего управления памятью и расширенной поддержки синтаксиса ECMAScript.</p><br/>
+<ul>
+<li><a href="https://docs.google.com/document/d/13Sy_kBIJGP0XT34V1CV3nkWya4TwYx9L3Yv45LdGB6Q/edit">Async stack traces</a>.</li>
+<li><a href="https://v8.dev/blog/v8-release-74#faster-calls-with-arguments-mismatch">Ускоренный вызов при несоответствии числа аргументов</a>.</li>
+<li><a href="https://v8.dev/blog/v8-release-72#javascript-parsing">Ускоренный парсинг</a>.</li>
+<li><a href="https://v8.dev/blog/v8-release-73#faster-await"><code>Улучшена работа с await</code></a>.</li>
+</ul><br/>
+<h3>Async stack traces</h3><br/>
+<p>Давайте рассмотрим этот код:</p><br/>
+<pre><code class="javascript">
+async function testAsyncStacktrace() {
+    await killme();
+    return 42;
+}
+
+async function killme() {
+    await Promise.resolve();
+    throw new Error('#Feelsbadman');
+}
+
+testAsyncStacktrace().catch(error => console.log(error.stack));
+</code></pre><br/>
+<p>На более старых версиях вы получите примерно такой стектрейс:</p><br/>
+<pre><code class="plaintext">Error: #Feelsbadman
+    at killme (test.js:8:11)
+    at process._tickCallback (internal/process/next_tick.js:68:7)
+    at Function.Module.runMain (internal/modules/cjs/loader.js:721:11)
+    at startup (internal/bootstrap/node.js:228:19)
+    at bootstrapNodeJSCore (internal/bootstrap/node.js:576:3)</code></pre><br/>
+<p>Как видно, в сообщении вообще нигде не упоминается <code>testAsyncStacktrace</code>. А теперь флаг <code>--async-stack-traces</code> включен по умолчанию, и лог будет выглядеть так:</p><br/>
+<pre><code class="plaintext">Error: #Feelsbadman
+    at killme (test.js:8:11)
+    at async testAsyncStacktrace (test.js:2:5)
+</code></pre><br/>
+<h3>Ускоренный вызов при несоответствии числа аргументов</h3><br/>
+<p>В JavaScript вполне допустимо вызывать функции с меньшим/большим числом аргументов (т.е. передавать меньше или больше объявленных формальных параметров). В первом случае это <em>under-application</em>, а во втором <em>over-application</em>. В случае недостаточным числом аргументов параметры будут иметь значение <code>undefined</code>, тогда как в случае с большим числом параметров они просто игнорируются.</p><br/>
+<p>Однако функции JavaScript всё еще могут получить фактические параметры с помощью объекта <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments"><code>arguments</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters">rest parameters</a> или даже с использованием нестандартизованного <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/arguments">Function.prototype.arguments</a> в <a href="https://developer.mozilla.org/en-US/docs/Glossary/Sloppy_mode">sloppy mode</a> функциях. В результате, движки JavaScript должны предоставлять способ получения фактических параметров. В V8 это делается с помощью методики <em>arguments adaption</em>. К сожалению, подобные методы сказываюся на производительности.</p><br/>
+<p>В некоторых сценариях V8 полностью пропускает <em>arguments adaption</em>, сокращая накладные расходы на вызовы до 60%.</p><br/>
+<a href="https://suvitruf.ru/wp-content/uploads/2019/04/argument-mismatch-performance.png"><img src="/img/image-loader.svg" height="280" data-src="https://habrastorage.org/getpro/habr/post_images/dd9/147/93d/dd914793da2287196d03f9177e24ba1e.png" data-width="577"/></a><br/>
+<p>Подробности можно узнать в <a href="https://bit.ly/v8-faster-calls-with-arguments-mismatch">документе</a>.</p><br/>
+<h3>Ускоренный парсинг</h3><br/>
+<p>В Chrome достаточно большие скрипты парсятся потоково в рабочих потоках во время их загрузки. В V8 7.4 исправили проблему с производительностью декодирования UTF-8, что привело к ускорению на 8%.</p><br/>
+<a href="https://suvitruf.ru/wp-content/uploads/2019/04/parser-performance@2x.jpg"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/cf0/ef2/fb3/cf0ef2fb3f971f89e41d6e83217ad7f3.jpg" width="625" height="143" data-src="https://habrastorage.org/getpro/habr/post_images/cf0/ef2/fb3/cf0ef2fb3f971f89e41d6e83217ad7f3.jpg" data-blurred="true"/></a><br/>
+<p>Каждое падение на диаграмме представляет собой одно из улучшений производительности в потоковом анализаторе.</p><br/>
+<h3>Улучшена работа <code>await</code></h3><br/>
+<p>Вместе с флагом <code>--async-stack-traces</code> теперь по дефолту включен флаг <code>--harmony-await-optimization</code>. Подробности <a href="https://v8.dev/blog/fast-async#await-under-the-hood">тут</a>.</p><br/>
+<h2>Приватные поля классов</h2><br/>
+<p>Доступная в V8 возможность использовать приватные поля перекочевала и в ноду. Такие поля недоступны вне класса. Для создания оных нужно перед переменной указать <code>#</code>.</p><br/>
+<pre><code class="javascript">
+class HelloThere {
+  #hidden = 'Hidden';
+
+  get hidden() {
+    return this.#hidden;
+  }
+
+  set hidden(txt) {
+    this.#hidden = txt;
+  }
+
+  hi() {
+    console.log(`Hello, ${this.#hidden}`);
+  }
+}
+</code></pre><br/>
+<p>При попытке обратиться к <code>#hidden</code> извне получите синтаксическую ошибку.</p><br/>
+<pre><code class="javascript">
+const hello = new HelloThere();
+hello.#hidden = 'Visible'; // -> SyntaxError
+console.log(hello.#hidden); // -> SyntaxError
+</code></pre><br/>
+<h2>Быстрый старт</h2><br/>
+<p>Node 12 будет использовать кеш для встроенных библиотек перед сборкой и встраивать как бинарники. За счёт использования этого кеша основным потоком время старта сократится на 30%.</p><br/>
+<h2>TLS и безопасность</h2><br/>
+<p>Нода теперь поддерживает TLS 1.3, предлагающий повышенную безопасность и уменьшающий задержку. TLS 1.3 сильно изменил протокол и активно интегрируется в сеть. Благодаря внедрению TLS 1.3 повысится конфиденциальность данных пользователей, а также ускорится обработка запросов за счёт снижения времени на handshake в HTTPS. Кроме того, TLS 1.0 и 1.1 отключены по умолчанию, а из <code>crypto</code> убрали deprecated методы.</p><br/>
+<h2>Динамичный размер хипа</h2><br/>
+<p>Ранее использовался дефолтный размер кучи V8, составляющий 700МБ (32-разрядные системы) или 1400МБ (64-разрядные системы). Теперь нода будет определять размеры кучи на основе доступной памяти, чтобы оптимизировать используемые ресурсы машины.</p><br/>
+<h2>Возможность дампить хип</h2><br/>
+<p>Node 12 предоставляет возможность дампить кучи, облегчая обнаружение проблем с памятью. Подробности можно посмотреть <a href="https://github.com/nodejs/node/pull/27133">тут</a> и <a href="https://github.com/nodejs/node/pull/26501">тут</a>.</p><br/>
+<h2>Экспериментальные диагностические репорты</h2><br/>
+<p>Нода предлагает более мощный инструменты по диагностике проблем (производительности, загрузка ЦП, памяти, сбои и т.д) прям внутри приложений, предоставляя экспериментальную фичу по отчётам.</p><br/>
+<h2>Улучшения при работе с нативными модулями</h2><br/>
+<p>Node 12 продолжает тренд по упрощению работы с <a href="https://github.com/nodejs/abi-stable-node">N-API</a>. В этой версии улучшена поддержка, в частности при работе с worker threads.</p><br/>
+<h2>Заключение</h2><br/>
+<p>В Node 12 много улучшений. Полный CHANGELOG можно посмотреть на <a href="https://github.com/nodejs/node/blob/master/doc/changelogs/CHANGELOG_V12.md">Гитхабе</a> и на самом <a href="https://nodejs.org/en/blog/release/v12.0.0/">сайте</a>.</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnodejs%5D" class="tm-tags-list__link">nodejs</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnode%5D" class="tm-tags-list__link">node</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnode%2012%5D" class="tm-tags-list__link">node 12</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bimport.xml%5D" class="tm-tags-list__link">import.xml</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/javascript/" class="tm-hubs-list__link">
+    JavaScript
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/nodejs/" class="tm-hubs-list__link">
+    Node.JS
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 44: ↑40 и ↓4</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 44: ↑40 и ↓4" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+36</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">22K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    65
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Suvitruf/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/78c/a06/c52/78ca06c52b5e82548aa9083df9d104ea.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 265 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    64
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">30.5</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Андрей Апанасик Владимирович</span> <a href="/ru/users/Suvitruf/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Suvitruf
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Backend (node.js/ts), немного gamedev (unity)</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://suvitruf.ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://twitter.com/Suvitruf" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/gamedev_suffering" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://telegram.me/gamedev_suffering" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450292/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 28 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450292/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450292/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450292":{"id":"450292","timePublished":"2019-05-01T20:34:20+00:00","isCorporative":false,"lang":"ru","titleHtml":"Что нового в Node 12","leadData":{"textHtml":"\u003Cp\u003EНедавно \u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@nodejs\u002Fintroducing-node-js-12-76c41a1b3f3f\"\u003Eвышла Node 12\u003C\u002Fa\u003E с кодовым именем \u003Ccode\u003EErbium\u003C\u002Fcode\u003E, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВ новой версии \u003Ca href=\"https:\u002F\u002Fsuvitruf.ru\u002F2019\u002F04\u002F30\u002F5583\u002Fwhats-new-in-node-12\u002F\"\u003Eмного вкусностей\u003C\u002Fa\u003E и улучшений рантайма. Помимо этого, учитывая, что под капотом V8, нода также получит все улучшения движка.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvp\u002Fxy\u002Frg\u002Fvpxyrgt8cudhdd1ko70titoavby.png\"\u003E\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":64,"votesCount":265},"rating":30.5,"relatedData":null,"contacts":[{"title":"Сайт","url":"https:\u002F\u002Fsuvitruf.ru","value":"https:\u002F\u002Fsuvitruf.ru"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002FSuvitruf","value":"Suvitruf"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fgamedev_suffering","value":"gamedev_suffering"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fgamedev_suffering","value":"gamedev_suffering"}],"authorContacts":[{"title":"Сайт","url":"https:\u002F\u002Fsuvitruf.ru","value":"https:\u002F\u002Fsuvitruf.ru"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002FSuvitruf","value":"Suvitruf"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fgamedev_suffering","value":"gamedev_suffering"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fgamedev_suffering","value":"gamedev_suffering"}],"paymentDetails":{"paymentYandexMoney":"41001674710054","paymentPayPalMe":"suvitruf","paymentWebmoney":null},"id":"180763","alias":"Suvitruf","fullname":"Андрей Апанасик Владимирович","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F78c\u002Fa06\u002Fc52\u002F78ca06c52b5e82548aa9083df9d104ea.jpg","speciality":"Backend (node.js\u002Fts), немного gamedev (unity)"},"statistics":{"commentsCount":28,"favoritesCount":65,"readingCount":22053,"score":36,"votesCount":44},"hubs":[{"relatedData":null,"id":"357","alias":"javascript","type":"collective","title":"JavaScript","titleHtml":"JavaScript","isProfiled":true},{"relatedData":null,"id":"17110","alias":"nodejs","type":"collective","title":"Node.JS","titleHtml":"Node.JS","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EНедавно \u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@nodejs\u002Fintroducing-node-js-12-76c41a1b3f3f\"\u003Eвышла Node 12\u003C\u002Fa\u003E с кодовым именем \u003Ccode\u003EErbium\u003C\u002Fcode\u003E, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ новой версии \u003Ca href=\"https:\u002F\u002Fsuvitruf.ru\u002F2019\u002F04\u002F30\u002F5583\u002Fwhats-new-in-node-12\u002F\"\u003Eмного вкусностей\u003C\u002Fa\u003E и улучшений рантайма. Помимо этого, учитывая, что под капотом V8, нода также получит все улучшения движка.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvp\u002Fxy\u002Frg\u002Fvpxyrgt8cudhdd1ko70titoavby.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПоддержка \u003Ccode\u003Eimport\u002Fexport\u003C\u002Fcode\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНода входит в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fnodejs\u002Fmodules\u002Fblob\u002Fmaster\u002Fdoc\u002Fplan-for-new-modules-implementation.md#phase-3-path-to-stability-removing---experimental-modules-flag\"\u003E3 фазу на пути к ECMAScript Modules\u003C\u002Fa\u003E. Изначально эта фича была доступна лишь с флагом \u003Ccode\u003E--experimental-modules\u003C\u002Fcode\u003E. К моменту перехода Node на LTS планируется убрать необходимость использования этого флага.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСинтаксис с использованием \u003Ccode\u003Eimport\u002Fexport\u003C\u002Fcode\u003E стал предпочтительным при работу с модулями у js разработчиков с момента стандартизации в ES6, и команда, стоящая за Node, старательно работала над нативной поддержкой. Экспериментально эта возможность была доступна с Node 8.0 с 0 фазы. Текущий релиз — это большой шаг в этом направлении. Большинство популярных браузеров уже \u003Ca href=\"https:\u002F\u002Fcaniuse.com\u002F#feat=es6-module\"\u003Eподдерживают эту фичу\u003C\u002Fa\u003E с помощью \u003Ccode\u003E&lt;script type=\"module\"\u003E\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EС 3 фазы будет поддержка трёх вариантов \u003Ccode\u003Eimport\u003C\u002Fcode\u003E из ES моделуей:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u002F\u002F экспорт по умолчанию\nimport module from 'module'\n\n\u002F\u002F именованный экспорт\nimport { namedExport } from 'module'\n\n\u002F\u002F экспорт всего пространства имён\nimport * as module from 'module'\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВанильные модули можно экспортировать только дефолтным способом:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\nimport module from 'cjs-library'\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМожно использовать \u003Ccode\u003Eimport()\u003C\u002Fcode\u003E для загрузки в рантайме. \u003Ccode\u003Eimport()\u003C\u002Fcode\u003E возвращает \u003Ccode\u003EPromise\u003C\u002Fcode\u003E и работает как с ES моделями, так и с CommonJS библиотеками.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EV8\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ENode 12 будет первоначально работать на \u003Ca href=\"https:\u002F\u002Fv8.dev\u002Fblog\u002Fv8-release-74\"\u003EV8 7.4\u003C\u002Fa\u003E и в конечном итоге обновится до 7.6. Команда V8 согласилась предоставить ABI (Application Binary Interface). Заметными улучшениями в V8 7.4 являются улучшения производительности для более быстрого исполнения JavaScript, лучшего управления памятью и расширенной поддержки синтаксиса ECMAScript.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fdocs.google.com\u002Fdocument\u002Fd\u002F13Sy_kBIJGP0XT34V1CV3nkWya4TwYx9L3Yv45LdGB6Q\u002Fedit\"\u003EAsync stack traces\u003C\u002Fa\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fv8.dev\u002Fblog\u002Fv8-release-74#faster-calls-with-arguments-mismatch\"\u003EУскоренный вызов при несоответствии числа аргументов\u003C\u002Fa\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fv8.dev\u002Fblog\u002Fv8-release-72#javascript-parsing\"\u003EУскоренный парсинг\u003C\u002Fa\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fv8.dev\u002Fblog\u002Fv8-release-73#faster-await\"\u003E\u003Ccode\u003EУлучшена работа с await\u003C\u002Fcode\u003E\u003C\u002Fa\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EAsync stack traces\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДавайте рассмотрим этот код:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\nasync function testAsyncStacktrace() {\n    await killme();\n    return 42;\n}\n\nasync function killme() {\n    await Promise.resolve();\n    throw new Error('#Feelsbadman');\n}\n\ntestAsyncStacktrace().catch(error =\u003E console.log(error.stack));\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа более старых версиях вы получите примерно такой стектрейс:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003EError: #Feelsbadman\n    at killme (test.js:8:11)\n    at process._tickCallback (internal\u002Fprocess\u002Fnext_tick.js:68:7)\n    at Function.Module.runMain (internal\u002Fmodules\u002Fcjs\u002Floader.js:721:11)\n    at startup (internal\u002Fbootstrap\u002Fnode.js:228:19)\n    at bootstrapNodeJSCore (internal\u002Fbootstrap\u002Fnode.js:576:3)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКак видно, в сообщении вообще нигде не упоминается \u003Ccode\u003EtestAsyncStacktrace\u003C\u002Fcode\u003E. А теперь флаг \u003Ccode\u003E--async-stack-traces\u003C\u002Fcode\u003E включен по умолчанию, и лог будет выглядеть так:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003EError: #Feelsbadman\n    at killme (test.js:8:11)\n    at async testAsyncStacktrace (test.js:2:5)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EУскоренный вызов при несоответствии числа аргументов\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ JavaScript вполне допустимо вызывать функции с меньшим\u002Fбольшим числом аргументов (т.е. передавать меньше или больше объявленных формальных параметров). В первом случае это \u003Cem\u003Eunder-application\u003C\u002Fem\u003E, а во втором \u003Cem\u003Eover-application\u003C\u002Fem\u003E. В случае недостаточным числом аргументов параметры будут иметь значение \u003Ccode\u003Eundefined\u003C\u002Fcode\u003E, тогда как в случае с большим числом параметров они просто игнорируются.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОднако функции JavaScript всё еще могут получить фактические параметры с помощью объекта \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FWeb\u002FJavaScript\u002FReference\u002FFunctions\u002Farguments\"\u003E\u003Ccode\u003Earguments\u003C\u002Fcode\u003E\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FWeb\u002FJavaScript\u002FReference\u002FFunctions\u002Frest_parameters\"\u003Erest parameters\u003C\u002Fa\u003E или даже с использованием нестандартизованного \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FWeb\u002FJavaScript\u002FReference\u002FGlobal_Objects\u002FFunction\u002Farguments\"\u003EFunction.prototype.arguments\u003C\u002Fa\u003E в \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FGlossary\u002FSloppy_mode\"\u003Esloppy mode\u003C\u002Fa\u003E функциях. В результате, движки JavaScript должны предоставлять способ получения фактических параметров. В V8 это делается с помощью методики \u003Cem\u003Earguments adaption\u003C\u002Fem\u003E. К сожалению, подобные методы сказываюся на производительности.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ некоторых сценариях V8 полностью пропускает \u003Cem\u003Earguments adaption\u003C\u002Fem\u003E, сокращая накладные расходы на вызовы до 60%.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fsuvitruf.ru\u002Fwp-content\u002Fuploads\u002F2019\u002F04\u002Fargument-mismatch-performance.png\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"280\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fdd9\u002F147\u002F93d\u002Fdd914793da2287196d03f9177e24ba1e.png\" data-width=\"577\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПодробности можно узнать в \u003Ca href=\"https:\u002F\u002Fbit.ly\u002Fv8-faster-calls-with-arguments-mismatch\"\u003Eдокументе\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EУскоренный парсинг\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ Chrome достаточно большие скрипты парсятся потоково в рабочих потоках во время их загрузки. В V8 7.4 исправили проблему с производительностью декодирования UTF-8, что привело к ускорению на 8%.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fsuvitruf.ru\u002Fwp-content\u002Fuploads\u002F2019\u002F04\u002Fparser-performance@2x.jpg\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcf0\u002Fef2\u002Ffb3\u002Fcf0ef2fb3f971f89e41d6e83217ad7f3.jpg\" width=\"625\" height=\"143\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcf0\u002Fef2\u002Ffb3\u002Fcf0ef2fb3f971f89e41d6e83217ad7f3.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКаждое падение на диаграмме представляет собой одно из улучшений производительности в потоковом анализаторе.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EУлучшена работа \u003Ccode\u003Eawait\u003C\u002Fcode\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВместе с флагом \u003Ccode\u003E--async-stack-traces\u003C\u002Fcode\u003E теперь по дефолту включен флаг \u003Ccode\u003E--harmony-await-optimization\u003C\u002Fcode\u003E. Подробности \u003Ca href=\"https:\u002F\u002Fv8.dev\u002Fblog\u002Ffast-async#await-under-the-hood\"\u003Eтут\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПриватные поля классов\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДоступная в V8 возможность использовать приватные поля перекочевала и в ноду. Такие поля недоступны вне класса. Для создания оных нужно перед переменной указать \u003Ccode\u003E#\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\nclass HelloThere {\n  #hidden = 'Hidden';\n\n  get hidden() {\n    return this.#hidden;\n  }\n\n  set hidden(txt) {\n    this.#hidden = txt;\n  }\n\n  hi() {\n    console.log(`Hello, ${this.#hidden}`);\n  }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПри попытке обратиться к \u003Ccode\u003E#hidden\u003C\u002Fcode\u003E извне получите синтаксическую ошибку.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\nconst hello = new HelloThere();\nhello.#hidden = 'Visible'; \u002F\u002F -\u003E SyntaxError\nconsole.log(hello.#hidden); \u002F\u002F -\u003E SyntaxError\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EБыстрый старт\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ENode 12 будет использовать кеш для встроенных библиотек перед сборкой и встраивать как бинарники. За счёт использования этого кеша основным потоком время старта сократится на 30%.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ETLS и безопасность\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНода теперь поддерживает TLS 1.3, предлагающий повышенную безопасность и уменьшающий задержку. TLS 1.3 сильно изменил протокол и активно интегрируется в сеть. Благодаря внедрению TLS 1.3 повысится конфиденциальность данных пользователей, а также ускорится обработка запросов за счёт снижения времени на handshake в HTTPS. Кроме того, TLS 1.0 и 1.1 отключены по умолчанию, а из \u003Ccode\u003Ecrypto\u003C\u002Fcode\u003E убрали deprecated методы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EДинамичный размер хипа\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРанее использовался дефолтный размер кучи V8, составляющий 700МБ (32-разрядные системы) или 1400МБ (64-разрядные системы). Теперь нода будет определять размеры кучи на основе доступной памяти, чтобы оптимизировать используемые ресурсы машины.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EВозможность дампить хип\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ENode 12 предоставляет возможность дампить кучи, облегчая обнаружение проблем с памятью. Подробности можно посмотреть \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fnodejs\u002Fnode\u002Fpull\u002F27133\"\u003Eтут\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fnodejs\u002Fnode\u002Fpull\u002F26501\"\u003Eтут\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЭкспериментальные диагностические репорты\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНода предлагает более мощный инструменты по диагностике проблем (производительности, загрузка ЦП, памяти, сбои и т.д) прям внутри приложений, предоставляя экспериментальную фичу по отчётам.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EУлучшения при работе с нативными модулями\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ENode 12 продолжает тренд по упрощению работы с \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fnodejs\u002Fabi-stable-node\"\u003EN-API\u003C\u002Fa\u003E. В этой версии улучшена поддержка, в частности при работе с worker threads.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЗаключение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ Node 12 много улучшений. Полный CHANGELOG можно посмотреть на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fnodejs\u002Fnode\u002Fblob\u002Fmaster\u002Fdoc\u002Fchangelogs\u002FCHANGELOG_V12.md\"\u003EГитхабе\u003C\u002Fa\u003E и на самом \u003Ca href=\"https:\u002F\u002Fnodejs.org\u002Fen\u002Fblog\u002Frelease\u002Fv12.0.0\u002F\"\u003Eсайте\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"nodejs"},{"titleHtml":"node"},{"titleHtml":"node 12"},{"titleHtml":"import.xml"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450292\u002F05b7efb512e9b7c4388c876364396e56\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450292\u002F05b7efb512e9b7c4388c876364396e56\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450292\\\u002F\"},\"headline\":\"Что нового в Node 12\",\"datePublished\":\"2019-05-01T23:34:20+03:00\",\"dateModified\":\"2019-05-02T16:28:07+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Андрей Апанасик Владимирович\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022. В новой версии много вкусностей и ул...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450292\\\u002F#post-content-body\",\"about\":[\"h_javascript\",\"h_nodejs\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fvp\\\u002Fxy\\\u002Frg\\\u002Fvpxyrgt8cudhdd1ko70titoavby.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fdd9\\\u002F147\\\u002F93d\\\u002Fdd914793da2287196d03f9177e24ba1e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fcf0\\\u002Fef2\\\u002Ffb3\\\u002Fcf0ef2fb3f971f89e41d6e83217ad7f3.jpg\"]}","metaDescription":"Недавно вышла Node 12 с кодовым именем Erbium, долгосрочная поддержка которой (LTS) продлится с октября 2019 по апрель 2022.\r\nВ новой версии много вкусностей и улучшений рантайма. Помимо этого,...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"javascript,nodejs"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

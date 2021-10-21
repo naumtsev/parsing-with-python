@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Интерфейсы как абстрактные типы данных в Go / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450386\/"},"headline":"Интерфейсы как абстрактные типы данных в Go","datePublished":"2019-05-03T13:23:54+03:00","dateModified":"2019-05-03T19:37:40+03:00","author":{"@type":"Person","name":"Anton"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются...","url":"https:\/\/habr.com\/ru\/post\/450386\/#post-content-body","about":["h_analysis_design","h_complete_code","h_oop","h_go","f_develop"],"image":["https:\/\/habr.com\/share\/publication\/450386\/1f6a7877c61e855835584906b1608f38\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Интерфейсы как абстрактные типы данных в Go" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Интерфейсы как абстрактные типы данных в Go" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Интерфейсы как абстрактные типы данных в Go" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того,..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того,..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того,..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того,..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того,..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450386/1f6a7877c61e855835584906b1608f38/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450386/1f6a7877c61e855835584906b1608f38/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450386/1f6a7877c61e855835584906b1608f38/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450386/1f6a7877c61e855835584906b1608f38/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450386/1f6a7877c61e855835584906b1608f38/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450386" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-03T10:23:54.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450386/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450386/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450386/1f6a7877c61e855835584906b1608f38/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/DexterHD/" title="DexterHD" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/de7/908/3dd/de79083ddb03b9d3e97e3b1710a1d4f3.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/DexterHD/" class="tm-user-info__username">
+      DexterHD
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-03T10:23:54.000Z" title="2019-05-03, 13:23">3  мая  2019 в 13:23</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Интерфейсы как абстрактные типы данных в Go</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/analysis_design/" class="tm-article-snippet__hubs-item-link"><span>Анализ и проектирование систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/complete_code/" class="tm-article-snippet__hubs-item-link"><span>Совершенный код</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/oop/" class="tm-article-snippet__hubs-item-link"><span>ООП</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/go/" class="tm-article-snippet__hubs-item-link"><span>Go</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Не так давно коллега ретвитнул отличный пост <a href="https://blog.chewxy.com/2018/03/18/golang-interfaces/">How to Use Go Interfaces</a>. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того, как их все-таки стоит использовать.<br/>
+<br/>
+В статье, упомянутой выше, автор приводит интерфейс из пакета <b>sort</b> стандартной библиотеки, как пример абстрактного типа данных. Однако, мне кажется, что такой пример не особо хорошо раскрывает идею, когда речь заходит о реальных приложениях. Особенно о приложениях, реализующих логику какой-нибудь бизнес области или решающих проблемы реального мира.<br/>
+<br/>
+Также при использовании интерфейсов в Go зачастую возникают споры об оверинжиниринге. А еще бывает так, что, после чтения подобного рода рекомендаций, люди мало того что прекращают злоупотреблять интерфейсами, они пытаются практически полностью от них отказаться, тем самым лишая себя использования одной из сильнейших концепций программирования в принципе (и одной из сильных сторон языка Go в частности). На тему типичных ошибок в Go кстати, есть <a href="https://www.youtube.com/watch?v=29LLRKIL_TI">неплохой доклад</a> от Stive Francia из Docker. Там в частности несколько раз упоминаются интерфейсы.<br/>
+<br/>
+В общем, я согласен с автором статьи. Тем не менее, мне показалось, что тема использования интерфейсов, как абстрактных типов данных в ней раскрыта довольно поверхностно, поэтому мне хотелось бы немного развить ее и поразмышлять на эту тему вместе с вами.<br/>
+<a name="habracut"></a><br/>
+<h3>Обратимся к оригиналу</h3><br/>
+В начале статьи автор приводит небольшой пример кода, с помощью которого указывает на ошибки при использовании интерфейсов, которые частенько совершают разработчики. Вот этот код.<br/>
+<br/>
+<pre><code class="go">package animal
+
+type Animal interface {
+	Speaks() string
+}
+
+// implementation of Animal
+type Dog struct{}
+
+func (a Dog) Speaks() string { return "woof" }
+</code></pre><br/>
+<pre><code class="go">package circus
+
+import "animal"
+
+func Perform(a animal.Animal) string { return a.Speaks() }
+</code></pre><br/>
+Автор называет этот подход <i>“Java-style interface usage”</i>. Когда мы объявляем интерфейс, потом реализуем единственный тип и методы, которые будут удовлетворять данному интерфейсу. Я согласен с автором, подход так себе.Более идиоматический код в оригинальной статье выглядит следующим образом:<br/>
+<br/>
+<pre><code class="go">package animal
+
+// implementation of Animal
+type Dog struct{}
+
+func (a Dog) Speaks() string { return "woof" }
+</code></pre><br/>
+<pre><code class="go">package circus
+
+type Speaker interface {
+	Speaks() string
+}
+
+func Perform(a Speaker) string { return a.Speaks() }
+</code></pre><br/>
+Здесь в целом все ясно и понятно. Основная идея: <i>“Сперва объявляйте типы, и только потом объявляйте интерфейсы в точке использования”</i>. Это правильно. Но давайте теперь немного разовьем идею применительно к тому, как можно использовать интерфейсы в качестве абстрактных типов данных. Автор к слову указывает на то, что в такой ситуации нет ничего плохого в том, объявить интерфейс <i>“авансом”</i>. Работать будем с тем же кодом.<br/>
+<br/>
+<h3>Поиграем с абстракциями</h3><br/>
+Итак, у нас есть цирк и есть животные. Внутри цирка есть достаточно абстрактный метод <i>`Perform`</i> (выполнить действие), который принимает интерфейс <i>`Speaker`</i> и заставляет питомца издавать звуки. Например, собаку из примера выше он заставит гавкать. Создадим укротителя зверей. Так как он у нас не немой, мы в общем-то тоже можем заставить его издавать звуки. Интерфейс-то у нас достаточно абстрактный. :)<br/>
+<br/>
+<pre><code class="go">package circus
+
+type Tamer struct{}
+
+func (t *Tamer) Speaks() string { return "WAT?" }
+</code></pre><br/>
+Пока что все нормально. Едем дальше. Давайте научим нашего укротителя отдавать команды питомцам? Пока что у нас будет одна команда <i>“голос”</i>. :)<br/>
+<br/>
+<pre><code class="go">package circus
+
+const (
+	ActVoice = iota
+)
+
+func (t *Tamer) Command(action int, a Speaker) string {
+	switch action {
+	case ActVoice:
+		return a.Speaks()
+	}
+	return ""
+}
+</code></pre><br/>
+<pre><code class="go">package main
+
+import (
+	"animal"
+	"circus"
+)
+
+
+func main() {
+	d := &amp;animal.Dog{}
+	t := &amp;circus.Tamer{}
+	t2 := &amp;circus.Tamer{}
+
+	t.Command(circus.ActVoice, d)  // woof
+	t.Command(circus.ActVoice, t2) // WAT?
+}
+</code></pre><br/>
+Мммм, интересно не правда ли? Кажется, наш коллега не в восторге от того, что он стал питомцем в данном контексте? :D Что же делать? Похоже <i>Speaker</i> здесь не очень подходящая абстракция. Создадим более подходящую (а точнее вернем в некотором роде первую версию из <i>“неправильного примера”</i>), после чего сменим нотацию метода.<br/>
+<br/>
+<pre><code class="go">package circus
+
+type Animal interface {
+	Speaker
+}
+
+func (t *Tamer) Command(action int, a Animal) string { /* ... */ }
+</code></pre><br/>
+Это ничего не меняет, скажете вы, код все равно будет выполняться, т.к. оба интерфейса реализуют один метод, и окажетесь в общем-то правы. <br/>
+<br/>
+Тем не менее, этот пример позволяет уловить важную идею. Когда мы говорим об абстрактных типах данных, контекст имеет решающее значение. Введение нового интерфейса, по крайней мере, сделало код на порядок очевиднее и читабельнее. <br/>
+<br/>
+К слову, один из способов заставить укротителя не выполнять команду <i>“голос”</i> — просто добавить метод, которого у него быть не должно. Давайте добавим такой метод, он будет отдавать информацию о том, поддается ли питомец дрессировке.<br/>
+<br/>
+<pre><code class="go">package circus
+
+type Animal interface {
+	Speaker
+	IsTrained() bool
+}
+</code></pre><br/>
+Теперь укротителя нельзя подсунуть вместо питомца.<br/>
+<br/>
+<h3>Расширим поведение</h3><br/>
+Заставим наших питомцев, для разнообразия, выполнять другие команды, кроме того, давайте добавим, кота.<br/>
+<br/>
+<pre><code class="go">package animal
+
+type Dog struct{}
+
+func (d Dog) IsTrained() bool { return true }
+func (d Dog) Speaks() string  { return "woof" }
+func (d Dog) Jump() string    { return "jumps" }
+func (d Dog) Sit() string     { return "sit" }
+
+type Cat struct{}
+
+func (c Cat) IsTrained() bool { return false }
+func (c Cat) Speaks() string  { return "meow!" }
+func (c Cat) Jump() string    { return "meow!!" }
+func (c Cat) Sit() string     { return "meow!!!" }
+</code></pre><br/>
+<pre><code class="go">package circus
+
+const (
+	ActVoice = iota
+	ActSit
+	ActJump
+)
+
+type Animal interface {
+	Speaker
+	IsTrained() bool
+	Jump() string
+	Sit() string
+}
+
+func (t *Tamer) Command(action int, a Animal) string {
+	switch action {
+	case ActVoice:
+		return a.Speaks()
+	case ActSit:
+		return a.Sit()
+	case ActJump:
+		return a.Jump()
+	}
+	return ""
+}
+</code></pre><br/>
+Отлично, теперь мы можем отдавать разные команды нашим животным, и они будут их выполнять. В той или иной степени… :D<br/>
+<br/>
+<pre><code class="go">package main
+
+import (
+	"animal"
+	"circus"
+)
+
+func main() {
+	t := &amp;circus.Tamer{}
+	d := &amp;animal.Dog{}
+
+	t.Command(circus.ActVoice, d) // "woof"
+	t.Command(circus.ActJump, d)  // "jumps"
+	t.Command(circus.ActSit, d)   // "sit"
+
+	t2 := &amp;circus.Tamer{}
+	c := &amp;animal.Cat{}
+	t2.Command(circus.ActVoice, c) // "meow"
+	t2.Command(circus.ActJump, c)  // "meow!!"
+	t2.Command(circus.ActSit, c)  // "meow!!!"
+}
+</code></pre><br/>
+Домашние коты у нас не особо поддаются дрессировке. Поэтому мы поможем укротителю и сделаем так, чтобы он не мучался с ними.<br/>
+<br/>
+<pre><code class="go">package circus
+
+func (t *Tamer) Command(action int, a Animal) string {
+	if !a.IsTrained() {
+		panic("Sorry but this animal doesn't understand your commands")
+	}
+	// ...
+}
+</code></pre><br/>
+Так-то лучше. В отличие от начального интерфейса <i>Animal</i>, дублирующего <i>Speaker</i>, теперь мы имеем интерфейс <i>`Animal`</i> (являющийся по сути абстрактным типом данных), реализующий вполне осмысленное поведение.<br/>
+<br/>
+<h3>Обсудим размеры интерфейсов</h3><br/>
+Теперь давайте поразмышляем с вами над такой проблемой, как использование широких интерфейсов (<i>broad interfaces</i>). <br/>
+<br/>
+Это ситуация, при которой мы используем интерфейсы с большим количеством методов. В данном случае рекомендация звучит примерно так: <i>“Функциям следует принимать интерфейсы, содержащие методы, которые им необходимы”</i>.<br/>
+<br/>
+В целом, я согласен с тем, что интерфейсы должны быть небольшими, однако в данном случае контекст опять же имеет значение. Вернемся к нашему коду и научим нашего укротителя <i>“хвалить” </i>своего питомца. <br/>
+<br/>
+В ответ на похвалу питомец будет подавать голос.<br/>
+<br/>
+<pre><code class="go">package circus
+
+func (t *Tamer) Praise(a Speaker) string {
+	return a.Speaks()
+}
+</code></pre><br/>
+Казалось бы, все отлично, мы используем минимально необходимый интерфейс. Нет ничего лишнего. Но вот опять проблема. Черт побери, теперь мы можем <i>“похвалить”</i> другого тренера и он <i>“подаст голос”</i>. :D Улавливаете?.. Контекст всегда имеет огромное значение.<br/>
+<br/>
+<pre><code class="go">package main
+
+import (
+	"animal"
+	"circus"
+)
+
+func main() {
+	t := &amp;circus.Tamer{}
+	t2 := &amp;circus.Tamer{}
+	d := &amp;animal.Dog{}
+	c := &amp;animal.Cat{}
+
+	t.Praise(d)  // woof
+	t.Praise(c)  // meow!
+	t.Praise(t2) // WAT?
+}
+</code></pre><br/>
+К чему это я? В данном случае лучшим решением будет все-таки использовать более широкий интерфейс (представляющий абстрактный тип данных <i>“питомец”</i>). Так как мы хотим научится хвалить именно питомца, а не любое создание умеющее издавать звуки.<br/>
+<br/>
+<pre><code class="go">package circus
+
+// Now we are using Animal interface here.
+func (t *Tamer) Praise(a Animal) string {
+	return a.Speaks()
+}
+</code></pre><br/>
+Так значительно лучше. Мы можем похвалить питомца, но не можем похвалить укротителя. Код снова стал более простым и очевидным.<br/>
+<br/>
+<h3>Теперь немного про Закон Постеля</h3><br/>
+Последний пункт, которого я хотел бы коснуться, это рекомендация, согласно которой нам следует принимать абстрактный тип, а возвращать конкретную структуру. В оригинальной статье данное упоминание приводится в разделе, описывающем так называемый <a href="https://en.wikipedia.org/wiki/Robustness_principle">Postel’s Law</a>.<br/>
+<br/>
+Автор приводит сам закон:.<br/>
+<blockquote>“Be conservative with what you do, be liberal with you accept”</blockquote><br/>
+И интерпретирует его в отношении языка Go<br/>
+<blockquote>“Go”:“Accept interfaces, return structs”</blockquote> <code>func funcName(a INTERFACETYPE) CONCRETETYPE</code><br/>
+<br/>
+Знаете, в целом я согласен, это хорошая практика. Тем не менее, я еще раз хочу подчеркнуть. Не стоит воспринимать это буквально. Дьявол кроется в деталях. Как всегда важен контекст. <br/>
+Далеко не всегда функция должна возвращать конкретный тип. Т.е. если вам нужен абстрактный тип, возвращайте его. Не нужно пытаться переписать код избегая абстракции. <br/>
+<br/>
+Вот небольшой пример. В соседнем <i>“африканском”</i> цирке появился слон, и вы попросили владельцев цирка одолжить слона в новое шоу. Для вас в данном случае важно, только то, что слон умеет выполнять все те же команды, что и другие питомцы. Размер слона или наличие хобота в данном контексте не имеет значения.<br/>
+<br/>
+<pre><code class="go">package african
+
+import "circus"
+
+type Elephant struct{}
+
+func (e Elephant) Speaks() string  { return "pawoo!" }
+func (e Elephant) Jump() string    { return "o_O" }
+func (e Elephant) Sit() string     { return "sit" }
+func (e Elephant) IsTrained() bool { return true }
+
+func GetElephant() circus.Animal { return &amp;Elephant{} }
+</code></pre><br/>
+<pre><code class="go">package main
+
+import (
+	"african"
+	"circus"
+)
+
+func main() {
+	t := &amp;circus.Tamer{}
+	e := african.GetElephant()
+
+	t.Command(circus.ActVoice, e) // "pawoo!"
+	t.Command(circus.ActJump, e)  // "o_O"
+	t.Command(circus.ActSit, e)   // "sit"
+}
+</code></pre><br/>
+Как видите, так как нам не важны конкретные параметры слона, отличающие его от других питомцев, мы вполне можем использовать абстракцию, и возврат интерфейса в данном случае будет вполне уместен.<br/>
+<br/>
+<h3>Подведем итог</h3><br/>
+Контекст — крайне важная штука, когда речь идет об абстракциях. Не стоит пренебрегать абстракциями и боятся их, ровно так же, как и не стоит ими злоупотреблять. Не стоит так же воспринимать рекомендации, как правила. Есть подходы, испытанные временем, есть подходы, которые только предстоит испытать. Надеюсь, мне удалось раскрыть чуть глубже тему использования интерфейсов, как абстрактных типов данных, и уйти от обычных примеров из стандартной библиотеки.<br/>
+<br/>
+Конечно, для некоторый людей данный пост может показаться слишком очевидным, а примеры высосаными из пальца. Для других мои мысли могут оказаться спорными, а доводы — неубедительными. Тем не менее, кто-то возможно вдохновится и начнет думать чуть глубже не только о коде, но и о сути вещей, а так-же абстракциях в целом. <br/>
+<br/>
+Главное, друзья, чтобы вы непрерывно развивались и получали истинное наслаждение от работы. Всем добра!<br/>
+<br/>
+PS. Примеры кода и финальную версию можно найти <a href="https://github.com/DexterHD/interfaces-example">на GitHub</a>.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgolang%5D" class="tm-tags-list__link">golang</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Binterfaces%5D" class="tm-tags-list__link">interfaces</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Babstract%5D" class="tm-tags-list__link">abstract</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Barchitecture%5D" class="tm-tags-list__link">architecture</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/analysis_design/" class="tm-hubs-list__link">
+    Анализ и проектирование систем
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/complete_code/" class="tm-hubs-list__link">
+    Совершенный код
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/oop/" class="tm-hubs-list__link">
+    ООП
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/go/" class="tm-hubs-list__link">
+    Go
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 13: ↑10 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 13: ↑10 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+7</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">7.1K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    79
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/DexterHD/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/de7/908/3dd/de79083ddb03b9d3e97e3b1710a1d4f3.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 119 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    35.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Anton</span> <a href="/ru/users/DexterHD/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @DexterHD
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Software Engineer</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450386/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 17 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section data-async-called="true" class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Работа</h2> <!----></header> <div class="tm-block__body"><div class="tm-vacancies-block__item"><a href="https://career.habr.com/vacancies/go_razrabotchik" target="_blank" class="tm-vacancies-block__vacancy-title">
+        Go разработчик
+      </a> <div class="tm-vacancies-block__vacancies-count">
+        117
+    вакансий
+      </div></div></div> <footer class="tm-block__footer"><a href="https://career.habr.com/vacancies" class="tm-block-extralink">
+      Все вакансии
+    </a></footer></section></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450386/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450386/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450386":{"id":"450386","timePublished":"2019-05-03T10:23:54+00:00","isCorporative":false,"lang":"ru","titleHtml":"Интерфейсы как абстрактные типы данных в Go","leadData":{"textHtml":"Не так давно коллега ретвитнул отличный пост \u003Ca href=\"https:\u002F\u002Fblog.chewxy.com\u002F2018\u002F03\u002F18\u002Fgolang-interfaces\u002F\"\u003EHow to Use Go Interfaces\u003C\u002Fa\u003E. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того, как их все-таки стоит использовать.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ статье, упомянутой выше, автор приводит интерфейс из пакета \u003Cb\u003Esort\u003C\u002Fb\u003E стандартной библиотеки, как пример абстрактного типа данных. Однако, мне кажется, что такой пример не особо хорошо раскрывает идею, когда речь заходит о реальных приложениях. Особенно о приложениях, реализующих логику какой-нибудь бизнес области или решающих проблемы реального мира.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nТакже при использовании интерфейсов в Go зачастую возникают споры об оверинжиниринге. А еще бывает так, что, после чтения подобного рода рекомендаций, люди мало того что прекращают злоупотреблять интерфейсами, они пытаются практически полностью от них отказаться, тем самым лишая себя использования одной из сильнейших концепций программирования в принципе (и одной из сильных сторон языка Go в частности). На тему типичных ошибок в Go кстати, есть \u003Ca href=\"https:\u002F\u002Fwww.youtube.com\u002Fwatch?v=29LLRKIL_TI\"\u003Eнеплохой доклад\u003C\u002Fa\u003E от Stive Francia из Docker. Там в частности несколько раз упоминаются интерфейсы.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ общем, я согласен с автором статьи. Тем не менее, мне показалось, что тема использования интерфейсов, как абстрактных типов данных в ней раскрыта довольно поверхностно, поэтому мне хотелось бы немного развить ее и поразмышлять на эту тему вместе с вами.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":35.5,"votesCount":119},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"56665","alias":"DexterHD","fullname":"Anton","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fde7\u002F908\u002F3dd\u002Fde79083ddb03b9d3e97e3b1710a1d4f3.jpg","speciality":"Software Engineer"},"statistics":{"commentsCount":17,"favoritesCount":79,"readingCount":7084,"score":7,"votesCount":13},"hubs":[{"relatedData":null,"id":"397","alias":"analysis_design","type":"collective","title":"Анализ и проектирование систем","titleHtml":"Анализ и проектирование систем","isProfiled":true},{"relatedData":null,"id":"524","alias":"complete_code","type":"collective","title":"Совершенный код","titleHtml":"Совершенный код","isProfiled":true},{"relatedData":null,"id":"17719","alias":"oop","type":"collective","title":"ООП","titleHtml":"ООП","isProfiled":true},{"relatedData":null,"id":"17748","alias":"go","type":"collective","title":"Go","titleHtml":"Go","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EНе так давно коллега ретвитнул отличный пост \u003Ca href=\"https:\u002F\u002Fblog.chewxy.com\u002F2018\u002F03\u002F18\u002Fgolang-interfaces\u002F\"\u003EHow to Use Go Interfaces\u003C\u002Fa\u003E. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того, как их все-таки стоит использовать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ статье, упомянутой выше, автор приводит интерфейс из пакета \u003Cb\u003Esort\u003C\u002Fb\u003E стандартной библиотеки, как пример абстрактного типа данных. Однако, мне кажется, что такой пример не особо хорошо раскрывает идею, когда речь заходит о реальных приложениях. Особенно о приложениях, реализующих логику какой-нибудь бизнес области или решающих проблемы реального мира.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакже при использовании интерфейсов в Go зачастую возникают споры об оверинжиниринге. А еще бывает так, что, после чтения подобного рода рекомендаций, люди мало того что прекращают злоупотреблять интерфейсами, они пытаются практически полностью от них отказаться, тем самым лишая себя использования одной из сильнейших концепций программирования в принципе (и одной из сильных сторон языка Go в частности). На тему типичных ошибок в Go кстати, есть \u003Ca href=\"https:\u002F\u002Fwww.youtube.com\u002Fwatch?v=29LLRKIL_TI\"\u003Eнеплохой доклад\u003C\u002Fa\u003E от Stive Francia из Docker. Там в частности несколько раз упоминаются интерфейсы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ общем, я согласен с автором статьи. Тем не менее, мне показалось, что тема использования интерфейсов, как абстрактных типов данных в ней раскрыта довольно поверхностно, поэтому мне хотелось бы немного развить ее и поразмышлять на эту тему вместе с вами.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EОбратимся к оригиналу\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВ начале статьи автор приводит небольшой пример кода, с помощью которого указывает на ошибки при использовании интерфейсов, которые частенько совершают разработчики. Вот этот код.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage animal\n\ntype Animal interface {\n\tSpeaks() string\n}\n\n\u002F\u002F implementation of Animal\ntype Dog struct{}\n\nfunc (a Dog) Speaks() string { return \"woof\" }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\nimport \"animal\"\n\nfunc Perform(a animal.Animal) string { return a.Speaks() }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nАвтор называет этот подход \u003Ci\u003E“Java-style interface usage”\u003C\u002Fi\u003E. Когда мы объявляем интерфейс, потом реализуем единственный тип и методы, которые будут удовлетворять данному интерфейсу. Я согласен с автором, подход так себе.Более идиоматический код в оригинальной статье выглядит следующим образом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage animal\n\n\u002F\u002F implementation of Animal\ntype Dog struct{}\n\nfunc (a Dog) Speaks() string { return \"woof\" }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\ntype Speaker interface {\n\tSpeaks() string\n}\n\nfunc Perform(a Speaker) string { return a.Speaks() }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь в целом все ясно и понятно. Основная идея: \u003Ci\u003E“Сперва объявляйте типы, и только потом объявляйте интерфейсы в точке использования”\u003C\u002Fi\u003E. Это правильно. Но давайте теперь немного разовьем идею применительно к тому, как можно использовать интерфейсы в качестве абстрактных типов данных. Автор к слову указывает на то, что в такой ситуации нет ничего плохого в том, объявить интерфейс \u003Ci\u003E“авансом”\u003C\u002Fi\u003E. Работать будем с тем же кодом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПоиграем с абстракциями\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nИтак, у нас есть цирк и есть животные. Внутри цирка есть достаточно абстрактный метод \u003Ci\u003E`Perform`\u003C\u002Fi\u003E (выполнить действие), который принимает интерфейс \u003Ci\u003E`Speaker`\u003C\u002Fi\u003E и заставляет питомца издавать звуки. Например, собаку из примера выше он заставит гавкать. Создадим укротителя зверей. Так как он у нас не немой, мы в общем-то тоже можем заставить его издавать звуки. Интерфейс-то у нас достаточно абстрактный. :)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\ntype Tamer struct{}\n\nfunc (t *Tamer) Speaks() string { return \"WAT?\" }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПока что все нормально. Едем дальше. Давайте научим нашего укротителя отдавать команды питомцам? Пока что у нас будет одна команда \u003Ci\u003E“голос”\u003C\u002Fi\u003E. :)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\nconst (\n\tActVoice = iota\n)\n\nfunc (t *Tamer) Command(action int, a Speaker) string {\n\tswitch action {\n\tcase ActVoice:\n\t\treturn a.Speaks()\n\t}\n\treturn \"\"\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage main\n\nimport (\n\t\"animal\"\n\t\"circus\"\n)\n\n\nfunc main() {\n\td := &amp;animal.Dog{}\n\tt := &amp;circus.Tamer{}\n\tt2 := &amp;circus.Tamer{}\n\n\tt.Command(circus.ActVoice, d)  \u002F\u002F woof\n\tt.Command(circus.ActVoice, t2) \u002F\u002F WAT?\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМммм, интересно не правда ли? Кажется, наш коллега не в восторге от того, что он стал питомцем в данном контексте? :D Что же делать? Похоже \u003Ci\u003ESpeaker\u003C\u002Fi\u003E здесь не очень подходящая абстракция. Создадим более подходящую (а точнее вернем в некотором роде первую версию из \u003Ci\u003E“неправильного примера”\u003C\u002Fi\u003E), после чего сменим нотацию метода.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\ntype Animal interface {\n\tSpeaker\n}\n\nfunc (t *Tamer) Command(action int, a Animal) string { \u002F* ... *\u002F }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто ничего не меняет, скажете вы, код все равно будет выполняться, т.к. оба интерфейса реализуют один метод, и окажетесь в общем-то правы. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТем не менее, этот пример позволяет уловить важную идею. Когда мы говорим об абстрактных типах данных, контекст имеет решающее значение. Введение нового интерфейса, по крайней мере, сделало код на порядок очевиднее и читабельнее. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК слову, один из способов заставить укротителя не выполнять команду \u003Ci\u003E“голос”\u003C\u002Fi\u003E — просто добавить метод, которого у него быть не должно. Давайте добавим такой метод, он будет отдавать информацию о том, поддается ли питомец дрессировке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\ntype Animal interface {\n\tSpeaker\n\tIsTrained() bool\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь укротителя нельзя подсунуть вместо питомца.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EРасширим поведение\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЗаставим наших питомцев, для разнообразия, выполнять другие команды, кроме того, давайте добавим, кота.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage animal\n\ntype Dog struct{}\n\nfunc (d Dog) IsTrained() bool { return true }\nfunc (d Dog) Speaks() string  { return \"woof\" }\nfunc (d Dog) Jump() string    { return \"jumps\" }\nfunc (d Dog) Sit() string     { return \"sit\" }\n\ntype Cat struct{}\n\nfunc (c Cat) IsTrained() bool { return false }\nfunc (c Cat) Speaks() string  { return \"meow!\" }\nfunc (c Cat) Jump() string    { return \"meow!!\" }\nfunc (c Cat) Sit() string     { return \"meow!!!\" }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\nconst (\n\tActVoice = iota\n\tActSit\n\tActJump\n)\n\ntype Animal interface {\n\tSpeaker\n\tIsTrained() bool\n\tJump() string\n\tSit() string\n}\n\nfunc (t *Tamer) Command(action int, a Animal) string {\n\tswitch action {\n\tcase ActVoice:\n\t\treturn a.Speaks()\n\tcase ActSit:\n\t\treturn a.Sit()\n\tcase ActJump:\n\t\treturn a.Jump()\n\t}\n\treturn \"\"\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nОтлично, теперь мы можем отдавать разные команды нашим животным, и они будут их выполнять. В той или иной степени… :D\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage main\n\nimport (\n\t\"animal\"\n\t\"circus\"\n)\n\nfunc main() {\n\tt := &amp;circus.Tamer{}\n\td := &amp;animal.Dog{}\n\n\tt.Command(circus.ActVoice, d) \u002F\u002F \"woof\"\n\tt.Command(circus.ActJump, d)  \u002F\u002F \"jumps\"\n\tt.Command(circus.ActSit, d)   \u002F\u002F \"sit\"\n\n\tt2 := &amp;circus.Tamer{}\n\tc := &amp;animal.Cat{}\n\tt2.Command(circus.ActVoice, c) \u002F\u002F \"meow\"\n\tt2.Command(circus.ActJump, c)  \u002F\u002F \"meow!!\"\n\tt2.Command(circus.ActSit, c)  \u002F\u002F \"meow!!!\"\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДомашние коты у нас не особо поддаются дрессировке. Поэтому мы поможем укротителю и сделаем так, чтобы он не мучался с ними.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\nfunc (t *Tamer) Command(action int, a Animal) string {\n\tif !a.IsTrained() {\n\t\tpanic(\"Sorry but this animal doesn't understand your commands\")\n\t}\n\t\u002F\u002F ...\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТак-то лучше. В отличие от начального интерфейса \u003Ci\u003EAnimal\u003C\u002Fi\u003E, дублирующего \u003Ci\u003ESpeaker\u003C\u002Fi\u003E, теперь мы имеем интерфейс \u003Ci\u003E`Animal`\u003C\u002Fi\u003E (являющийся по сути абстрактным типом данных), реализующий вполне осмысленное поведение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EОбсудим размеры интерфейсов\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nТеперь давайте поразмышляем с вами над такой проблемой, как использование широких интерфейсов (\u003Ci\u003Ebroad interfaces\u003C\u002Fi\u003E). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто ситуация, при которой мы используем интерфейсы с большим количеством методов. В данном случае рекомендация звучит примерно так: \u003Ci\u003E“Функциям следует принимать интерфейсы, содержащие методы, которые им необходимы”\u003C\u002Fi\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ целом, я согласен с тем, что интерфейсы должны быть небольшими, однако в данном случае контекст опять же имеет значение. Вернемся к нашему коду и научим нашего укротителя \u003Ci\u003E“хвалить” \u003C\u002Fi\u003Eсвоего питомца. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ ответ на похвалу питомец будет подавать голос.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\nfunc (t *Tamer) Praise(a Speaker) string {\n\treturn a.Speaks()\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКазалось бы, все отлично, мы используем минимально необходимый интерфейс. Нет ничего лишнего. Но вот опять проблема. Черт побери, теперь мы можем \u003Ci\u003E“похвалить”\u003C\u002Fi\u003E другого тренера и он \u003Ci\u003E“подаст голос”\u003C\u002Fi\u003E. :D Улавливаете?.. Контекст всегда имеет огромное значение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage main\n\nimport (\n\t\"animal\"\n\t\"circus\"\n)\n\nfunc main() {\n\tt := &amp;circus.Tamer{}\n\tt2 := &amp;circus.Tamer{}\n\td := &amp;animal.Dog{}\n\tc := &amp;animal.Cat{}\n\n\tt.Praise(d)  \u002F\u002F woof\n\tt.Praise(c)  \u002F\u002F meow!\n\tt.Praise(t2) \u002F\u002F WAT?\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nК чему это я? В данном случае лучшим решением будет все-таки использовать более широкий интерфейс (представляющий абстрактный тип данных \u003Ci\u003E“питомец”\u003C\u002Fi\u003E). Так как мы хотим научится хвалить именно питомца, а не любое создание умеющее издавать звуки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage circus\n\n\u002F\u002F Now we are using Animal interface here.\nfunc (t *Tamer) Praise(a Animal) string {\n\treturn a.Speaks()\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТак значительно лучше. Мы можем похвалить питомца, но не можем похвалить укротителя. Код снова стал более простым и очевидным.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EТеперь немного про Закон Постеля\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПоследний пункт, которого я хотел бы коснуться, это рекомендация, согласно которой нам следует принимать абстрактный тип, а возвращать конкретную структуру. В оригинальной статье данное упоминание приводится в разделе, описывающем так называемый \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FRobustness_principle\"\u003EPostel’s Law\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАвтор приводит сам закон:.\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E“Be conservative with what you do, be liberal with you accept”\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nИ интерпретирует его в отношении языка Go\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E“Go”:“Accept interfaces, return structs”\u003C\u002Fblockquote\u003E \u003Ccode\u003Efunc funcName(a INTERFACETYPE) CONCRETETYPE\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗнаете, в целом я согласен, это хорошая практика. Тем не менее, я еще раз хочу подчеркнуть. Не стоит воспринимать это буквально. Дьявол кроется в деталях. Как всегда важен контекст. \u003Cbr\u002F\u003E\r\nДалеко не всегда функция должна возвращать конкретный тип. Т.е. если вам нужен абстрактный тип, возвращайте его. Не нужно пытаться переписать код избегая абстракции. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот небольшой пример. В соседнем \u003Ci\u003E“африканском”\u003C\u002Fi\u003E цирке появился слон, и вы попросили владельцев цирка одолжить слона в новое шоу. Для вас в данном случае важно, только то, что слон умеет выполнять все те же команды, что и другие питомцы. Размер слона или наличие хобота в данном контексте не имеет значения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage african\n\nimport \"circus\"\n\ntype Elephant struct{}\n\nfunc (e Elephant) Speaks() string  { return \"pawoo!\" }\nfunc (e Elephant) Jump() string    { return \"o_O\" }\nfunc (e Elephant) Sit() string     { return \"sit\" }\nfunc (e Elephant) IsTrained() bool { return true }\n\nfunc GetElephant() circus.Animal { return &amp;Elephant{} }\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"go\"\u003Epackage main\n\nimport (\n\t\"african\"\n\t\"circus\"\n)\n\nfunc main() {\n\tt := &amp;circus.Tamer{}\n\te := african.GetElephant()\n\n\tt.Command(circus.ActVoice, e) \u002F\u002F \"pawoo!\"\n\tt.Command(circus.ActJump, e)  \u002F\u002F \"o_O\"\n\tt.Command(circus.ActSit, e)   \u002F\u002F \"sit\"\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКак видите, так как нам не важны конкретные параметры слона, отличающие его от других питомцев, мы вполне можем использовать абстракцию, и возврат интерфейса в данном случае будет вполне уместен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПодведем итог\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nКонтекст — крайне важная штука, когда речь идет об абстракциях. Не стоит пренебрегать абстракциями и боятся их, ровно так же, как и не стоит ими злоупотреблять. Не стоит так же воспринимать рекомендации, как правила. Есть подходы, испытанные временем, есть подходы, которые только предстоит испытать. Надеюсь, мне удалось раскрыть чуть глубже тему использования интерфейсов, как абстрактных типов данных, и уйти от обычных примеров из стандартной библиотеки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКонечно, для некоторый людей данный пост может показаться слишком очевидным, а примеры высосаными из пальца. Для других мои мысли могут оказаться спорными, а доводы — неубедительными. Тем не менее, кто-то возможно вдохновится и начнет думать чуть глубже не только о коде, но и о сути вещей, а так-же абстракциях в целом. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nГлавное, друзья, чтобы вы непрерывно развивались и получали истинное наслаждение от работы. Всем добра!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nPS. Примеры кода и финальную версию можно найти \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FDexterHD\u002Finterfaces-example\"\u003Eна GitHub\u003C\u002Fa\u003E.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"golang"},{"titleHtml":"interfaces"},{"titleHtml":"abstract"},{"titleHtml":"architecture"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450386\u002F1f6a7877c61e855835584906b1608f38\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450386\u002F1f6a7877c61e855835584906b1608f38\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450386\\\u002F\"},\"headline\":\"Интерфейсы как абстрактные типы данных в Go\",\"datePublished\":\"2019-05-03T13:23:54+03:00\",\"dateModified\":\"2019-05-03T19:37:40+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Anton\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450386\\\u002F#post-content-body\",\"about\":[\"h_analysis_design\",\"h_complete_code\",\"h_oop\",\"h_go\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450386\\\u002F1f6a7877c61e855835584906b1608f38\\\u002F\"]}","metaDescription":"Не так давно коллега ретвитнул отличный пост How to Use Go Interfaces. В нем рассматриваются некоторые ошибки при использовании интерфейсов в Go, а также даются некоторые рекомендации по поводу того,...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[{"title":"Go разработчик","vacanciesCount":117,"itemUrl":"https:\u002F\u002Fcareer.habr.com\u002Fvacancies\u002Fgo_razrabotchik","itemHubs":["go"]}],"hubs":"analysis_design,complete_code,oop,go"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

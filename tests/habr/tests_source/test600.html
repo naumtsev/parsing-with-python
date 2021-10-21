@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост) / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450600\/"},"headline":"Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)","datePublished":"2019-05-06T15:17:19+03:00","dateModified":"2019-05-07T11:10:08+03:00","author":{"@type":"Person","name":"Денис"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Главное в сложном техническом проекте &mdash; организовать стабильную связь между всеми компонентами.   Вот и первой частью миссии &laquo;Чанъэ-4&raquo; была организация канала...","url":"https:\/\/habr.com\/ru\/post\/450600\/#post-content-body","about":["h_netdev","h_popular_science","h_space","h_astronomy","f_develop","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/ul\/nh\/_z\/ulnh_zws6i9otaw61g6xmgaijem.png","https:\/\/habrastorage.org\/webt\/zx\/b3\/x9\/zxb3x9rugzccxapusqrcjnflskw.jpeg","https:\/\/habrastorage.org\/webt\/gp\/xl\/12\/gpxl12nlofzaf_s4fud-7aaebhc.jpeg","https:\/\/habrastorage.org\/webt\/-l\/3a\/q8\/-l3aq8ub2z0lvr845j5npza2f3g.jpeg","https:\/\/habrastorage.org\/webt\/mp\/lb\/9u\/mplb9ulgox-gq9veztthtvpzxkc.jpeg","https:\/\/habrastorage.org\/webt\/tz\/pu\/jk\/tzpujkwuwmqrcjwbb1zst3ktg1i.png","https:\/\/habrastorage.org\/webt\/d8\/0p\/97\/d80p97hhwn5zntw0iu4rmhtuvgu.jpeg","https:\/\/habrastorage.org\/webt\/cj\/wk\/bt\/cjwkbthsntgomcvgttseaea34-e.png","https:\/\/habrastorage.org\/webt\/1k\/ty\/-6\/1kty-6jvmwux_jccoihvdyzwygi.jpeg","https:\/\/habrastorage.org\/webt\/mg\/wj\/0x\/mgwj0x-mqruzy9erq8ueu2czbhs.jpeg","https:\/\/habrastorage.org\/webt\/rd\/pr\/7z\/rdpr7z4vbnuevlyh2rytm6bm4tu.png","https:\/\/habrastorage.org\/webt\/li\/uq\/3u\/liuq3uiod9bphkkxdylqbyt83ji.jpeg","https:\/\/habrastorage.org\/webt\/op\/lb\/rh\/oplbrhv04-jori4sie_hjbim8te.png","https:\/\/habrastorage.org\/webt\/cf\/xb\/ei\/cfxbei4iwdrxeih_1r0n3at8fho.jpeg","https:\/\/habrastorage.org\/webt\/9g\/-4\/0l\/9g-40lunaxdf7bzjowlq_lxecas.jpeg","https:\/\/habrastorage.org\/webt\/vq\/7m\/sg\/vq7msgqnhqbfti1tv3zrvzjzmhg.jpeg","https:\/\/habrastorage.org\/webt\/ko\/th\/hv\/kothhvnuiun6qyiagnjyvoalgpm.png","https:\/\/habrastorage.org\/webt\/e8\/um\/g1\/e8umg1jpp2rizs283ymcn3lzdnw.png","https:\/\/habrastorage.org\/webt\/iw\/ua\/qi\/iwuaqidts1orehwdet6qh43xj8c.png","https:\/\/habrastorage.org\/webt\/r9\/px\/3a\/r9px3aso-t6wlzwqbw64fyqthrw.gif","https:\/\/habrastorage.org\/webt\/kq\/wv\/wc\/kqwvwc6pvpc_w0sfcd7-rdw2uta.png","https:\/\/habrastorage.org\/webt\/i6\/65\/4d\/i6654d_l3fzr0zds6dh4jhbkrzo.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3bc\/a73\/384\/3bca733849fc7d6e2bf00ef4d8bc04bd.gif","https:\/\/habrastorage.org\/webt\/vs\/ft\/f5\/vsftf5bvqr3hbn5-svjy9rvz2zm.png","https:\/\/habrastorage.org\/webt\/o9\/wl\/6b\/o9wl6bhxm76aizolosbeeflhbjs.jpeg","https:\/\/habrastorage.org\/webt\/32\/gm\/ai\/32gmailebekd9kgwjfqfpxt91q8.jpeg","https:\/\/habrastorage.org\/webt\/yb\/v5\/hz\/ybv5hzt4y-_dcmsqi_mgrosmsyk.jpeg","https:\/\/habrastorage.org\/webt\/ux\/2j\/gr\/ux2jgrdnm-2luvgawtgifxeyueq.jpeg","https:\/\/habrastorage.org\/webt\/tj\/kd\/8y\/tjkd8y1dukiqasfewqg14n4xmo4.gif","https:\/\/habrastorage.org\/webt\/3f\/lg\/fq\/3flgfqpubj9u1fwceu4r0get-60.png","https:\/\/habrastorage.org\/webt\/fw\/9v\/pu\/fw9vpudbks3xtpiszvpro8wo52q.png","https:\/\/habrastorage.org\/webt\/dg\/ir\/3v\/dgir3vi_gztnuutupnzrivvogmc.jpeg","https:\/\/habrastorage.org\/webt\/j8\/6b\/ix\/j86bixdgn7kjvexnd4nlhrkahgc.jpeg","https:\/\/habrastorage.org\/webt\/1w\/tp\/_h\/1wtp_hogreh5pzm2ccmxooi6df4.png","https:\/\/habrastorage.org\/webt\/yp\/cq\/ph\/ypcqpha8n-txdqoqld0polb97ve.jpeg","https:\/\/habrastorage.org\/webt\/pk\/r0\/46\/pkr046civyrsktsssp-bhnu6fxw.jpeg","https:\/\/habrastorage.org\/webt\/mu\/ed\/we\/muedwegakqrjwidgsemkydjvcjg.jpeg","https:\/\/habrastorage.org\/webt\/g9\/rh\/tf\/g9rhtfkyvth3xgspyehmu3cxhtk.png","https:\/\/habrastorage.org\/webt\/yn\/io\/mf\/yniomfw_xz2zdjjnvq94alsghts.png","https:\/\/habrastorage.org\/webt\/tp\/nl\/mh\/tpnlmhju0jdbjgskjm_plyebyt8.png","https:\/\/habrastorage.org\/webt\/3h\/e0\/ft\/3he0ftwl0uqrnmzn2utaubd_loo.jpeg","https:\/\/habrastorage.org\/webt\/v1\/eb\/vb\/v1ebvbqndhtqu6qkgbbhnxnjmnk.jpeg","https:\/\/habrastorage.org\/webt\/qp\/vp\/g4\/qpvpg40xfuxkrk2vyv8pm2wudga.jpeg","https:\/\/habrastorage.org\/webt\/cs\/oc\/ir\/csocir5rydzddsfkmfuqpdektqy.png","https:\/\/habrastorage.org\/webt\/dt\/7n\/1g\/dt7n1g_d9n7bgg9do3ozbsdbteg.png","https:\/\/habrastorage.org\/webt\/nd\/rl\/ch\/ndrlchkdiouuf9s_x2bej3vses0.gif","https:\/\/habrastorage.org\/webt\/de\/_4\/1l\/de_41lf4a317bxo6ztvcfnzhzpa.gif","https:\/\/habrastorage.org\/webt\/cx\/nx\/n-\/cxnxn-9yuz2r3_-2qyhztmpag4g.png","https:\/\/habrastorage.org\/webt\/th\/6w\/qd\/th6wqdikgc0_qesxulwlqyzgp3g.gif","https:\/\/habrastorage.org\/webt\/ju\/fh\/4f\/jufh4fbwo4w0kijjtb7mpcwiavw.gif","https:\/\/habrastorage.org\/webt\/c5\/m6\/ag\/c5m6agshnovo6xiv8zmz-nsgg4m.png","https:\/\/habrastorage.org\/webt\/7p\/4z\/3v\/7p4z3vryfxpzbumjvtqwuijf_rs.gif","https:\/\/habrastorage.org\/webt\/jo\/0-\/zw\/jo0-zwlfhk73ia_yynffxcxxwr0.jpeg","https:\/\/habrastorage.org\/webt\/oq\/uy\/ek\/oquyekjkeonwhf9quvzfby4fe2g.jpeg","https:\/\/habrastorage.org\/webt\/yg\/mf\/ch\/ygmfchaj9wmrjuoecepsncghlby.jpeg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d47\/95d\/55a\/d4795d55aa6e180b5d3d568799b42bf3.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/bfa\/9f2\/5af\/bfa9f25af6c2d5e239ecfe3f980c5547.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/792\/8d1\/013\/7928d101305c960aba3f219c3a600904.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a7d\/1d1\/f5f\/a7d1d1f5f8c86f7a4b58ec680966e83b.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e33\/348\/8d6\/e333488d670ec4d8e6c87d2b99756507.png","https:\/\/habrastorage.org\/webt\/nl\/ma\/yb\/nlmaybvqodnoig0ms4xbx-skqsu.jpeg","https:\/\/habrastorage.org\/webt\/f0\/-w\/ms\/f0-wms9z_6zgchlcvhthcoarwow.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. 
+
+Вот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. 
+
+Вот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. 
+
+Вот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. 
+
+Вот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. 
+
+Вот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450600/6455c598a3657297ace9902098a4ca02/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450600/6455c598a3657297ace9902098a4ca02/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450600/6455c598a3657297ace9902098a4ca02/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450600/6455c598a3657297ace9902098a4ca02/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450600/6455c598a3657297ace9902098a4ca02/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450600" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T12:17:19.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450600/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450600/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450600/6455c598a3657297ace9902098a4ca02/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/denis-19/" title="denis-19" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/6a0/f31/235/6a0f31235bb26134f3c7a741c03e4efb.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/denis-19/" class="tm-user-info__username">
+      denis-19
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T12:17:19.000Z" title="2019-05-06, 15:17">6  мая  2019 в 15:17</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/netdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка систем связи</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/popular_science/" class="tm-article-snippet__hubs-item-link"><span>Научно-популярное</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/space/" class="tm-article-snippet__hubs-item-link"><span>Космонавтика</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/astronomy/" class="tm-article-snippet__hubs-item-link"><span>Астрономия</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ul/nh/_z/ulnh_zws6i9otaw61g6xmgaijem.png"/><br/>
+ <br/>
+Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. <br/>
+<br/>
+Вот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной стороне Луны. Полгода назад началась эра ретрансляционной радиосвязи с обратной стороной Луны. <br/>
+<br/>
+Как это было сделано, какие данные передаются между аппаратами на Луне (посадочный модуль и ровер) и спутником-ретранслятором за Луной, как организована далее связь с ЦУП на Земле (через центр космической связи) и с какими скоростями передачи данных — описано тут.<br/>
+<a name="habracut"></a><br/>
+Канал связи — тонкая невидимая нить, связывающая обратную сторону Луны и Землю, которая должна быть легкой и простой в реализации, но и надежной с точки зрения отказов узлов, так как при отсутствии этого единственного канала связи — аппараты на обратной стороне Луны будут потеряны и предоставлены сами себе (на некоторое время автоматике).<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Ранее опубликованные материалы про миссию «Чанъэ-4»:</b><div class="spoiler_text"> <br/>
+<a href="https://habr.com/ru/post/435032/">1. Космический аппарат «Чанъэ-4» совершил успешную посадку на обратной стороне Луны и прислал первое фото</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/435776/">2. Бортовое видео процессов подготовки и совершения посадки, а так же панорама обратной стороны Луны от «Чанъэ-4»</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/438352/">3. Видео процесса спуска ровера «Юйту-2», его первые метры по поверхности Луны. Двухнедельный сон на Луне закончен</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/438840/">4. Гордость и страсть, история о превращении мечты в космический проект</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/439466/">5. Лунный орбитальный зонд NASA сделал первые снимки Китайской станции «Чанъэ-4» — два пикселя света</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/440260/">6. Модуль «Чанъэ-4» и ровер «Юйту-2» готовы ко второй ночи на обратной стороне Луны</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/440506/">7. Лунный орбитальный зонд NASA сделал новые снимки Китайской станции «Чанъэ-4» — ближе и яснее</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/441012/">8. Интересные факты об истории Китайской лунной программы и космической миссии «Чанъэ-4»</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/443708/">9. Миссия «Чанъэ-4» — третий лунный день. Ровер «Юйту-2» в поисках… камней</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/445384/">10. Миссия «Чанъэ-4» — научное оборудование на посадочном модуле и спутнике-ретрансляторе</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/446276/">11. Миссия «Чанъэ-4» — четвертый лунный день для посадочного модуля и ровера «Юйту-2». Про камеры и контроллеры на аппаратах</a><br/>
+<br/>
+<a href="https://habr.com/ru/post/450252/">12. Миссия «Чанъэ-4» — пятый лунный день для посадочного модуля и ровера «Юйту-2»</a><br/>
+</div></div><br/>
+Все началось с легенды.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/zx/b3/x9/zxb3x9rugzccxapusqrcjnflskw.jpeg" data-src="https://habrastorage.org/webt/zx/b3/x9/zxb3x9rugzccxapusqrcjnflskw.jpeg" data-blurred="true"/><br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Сорочий мост (китайская легенда)</b><div class="spoiler_text"><i>Давным-давно на свете жил пастух по имени Нюлан.<br/>
+Поскольку был он сиротой, жил долго в доме брата.<br/>
+Невестка выгнала его, и жизнь накрыл сплошной туман.<br/>
+Пустой карман, один лишь вол, не быть ему богатым.<br/>
+<br/>
+Заговорил вдруг вол, сказав, что был созвездием Тельца<br/>
+На небе, очень удивив Нюлана этой вестью,<br/>
+И между прочим рассказал, что от Небесного Отца<br/>
+Слыхал однажды о Звезде — Ткачихе он, небесной.<br/>
+<br/>
+«Она спускается с небес, чтоб искупаться в ранний час,<br/>
+По дивной красоте никто не может с ней сравниться.<br/>
+Скорей одежду укради и не спускай с неё ты глаз,<br/>
+Не дай умчаться ей домой, прекраснейшей царице!»<br/>
+<br/>
+Спустившись к берегу реки, момент удачный уловив,<br/>
+Пастух Нюлан, в один прыжок схватив скорей одежду<br/>
+Звезды по имени Чжинюй, услышал нежный зов любви.<br/>
+В душе его горел огонь сияющей надежды.<br/>
+<br/>
+Вода речная так тепла, блаженно плавала Чжинюй,<br/>
+Игривая волна её вдруг вынесла на берег.<br/>
+Но нет одежды, и она, несчастья чуя глубину,<br/>
+Бессильно села не песок, о, чем беду измерить?!<br/>
+<br/>
+Вернуться надо срочно ей на небо звёздное, но как?<br/>
+Вернуться голой? Не поймёт её Отец Небесный!<br/>
+За что наказана она? А, может быть, ей подан знак?<br/>
+Судьба изменчива, порой… ей стало интересно…<br/>
+<br/>
+Нюлан, увидев, что Чжинюй, роняя слёзы, замерла,<br/>
+А, устремив свой ясный взгляд на небо, зарыдала,<br/>
+Не смог спокойно наблюдать её страдания, ведь зла<br/>
+Звезде он не хотел совсем, тут болью сердце сжало.<br/>
+<br/>
+Из-за кустов он вышел к ней, одежду протянув, сказал:<br/>
+«Прошу, Чжинюй, прости, меня, не ведал я, что делал,<br/>
+Возьми одежду, надоел, мне этот странный карнавал,<br/>
+Но знай, люблю я всей душой тебя, такое дело…»<br/>
+<br/>
+Чжинюй оделась и, взлетев, умчалась быстро в небеса.<br/>
+Владыка Неба не узнал об этом приключение.<br/>
+Нюлан ей сердце покорил, слезами полнились глаза.<br/>
+Любовь земная – вот её отныне назначенье.<br/>
+<br/>
+С небес спустившись вновь, Чжинюй с Нюланом счастье обрела,<br/>
+И день, и ночь она ткала, а он работал в поле,<br/>
+Любовью расцветала жизнь, в семье царил покой и лад.<br/>
+Разгневался Тяньди*, узнав о жизни их привольной.<br/>
+<br/>
+Жене своей он приказал Чжинюй вернуть и наказать<br/>
+За своеволие её и разлучить с Нюланом.<br/>
+Ванму** исполнила приказ, Владыка всё проверил сам.<br/>
+Звезда Чжинюй опять горит, но с помощью обмана.<br/>
+<br/>
+Нюлан помчался за женой, с собою сына взяв и дочь,<br/>
+Небесный вол помог им всем взлететь скорей на небо.<br/>
+Они в созвездии Тельца, никто не в силах им помочь<br/>
+Догнать Чжинюй, они навек расстались так нелепо.<br/>
+<br/>
+<b>Разъединил их Млечный Путь – течёт небесная река,<br/>
+Никак её не переплыть, Владыка тем доволен.<br/>
+И поселилась в небесах в сердцах двоих навек тоска,<br/>
+Друг друга видят, но, увы, не встретиться им боле.<br/>
+<br/>
+Узнали о большой любви сороки и со всей земли<br/>
+Слетелись, мост образовав сердцам двоих на радость.<br/>
+Владыка Неба разрешил встречаться им лишь в день один –<br/>
+Седьмого месяца, числа седьмого в каждый август.***<br/>
+<br/>
+Встречаясь раз один в году, сердца их радостью полны.<br/>
+Сорочий мост для встреч им дан по высшему веленью.<br/>
+И после встречи целый год хранят любовь как дар весны,<br/>
+В сердцах двоих она горит, даруя наслажденье...</b><br/>
+<br/>
+*Тяньди — небесный владыка<br/>
+** Ванму – небесная владычица<br/>
+*** — Исчисление по григорианскому календарю</i><br/>
+</div></div><br/>
+<b>Задача</b><br/>
+<br/>
+Одной из основных проблем при исследовании дальней стороны Луны является проблема, связанная с организацией связи, поскольку устройства на обратной стороне Луны не доступны для связи напрямую с Земли (обратная сторона никогда не видна с Земли из-за явления приливного захвата), поэтому для передачи сигналов по каналу «Земля &lt;-> обратная сторона Луны» необходим отдельный и специальный спутник-ретранслятор для связи.<br/>
+<br/>
+С помощью спутника-ретранслятора планировалось выполнить задачи:<br/>
+<br/>
+ — организовать (первый в мире) канал передачи данных «обратная сторона Луны &lt;-> Земля»;<br/>
+<br/>
+ — организовать слежение за спускаемым аппаратом «Чанъэ-4» и передачу данных при выполнении аппаратом лунных маневров и процедуры посадки на обратную сторону Луны;<br/>
+<br/>
+ — передать в ЦУП на Земле полноценное управление спущенными на поверхность обратной стороны Луны аппаратами (модулем «Чанъэ-4» и ровером «Юйту-2»), используя подсистему слежения, телеметрии и передачи команд управления (TT&amp;C — tracking, telemetry and command subsystem);<br/>
+<br/>
+ — получать научные данные независимо по отдельным каналам связи от спускаемого модуля «Чанъэ-4» и ровера «Юйту-2», пересылать эти данные в ЦУП на Земле;<br/>
+<br/>
+ — проводить собственные научные эксперименты (используя бортовой низкочастотный спектрометр) и передавать полученные научные данные в ЦУП на Земле;<br/>
+<br/>
+ — проводить съемку на бортовую фотокамеру космического пространства и передавать фотографии в ЦУП на Земле;<br/>
+<br/>
+ — поддерживать канал передачи данных «обратная сторона Луны-Земля» в работоспособном режиме не менее 5 лет после начала работы спутника на орбите за Луной (максимально расчетный срок службы — до 10 лет);<br/>
+<br/>
+ — программно-аппаратная часть спутника рассчитана для работы с оборудованием не только для одного проекта «Чанъэ-4», так как срок службы спускаемого модуля «Чанъэ-4» один год, а ровер «Юйту-2» рассчитан на работу в течение трех месяцев, но уже превысил почти в два раза это время, так что спутник-ретранслятор и после окончания проекта «Чанъэ-4» будет далее задействован в новых исследованиях и для организации каналов связи с новыми аппаратами на обратной стороне Луны.<br/>
+<br/>
+<b>Решение</b><br/>
+<br/>
+Был разработан уникальный спутник-ретранслятор, который планировалось вывести на гало-орбиту вокруг особой гравитационно стабильной точки Лагранжа Земля-Луна L2, из которой он будет поддерживать прямую видимость с Землей и обратной стороной Луны в любое время, выдерживая перепад температур до 300 градусов Цельсия.<br/>
+<br/>
+У инженеров Китайской академии космических технологий (CAST) было всего 30 месяцев на разработку спутника-ретранслятора.<br/>
+<br/>
+В декабре 2015 года начались проектные работы, спустя два года уже был произведен финальный опытный образец спутника, который после испытаний и тестирования был подготовлен к запуску в космическое пространство.<br/>
+<br/>
+Команда космических связистов работала совместно с группой ученых и инженеров, которые разрабатывали и реализовывали лунные аппараты для проекта «Чанъэ-4» — посадочный модуль «Чанъэ-4» и ровер «Юйту-2», связь с которыми была главной задачей их проекта. <br/>
+<br/>
+На 2015 год у команды космических инженеров-связистов Китайской академии космических технологий уже был опыт в разработке спутников, аппаратуры дальней космической связи и управлением лунными космическими аппаратами: <br/>
+<br/>
+<ul>
+<li>7 ноября 2007 года был запущен первый китайский лунный спутник «Чанъэ-1»;</li>
+<li>1 октября 2010 года был запущен исследовательский спутник «Чанъэ-2», который до 9 июля 2011 года работал на лунной орбите, а потом покинул ее, чтобы через 77 дней достичь точки Лагранжа L2 системы «Солнце-Земля» (в 1,5 миллионах километрах от Земли) для проведения научных экспериментов;</li>
+<li>посадочный модуль «Чанъэ-3» и ровер «Юйту», которые были успешно посажены на видимую сторону Луны 14 декабря 2013 года, причем посадочный модуль «Чанъэ-3» до сих пор выходит на связь с ЦУП на Земле.</li>
+</ul><br/>
+Однако, у инженеров-связистов Китайской академии космических технологий был жесткий дедлайн, сроки запуска спутника-ретранслятора и его выхода на рабочую орбиту не могли быть сорваны, так как при любой аварийной ситуации или нештатной работе элементов спутника — запуск космического аппарата «Чанъэ-4» с лунным ровером «Юйту-2» на обратную сторону Луны был бы невозможен в планируемый срок, отложен или даже отменен. <br/>
+<br/>
+В общем, 2018 год был очень напряженным у китайских космических связистов.<br/>
+<br/>
+Но у них все получилось — 425-килограммовый спутник-ретранслятор под названием «Цэюцяо» (в переводе — «Сорочий мост») в Китайской академии космических технологий спроектировали, произвели на собственных мощностях (были подключены еще инженеры из Нидерландов для совместной научной дополнительной нагрузки — установки на спутник-ретранслятор специального низкочастотного телескопа-спектрометра) и запустили в установленный срок и с полным функционалом.<br/>
+<br/>
+Для создания спутника-ретранслятора «Цэюцяо» была использована платформа CAST-100 от Китайской академии космических технологий, в ее проектировании и производстве были задействованы <a href="http://cast.cn/Item/list.asp?id=1814">специалисты китайской компании DFH Satellite Co., Ltd</a>. (DFHSat), которая тесно работает с CAST и принадлежит компании China Spacesat.<br/>
+<br/>
+<u>Спутниковая платформа CAST-100 включает в себя: </u><br/>
+<br/>
+<ul>
+<li>систему стабилизации по трём осям, навигационную систему управления, систему термоконтроля;</li>
+<li>однокомпонентную силовую установка со 100 кг безводного цезиевого топлива (гидразина), с общей тягой 130H (ньютонов), 12 двигателей — 8 двигателей по 5Н (по два на каждую из нижних сторон куба) и центральные 4 двигателя по 20Н;</li>
+<li>систему электропитания бортовых систем, состоящую из двух солнечных батарей (максимальная выходная мощность солнечной батареи составляет около 800 Вт) площадью 3,8 м2 и высокоэнергетического литий-ионного аккумуляторного блока 45А/ч.</li>
+</ul><br/>
+Общий вес спутника-ретранслятора составляет 425 кг, он имеет кубовидную форму с размером 1,4 м × 1,4 м × 0,85 м, его корпус состоит из алюминиевой сотовой сэндвич-структуры.<br/>
+<br/>
+<u>На спутниковую платформу CAST-100 были добавлены следующие системы в качестве полезной нагрузки (основной и дополнительной):</u><br/>
+<br/>
+1) основная нагрузка — это радиоретранслятор.<br/>
+<br/>
+Система радиоретранслятора спутника-ретранслятора «Цэюцяо» работает в X-диапазоне и в S-диапазоне.<br/>
+<br/>
+X-диапазон используется для связи с посадочным модулем «Чанъэ-4» и ровером «Юйту-2» — организуются четыре канала со скоростью передачи данных: <br/>
+<br/>
+<ul>
+<li>направление «ровер\посадочный модуль &lt;-> спутник-ретранслятор» 256-280 килобит/с; </li>
+<li>направление «спутник-ретранслятор &lt;-> ровер\посадочный модуль» 125 бит/с.</li>
+</ul><br/>
+S-диапазон используется для для передачи данных на Землю — организуется один канал со скоростью передачи данных 2 мегабит/с. <br/>
+<br/>
+Данные телеметрии TTC&amp;C (USB+VLBI) передаются со скоростью 1000/2048 бит/с.<br/>
+<br/>
+В состав радиоретранслятора входит уникальная параболическая антенна диаметром 4,2 метра, которая раскрывается как зонтик после выхода спутника-ретранслятора на рабочую орбиту.<br/>
+<br/>
+2) дополнительная нагрузка:<br/>
+<br/>
+<ul>
+<li>Нидерландский низкочастотный экспериментальный радиотелескоп (NCLE) с тремя пятиметровыми антеннами, с помощью которого будет регистрироваться низкочастотное радиоизлучение ранней Вселенной для изучения ее структуры;</li>
+<li>широкоугольный лазерный отражатель для измерения расстояния между космическим аппаратом и наземной станцией, который разработан Университетом Сунь Ятсена в провинции Гуандун на юге Китая и будет задействован для проведения самого длинного в мире измерения расстояния с помощью лазера между спутником-ретранслятором и обсерваторией на Земле;</li>
+<li>фотокамера, которую так же планируют использовать для съемки астероидов, падающих на обратную сторону Луны;</li>
+<li>чтобы заинтересовать общественность в проектах по освоению космоса и исследованию Луны, в Китайском космическом агенстве (CNSA) предложили всем желающим записать свои пожелания по исследованию Луны и космоса, а спутник-ретранслятор несет на своем борту имена десятков тысяч участников этого события и их сообщения.</li>
+</ul><br/>
+Научная нагрузка:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/gp/xl/12/gpxl12nlofzaf_s4fud-7aaebhc.jpeg" data-src="https://habrastorage.org/webt/gp/xl/12/gpxl12nlofzaf_s4fud-7aaebhc.jpeg" data-blurred="true"/><br/>
+<br/>
+Вот такая фотокамера установлена на спутнике-ретрансляторе:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/-l/3a/q8/-l3aq8ub2z0lvr845j5npza2f3g.jpeg" data-src="https://habrastorage.org/webt/-l/3a/q8/-l3aq8ub2z0lvr845j5npza2f3g.jpeg" data-blurred="true"/><br/>
+<br/>
+Пример фотографии со спутника-ретранслятора:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/mp/lb/9u/mplb9ulgox-gq9veztthtvpzxkc.jpeg" data-src="https://habrastorage.org/webt/mp/lb/9u/mplb9ulgox-gq9veztthtvpzxkc.jpeg" data-blurred="true"/><br/>
+<br/>
+Лазерный отражатель (чертеж):<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/tz/pu/jk/tzpujkwuwmqrcjwbb1zst3ktg1i.png"/><br/>
+<br/>
+Спутник-ретранслятор «Цэюцяо»:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/d8/0p/97/d80p97hhwn5zntw0iu4rmhtuvgu.jpeg" data-src="https://habrastorage.org/webt/d8/0p/97/d80p97hhwn5zntw0iu4rmhtuvgu.jpeg" data-blurred="true"/><br/>
+<br/>
+Как раскрываются элементы спутника-ретранслятора (антенна, батареи и спектрометр):<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/cj/wk/bt/cjwkbthsntgomcvgttseaea34-e.png"/><br/>
+<br/>
+С инженерами в лаборатории (для масштаба):<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/1k/ty/-6/1kty-6jvmwux_jccoihvdyzwygi.jpeg" data-src="https://habrastorage.org/webt/1k/ty/-6/1kty-6jvmwux_jccoihvdyzwygi.jpeg" data-blurred="true"/><br/>
+<br/>
+Антенна (слева сам блок антенны, справа уже на спутник установлена):<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/mg/wj/0x/mgwj0x-mqruzy9erq8ueu2czbhs.jpeg" data-src="https://habrastorage.org/webt/mg/wj/0x/mgwj0x-mqruzy9erq8ueu2czbhs.jpeg" data-blurred="true"/><br/>
+<br/>
+В раскрытом виде на тестах:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/rd/pr/7z/rdpr7z4vbnuevlyh2rytm6bm4tu.png"/><br/>
+<br/>
+Научное оборудование (три антенны низкочастотного радиотелескопа, в раздвижном состоянии каждая из них длинной 5 метров): <br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/li/uq/3u/liuq3uiod9bphkkxdylqbyt83ji.jpeg" data-src="https://habrastorage.org/webt/li/uq/3u/liuq3uiod9bphkkxdylqbyt83ji.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/op/lb/rh/oplbrhv04-jori4sie_hjbim8te.png"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/cf/xb/ei/cfxbei4iwdrxeih_1r0n3at8fho.jpeg" data-src="https://habrastorage.org/webt/cf/xb/ei/cfxbei4iwdrxeih_1r0n3at8fho.jpeg" data-blurred="true"/><br/>
+<br/>
+Копия масштабом 1 к 3 спутника-ретранслятора в музее космонавтики:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/9g/-4/0l/9g-40lunaxdf7bzjowlq_lxecas.jpeg" data-src="https://habrastorage.org/webt/9g/-4/0l/9g-40lunaxdf7bzjowlq_lxecas.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/vq/7m/sg/vq7msgqnhqbfti1tv3zrvzjzmhg.jpeg" data-src="https://habrastorage.org/webt/vq/7m/sg/vq7msgqnhqbfti1tv3zrvzjzmhg.jpeg" data-blurred="true"/><br/>
+<br/>
+<b> Про параболическую антенну-зонтик и ее создание</b><br/>
+<br/>
+Инженеры Китайской академии космических технологий разработали для спутника-ретранслятора несколько вариантов антенн, в том числе в форме зонтика диаметром 420 сантиметров в раскрытом виде.<br/>
+<br/>
+В разработке и производстве такой антенны были задействованы… текстильные технологи и часовщики. <br/>
+<br/>
+Только совместным трудом инженеров-связистов и специалистов часовой и текстильной промышленности в лаборатории Китайской академии космических технологий смогли решить непростую задачу по группированию мельчайших элементов металлической сетки антенны и ее 18-ти ребер, чтобы она могла находится в сложенном до нужных размеров для транспортировке и запуска состоянии, а в открытом космосе смогла развернуться как пляжный зонтик.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ko/th/hv/kothhvnuiun6qyiagnjyvoalgpm.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/e8/um/g1/e8umg1jpp2rizs283ymcn3lzdnw.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/iw/ua/qi/iwuaqidts1orehwdet6qh43xj8c.png"/><br/>
+<br/>
+Элементы антенны выдерживают изменения температуры более 300 градусов по Цельсию. <br/>
+<br/>
+В специальных стендовых лабораториях Китайской академии космических технологий были проведены десятки испытания и программ тестирования компонентов антенны и ее общей сборки, перед установкой на спутник-ретранслятор.<br/>
+<br/>
+В состав антенны входит специальный приводной механизм для управления отслеживанием направления, который позволяет контролировать направление антенны в проектном диапазоне с шагом до 0,2°.<br/>
+<br/>
+Визуализация развертывания антенны в космическом пространстве:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/r9/px/3a/r9px3aso-t6wlzwqbw64fyqthrw.gif"/><br/>
+<br/>
+На элементы антенны воздействуют низкотемпературные условия окружающей среды. Температура некоторых ребер, натяжных тросов, металлической сетки и других компонентов на антенне будет опускаться ниже -200°C, что необходимо было учесть в ее производстве.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/kq/wv/wc/kqwvwc6pvpc_w0sfcd7-rdw2uta.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/i6/65/4d/i6654d_l3fzr0zds6dh4jhbkrzo.png"/><br/>
+<br/>
+<b>Проблемы, ограниченный бюджет на разработку и производство</b><br/>
+<br/>
+В ходе разработки спутника-ретранслятора инженеры по возможности максимально унаследовали конструкцию телекоммуникационной системы проекта «Чанъэ-3», так что проблем в реализации плеча канала связи «Спутник-ретранслятор &lt;-> аппараты на обратной стороне Луны» почти не было.<br/>
+<br/>
+Спутником-ретранслятором полученные и демодулированные данные от посадочного модуля «Чанъэ-4» и ровера «Юйту-2» объединяются в соответствии с протоколом связи и передаются в ЦУП на Землю через систему прямой космической связи.<br/>
+<br/>
+Основная проблема в реализации плеча канала связи «Спутник-ретранслятор &lt;-> аппараты на обратной стороне Луны» была в том, что максимальное расстояние этого канала составляет около 80000 км, а затухание сигнала на таком расстоянии достигает 210 дБ. Поэтому, инженерам пришлось находить баланс между пропускной способностью канала связи, динамическим изменением положений трех аппаратов (спутника, посадочного модуля и ровера), а также системой управления мощностью радиоретранслятора.<br/>
+<br/>
+Оптимальная рабочая схема у них получилась такая: данные телеметрии передаются при любом расстоянии от аппаратов на поверхности до спутника-ретранслятора, а вот передача научных данных (большие объемы данных) организована в том случае, когда ориентация двух устройств (спутник-ровер или спутник-посадочный модуль) относительно стабильна и мощности всех устройств хватает для организации канала с нужной пропускной способностью.<br/>
+<br/>
+Например, антенны ровера «Юйту-2» необходимо настроить так, чтобы они указывали на спутник-ретранслятор, для корректной отправки и получения управляющих сигналов, в то время как солнечные панели ровера должны быть оптимально наклонены для попадания на них большого количества солнечного света, чтобы максимизировать выработку электроэнергии в момент совершения передачи данных.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/3bc/a73/384/3bca733849fc7d6e2bf00ef4d8bc04bd.gif"/><br/>
+<br/>
+В плече канала связи «Спутник-ретранслятор &lt;-> ЦУП на Земле» после выхода спутником-ретранслятором на гало-орбиту вокруг точки Лагранжа L2 системы «Земля-Луна» выполняется калибровка точности наведения ретрансляционной антенны (расстояние 480000 км). <br/>
+<br/>
+В процессе калибровки ретрансляционная антенна спутника-ретранслятора направлена на Шанхайскую астрономическую обсерваторию Китайской академии наук. С Земли сигнал отслеживается с помощью наземной антенны с апертурой 65 метров. Результаты испытаний показывают, что ретрансляционная антенна с высоким коэффициентом усиления имеет отклонение наведения менее 0,1°, что удовлетворяет требованиям для данного проекта.<br/>
+<br/>
+Спутник-ретранслятор проводит ежедневное самотестирование своих систем — проверяет ключевые функции и показатели эффективности (характеристики РЧ-модуляции, время сбора, задержка пересылки и формат данных) системы ретрансляции. Результаты тестирования отсылаются в ЦУП на Земле, где анализируются на соответствие проектным требованиям.<br/>
+<br/>
+Калибровка и тестирование необходимы, так как у спутника-ретранслятора, находящегося на рабочей гало-орбите, из-за тепловой деформации и других факторов фактическая орбитальная ориентация антенны ретрансляционной связи будет иметь отклонения в наведении, которые необходимо корректировать и проверять их изменения. <br/>
+<br/>
+Расчетная тепловая деформация элементов антенны (в мм) при разных температурах:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/vs/ft/f5/vsftf5bvqr3hbn5-svjy9rvz2zm.png"/><br/>
+<br/>
+Расходы на проектирование, производство и запуск аппаратов миссии «Чанъэ-4» были жестко лимитированы. А возможности даже немножко превысить затраты — не то что не было, а наоборот, инженеры были мотивированы минимизировать части и элементы проекта, дорабатывать и расширять их функционал, чтобы уменьшить итоговую стоимость производства и сократить затраты. <br/>
+<br/>
+Поэтому, спутник-ретранслятор был изначально спроектирован с относительно небольшим весом (425 кг), чтобы затраты на его производство и запуск были минимальны.<br/>
+<br/>
+Были ли резервные спутники-ретрансляторы сделаны? Это интересный вопрос — как вариант, были сделаны несколько прототипов, но запущен был только один, самый проверенный. <br/>
+<br/>
+Что будет, если в космическом пространстве спутник-ретранслятор выйдет из строя? Конечно, в его составе есть несколько дублирующих элементов, которые наиболее критичны для проекта — части бортового компьютера, системы электропитания и радиоретранслятора. <br/>
+Если спутник достигнет своей рабочей орбиты за Луной, то тут уже его работоспособность будет максимальна и срок службы может составлять до 10 лет.<br/>
+<br/>
+Самая большая проблема, которая может возникнуть у спутника-ретранслятора — это фатальное повреждение антенны, поэтому ее сделали в виде гигантского зонтика с сетчатым внутренним покрытием, которое микрометеориты могут повреждать, не выводя из строя функциональную часть. А шанс, что большой метеорит столкнется со спутником-ретранслятором очень небольшой.<br/>
+<br/>
+Однако, если такое произойдет, то в течение 30 суток можно будет восстановить канал связи «Земля обратная сторона Луны», путем запуска нового спутника-ретранслятора и вывода его на рабочую орбиту за Луной.<br/>
+<br/>
+У инженеров Китайской академии космических технологий были следующие новые задачи после создания спутника-ретранслятора: <br/>
+<br/>
+<ul>
+<li>подготовить спутник-ретранслятор к запуску на ракета-носителе и сопровождать запуск;</li>
+<li>отслеживать его траекторию и направлять спутник-ретранслятор до Луны; </li>
+<li>выполнить лунный маневр для перехода на рабочую гало орбиту вокруг точки Лагранжа L2 системы «Земля-Луна»;</li>
+<li>тестировать канал связи со спутником, пока лунные аппараты миссии «Чанъэ-4» не выйдут в конце декабря 2018 года на орбиту Луны;</li>
+<li>провести первый сеанс связи с посадочным модулем «Чанъэ-4» в конце декабря 2018 года, посадочный модуль «Чанъэ-4» находится на орбите Луны;</li>
+<li>3 января 2019 года получать данные от посадочного модуля «Чанъэ-4», который начнет процедуру посадки на обратную сторону Луны;</li>
+<li>провести первый сеанс связи с посадочным модулем «Чанъэ-4» и ровером «Юйту-2», которые находятся на поверхности обратной стороны Луны.</li>
+</ul><br/>
+<b>Запуск и работа в космическом пространстве</b><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/o9/wl/6b/o9wl6bhxm76aizolosbeeflhbjs.jpeg" data-src="https://habrastorage.org/webt/o9/wl/6b/o9wl6bhxm76aizolosbeeflhbjs.jpeg" data-blurred="true"/><br/>
+<br/>
+21 мая 2018 года: с Китайского космодрома Сичан запущен спутник-ретранслятор «Цэюцяо» (Сорочий мост).<br/>
+<br/>
+Старт в ЦУП на Земле:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/32/gm/ai/32gmailebekd9kgwjfqfpxt91q8.jpeg" data-src="https://habrastorage.org/webt/32/gm/ai/32gmailebekd9kgwjfqfpxt91q8.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/yb/v5/hz/ybv5hzt4y-_dcmsqi_mgrosmsyk.jpeg" data-src="https://habrastorage.org/webt/yb/v5/hz/ybv5hzt4y-_dcmsqi_mgrosmsyk.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ux/2j/gr/ux2jgrdnm-2luvgawtgifxeyueq.jpeg" data-src="https://habrastorage.org/webt/ux/2j/gr/ux2jgrdnm-2luvgawtgifxeyueq.jpeg" data-blurred="true"/><br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/8bHeWdw-PHM?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+Отделение полезной нагрузки:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/tj/kd/8y/tjkd8y1dukiqasfewqg14n4xmo4.gif"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/3f/lg/fq/3flgfqpubj9u1fwceu4r0get-60.png"/><br/>
+<br/>
+Траектория полета спутника-ретранслятора «Цэюцяо»:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fw/9v/pu/fw9vpudbks3xtpiszvpro8wo52q.png"/><br/>
+ <br/>
+<img src="https://habrastorage.org/r/w780q1/webt/dg/ir/3v/dgir3vi_gztnuutupnzrivvogmc.jpeg" data-src="https://habrastorage.org/webt/dg/ir/3v/dgir3vi_gztnuutupnzrivvogmc.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/j8/6b/ix/j86bixdgn7kjvexnd4nlhrkahgc.jpeg" data-src="https://habrastorage.org/webt/j8/6b/ix/j86bixdgn7kjvexnd4nlhrkahgc.jpeg" data-blurred="true"/><br/>
+<br/>
+14 июня 2018 года: Cпутник-ретранслятор «Цэюцяо» вышел на гало-орбиту вокруг точки Лагранжа L2 системы «Земля-Луна», примерно в 65000 км от Луны, став первым в мире спутником связи, работающим на этой орбите.<br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/qihh4ILy8jY?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+Вот такая фотография была получена со спутника-ретранслятора «Цэюцяо»:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/1w/tp/_h/1wtp_hogreh5pzm2ccmxooi6df4.png"/><br/>
+<br/>
+Где видны Луна, Земля и элементы спутника:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/yp/cq/ph/ypcqpha8n-txdqoqld0polb97ve.jpeg" data-src="https://habrastorage.org/webt/yp/cq/ph/ypcqpha8n-txdqoqld0polb97ve.jpeg" data-blurred="true"/><br/>
+<br/>
+Спутник-ретранслятор может оставаться на своей орбите в течение длительного времени из-за относительно низкого расхода топлива, поскольку гравитация Земли и Луны уравновешивает его орбитальное движение.<br/>
+<br/>
+Находясь на своей орбите, спутник-ретранслятор может «видеть» как Землю, так и обратную сторону Луны. С Земли орбита спутника-ретранслятора выглядит как ореол Луны.<br/>
+<br/>
+Концепция развертывания ретрансляционного спутника на гало-орбите была впервые выдвинута американскими космическими экспертами в 1960-х годах (основной вклад в расчет такой орбиты внес Роберт Фаркуар — специалист по проектированию миссий NASA более 50 лет назад — в 1968 году), но была впервые была реализована китайскими космическими инженерами только в 2018 году.<br/>
+<br/>
+Точки либрации системы «Земля-Луна»:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/pk/r0/46/pkr046civyrsktsssp-bhnu6fxw.jpeg" data-src="https://habrastorage.org/webt/pk/r0/46/pkr046civyrsktsssp-bhnu6fxw.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/mu/ed/we/muedwegakqrjwidgsemkydjvcjg.jpeg" data-src="https://habrastorage.org/webt/mu/ed/we/muedwegakqrjwidgsemkydjvcjg.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/g9/rh/tf/g9rhtfkyvth3xgspyehmu3cxhtk.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/yn/io/mf/yniomfw_xz2zdjjnvq94alsghts.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/tp/nl/mh/tpnlmhju0jdbjgskjm_plyebyt8.png"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/3h/e0/ft/3he0ftwl0uqrnmzn2utaubd_loo.jpeg" data-src="https://habrastorage.org/webt/3h/e0/ft/3he0ftwl0uqrnmzn2utaubd_loo.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/v1/eb/vb/v1ebvbqndhtqu6qkgbbhnxnjmnk.jpeg" data-src="https://habrastorage.org/webt/v1/eb/vb/v1ebvbqndhtqu6qkgbbhnxnjmnk.jpeg" data-blurred="true"/><br/>
+<br/>
+<b>Организация связи с посадочным модулем «Чанъэ-4» и ровером «Юйту-2»</b><br/>
+<br/>
+Спустя шесть месяцев, как спутник-ретранслятор «Цэюцяо» достиг своей рабочей орбиты за Луной, началась вторая рабочая фаза проекта «Чанъэ-4» — вывод в космическое пространство аппарата «Чанъэ-4» с лунным ровером «Юйту-2» на борту.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/qp/vp/g4/qpvpg40xfuxkrk2vyv8pm2wudga.jpeg" data-src="https://habrastorage.org/webt/qp/vp/g4/qpvpg40xfuxkrk2vyv8pm2wudga.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/cs/oc/ir/csocir5rydzddsfkmfuqpdektqy.png"/><br/>
+<br/>
+8 декабря 2018 года: Ракета-носитель «Чанчжэн-3B» со станцией «Чанъэ-4» успешно запущена с Китайского космодрома «Сичан».<br/>
+<br/>
+Траектория полета станции «Чанъэ-4»:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/dt/7n/1g/dt7n1g_d9n7bgg9do3ozbsdbteg.png"/><br/>
+<br/>
+Через 110 часов станция «Чанъэ-4» достигла Луны и перешла на ее орбиту.<br/>
+<br/>
+Вот тогда и началось первое боевое тестирование спутника-ретранслятора «Цэюцяо» путем организации канала связи со станцией «Чанъэ-4», когда она пролетала над обратной стороной Луны:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/nd/rl/ch/ndrlchkdiouuf9s_x2bej3vses0.gif"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/de/_4/1l/de_41lf4a317bxo6ztvcfnzhzpa.gif"/><br/>
+<br/>
+Режимы тестирования и работы спутника-ретранслятора «Цэюцяо» и аппаратов станции «Чанъэ-4» (спускаемого модуля и ровера)<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/cx/nx/n-/cxnxn-9yuz2r3_-2qyhztmpag4g.png"/><br/>
+<br/>
+Когда станцией «Чанъэ-4» приступила к процедуре посадки 3 января 2019 года, то тут уже в ЦУП на Земле переключились на полноценную работу со спутником-ретранслятором «Цэюцяо» для получения телеметрии и фотографий со спускаемого модуля «Чанъэ-4».<br/>
+<br/>
+3 января 2019 года: спускаемый аппарат «Чанъэ-4» совершает посадку в кратере «Карман» на обратной стороне Луны. В составе посадочного аппарата «Чанъэ-4» находится второй Китайский лунный ровер «Юйту-2», модернизированный аналог ровера «Юйту». <br/>
+<br/>
+Через спутник-ретранслятор «Цэюцяо» в ЦУП на Земле получают первые изображения обратной стороны Луны в зоне приземления, а также тысячи кадров с посадочной камеры посадочного аппарата «Чанъэ-4», объединив которые, получилось такое замечательное видео посадки на обратную сторону Луны:<br/>
+<br/>
+Видео процедуры посадки на обратную сторону Луны:<br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/Z0ZUc5oXIRo?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+После окончания всех этапов процедуры успешной посадки и установки независимых каналов связи с аппаратами «Чанъэ-4» (посадочным модулем и ровером), началась эра исследования обратной стороны Луны.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/th/6w/qd/th6wqdikgc0_qesxulwlqyzgp3g.gif"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ju/fh/4f/jufh4fbwo4w0kijjtb7mpcwiavw.gif"/><br/>
+<br/>
+Но всего этого могло бы не было без спутника-ретранслятора «Цэюцяо» и организованной с помощью него системы связи:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/c5/m6/ag/c5m6agshnovo6xiv8zmz-nsgg4m.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/7p/4z/3v/7p4z3vryfxpzbumjvtqwuijf_rs.gif"/><br/>
+<br/>
+Схема организации связи проекта «Чанъэ-4»:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/jo/0-/zw/jo0-zwlfhk73ia_yynffxcxxwr0.jpeg" data-src="https://habrastorage.org/webt/jo/0-/zw/jo0-zwlfhk73ia_yynffxcxxwr0.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/oq/uy/ek/oquyekjkeonwhf9quvzfby4fe2g.jpeg" data-src="https://habrastorage.org/webt/oq/uy/ek/oquyekjkeonwhf9quvzfby4fe2g.jpeg" data-blurred="true"/><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/yg/mf/ch/ygmfchaj9wmrjuoecepsncghlby.jpeg" data-src="https://habrastorage.org/webt/yg/mf/ch/ygmfchaj9wmrjuoecepsncghlby.jpeg" data-blurred="true"/> <br/>
+<br/>
+Данные телеметрии от посадочного модуля «Чанъэ-4» и лунного ровера «Юйту-2 поступают на спутник-ретранслятор «Цэюцяо», который далее их передает на Землю в Пекинский центр аэрокосмического контроля, а далее в ЦУП, что приводит к задержке получения данных операторами на Земле до двух-трех минут.<br/>
+<br/>
+В центре космической связи:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/d47/95d/55a/d4795d55aa6e180b5d3d568799b42bf3.png"/> <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/bfa/9f2/5af/bfa9f25af6c2d5e239ecfe3f980c5547.png"/> <br/>
+<br/>
+В центре управления полетами Китайской академии космических технологий:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/792/8d1/013/7928d101305c960aba3f219c3a600904.png"/> <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/a7d/1d1/f5f/a7d1d1f5f8c86f7a4b58ec680966e83b.png"/> <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/e33/348/8d6/e333488d670ec4d8e6c87d2b99756507.png"/> <br/>
+<br/>
+<i>Вопрос: Можно ли с помощью ретранслятора спутника «Цэюцяо» вести прямую трансляцию с поверхности обратной стороны Луны?<br/>
+<br/>
+Ответ: Теоретически это возможно, но текущие каналы связи не могут соответствовать требованиям для потоковой передачи видео в реальном времени.</i><br/>
+<br/>
+В Китайской академии космических технологий делают все возможное, чтобы спутник-ретранслятор смог работать как можно дольше, обеспечивая в будущем связь для зондов и аппаратов других стран, если они намерены исследовать обратную сторону Луны в течение срока службы спутника. <br/>
+<br/>
+Это мирный научный проект, к которому могут присоединиться все желающие.<br/>
+<br/>
+Тем более, что при осуществлении маневров спутником-ретранслятором для достижения своей рабочей орбиты инженерам Китайской академии космических технологий удалось оптимизировать количество маневров двигателями, что позволило сэкономить 16,8 кг топлива, которые могут быть теперь использованы в дальнейшем при необходимости для коррекции его орбиты и продлении срока службы.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/nl/ma/yb/nlmaybvqodnoig0ms4xbx-skqsu.jpeg" data-src="https://habrastorage.org/webt/nl/ma/yb/nlmaybvqodnoig0ms4xbx-skqsu.jpeg" data-blurred="true"/><br/>
+<br/>
+Для понимания, что на Луне еще будут новые исследования — <a href="https://armchairastronautics.blogspot.com/2019/05/space-observatories-update-2019-05.html">текущая на 5 мая 2019 года научная спутниковая группировка</a>. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/f0/-w/ms/f0-wms9z_6zgchlcvhthcoarwow.png"/></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%A7%D0%B0%D0%BD%D1%8A%D1%8D-4%5D" class="tm-tags-list__link">Чанъэ-4</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%9B%D1%83%D0%BD%D0%B0%5D" class="tm-tags-list__link">Луна</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BA%D0%BE%D1%81%D0%BC%D0%BE%D1%81%5D" class="tm-tags-list__link">космос</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%9A%D0%B8%D1%82%D0%B0%D0%B9%5D" class="tm-tags-list__link">Китай</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%AE%D0%B9%D1%82%D1%83-2%5D" class="tm-tags-list__link">Юйту-2</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%BE%D0%B2%D0%B5%D1%80%5D" class="tm-tags-list__link">ровер</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmoon%5D" class="tm-tags-list__link">moon</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BYutu-2%5D" class="tm-tags-list__link">Yutu-2</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BChang%27e-4%5D" class="tm-tags-list__link">Chang'e-4</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D0%BF%D1%83%D1%82%D0%BD%D0%B8%D0%BA-%D1%80%D0%B5%D1%82%D1%80%D0%B0%D0%BD%D1%81%D0%BB%D1%8F%D1%82%D0%BE%D1%80%5D" class="tm-tags-list__link">спутник-ретранслятор</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%A6%D1%8D%D1%8E%D1%86%D1%8F%D0%BE%5D" class="tm-tags-list__link">Цэюцяо</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%A1%D0%BE%D1%80%D0%BE%D1%87%D0%B8%D0%B9%20%D0%BC%D0%BE%D1%81%D1%82%5D" class="tm-tags-list__link">Сорочий мост</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BQueqiao%5D" class="tm-tags-list__link">Queqiao</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D0%B2%D1%8F%D0%B7%D1%8C%5D" class="tm-tags-list__link">связь</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B0%D0%B4%D0%B8%D0%BE%5D" class="tm-tags-list__link">радио</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/netdev/" class="tm-hubs-list__link">
+    Разработка систем связи
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/popular_science/" class="tm-hubs-list__link">
+    Научно-популярное
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/space/" class="tm-hubs-list__link">
+    Космонавтика
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/astronomy/" class="tm-hubs-list__link">
+    Астрономия
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 20: ↑20 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 20: ↑20 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+20</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">4.7K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    10
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/denis-19/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/6a0/f31/235/6a0f31235bb26134f3c7a741c03e4efb.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 756 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    331.7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">488</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Денис</span> <a href="/ru/users/denis-19/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @denis-19
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Инженер, редакция Хабра</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450600/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 1 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450600/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450600/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450600":{"id":"450600","timePublished":"2019-05-06T12:17:19+00:00","isCorporative":false,"lang":"ru","titleHtml":"Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ful\u002Fnh\u002F_z\u002Fulnh_zws6i9otaw61g6xmgaijem.png\"\u003E\u003Cbr\u003E\r\n \u003Cbr\u003E\r\nГлавное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной стороне Луны. Полгода назад началась эра ретрансляционной радиосвязи с обратной стороной Луны. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\nКак это было сделано, какие данные передаются между аппаратами на Луне (посадочный модуль и ровер) и спутником-ретранслятором за Луной, как организована далее связь с ЦУП на Земле (через центр космической связи) и с какими скоростями передачи данных — описано тут.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":331.7,"votesCount":756},"rating":488,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410014768041268","paymentPayPalMe":null,"paymentWebmoney":"639245204629"},"id":"780987","alias":"denis-19","fullname":"Денис","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F6a0\u002Ff31\u002F235\u002F6a0f31235bb26134f3c7a741c03e4efb.jpg","speciality":"Инженер, редакция Хабра"},"statistics":{"commentsCount":1,"favoritesCount":10,"readingCount":4677,"score":20,"votesCount":20},"hubs":[{"relatedData":null,"id":"19395","alias":"netdev","type":"collective","title":"Разработка систем связи","titleHtml":"Разработка систем связи","isProfiled":true},{"relatedData":null,"id":"21910","alias":"popular_science","type":"collective","title":"Научно-популярное","titleHtml":"Научно-популярное","isProfiled":false},{"relatedData":null,"id":"21962","alias":"space","type":"collective","title":"Космонавтика","titleHtml":"Космонавтика","isProfiled":false},{"relatedData":null,"id":"22022","alias":"astronomy","type":"collective","title":"Астрономия","titleHtml":"Астрономия","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ful\u002Fnh\u002F_z\u002Fulnh_zws6i9otaw61g6xmgaijem.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nГлавное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной стороне Луны. Полгода назад началась эра ретрансляционной радиосвязи с обратной стороной Луны. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак это было сделано, какие данные передаются между аппаратами на Луне (посадочный модуль и ровер) и спутником-ретранслятором за Луной, как организована далее связь с ЦУП на Земле (через центр космической связи) и с какими скоростями передачи данных — описано тут.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nКанал связи — тонкая невидимая нить, связывающая обратную сторону Луны и Землю, которая должна быть легкой и простой в реализации, но и надежной с точки зрения отказов узлов, так как при отсутствии этого единственного канала связи — аппараты на обратной стороне Луны будут потеряны и предоставлены сами себе (на некоторое время автоматике).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EРанее опубликованные материалы про миссию «Чанъэ-4»:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E \u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F435032\u002F\"\u003E1. Космический аппарат «Чанъэ-4» совершил успешную посадку на обратной стороне Луны и прислал первое фото\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F435776\u002F\"\u003E2. Бортовое видео процессов подготовки и совершения посадки, а так же панорама обратной стороны Луны от «Чанъэ-4»\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F438352\u002F\"\u003E3. Видео процесса спуска ровера «Юйту-2», его первые метры по поверхности Луны. Двухнедельный сон на Луне закончен\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F438840\u002F\"\u003E4. Гордость и страсть, история о превращении мечты в космический проект\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F439466\u002F\"\u003E5. Лунный орбитальный зонд NASA сделал первые снимки Китайской станции «Чанъэ-4» — два пикселя света\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F440260\u002F\"\u003E6. Модуль «Чанъэ-4» и ровер «Юйту-2» готовы ко второй ночи на обратной стороне Луны\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F440506\u002F\"\u003E7. Лунный орбитальный зонд NASA сделал новые снимки Китайской станции «Чанъэ-4» — ближе и яснее\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F441012\u002F\"\u003E8. Интересные факты об истории Китайской лунной программы и космической миссии «Чанъэ-4»\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F443708\u002F\"\u003E9. Миссия «Чанъэ-4» — третий лунный день. Ровер «Юйту-2» в поисках… камней\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F445384\u002F\"\u003E10. Миссия «Чанъэ-4» — научное оборудование на посадочном модуле и спутнике-ретрансляторе\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F446276\u002F\"\u003E11. Миссия «Чанъэ-4» — четвертый лунный день для посадочного модуля и ровера «Юйту-2». Про камеры и контроллеры на аппаратах\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450252\u002F\"\u003E12. Миссия «Чанъэ-4» — пятый лунный день для посадочного модуля и ровера «Юйту-2»\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВсе началось с легенды.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fzx\u002Fb3\u002Fx9\u002Fzxb3x9rugzccxapusqrcjnflskw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fzx\u002Fb3\u002Fx9\u002Fzxb3x9rugzccxapusqrcjnflskw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EСорочий мост (китайская легенда)\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Ci\u003EДавным-давно на свете жил пастух по имени Нюлан.\u003Cbr\u002F\u003E\r\nПоскольку был он сиротой, жил долго в доме брата.\u003Cbr\u002F\u003E\r\nНевестка выгнала его, и жизнь накрыл сплошной туман.\u003Cbr\u002F\u003E\r\nПустой карман, один лишь вол, не быть ему богатым.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗаговорил вдруг вол, сказав, что был созвездием Тельца\u003Cbr\u002F\u003E\r\nНа небе, очень удивив Нюлана этой вестью,\u003Cbr\u002F\u003E\r\nИ между прочим рассказал, что от Небесного Отца\u003Cbr\u002F\u003E\r\nСлыхал однажды о Звезде — Ткачихе он, небесной.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n«Она спускается с небес, чтоб искупаться в ранний час,\u003Cbr\u002F\u003E\r\nПо дивной красоте никто не может с ней сравниться.\u003Cbr\u002F\u003E\r\nСкорей одежду укради и не спускай с неё ты глаз,\u003Cbr\u002F\u003E\r\nНе дай умчаться ей домой, прекраснейшей царице!»\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпустившись к берегу реки, момент удачный уловив,\u003Cbr\u002F\u003E\r\nПастух Нюлан, в один прыжок схватив скорей одежду\u003Cbr\u002F\u003E\r\nЗвезды по имени Чжинюй, услышал нежный зов любви.\u003Cbr\u002F\u003E\r\nВ душе его горел огонь сияющей надежды.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВода речная так тепла, блаженно плавала Чжинюй,\u003Cbr\u002F\u003E\r\nИгривая волна её вдруг вынесла на берег.\u003Cbr\u002F\u003E\r\nНо нет одежды, и она, несчастья чуя глубину,\u003Cbr\u002F\u003E\r\nБессильно села не песок, о, чем беду измерить?!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВернуться надо срочно ей на небо звёздное, но как?\u003Cbr\u002F\u003E\r\nВернуться голой? Не поймёт её Отец Небесный!\u003Cbr\u002F\u003E\r\nЗа что наказана она? А, может быть, ей подан знак?\u003Cbr\u002F\u003E\r\nСудьба изменчива, порой… ей стало интересно…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНюлан, увидев, что Чжинюй, роняя слёзы, замерла,\u003Cbr\u002F\u003E\r\nА, устремив свой ясный взгляд на небо, зарыдала,\u003Cbr\u002F\u003E\r\nНе смог спокойно наблюдать её страдания, ведь зла\u003Cbr\u002F\u003E\r\nЗвезде он не хотел совсем, тут болью сердце сжало.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИз-за кустов он вышел к ней, одежду протянув, сказал:\u003Cbr\u002F\u003E\r\n«Прошу, Чжинюй, прости, меня, не ведал я, что делал,\u003Cbr\u002F\u003E\r\nВозьми одежду, надоел, мне этот странный карнавал,\u003Cbr\u002F\u003E\r\nНо знай, люблю я всей душой тебя, такое дело…»\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧжинюй оделась и, взлетев, умчалась быстро в небеса.\u003Cbr\u002F\u003E\r\nВладыка Неба не узнал об этом приключение.\u003Cbr\u002F\u003E\r\nНюлан ей сердце покорил, слезами полнились глаза.\u003Cbr\u002F\u003E\r\nЛюбовь земная – вот её отныне назначенье.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС небес спустившись вновь, Чжинюй с Нюланом счастье обрела,\u003Cbr\u002F\u003E\r\nИ день, и ночь она ткала, а он работал в поле,\u003Cbr\u002F\u003E\r\nЛюбовью расцветала жизнь, в семье царил покой и лад.\u003Cbr\u002F\u003E\r\nРазгневался Тяньди*, узнав о жизни их привольной.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЖене своей он приказал Чжинюй вернуть и наказать\u003Cbr\u002F\u003E\r\nЗа своеволие её и разлучить с Нюланом.\u003Cbr\u002F\u003E\r\nВанму** исполнила приказ, Владыка всё проверил сам.\u003Cbr\u002F\u003E\r\nЗвезда Чжинюй опять горит, но с помощью обмана.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНюлан помчался за женой, с собою сына взяв и дочь,\u003Cbr\u002F\u003E\r\nНебесный вол помог им всем взлететь скорей на небо.\u003Cbr\u002F\u003E\r\nОни в созвездии Тельца, никто не в силах им помочь\u003Cbr\u002F\u003E\r\nДогнать Чжинюй, они навек расстались так нелепо.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EРазъединил их Млечный Путь – течёт небесная река,\u003Cbr\u002F\u003E\r\nНикак её не переплыть, Владыка тем доволен.\u003Cbr\u002F\u003E\r\nИ поселилась в небесах в сердцах двоих навек тоска,\u003Cbr\u002F\u003E\r\nДруг друга видят, но, увы, не встретиться им боле.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУзнали о большой любви сороки и со всей земли\u003Cbr\u002F\u003E\r\nСлетелись, мост образовав сердцам двоих на радость.\u003Cbr\u002F\u003E\r\nВладыка Неба разрешил встречаться им лишь в день один –\u003Cbr\u002F\u003E\r\nСедьмого месяца, числа седьмого в каждый август.***\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВстречаясь раз один в году, сердца их радостью полны.\u003Cbr\u002F\u003E\r\nСорочий мост для встреч им дан по высшему веленью.\u003Cbr\u002F\u003E\r\nИ после встречи целый год хранят любовь как дар весны,\u003Cbr\u002F\u003E\r\nВ сердцах двоих она горит, даруя наслажденье...\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n*Тяньди — небесный владыка\u003Cbr\u002F\u003E\r\n** Ванму – небесная владычица\u003Cbr\u002F\u003E\r\n*** — Исчисление по григорианскому календарю\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЗадача\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдной из основных проблем при исследовании дальней стороны Луны является проблема, связанная с организацией связи, поскольку устройства на обратной стороне Луны не доступны для связи напрямую с Земли (обратная сторона никогда не видна с Земли из-за явления приливного захвата), поэтому для передачи сигналов по каналу «Земля &lt;-\u003E обратная сторона Луны» необходим отдельный и специальный спутник-ретранслятор для связи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС помощью спутника-ретранслятора планировалось выполнить задачи:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — организовать (первый в мире) канал передачи данных «обратная сторона Луны &lt;-\u003E Земля»;\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — организовать слежение за спускаемым аппаратом «Чанъэ-4» и передачу данных при выполнении аппаратом лунных маневров и процедуры посадки на обратную сторону Луны;\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — передать в ЦУП на Земле полноценное управление спущенными на поверхность обратной стороны Луны аппаратами (модулем «Чанъэ-4» и ровером «Юйту-2»), используя подсистему слежения, телеметрии и передачи команд управления (TT&amp;C — tracking, telemetry and command subsystem);\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — получать научные данные независимо по отдельным каналам связи от спускаемого модуля «Чанъэ-4» и ровера «Юйту-2», пересылать эти данные в ЦУП на Земле;\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — проводить собственные научные эксперименты (используя бортовой низкочастотный спектрометр) и передавать полученные научные данные в ЦУП на Земле;\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — проводить съемку на бортовую фотокамеру космического пространства и передавать фотографии в ЦУП на Земле;\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — поддерживать канал передачи данных «обратная сторона Луны-Земля» в работоспособном режиме не менее 5 лет после начала работы спутника на орбите за Луной (максимально расчетный срок службы — до 10 лет);\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — программно-аппаратная часть спутника рассчитана для работы с оборудованием не только для одного проекта «Чанъэ-4», так как срок службы спускаемого модуля «Чанъэ-4» один год, а ровер «Юйту-2» рассчитан на работу в течение трех месяцев, но уже превысил почти в два раза это время, так что спутник-ретранслятор и после окончания проекта «Чанъэ-4» будет далее задействован в новых исследованиях и для организации каналов связи с новыми аппаратами на обратной стороне Луны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EРешение\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБыл разработан уникальный спутник-ретранслятор, который планировалось вывести на гало-орбиту вокруг особой гравитационно стабильной точки Лагранжа Земля-Луна L2, из которой он будет поддерживать прямую видимость с Землей и обратной стороной Луны в любое время, выдерживая перепад температур до 300 градусов Цельсия.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ инженеров Китайской академии космических технологий (CAST) было всего 30 месяцев на разработку спутника-ретранслятора.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ декабре 2015 года начались проектные работы, спустя два года уже был произведен финальный опытный образец спутника, который после испытаний и тестирования был подготовлен к запуску в космическое пространство.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКоманда космических связистов работала совместно с группой ученых и инженеров, которые разрабатывали и реализовывали лунные аппараты для проекта «Чанъэ-4» — посадочный модуль «Чанъэ-4» и ровер «Юйту-2», связь с которыми была главной задачей их проекта. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа 2015 год у команды космических инженеров-связистов Китайской академии космических технологий уже был опыт в разработке спутников, аппаратуры дальней космической связи и управлением лунными космическими аппаратами: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E7 ноября 2007 года был запущен первый китайский лунный спутник «Чанъэ-1»;\u003C\u002Fli\u003E\r\n\u003Cli\u003E1 октября 2010 года был запущен исследовательский спутник «Чанъэ-2», который до 9 июля 2011 года работал на лунной орбите, а потом покинул ее, чтобы через 77 дней достичь точки Лагранжа L2 системы «Солнце-Земля» (в 1,5 миллионах километрах от Земли) для проведения научных экспериментов;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпосадочный модуль «Чанъэ-3» и ровер «Юйту», которые были успешно посажены на видимую сторону Луны 14 декабря 2013 года, причем посадочный модуль «Чанъэ-3» до сих пор выходит на связь с ЦУП на Земле.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nОднако, у инженеров-связистов Китайской академии космических технологий был жесткий дедлайн, сроки запуска спутника-ретранслятора и его выхода на рабочую орбиту не могли быть сорваны, так как при любой аварийной ситуации или нештатной работе элементов спутника — запуск космического аппарата «Чанъэ-4» с лунным ровером «Юйту-2» на обратную сторону Луны был бы невозможен в планируемый срок, отложен или даже отменен. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ общем, 2018 год был очень напряженным у китайских космических связистов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо у них все получилось — 425-килограммовый спутник-ретранслятор под названием «Цэюцяо» (в переводе — «Сорочий мост») в Китайской академии космических технологий спроектировали, произвели на собственных мощностях (были подключены еще инженеры из Нидерландов для совместной научной дополнительной нагрузки — установки на спутник-ретранслятор специального низкочастотного телескопа-спектрометра) и запустили в установленный срок и с полным функционалом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля создания спутника-ретранслятора «Цэюцяо» была использована платформа CAST-100 от Китайской академии космических технологий, в ее проектировании и производстве были задействованы \u003Ca href=\"http:\u002F\u002Fcast.cn\u002FItem\u002Flist.asp?id=1814\"\u003Eспециалисты китайской компании DFH Satellite Co., Ltd\u003C\u002Fa\u003E. (DFHSat), которая тесно работает с CAST и принадлежит компании China Spacesat.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cu\u003EСпутниковая платформа CAST-100 включает в себя: \u003C\u002Fu\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eсистему стабилизации по трём осям, навигационную систему управления, систему термоконтроля;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eоднокомпонентную силовую установка со 100 кг безводного цезиевого топлива (гидразина), с общей тягой 130H (ньютонов), 12 двигателей — 8 двигателей по 5Н (по два на каждую из нижних сторон куба) и центральные 4 двигателя по 20Н;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eсистему электропитания бортовых систем, состоящую из двух солнечных батарей (максимальная выходная мощность солнечной батареи составляет около 800 Вт) площадью 3,8 м2 и высокоэнергетического литий-ионного аккумуляторного блока 45А\u002Fч.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nОбщий вес спутника-ретранслятора составляет 425 кг, он имеет кубовидную форму с размером 1,4 м × 1,4 м × 0,85 м, его корпус состоит из алюминиевой сотовой сэндвич-структуры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cu\u003EНа спутниковую платформу CAST-100 были добавлены следующие системы в качестве полезной нагрузки (основной и дополнительной):\u003C\u002Fu\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n1) основная нагрузка — это радиоретранслятор.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСистема радиоретранслятора спутника-ретранслятора «Цэюцяо» работает в X-диапазоне и в S-диапазоне.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nX-диапазон используется для связи с посадочным модулем «Чанъэ-4» и ровером «Юйту-2» — организуются четыре канала со скоростью передачи данных: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eнаправление «ровер\\посадочный модуль &lt;-\u003E спутник-ретранслятор» 256-280 килобит\u002Fс; \u003C\u002Fli\u003E\r\n\u003Cli\u003Eнаправление «спутник-ретранслятор &lt;-\u003E ровер\\посадочный модуль» 125 бит\u002Fс.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nS-диапазон используется для для передачи данных на Землю — организуется один канал со скоростью передачи данных 2 мегабит\u002Fс. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДанные телеметрии TTC&amp;C (USB+VLBI) передаются со скоростью 1000\u002F2048 бит\u002Fс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ состав радиоретранслятора входит уникальная параболическая антенна диаметром 4,2 метра, которая раскрывается как зонтик после выхода спутника-ретранслятора на рабочую орбиту.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n2) дополнительная нагрузка:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EНидерландский низкочастотный экспериментальный радиотелескоп (NCLE) с тремя пятиметровыми антеннами, с помощью которого будет регистрироваться низкочастотное радиоизлучение ранней Вселенной для изучения ее структуры;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eширокоугольный лазерный отражатель для измерения расстояния между космическим аппаратом и наземной станцией, который разработан Университетом Сунь Ятсена в провинции Гуандун на юге Китая и будет задействован для проведения самого длинного в мире измерения расстояния с помощью лазера между спутником-ретранслятором и обсерваторией на Земле;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eфотокамера, которую так же планируют использовать для съемки астероидов, падающих на обратную сторону Луны;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eчтобы заинтересовать общественность в проектах по освоению космоса и исследованию Луны, в Китайском космическом агенстве (CNSA) предложили всем желающим записать свои пожелания по исследованию Луны и космоса, а спутник-ретранслятор несет на своем борту имена десятков тысяч участников этого события и их сообщения.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nНаучная нагрузка:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fgp\u002Fxl\u002F12\u002Fgpxl12nlofzaf_s4fud-7aaebhc.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgp\u002Fxl\u002F12\u002Fgpxl12nlofzaf_s4fud-7aaebhc.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот такая фотокамера установлена на спутнике-ретрансляторе:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F-l\u002F3a\u002Fq8\u002F-l3aq8ub2z0lvr845j5npza2f3g.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F-l\u002F3a\u002Fq8\u002F-l3aq8ub2z0lvr845j5npza2f3g.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример фотографии со спутника-ретранслятора:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmp\u002Flb\u002F9u\u002Fmplb9ulgox-gq9veztthtvpzxkc.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmp\u002Flb\u002F9u\u002Fmplb9ulgox-gq9veztthtvpzxkc.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЛазерный отражатель (чертеж):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftz\u002Fpu\u002Fjk\u002Ftzpujkwuwmqrcjwbb1zst3ktg1i.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпутник-ретранслятор «Цэюцяо»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fd8\u002F0p\u002F97\u002Fd80p97hhwn5zntw0iu4rmhtuvgu.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fd8\u002F0p\u002F97\u002Fd80p97hhwn5zntw0iu4rmhtuvgu.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак раскрываются элементы спутника-ретранслятора (антенна, батареи и спектрометр):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcj\u002Fwk\u002Fbt\u002Fcjwkbthsntgomcvgttseaea34-e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС инженерами в лаборатории (для масштаба):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F1k\u002Fty\u002F-6\u002F1kty-6jvmwux_jccoihvdyzwygi.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1k\u002Fty\u002F-6\u002F1kty-6jvmwux_jccoihvdyzwygi.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАнтенна (слева сам блок антенны, справа уже на спутник установлена):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmg\u002Fwj\u002F0x\u002Fmgwj0x-mqruzy9erq8ueu2czbhs.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmg\u002Fwj\u002F0x\u002Fmgwj0x-mqruzy9erq8ueu2czbhs.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ раскрытом виде на тестах:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Frd\u002Fpr\u002F7z\u002Frdpr7z4vbnuevlyh2rytm6bm4tu.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаучное оборудование (три антенны низкочастотного радиотелескопа, в раздвижном состоянии каждая из них длинной 5 метров): \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fli\u002Fuq\u002F3u\u002Fliuq3uiod9bphkkxdylqbyt83ji.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fli\u002Fuq\u002F3u\u002Fliuq3uiod9bphkkxdylqbyt83ji.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fop\u002Flb\u002Frh\u002Foplbrhv04-jori4sie_hjbim8te.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fcf\u002Fxb\u002Fei\u002Fcfxbei4iwdrxeih_1r0n3at8fho.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcf\u002Fxb\u002Fei\u002Fcfxbei4iwdrxeih_1r0n3at8fho.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКопия масштабом 1 к 3 спутника-ретранслятора в музее космонавтики:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F9g\u002F-4\u002F0l\u002F9g-40lunaxdf7bzjowlq_lxecas.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9g\u002F-4\u002F0l\u002F9g-40lunaxdf7bzjowlq_lxecas.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fvq\u002F7m\u002Fsg\u002Fvq7msgqnhqbfti1tv3zrvzjzmhg.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvq\u002F7m\u002Fsg\u002Fvq7msgqnhqbfti1tv3zrvzjzmhg.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E Про параболическую антенну-зонтик и ее создание\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнженеры Китайской академии космических технологий разработали для спутника-ретранслятора несколько вариантов антенн, в том числе в форме зонтика диаметром 420 сантиметров в раскрытом виде.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ разработке и производстве такой антенны были задействованы… текстильные технологи и часовщики. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТолько совместным трудом инженеров-связистов и специалистов часовой и текстильной промышленности в лаборатории Китайской академии космических технологий смогли решить непростую задачу по группированию мельчайших элементов металлической сетки антенны и ее 18-ти ребер, чтобы она могла находится в сложенном до нужных размеров для транспортировке и запуска состоянии, а в открытом космосе смогла развернуться как пляжный зонтик.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fko\u002Fth\u002Fhv\u002Fkothhvnuiun6qyiagnjyvoalgpm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fe8\u002Fum\u002Fg1\u002Fe8umg1jpp2rizs283ymcn3lzdnw.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fiw\u002Fua\u002Fqi\u002Fiwuaqidts1orehwdet6qh43xj8c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭлементы антенны выдерживают изменения температуры более 300 градусов по Цельсию. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ специальных стендовых лабораториях Китайской академии космических технологий были проведены десятки испытания и программ тестирования компонентов антенны и ее общей сборки, перед установкой на спутник-ретранслятор.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ состав антенны входит специальный приводной механизм для управления отслеживанием направления, который позволяет контролировать направление антенны в проектном диапазоне с шагом до 0,2°.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВизуализация развертывания антенны в космическом пространстве:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fr9\u002Fpx\u002F3a\u002Fr9px3aso-t6wlzwqbw64fyqthrw.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа элементы антенны воздействуют низкотемпературные условия окружающей среды. Температура некоторых ребер, натяжных тросов, металлической сетки и других компонентов на антенне будет опускаться ниже -200°C, что необходимо было учесть в ее производстве.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkq\u002Fwv\u002Fwc\u002Fkqwvwc6pvpc_w0sfcd7-rdw2uta.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fi6\u002F65\u002F4d\u002Fi6654d_l3fzr0zds6dh4jhbkrzo.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПроблемы, ограниченный бюджет на разработку и производство\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ ходе разработки спутника-ретранслятора инженеры по возможности максимально унаследовали конструкцию телекоммуникационной системы проекта «Чанъэ-3», так что проблем в реализации плеча канала связи «Спутник-ретранслятор &lt;-\u003E аппараты на обратной стороне Луны» почти не было.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпутником-ретранслятором полученные и демодулированные данные от посадочного модуля «Чанъэ-4» и ровера «Юйту-2» объединяются в соответствии с протоколом связи и передаются в ЦУП на Землю через систему прямой космической связи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОсновная проблема в реализации плеча канала связи «Спутник-ретранслятор &lt;-\u003E аппараты на обратной стороне Луны» была в том, что максимальное расстояние этого канала составляет около 80000 км, а затухание сигнала на таком расстоянии достигает 210 дБ. Поэтому, инженерам пришлось находить баланс между пропускной способностью канала связи, динамическим изменением положений трех аппаратов (спутника, посадочного модуля и ровера), а также системой управления мощностью радиоретранслятора.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОптимальная рабочая схема у них получилась такая: данные телеметрии передаются при любом расстоянии от аппаратов на поверхности до спутника-ретранслятора, а вот передача научных данных (большие объемы данных) организована в том случае, когда ориентация двух устройств (спутник-ровер или спутник-посадочный модуль) относительно стабильна и мощности всех устройств хватает для организации канала с нужной пропускной способностью.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример, антенны ровера «Юйту-2» необходимо настроить так, чтобы они указывали на спутник-ретранслятор, для корректной отправки и получения управляющих сигналов, в то время как солнечные панели ровера должны быть оптимально наклонены для попадания на них большого количества солнечного света, чтобы максимизировать выработку электроэнергии в момент совершения передачи данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F3bc\u002Fa73\u002F384\u002F3bca733849fc7d6e2bf00ef4d8bc04bd.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ плече канала связи «Спутник-ретранслятор &lt;-\u003E ЦУП на Земле» после выхода спутником-ретранслятором на гало-орбиту вокруг точки Лагранжа L2 системы «Земля-Луна» выполняется калибровка точности наведения ретрансляционной антенны (расстояние 480000 км). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ процессе калибровки ретрансляционная антенна спутника-ретранслятора направлена на Шанхайскую астрономическую обсерваторию Китайской академии наук. С Земли сигнал отслеживается с помощью наземной антенны с апертурой 65 метров. Результаты испытаний показывают, что ретрансляционная антенна с высоким коэффициентом усиления имеет отклонение наведения менее 0,1°, что удовлетворяет требованиям для данного проекта.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпутник-ретранслятор проводит ежедневное самотестирование своих систем — проверяет ключевые функции и показатели эффективности (характеристики РЧ-модуляции, время сбора, задержка пересылки и формат данных) системы ретрансляции. Результаты тестирования отсылаются в ЦУП на Земле, где анализируются на соответствие проектным требованиям.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКалибровка и тестирование необходимы, так как у спутника-ретранслятора, находящегося на рабочей гало-орбите, из-за тепловой деформации и других факторов фактическая орбитальная ориентация антенны ретрансляционной связи будет иметь отклонения в наведении, которые необходимо корректировать и проверять их изменения. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРасчетная тепловая деформация элементов антенны (в мм) при разных температурах:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvs\u002Fft\u002Ff5\u002Fvsftf5bvqr3hbn5-svjy9rvz2zm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРасходы на проектирование, производство и запуск аппаратов миссии «Чанъэ-4» были жестко лимитированы. А возможности даже немножко превысить затраты — не то что не было, а наоборот, инженеры были мотивированы минимизировать части и элементы проекта, дорабатывать и расширять их функционал, чтобы уменьшить итоговую стоимость производства и сократить затраты. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоэтому, спутник-ретранслятор был изначально спроектирован с относительно небольшим весом (425 кг), чтобы затраты на его производство и запуск были минимальны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБыли ли резервные спутники-ретрансляторы сделаны? Это интересный вопрос — как вариант, были сделаны несколько прототипов, но запущен был только один, самый проверенный. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто будет, если в космическом пространстве спутник-ретранслятор выйдет из строя? Конечно, в его составе есть несколько дублирующих элементов, которые наиболее критичны для проекта — части бортового компьютера, системы электропитания и радиоретранслятора. \u003Cbr\u002F\u003E\r\nЕсли спутник достигнет своей рабочей орбиты за Луной, то тут уже его работоспособность будет максимальна и срок службы может составлять до 10 лет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСамая большая проблема, которая может возникнуть у спутника-ретранслятора — это фатальное повреждение антенны, поэтому ее сделали в виде гигантского зонтика с сетчатым внутренним покрытием, которое микрометеориты могут повреждать, не выводя из строя функциональную часть. А шанс, что большой метеорит столкнется со спутником-ретранслятором очень небольшой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОднако, если такое произойдет, то в течение 30 суток можно будет восстановить канал связи «Земля обратная сторона Луны», путем запуска нового спутника-ретранслятора и вывода его на рабочую орбиту за Луной.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ инженеров Китайской академии космических технологий были следующие новые задачи после создания спутника-ретранслятора: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eподготовить спутник-ретранслятор к запуску на ракета-носителе и сопровождать запуск;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eотслеживать его траекторию и направлять спутник-ретранслятор до Луны; \u003C\u002Fli\u003E\r\n\u003Cli\u003Eвыполнить лунный маневр для перехода на рабочую гало орбиту вокруг точки Лагранжа L2 системы «Земля-Луна»;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eтестировать канал связи со спутником, пока лунные аппараты миссии «Чанъэ-4» не выйдут в конце декабря 2018 года на орбиту Луны;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпровести первый сеанс связи с посадочным модулем «Чанъэ-4» в конце декабря 2018 года, посадочный модуль «Чанъэ-4» находится на орбите Луны;\u003C\u002Fli\u003E\r\n\u003Cli\u003E3 января 2019 года получать данные от посадочного модуля «Чанъэ-4», который начнет процедуру посадки на обратную сторону Луны;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпровести первый сеанс связи с посадочным модулем «Чанъэ-4» и ровером «Юйту-2», которые находятся на поверхности обратной стороны Луны.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЗапуск и работа в космическом пространстве\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fo9\u002Fwl\u002F6b\u002Fo9wl6bhxm76aizolosbeeflhbjs.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fo9\u002Fwl\u002F6b\u002Fo9wl6bhxm76aizolosbeeflhbjs.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n21 мая 2018 года: с Китайского космодрома Сичан запущен спутник-ретранслятор «Цэюцяо» (Сорочий мост).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСтарт в ЦУП на Земле:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F32\u002Fgm\u002Fai\u002F32gmailebekd9kgwjfqfpxt91q8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F32\u002Fgm\u002Fai\u002F32gmailebekd9kgwjfqfpxt91q8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fyb\u002Fv5\u002Fhz\u002Fybv5hzt4y-_dcmsqi_mgrosmsyk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyb\u002Fv5\u002Fhz\u002Fybv5hzt4y-_dcmsqi_mgrosmsyk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fux\u002F2j\u002Fgr\u002Fux2jgrdnm-2luvgawtgifxeyueq.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fux\u002F2j\u002Fgr\u002Fux2jgrdnm-2luvgawtgifxeyueq.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002F8bHeWdw-PHM?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nОтделение полезной нагрузки:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftj\u002Fkd\u002F8y\u002Ftjkd8y1dukiqasfewqg14n4xmo4.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F3f\u002Flg\u002Ffq\u002F3flgfqpubj9u1fwceu4r0get-60.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТраектория полета спутника-ретранслятора «Цэюцяо»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffw\u002F9v\u002Fpu\u002Ffw9vpudbks3xtpiszvpro8wo52q.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fdg\u002Fir\u002F3v\u002Fdgir3vi_gztnuutupnzrivvogmc.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fdg\u002Fir\u002F3v\u002Fdgir3vi_gztnuutupnzrivvogmc.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fj8\u002F6b\u002Fix\u002Fj86bixdgn7kjvexnd4nlhrkahgc.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fj8\u002F6b\u002Fix\u002Fj86bixdgn7kjvexnd4nlhrkahgc.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n14 июня 2018 года: Cпутник-ретранслятор «Цэюцяо» вышел на гало-орбиту вокруг точки Лагранжа L2 системы «Земля-Луна», примерно в 65000 км от Луны, став первым в мире спутником связи, работающим на этой орбите.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002Fqihh4ILy8jY?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВот такая фотография была получена со спутника-ретранслятора «Цэюцяо»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1w\u002Ftp\u002F_h\u002F1wtp_hogreh5pzm2ccmxooi6df4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nГде видны Луна, Земля и элементы спутника:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fyp\u002Fcq\u002Fph\u002Fypcqpha8n-txdqoqld0polb97ve.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyp\u002Fcq\u002Fph\u002Fypcqpha8n-txdqoqld0polb97ve.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпутник-ретранслятор может оставаться на своей орбите в течение длительного времени из-за относительно низкого расхода топлива, поскольку гравитация Земли и Луны уравновешивает его орбитальное движение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаходясь на своей орбите, спутник-ретранслятор может «видеть» как Землю, так и обратную сторону Луны. С Земли орбита спутника-ретранслятора выглядит как ореол Луны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКонцепция развертывания ретрансляционного спутника на гало-орбите была впервые выдвинута американскими космическими экспертами в 1960-х годах (основной вклад в расчет такой орбиты внес Роберт Фаркуар — специалист по проектированию миссий NASA более 50 лет назад — в 1968 году), но была впервые была реализована китайскими космическими инженерами только в 2018 году.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТочки либрации системы «Земля-Луна»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fpk\u002Fr0\u002F46\u002Fpkr046civyrsktsssp-bhnu6fxw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpk\u002Fr0\u002F46\u002Fpkr046civyrsktsssp-bhnu6fxw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmu\u002Fed\u002Fwe\u002Fmuedwegakqrjwidgsemkydjvcjg.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmu\u002Fed\u002Fwe\u002Fmuedwegakqrjwidgsemkydjvcjg.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fg9\u002Frh\u002Ftf\u002Fg9rhtfkyvth3xgspyehmu3cxhtk.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyn\u002Fio\u002Fmf\u002Fyniomfw_xz2zdjjnvq94alsghts.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftp\u002Fnl\u002Fmh\u002Ftpnlmhju0jdbjgskjm_plyebyt8.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F3h\u002Fe0\u002Fft\u002F3he0ftwl0uqrnmzn2utaubd_loo.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F3h\u002Fe0\u002Fft\u002F3he0ftwl0uqrnmzn2utaubd_loo.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fv1\u002Feb\u002Fvb\u002Fv1ebvbqndhtqu6qkgbbhnxnjmnk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fv1\u002Feb\u002Fvb\u002Fv1ebvbqndhtqu6qkgbbhnxnjmnk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EОрганизация связи с посадочным модулем «Чанъэ-4» и ровером «Юйту-2»\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпустя шесть месяцев, как спутник-ретранслятор «Цэюцяо» достиг своей рабочей орбиты за Луной, началась вторая рабочая фаза проекта «Чанъэ-4» — вывод в космическое пространство аппарата «Чанъэ-4» с лунным ровером «Юйту-2» на борту.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fqp\u002Fvp\u002Fg4\u002Fqpvpg40xfuxkrk2vyv8pm2wudga.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqp\u002Fvp\u002Fg4\u002Fqpvpg40xfuxkrk2vyv8pm2wudga.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcs\u002Foc\u002Fir\u002Fcsocir5rydzddsfkmfuqpdektqy.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n8 декабря 2018 года: Ракета-носитель «Чанчжэн-3B» со станцией «Чанъэ-4» успешно запущена с Китайского космодрома «Сичан».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТраектория полета станции «Чанъэ-4»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fdt\u002F7n\u002F1g\u002Fdt7n1g_d9n7bgg9do3ozbsdbteg.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧерез 110 часов станция «Чанъэ-4» достигла Луны и перешла на ее орбиту.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот тогда и началось первое боевое тестирование спутника-ретранслятора «Цэюцяо» путем организации канала связи со станцией «Чанъэ-4», когда она пролетала над обратной стороной Луны:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnd\u002Frl\u002Fch\u002Fndrlchkdiouuf9s_x2bej3vses0.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fde\u002F_4\u002F1l\u002Fde_41lf4a317bxo6ztvcfnzhzpa.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРежимы тестирования и работы спутника-ретранслятора «Цэюцяо» и аппаратов станции «Чанъэ-4» (спускаемого модуля и ровера)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcx\u002Fnx\u002Fn-\u002Fcxnxn-9yuz2r3_-2qyhztmpag4g.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда станцией «Чанъэ-4» приступила к процедуре посадки 3 января 2019 года, то тут уже в ЦУП на Земле переключились на полноценную работу со спутником-ретранслятором «Цэюцяо» для получения телеметрии и фотографий со спускаемого модуля «Чанъэ-4».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n3 января 2019 года: спускаемый аппарат «Чанъэ-4» совершает посадку в кратере «Карман» на обратной стороне Луны. В составе посадочного аппарата «Чанъэ-4» находится второй Китайский лунный ровер «Юйту-2», модернизированный аналог ровера «Юйту». \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧерез спутник-ретранслятор «Цэюцяо» в ЦУП на Земле получают первые изображения обратной стороны Луны в зоне приземления, а также тысячи кадров с посадочной камеры посадочного аппарата «Чанъэ-4», объединив которые, получилось такое замечательное видео посадки на обратную сторону Луны:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВидео процедуры посадки на обратную сторону Луны:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FZ0ZUc5oXIRo?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nПосле окончания всех этапов процедуры успешной посадки и установки независимых каналов связи с аппаратами «Чанъэ-4» (посадочным модулем и ровером), началась эра исследования обратной стороны Луны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fth\u002F6w\u002Fqd\u002Fth6wqdikgc0_qesxulwlqyzgp3g.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fju\u002Ffh\u002F4f\u002Fjufh4fbwo4w0kijjtb7mpcwiavw.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо всего этого могло бы не было без спутника-ретранслятора «Цэюцяо» и организованной с помощью него системы связи:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fc5\u002Fm6\u002Fag\u002Fc5m6agshnovo6xiv8zmz-nsgg4m.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F7p\u002F4z\u002F3v\u002F7p4z3vryfxpzbumjvtqwuijf_rs.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСхема организации связи проекта «Чанъэ-4»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fjo\u002F0-\u002Fzw\u002Fjo0-zwlfhk73ia_yynffxcxxwr0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjo\u002F0-\u002Fzw\u002Fjo0-zwlfhk73ia_yynffxcxxwr0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Foq\u002Fuy\u002Fek\u002Foquyekjkeonwhf9quvzfby4fe2g.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Foq\u002Fuy\u002Fek\u002Foquyekjkeonwhf9quvzfby4fe2g.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fyg\u002Fmf\u002Fch\u002Fygmfchaj9wmrjuoecepsncghlby.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyg\u002Fmf\u002Fch\u002Fygmfchaj9wmrjuoecepsncghlby.jpeg\" data-blurred=\"true\"\u002F\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДанные телеметрии от посадочного модуля «Чанъэ-4» и лунного ровера «Юйту-2 поступают на спутник-ретранслятор «Цэюцяо», который далее их передает на Землю в Пекинский центр аэрокосмического контроля, а далее в ЦУП, что приводит к задержке получения данных операторами на Земле до двух-трех минут.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ центре космической связи:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd47\u002F95d\u002F55a\u002Fd4795d55aa6e180b5d3d568799b42bf3.png\"\u002F\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fbfa\u002F9f2\u002F5af\u002Fbfa9f25af6c2d5e239ecfe3f980c5547.png\"\u002F\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ центре управления полетами Китайской академии космических технологий:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F792\u002F8d1\u002F013\u002F7928d101305c960aba3f219c3a600904.png\"\u002F\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa7d\u002F1d1\u002Ff5f\u002Fa7d1d1f5f8c86f7a4b58ec680966e83b.png\"\u002F\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe33\u002F348\u002F8d6\u002Fe333488d670ec4d8e6c87d2b99756507.png\"\u002F\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EВопрос: Можно ли с помощью ретранслятора спутника «Цэюцяо» вести прямую трансляцию с поверхности обратной стороны Луны?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОтвет: Теоретически это возможно, но текущие каналы связи не могут соответствовать требованиям для потоковой передачи видео в реальном времени.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ Китайской академии космических технологий делают все возможное, чтобы спутник-ретранслятор смог работать как можно дольше, обеспечивая в будущем связь для зондов и аппаратов других стран, если они намерены исследовать обратную сторону Луны в течение срока службы спутника. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто мирный научный проект, к которому могут присоединиться все желающие.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТем более, что при осуществлении маневров спутником-ретранслятором для достижения своей рабочей орбиты инженерам Китайской академии космических технологий удалось оптимизировать количество маневров двигателями, что позволило сэкономить 16,8 кг топлива, которые могут быть теперь использованы в дальнейшем при необходимости для коррекции его орбиты и продлении срока службы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fnl\u002Fma\u002Fyb\u002Fnlmaybvqodnoig0ms4xbx-skqsu.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnl\u002Fma\u002Fyb\u002Fnlmaybvqodnoig0ms4xbx-skqsu.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля понимания, что на Луне еще будут новые исследования — \u003Ca href=\"https:\u002F\u002Farmchairastronautics.blogspot.com\u002F2019\u002F05\u002Fspace-observatories-update-2019-05.html\"\u003Eтекущая на 5 мая 2019 года научная спутниковая группировка\u003C\u002Fa\u003E. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ff0\u002F-w\u002Fms\u002Ff0-wms9z_6zgchlcvhthcoarwow.png\"\u002F\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"Чанъэ-4"},{"titleHtml":"Луна"},{"titleHtml":"космос"},{"titleHtml":"Китай"},{"titleHtml":"Юйту-2"},{"titleHtml":"ровер"},{"titleHtml":"moon"},{"titleHtml":"Yutu-2"},{"titleHtml":"Chang'e-4"},{"titleHtml":"спутник-ретранслятор"},{"titleHtml":"Цэюцяо"},{"titleHtml":"Сорочий мост"},{"titleHtml":"Queqiao"},{"titleHtml":"связь"},{"titleHtml":"радио"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450600\u002F6455c598a3657297ace9902098a4ca02\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450600\u002F6455c598a3657297ace9902098a4ca02\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450600\\\u002F\"},\"headline\":\"Связь с обратной стороной Луны — спутник-ретранслятор «Цэюцяо» (Сорочий мост)\",\"datePublished\":\"2019-05-06T15:17:19+03:00\",\"dateModified\":\"2019-05-07T11:10:08+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Денис\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Главное в сложном техническом проекте &mdash; организовать стабильную связь между всеми компонентами.   Вот и первой частью миссии &laquo;Чанъэ-4&raquo; была организация канала...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450600\\\u002F#post-content-body\",\"about\":[\"h_netdev\",\"h_popular_science\",\"h_space\",\"h_astronomy\",\"f_develop\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ful\\\u002Fnh\\\u002F_z\\\u002Fulnh_zws6i9otaw61g6xmgaijem.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fzx\\\u002Fb3\\\u002Fx9\\\u002Fzxb3x9rugzccxapusqrcjnflskw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgp\\\u002Fxl\\\u002F12\\\u002Fgpxl12nlofzaf_s4fud-7aaebhc.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F-l\\\u002F3a\\\u002Fq8\\\u002F-l3aq8ub2z0lvr845j5npza2f3g.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmp\\\u002Flb\\\u002F9u\\\u002Fmplb9ulgox-gq9veztthtvpzxkc.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftz\\\u002Fpu\\\u002Fjk\\\u002Ftzpujkwuwmqrcjwbb1zst3ktg1i.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fd8\\\u002F0p\\\u002F97\\\u002Fd80p97hhwn5zntw0iu4rmhtuvgu.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcj\\\u002Fwk\\\u002Fbt\\\u002Fcjwkbthsntgomcvgttseaea34-e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1k\\\u002Fty\\\u002F-6\\\u002F1kty-6jvmwux_jccoihvdyzwygi.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmg\\\u002Fwj\\\u002F0x\\\u002Fmgwj0x-mqruzy9erq8ueu2czbhs.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Frd\\\u002Fpr\\\u002F7z\\\u002Frdpr7z4vbnuevlyh2rytm6bm4tu.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fli\\\u002Fuq\\\u002F3u\\\u002Fliuq3uiod9bphkkxdylqbyt83ji.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fop\\\u002Flb\\\u002Frh\\\u002Foplbrhv04-jori4sie_hjbim8te.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcf\\\u002Fxb\\\u002Fei\\\u002Fcfxbei4iwdrxeih_1r0n3at8fho.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F9g\\\u002F-4\\\u002F0l\\\u002F9g-40lunaxdf7bzjowlq_lxecas.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fvq\\\u002F7m\\\u002Fsg\\\u002Fvq7msgqnhqbfti1tv3zrvzjzmhg.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fko\\\u002Fth\\\u002Fhv\\\u002Fkothhvnuiun6qyiagnjyvoalgpm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fe8\\\u002Fum\\\u002Fg1\\\u002Fe8umg1jpp2rizs283ymcn3lzdnw.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fiw\\\u002Fua\\\u002Fqi\\\u002Fiwuaqidts1orehwdet6qh43xj8c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fr9\\\u002Fpx\\\u002F3a\\\u002Fr9px3aso-t6wlzwqbw64fyqthrw.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkq\\\u002Fwv\\\u002Fwc\\\u002Fkqwvwc6pvpc_w0sfcd7-rdw2uta.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fi6\\\u002F65\\\u002F4d\\\u002Fi6654d_l3fzr0zds6dh4jhbkrzo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3bc\\\u002Fa73\\\u002F384\\\u002F3bca733849fc7d6e2bf00ef4d8bc04bd.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fvs\\\u002Fft\\\u002Ff5\\\u002Fvsftf5bvqr3hbn5-svjy9rvz2zm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fo9\\\u002Fwl\\\u002F6b\\\u002Fo9wl6bhxm76aizolosbeeflhbjs.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F32\\\u002Fgm\\\u002Fai\\\u002F32gmailebekd9kgwjfqfpxt91q8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyb\\\u002Fv5\\\u002Fhz\\\u002Fybv5hzt4y-_dcmsqi_mgrosmsyk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fux\\\u002F2j\\\u002Fgr\\\u002Fux2jgrdnm-2luvgawtgifxeyueq.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftj\\\u002Fkd\\\u002F8y\\\u002Ftjkd8y1dukiqasfewqg14n4xmo4.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F3f\\\u002Flg\\\u002Ffq\\\u002F3flgfqpubj9u1fwceu4r0get-60.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffw\\\u002F9v\\\u002Fpu\\\u002Ffw9vpudbks3xtpiszvpro8wo52q.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fdg\\\u002Fir\\\u002F3v\\\u002Fdgir3vi_gztnuutupnzrivvogmc.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fj8\\\u002F6b\\\u002Fix\\\u002Fj86bixdgn7kjvexnd4nlhrkahgc.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1w\\\u002Ftp\\\u002F_h\\\u002F1wtp_hogreh5pzm2ccmxooi6df4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyp\\\u002Fcq\\\u002Fph\\\u002Fypcqpha8n-txdqoqld0polb97ve.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpk\\\u002Fr0\\\u002F46\\\u002Fpkr046civyrsktsssp-bhnu6fxw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmu\\\u002Fed\\\u002Fwe\\\u002Fmuedwegakqrjwidgsemkydjvcjg.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fg9\\\u002Frh\\\u002Ftf\\\u002Fg9rhtfkyvth3xgspyehmu3cxhtk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyn\\\u002Fio\\\u002Fmf\\\u002Fyniomfw_xz2zdjjnvq94alsghts.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftp\\\u002Fnl\\\u002Fmh\\\u002Ftpnlmhju0jdbjgskjm_plyebyt8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F3h\\\u002Fe0\\\u002Fft\\\u002F3he0ftwl0uqrnmzn2utaubd_loo.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fv1\\\u002Feb\\\u002Fvb\\\u002Fv1ebvbqndhtqu6qkgbbhnxnjmnk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqp\\\u002Fvp\\\u002Fg4\\\u002Fqpvpg40xfuxkrk2vyv8pm2wudga.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcs\\\u002Foc\\\u002Fir\\\u002Fcsocir5rydzddsfkmfuqpdektqy.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fdt\\\u002F7n\\\u002F1g\\\u002Fdt7n1g_d9n7bgg9do3ozbsdbteg.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnd\\\u002Frl\\\u002Fch\\\u002Fndrlchkdiouuf9s_x2bej3vses0.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fde\\\u002F_4\\\u002F1l\\\u002Fde_41lf4a317bxo6ztvcfnzhzpa.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcx\\\u002Fnx\\\u002Fn-\\\u002Fcxnxn-9yuz2r3_-2qyhztmpag4g.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fth\\\u002F6w\\\u002Fqd\\\u002Fth6wqdikgc0_qesxulwlqyzgp3g.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fju\\\u002Ffh\\\u002F4f\\\u002Fjufh4fbwo4w0kijjtb7mpcwiavw.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fc5\\\u002Fm6\\\u002Fag\\\u002Fc5m6agshnovo6xiv8zmz-nsgg4m.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F7p\\\u002F4z\\\u002F3v\\\u002F7p4z3vryfxpzbumjvtqwuijf_rs.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjo\\\u002F0-\\\u002Fzw\\\u002Fjo0-zwlfhk73ia_yynffxcxxwr0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Foq\\\u002Fuy\\\u002Fek\\\u002Foquyekjkeonwhf9quvzfby4fe2g.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyg\\\u002Fmf\\\u002Fch\\\u002Fygmfchaj9wmrjuoecepsncghlby.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd47\\\u002F95d\\\u002F55a\\\u002Fd4795d55aa6e180b5d3d568799b42bf3.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fbfa\\\u002F9f2\\\u002F5af\\\u002Fbfa9f25af6c2d5e239ecfe3f980c5547.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F792\\\u002F8d1\\\u002F013\\\u002F7928d101305c960aba3f219c3a600904.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa7d\\\u002F1d1\\\u002Ff5f\\\u002Fa7d1d1f5f8c86f7a4b58ec680966e83b.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe33\\\u002F348\\\u002F8d6\\\u002Fe333488d670ec4d8e6c87d2b99756507.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnl\\\u002Fma\\\u002Fyb\\\u002Fnlmaybvqodnoig0ms4xbx-skqsu.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ff0\\\u002F-w\\\u002Fms\\\u002Ff0-wms9z_6zgchlcvhthcoarwow.png\"]}","metaDescription":"Главное в сложном техническом проекте — организовать стабильную связь между всеми компонентами. \r\n\r\nВот и первой частью миссии «Чанъэ-4» была организация канала связи с аппаратами на обратной...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":true}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"netdev,popular_science,space,astronomy"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>From High Ceph Latency to Kernel Patch with eBPF/BCC / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/en\/company\/selectel\/blog\/450818\/"},"headline":"From High Ceph Latency to Kernel Patch with eBPF\/BCC","datePublished":"2019-05-23T14:00:20+03:00","dateModified":"2019-07-04T15:59:34+03:00","author":{"@type":"Person","name":"Алексей Захаров"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production...","url":"https:\/\/habr.com\/en\/company\/selectel\/blog\/450818\/#post-content-body","about":["c_selectel","h_hi","h_linux","h_s_admin","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/-8\/ok\/na\/-8okna9qfyroicvgoz-zenv7-si.png","https:\/\/habrastorage.org\/webt\/uk\/de\/-l\/ukde-lsu9sjqnmci1ix942xzgie.png","https:\/\/habrastorage.org\/webt\/ch\/5k\/nn\/ch5knn22cmukd1oldmcozpxe98i.png","https:\/\/habrastorage.org\/webt\/4c\/cj\/za\/4ccjza8x8bq0vqkxfol2j5d9sva.png","https:\/\/habrastorage.org\/webt\/tk\/ly\/vf\/tklyvf6i8rws0xu4gy3jothbxbi.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="From High Ceph Latency to Kernel Patch with eBPF/BCC" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="From High Ceph Latency to Kernel Patch with eBPF/BCC" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="From High Ceph Latency to Kernel Patch with eBPF/BCC" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF was..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF was..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF was..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF was..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF was..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450818/9cd5744cff0198c467c4452134cf9667/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450818/9cd5744cff0198c467c4452134cf9667/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450818/9cd5744cff0198c467c4452134cf9667/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450818/9cd5744cff0198c467c4452134cf9667/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450818/9cd5744cff0198c467c4452134cf9667/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450818" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-23T11:00:20.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="en_US" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450818/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/en/company/selectel/blog/450818/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450818/9cd5744cff0198c467c4452134cf9667/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="selectel" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/selectel/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/66a/f7d/039/66af7d03979b6d18654293d8f1e72837.png" width="48" class="tm-entity-image__pic"></div></a> <a href="https://career.habr.com/companies/selectel" rel="noopener" target="_blank" class="tm-grade tm-company-card__rating"><div class="tm-rating"><div class="tm-rating__header"><svg height="24" width="24" class="tm-svg-img tm-svg-grade__icon"><title>Оценка компании на Хабр Карьере</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#grade"></use></svg> <div class="tm-rating__counter tm-rating__counter_variant-grade">4.73</div></div> <div class="tm-rating__text tm-rating__text_variant-grade">
+    Оценка
+  </div></div></a> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">1505.36</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/selectel/profile/" class="tm-company-card__name">
+        Selectel
+      </a> <div class="tm-company-card__description">IT-инфраструктура для бизнеса</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/alexey_zz/" title="alexey_zz" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/alexey_zz/" class="tm-user-info__username">
+      alexey_zz
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-23T11:00:20.000Z" title="2019-05-23, 14:00">23  мая  2019 в 14:00</time></span></div> <!----></div> <h1 lang="en" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>From High Ceph Latency to Kernel Patch with eBPF/BCC</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/selectel/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Selectel</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/hi/" class="tm-article-snippet__hubs-item-link"><span>Высокая производительность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/linux/" class="tm-article-snippet__hubs-item-link"><span>Настройка Linux</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/s_admin/" class="tm-article-snippet__hubs-item-link"><span>Серверное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="en" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/-8/ok/na/-8okna9qfyroicvgoz-zenv7-si.png"/><br/>
+<br/>
+There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF <a href="https://lwn.net/Articles/740157/">was developed</a>, which provides the ability to trace the kernel and userspace with low overhead, without needing to recompile programs or load kernel modules.<br/>
+<br/>
+There are now plenty of tools that use eBPF and in this article, we’ll explain how to write your own profiling tool using the <a href="https://github.com/iovisor/bcc">PythonBCC library</a>. This article is based on a real issue from the production environment. We’ll walk you through solving the problem and show how existing bcc tools could be used in some cases.<br/>
+<a name="habracut"></a><br/>
+<h2>Ceph Is Slow</h2><br/>
+A new platform was added to a ceph cluster. After migrating some data to the platform, the latency for write requests was higher than on the other servers.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/uk/de/-l/ukde-lsu9sjqnmci1ix942xzgie.png"/></div><br/>
+<br/>
+This platform has a new caching virtual device — bcache, which we haven’t used in this cluster before — and a new kernel — 4.15, which still isn’t used anywhere else in this cluster. The root of the problem could be anywhere, so let’s take a deeper look.<br/>
+<br/>
+<h3>Investigating the Host</h3><br/>
+Let’s look at what’s going on inside the ceph-osd process. We use the tracing tool <a href="https://perf.wiki.kernel.org/index.php/Main_Page">perf</a> and <a href="https://github.com/Netflix/flamescope">flamescope</a> to build flamegraphs:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ch/5k/nn/ch5knn22cmukd1oldmcozpxe98i.png"/></div><br/>
+<br/>
+As we can see from the flamegraph, <b>fdatasync()</b> spent a lot of time submitting bio in the <b>generic_make_request()</b> function. Thus, the root of our problem is somewhere outside the ceph daemon. It might be a kernel, bcache, or disk issue. The iostat output showed high latency for bcache devices.<br/>
+<br/>
+Another suspicious finding is that the systemd-udevd daemon is consuming CPU; about 20% on multiple CPUs. This is odd behavior, so we have to find out what’s going on. Since systemd-udevd works with uevents, we have to use <b>udevadm monitor</b> to find out if there are any uevents in the system. After checking, we saw that a lot of «change» uevents were being generated for every block device in the system.<br/>
+<br/>
+This is unusual, so we’re going to find out what’s causing all of these uevents to be sent.<br/>
+<br/>
+<h3>Using the BCC Toolkit</h3><br/>
+As we already know, the kernel (and ceph daemon) is spending a lot of time performing <b>generic_make_requst()</b> functions. Let’s measure its latency using <b>funclatency</b> from the <a href="https://github.com/iovisor/bcc/blob/master/tools/funclatency.py">BCC toolkit</a>, just to make sure that we’re on the right path. We’ll trace the ceph daemon’s PID (-p argument) in 1-second intervals (-i) and print the latency in milliseconds (-m).<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/4c/cj/za/4ccjza8x8bq0vqkxfol2j5d9sva.png"/></div><br/>
+<br/>
+This function usually works very fast. All it does is submit the bio structure to the device driver’s queue.<br/>
+<br/>
+<b>Bcache</b> is a complex device; in fact, it consists of 3 devices: a backing device, which is a slow HDD in our case; a caching device, which is the NVMe drive’s partition; and a bcache virtual device, which is used by the application. We know submission is slow, but for which device? This is something we’ll look at a bit later.<br/>
+<br/>
+For now, we know that uevents cause problems in ceph daemons and we have to find the software triggering uevents.It’s not easy to find what causes uevents to be generated. We assume it’s software that only runs periodically. To see what is being executed on the system, we use <b>execsnoop</b> from the BCC toolkit. We can run it and redirect <b>stdout</b> to a file.<br/>
+<br/>
+For example:<br/>
+<br/>
+<pre><code class="bash">/usr/share/bcc/tools/execsnoop  | tee ./execdump</code></pre><br/>
+We won’t give the full execsnoop output here, but one interesting string we found there was:<br/>
+<br/>
+<pre><code class="bash">sh 1764905 5802 0 sudo arcconf getconfig 1 AD | grep Temperature | awk -F '[:/]' '{print $2}' | sed 's/^ \([0-9]*\) C.*/\1/'</code></pre><br/>
+The third column is the process’s PPID. We checked what 5802 was and saw that it’s one of our monitoring daemon threads. Looking further at the monitoring system configuration, we found a faulty parameter. The HBA temperature was being retrieved every 30 seconds, which is too often. After changing the check interval to a more appropriate value, we saw that our ceph latency matched the other platforms.<br/>
+<br/>
+But we still don’t know why the bcache latency was high. We set up a testing platform with the same configuration and tried to reproduce the problem with fio on the bcache device while simultaneously triggering udev with the udevadm trigger command.<br/>
+<br/>
+<h3>Writing BCC-Based Tools</h3><br/>
+What we’re going to do here is write a simple tool that traces the slowest generic_make_request() calls and prints the name of the disk that the function was called for.<br/>
+<br/>
+The plan is simple:<br/>
+<br/>
+<ul>
+<li>Register <b>kprobe</b> on <b>generic_make_request()</b>:<br/>
+<ul>
+<li>Save the disk name available from the function’s argument</li>
+<li>Save the current timestamp</li>
+</ul></li>
+<li>Register <b>kretprobe</b> on the <b>generic_make_request()</b> return statement:<br/>
+<ul>
+<li>Retrieve the current timestamp</li>
+<li>Look up previously saved timestamps and compare them with current ones</li>
+<li>If the result is higher than the threshold, look up previously saved disk names and print them to the terminal with additional information</li>
+</ul></li>
+</ul><br/>
+<b>Kprobes</b> and <b>kretprobes</b> use breakpoints to change a function’s code in runtime. You can find <a href="https://www.kernel.org/doc/Documentation/kprobes.txt">documentation</a> as well as a good <a href="https://dev.framing.life/tracing/kernel-and-user-probes-magic/">article</a> on this. If you take a look at the code for different <a href="https://github.com/iovisor/bcc/tree/master/tools">BCC tools</a>, you’ll see that they all have an identical structure. We’ll skip argument parsing and focus on the BPF program itself.<br/>
+<br/>
+Our program’s text will be defined in python as follows:<br/>
+<br/>
+<pre><code class="python">bpf_text = “”” # Here will be the bpf program code “””</code></pre><br/>
+BPF programs use <a href="https://github.com/iovisor/bcc/blob/12bd958186a8c3bfcf2f74d246b8c06dd20bbc20/src/cc/export/helpers.h#L67">hashmaps</a> to share data between different functions. We’ll use PID as a key and self-defined structure as a value.<br/>
+<br/>
+<pre><code class="python">struct data_t {
+	u64 pid;
+	u64 ts;
+	char comm[TASK_COMM_LEN];
+	u64 lat;
+	char disk[DISK_NAME_LEN];
+};
+
+BPF_HASH(p, u64, struct data_t);
+BPF_PERF_OUTPUT(events);</code></pre><br/>
+Here we register a hashmap called <b>p</b> with a <b>u64</b> key type and a <b>struct data_t</b> value type. This map is accessible from our BPF program context. The <b>BPF_PERF_OUTPUT</b> macro registers another map called <b>events</b>, which is used to <a href="https://github.com/iovisor/bcc/blob/12bd958186a8c3bfcf2f74d246b8c06dd20bbc20/src/cc/export/helpers.h#L112">push data</a> to the userspace.<br/>
+<br/>
+When measuring latency between the function call and its return or between one function call and another, you have to be sure that the data you saved and access later relates to the same context. In other words, you have to be aware of any other parallel executions of the same function. It’s possible to trace latency between the function call of one process and the same function’s returns from another process, but this doesn’t help us. A good example is the <a href="https://github.com/iovisor/bcc/blob/12bd958186a8c3bfcf2f74d246b8c06dd20bbc20/tools/biolatency.py#L74">biolatency tool</a> where pointer to <b>struct request</b> is used as a hashmap key.<br/>
+<br/>
+Next, we have to write a code that will be executed on function calls via a kprobe mechanism:<br/>
+<br/>
+<pre><code class="python">void start(struct pt_regs *ctx, struct bio *bio) {
+	u64 pid = bpf_get_current_pid_tgid();
+	struct data_t data = {};
+	u64 ts = bpf_ktime_get_ns();
+	data.pid = pid;
+	data.ts = ts;
+	bpf_probe_read_str(&amp;data.disk, sizeof(data.disk), (void*)bio->bi_disk->disk_name);
+	p.update(&amp;pid, &amp;data);
+}</code></pre><br/>
+Here we have the first <a href="https://elixir.bootlin.com/linux/v4.15.18/source/block/blk-core.c#L2259">generic_make_request() argument</a> as our function’s second argument. Then we get the PID and current timestamp in nanoseconds and write it to the newly allocated <b>struct data_t data</b>. We get the disk name from the bio structure, which is passed to <b>generic_make_request()</b>, and save it to our <b>data</b>. The last step is to add an entry to the hashmap we described earlier.<br/>
+<br/>
+This function will be executed on <b>generic_make_request()</b> returns:<br/>
+<br/>
+<pre><code class="python">void stop(struct pt_regs *ctx) {
+    u64 pid = bpf_get_current_pid_tgid();
+    u64 ts = bpf_ktime_get_ns();
+    struct data_t* data = p.lookup(&amp;pid);
+    if (data != 0 &amp;&amp; data->ts > 0) {
+        bpf_get_current_comm(&amp;data->comm, sizeof(data->comm));
+        data->lat = (ts - data->ts)/1000;
+        if (data->lat > MIN_US) {
+            FACTOR
+            data->pid >>= 32;
+            events.perf_submit(ctx, data, sizeof(struct data_t));
+        }
+        p.delete(&amp;pid);
+    }
+}</code></pre><br/>
+We get the PID and timestamp from the previous output and look up the hashmap for the value where <b>key == current PID</b>. If it’s found, we get the name of the running process and add it to the <b>data</b> structure. What we do with <b>data->pid</b> here gives us the thread group id. The previously called <a href="https://elixir.bootlin.com/linux/v4.15.18/source/kernel/bpf/helpers.c#L119">bpf_get_current_pid_tgid() function</a> returns the thread GID and PID of the process in the same 64-bit value.<br/>
+<br/>
+We’re not interested in every thread’s ID, but we want to know the PID of the main thread. After checking that the latency is above the threshold, we submit our <b>data</b> structure to the userspace via <b>events</b> map, then delete the hashmap entry at the end.<br/>
+<br/>
+In our python script, we have to replace <b>MIN_US</b> and <b>FACTOR</b> according to the threshold we want and unit of time we want to see in our result:<br/>
+<br/>
+<pre><code class="python">bpf_text = bpf_text.replace('MIN_US',str(min_usec))
+if args.milliseconds:
+	bpf_text = bpf_text.replace('FACTOR','data->lat /= 1000;')
+	label = "msec"
+else:
+	bpf_text = bpf_text.replace('FACTOR','')
+	label = "usec"
+</code></pre><br/>
+Then we have to prepare the BPF program with a <a href="https://github.com/iovisor/bcc/blob/12bd958186a8c3bfcf2f74d246b8c06dd20bbc20/src/python/bcc/__init__.py#L135">BPF() macro</a> and register probes:<br/>
+<br/>
+<pre><code class="python">b = BPF(text=bpf_text)
+b.attach_kprobe(event="generic_make_request",fn_name="start")
+b.attach_kretprobe(event="generic_make_request",fn_name="stop")
+</code></pre><br/>
+We also need to define the same structure as <b>struct data_t</b> in our script to read the data from the BPF program:<br/>
+<br/>
+<pre><code class="python">TASK_COMM_LEN = 16	# linux/sched.h
+DISK_NAME_LEN = 32	# linux/genhd.h
+class Data(ct.Structure):
+	_fields_ = [("pid", ct.c_ulonglong),
+            	("ts", ct.c_ulonglong),
+            	("comm", ct.c_char * TASK_COMM_LEN),
+            	("lat", ct.c_ulonglong),
+            	("disk",ct.c_char * DISK_NAME_LEN)]</code></pre><br/>
+The last step is to print the data we want:<br/>
+<br/>
+<pre><code class="python">def print_event(cpu, data, size):
+    global start
+    event = ct.cast(data, ct.POINTER(Data)).contents
+    if start == 0:
+        start = event.ts
+    time_s = (float(event.ts - start)) / 1000000000
+    print("%-18.9f %-16s %-6d   %-1s %s   %s" % (time_s, event.comm, event.pid, event.lat, label, event.disk))
+
+b["events"].open_perf_buffer(print_event)
+# format output
+start = 0
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
+</code></pre><br/>
+The full script is available on <a href="https://github.com/AlexZzz/ebpf-tools/blob/master/make_request_slower">GitHub</a>. Let’s run the script and trigger udev events while fio writes to a bcache device:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/tk/ly/vf/tklyvf6i8rws0xu4gy3jothbxbi.png"/></div><br/>
+<br/>
+Success! Now we see that what looked like high latency for bcache is really <b>generic_make_request()</b> latency for its backing device.<br/>
+<br/>
+<h3>Dig into the Kernel</h3><br/>
+What drags when submitting requests? We see that a latency spike occurred before request accounting even started. This could be easily checked by running either iostat during the problem or the <a href="https://github.com/iovisor/bcc/blob/master/tools/biolatency.py">biolatency BCC script</a>, which are based on accounting request start, so neither tool will show the disk problem.<br/>
+<br/>
+If we take a look at <b>generic_make_request()</b>, we see that there are two functions running before accounting starts. The first is <b>generic_make_request_checks()</b>, which is lightweight and checks bio according to the device settings, etc. The second is <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/blk_queue_enter">blk_queue_enter()</a>, which has a <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/wait_event_interruptible">wait_event_interruptible()</a> call:<br/>
+<br/>
+<pre><code class="python">ret = wait_event_interruptible(q->mq_freeze_wq,
+	(atomic_read(&amp;q->mq_freeze_depth) == 0 &amp;&amp;
+	(preempt || !blk_queue_preempt_only(q))) ||
+	blk_queue_dying(q));
+</code></pre><br/>
+Here the kernel waits until the queue is unfrozen. Let’s measure the latency of blk_queue_enter():<br/>
+<br/>
+<pre><code class="bash">~# /usr/share/bcc/tools/funclatency  blk_queue_enter -i 1 -m               	 
+Tracing 1 functions for "blk_queue_enter"... Hit Ctrl-C to end.
+
+ 	msecs           	: count 	distribution
+     	0 -> 1      	: 341  	|****************************************|
+
+ 	msecs           	: count 	distribution
+     	0 -> 1      	: 316  	|****************************************|
+
+ 	msecs           	: count 	distribution
+     	0 -> 1      	: 255  	|****************************************|
+     	2 -> 3      	: 0    	|                                    	|
+     	4 -> 7      	: 0    	|                                    	|
+     	8 -> 15     	: 1    	|                                    	|
+</code></pre><br/>
+It looks like we’re close. The functions used to freeze/unfreeze the queue are <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/blk_mq_freeze_queue">blk_mq_freeze_queue</a> and <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/blk_mq_unfreeze_queue">blk_mq_unfreeze_queue</a>. They’re used to change queue settings, which could affect io requests currently in flight. When <b>blk_mq_freeze_queue()</b> is called, <b>q->mq_freeze_depth</b> is incremented in <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/blk_freeze_queue_start">blk_freeze_queue_start()</a>. After that, the kernel waits for the queue to be empty in <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/blk_mq_freeze_queue_wait">blk_mq_freeze_queue_wait()</a>.<br/>
+<br/>
+This waiting time is equal to disk latency, because the kernel has to wait for all io operations to finish. When the queue is empty, changes can be made. The final step is to call <a href="https://elixir.bootlin.com/linux/v4.15.18/ident/blk_mq_unfreeze_queue">blk_mq_unfreeze_queue()</a>, which decreases the <b>freeze_depth</b> counter.<br/>
+<br/>
+Now we know enough to fix the issue. The udevadm trigger command changes the settings for block devices. Those settings are described in udev rules. We can find out what settings freeze the queue by changing them via sysfs or by looking at the kernel source code. Alternatively, we can <a href="https://github.com/iovisor/bcc/blob/master/tools/trace.py">call trace</a> from the BCC toolkit to print kernel and user stacks for every <b>blk_freeze_queue</b> call:<br/>
+<br/>
+<pre><code class="bash">~# /usr/share/bcc/tools/trace blk_freeze_queue -K -U
+PID 	TID 	COMM        	FUNC        	 
+3809642 3809642 systemd-udevd   blk_freeze_queue
+    	blk_freeze_queue+0x1 [kernel]
+    	elevator_switch+0x29 [kernel]
+    	elv_iosched_store+0x197 [kernel]
+    	queue_attr_store+0x5c [kernel]
+    	sysfs_kf_write+0x3c [kernel]
+    	kernfs_fop_write+0x125 [kernel]
+    	__vfs_write+0x1b [kernel]
+    	vfs_write+0xb8 [kernel]
+    	sys_write+0x55 [kernel]
+    	do_syscall_64+0x73 [kernel]
+    	entry_SYSCALL_64_after_hwframe+0x3d [kernel]
+    	__write_nocancel+0x7 [libc-2.23.so]
+    	[unknown]
+
+3809631 3809631 systemd-udevd   blk_freeze_queue
+    	blk_freeze_queue+0x1 [kernel]
+    	queue_requests_store+0xb6 [kernel]
+    	queue_attr_store+0x5c [kernel]
+    	sysfs_kf_write+0x3c [kernel]
+    	kernfs_fop_write+0x125 [kernel]
+    	__vfs_write+0x1b [kernel]
+    	vfs_write+0xb8 [kernel]
+    	sys_write+0x55 [kernel]
+    	do_syscall_64+0x73 [kernel]
+    	entry_SYSCALL_64_after_hwframe+0x3d [kernel]
+    	__write_nocancel+0x7 [libc-2.23.so]
+    	[unknown]</code></pre><br/>
+Udev rules don’t change often, so even assigning already existing values to certain parameters causes a spike in submit latency for the application. Of course generating udev events when there aren’t any changes in a device’s configuration (no device is attached or detached) is not a good practice. Still, we can prevent the kernel from freezing the queue if there’s no reason to do this. <a href="https://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git/commit/?id=e5fa81408fb43ebabde65938ef8b20ae879017e7">Three</a> <a href="https://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git/commit/?id=b7143fe67bfc3b83a9e11371da659e1e70a1bbf3">small</a> <a href="https://git.kernel.org/pub/scm/linux/kernel/git/axboe/linux-block.git/commit/?id=fbd72127c975dc8e532ecc73d52f3b1b00935bec">commits</a> fix the issue.<br/>
+<br/>
+<h2>Conclusion</h2><br/>
+eBPF is highly flexible and powerful instrument. In this article, we looked at only one case and demonstrated a little bit of what it’s capable of. If you’re interested in developing BCC-based tools, you should take a look at the <a href="https://github.com/iovisor/bcc/blob/master/docs/tutorial.md">official tutorial</a>, which describes its fundamental concepts.<br/>
+<br/>
+There’re also other interesting eBPF-based tools available for profiling and debugging. One of them is <a href="https://github.com/iovisor/bpftrace">bpftrace</a>, which lets you write powerful oneliners and little programs in an awk-like language. Another one is <a href="https://github.com/cloudflare/ebpf_exporter">ebpf_exporter</a>, which can collect low-level high-resolution metrics to your prometheus server with its great visualization and alerting abilities.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blinux%5D" class="tm-tags-list__link">linux</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bperformance%5D" class="tm-tags-list__link">performance</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bbugs%5D" class="tm-tags-list__link">bugs</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bebpf%5D" class="tm-tags-list__link">ebpf</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/selectel/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Selectel
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/hi/" class="tm-hubs-list__link">
+    Высокая производительность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/linux/" class="tm-hubs-list__link">
+    Настройка Linux
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/s_admin/" class="tm-hubs-list__link">
+    Серверное администрирование
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 13: ↑11 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 13: ↑11 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+9</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">3.3K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    8
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/selectel/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/66a/f7d/039/66af7d03979b6d18654293d8f1e72837.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/selectel/profile/" class="tm-company-snippet__title">Selectel</a> <div class="tm-company-snippet__description">IT-инфраструктура для бизнеса</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/selectel" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://vk.com/selectel" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://telegram.me/SelectelNews" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/alexey_zz/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 30 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    30
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Алексей Захаров</span> <a href="/ru/users/alexey_zz/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @alexey_zz
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Старший админ облачной инфраструктуры</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://alexzzz.ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://github.com/AlexZzz/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Github
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/selectel/blog/450818/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2007-09-10T20:00:00.000Z" title="2007-09-11, 00:00">11  сентября  2007</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://selectel.ru/" target="_blank" class="tm-company-basic-info__link">
+      selectel.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    501–1 000 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2010-03-15T19:29:17.000Z" title="2010-03-15, 22:29">15  марта  2010</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/selectel/blog/450818/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/selectel/blog/450818/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450818":{"id":"450818","timePublished":"2019-05-23T11:00:20+00:00","isCorporative":true,"lang":"en","titleHtml":"From High Ceph Latency to Kernel Patch with eBPF\u002FBCC","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F-8\u002Fok\u002Fna\u002F-8okna9qfyroicvgoz-zenv7-si.png\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nThere are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF \u003Ca href=\"https:\u002F\u002Flwn.net\u002FArticles\u002F740157\u002F\"\u003Ewas developed\u003C\u002Fa\u003E, which provides the ability to trace the kernel and userspace with low overhead, without needing to recompile programs or load kernel modules.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nThere are now plenty of tools that use eBPF and in this article, we’ll explain how to write your own profiling tool using the \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\"\u003EPythonBCC library\u003C\u002Fa\u003E. This article is based on a real issue from the production environment. We’ll walk you through solving the problem and show how existing bcc tools could be used in some cases.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Read more →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":30,"votesCount":30},"rating":0,"relatedData":null,"contacts":[{"title":"Сайт","url":"https:\u002F\u002Falexzzz.ru","value":"https:\u002F\u002Falexzzz.ru"},{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002FAlexZzz\u002F","value":"AlexZzz"}],"authorContacts":[{"title":"Сайт","url":"https:\u002F\u002Falexzzz.ru","value":"https:\u002F\u002Falexzzz.ru"},{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002FAlexZzz\u002F","value":"AlexZzz"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"938080","alias":"alexey_zz","fullname":"Алексей Захаров","avatarUrl":null,"speciality":"Старший админ облачной инфраструктуры"},"statistics":{"commentsCount":0,"favoritesCount":8,"readingCount":3305,"score":9,"votesCount":13},"hubs":[{"relatedData":null,"id":"14740","alias":"selectel","type":"corporative","title":"Блог компании Selectel","titleHtml":"Блог компании Selectel","isProfiled":false},{"relatedData":null,"id":"4","alias":"hi","type":"collective","title":"Высокая производительность","titleHtml":"Высокая производительность","isProfiled":true},{"relatedData":null,"id":"36","alias":"linux","type":"collective","title":"Настройка Linux","titleHtml":"Настройка Linux","isProfiled":true},{"relatedData":null,"id":"17350","alias":"s_admin","type":"collective","title":"Серверное администрирование","titleHtml":"Серверное администрирование","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F-8\u002Fok\u002Fna\u002F-8okna9qfyroicvgoz-zenv7-si.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThere are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF \u003Ca href=\"https:\u002F\u002Flwn.net\u002FArticles\u002F740157\u002F\"\u003Ewas developed\u003C\u002Fa\u003E, which provides the ability to trace the kernel and userspace with low overhead, without needing to recompile programs or load kernel modules.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThere are now plenty of tools that use eBPF and in this article, we’ll explain how to write your own profiling tool using the \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\"\u003EPythonBCC library\u003C\u002Fa\u003E. This article is based on a real issue from the production environment. We’ll walk you through solving the problem and show how existing bcc tools could be used in some cases.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ECeph Is Slow\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nA new platform was added to a ceph cluster. After migrating some data to the platform, the latency for write requests was higher than on the other servers.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fuk\u002Fde\u002F-l\u002Fukde-lsu9sjqnmci1ix942xzgie.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis platform has a new caching virtual device — bcache, which we haven’t used in this cluster before — and a new kernel — 4.15, which still isn’t used anywhere else in this cluster. The root of the problem could be anywhere, so let’s take a deeper look.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EInvestigating the Host\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nLet’s look at what’s going on inside the ceph-osd process. We use the tracing tool \u003Ca href=\"https:\u002F\u002Fperf.wiki.kernel.org\u002Findex.php\u002FMain_Page\"\u003Eperf\u003C\u002Fa\u003E and \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Fflamescope\"\u003Eflamescope\u003C\u002Fa\u003E to build flamegraphs:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fch\u002F5k\u002Fnn\u002Fch5knn22cmukd1oldmcozpxe98i.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAs we can see from the flamegraph, \u003Cb\u003Efdatasync()\u003C\u002Fb\u003E spent a lot of time submitting bio in the \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E function. Thus, the root of our problem is somewhere outside the ceph daemon. It might be a kernel, bcache, or disk issue. The iostat output showed high latency for bcache devices.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAnother suspicious finding is that the systemd-udevd daemon is consuming CPU; about 20% on multiple CPUs. This is odd behavior, so we have to find out what’s going on. Since systemd-udevd works with uevents, we have to use \u003Cb\u003Eudevadm monitor\u003C\u002Fb\u003E to find out if there are any uevents in the system. After checking, we saw that a lot of «change» uevents were being generated for every block device in the system.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis is unusual, so we’re going to find out what’s causing all of these uevents to be sent.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EUsing the BCC Toolkit\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nAs we already know, the kernel (and ceph daemon) is spending a lot of time performing \u003Cb\u003Egeneric_make_requst()\u003C\u002Fb\u003E functions. Let’s measure its latency using \u003Cb\u003Efunclatency\u003C\u002Fb\u003E from the \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002Fmaster\u002Ftools\u002Ffunclatency.py\"\u003EBCC toolkit\u003C\u002Fa\u003E, just to make sure that we’re on the right path. We’ll trace the ceph daemon’s PID (-p argument) in 1-second intervals (-i) and print the latency in milliseconds (-m).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F4c\u002Fcj\u002Fza\u002F4ccjza8x8bq0vqkxfol2j5d9sva.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis function usually works very fast. All it does is submit the bio structure to the device driver’s queue.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EBcache\u003C\u002Fb\u003E is a complex device; in fact, it consists of 3 devices: a backing device, which is a slow HDD in our case; a caching device, which is the NVMe drive’s partition; and a bcache virtual device, which is used by the application. We know submission is slow, but for which device? This is something we’ll look at a bit later.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nFor now, we know that uevents cause problems in ceph daemons and we have to find the software triggering uevents.It’s not easy to find what causes uevents to be generated. We assume it’s software that only runs periodically. To see what is being executed on the system, we use \u003Cb\u003Eexecsnoop\u003C\u002Fb\u003E from the BCC toolkit. We can run it and redirect \u003Cb\u003Estdout\u003C\u002Fb\u003E to a file.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nFor example:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E\u002Fusr\u002Fshare\u002Fbcc\u002Ftools\u002Fexecsnoop  | tee .\u002Fexecdump\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nWe won’t give the full execsnoop output here, but one interesting string we found there was:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Esh 1764905 5802 0 sudo arcconf getconfig 1 AD | grep Temperature | awk -F '[:\u002F]' '{print $2}' | sed 's\u002F^ \\([0-9]*\\) C.*\u002F\\1\u002F'\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThe third column is the process’s PPID. We checked what 5802 was and saw that it’s one of our monitoring daemon threads. Looking further at the monitoring system configuration, we found a faulty parameter. The HBA temperature was being retrieved every 30 seconds, which is too often. After changing the check interval to a more appropriate value, we saw that our ceph latency matched the other platforms.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nBut we still don’t know why the bcache latency was high. We set up a testing platform with the same configuration and tried to reproduce the problem with fio on the bcache device while simultaneously triggering udev with the udevadm trigger command.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EWriting BCC-Based Tools\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nWhat we’re going to do here is write a simple tool that traces the slowest generic_make_request() calls and prints the name of the disk that the function was called for.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThe plan is simple:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003ERegister \u003Cb\u003Ekprobe\u003C\u002Fb\u003E on \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003ESave the disk name available from the function’s argument\u003C\u002Fli\u003E\r\n\u003Cli\u003ESave the current timestamp\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003ERegister \u003Cb\u003Ekretprobe\u003C\u002Fb\u003E on the \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E return statement:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003ERetrieve the current timestamp\u003C\u002Fli\u003E\r\n\u003Cli\u003ELook up previously saved timestamps and compare them with current ones\u003C\u002Fli\u003E\r\n\u003Cli\u003EIf the result is higher than the threshold, look up previously saved disk names and print them to the terminal with additional information\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKprobes\u003C\u002Fb\u003E and \u003Cb\u003Ekretprobes\u003C\u002Fb\u003E use breakpoints to change a function’s code in runtime. You can find \u003Ca href=\"https:\u002F\u002Fwww.kernel.org\u002Fdoc\u002FDocumentation\u002Fkprobes.txt\"\u003Edocumentation\u003C\u002Fa\u003E as well as a good \u003Ca href=\"https:\u002F\u002Fdev.framing.life\u002Ftracing\u002Fkernel-and-user-probes-magic\u002F\"\u003Earticle\u003C\u002Fa\u003E on this. If you take a look at the code for different \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Ftree\u002Fmaster\u002Ftools\"\u003EBCC tools\u003C\u002Fa\u003E, you’ll see that they all have an identical structure. We’ll skip argument parsing and focus on the BPF program itself.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nOur program’s text will be defined in python as follows:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Ebpf_text = “”” # Here will be the bpf program code “””\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nBPF programs use \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002F12bd958186a8c3bfcf2f74d246b8c06dd20bbc20\u002Fsrc\u002Fcc\u002Fexport\u002Fhelpers.h#L67\"\u003Ehashmaps\u003C\u002Fa\u003E to share data between different functions. We’ll use PID as a key and self-defined structure as a value.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Estruct data_t {\n\tu64 pid;\n\tu64 ts;\n\tchar comm[TASK_COMM_LEN];\n\tu64 lat;\n\tchar disk[DISK_NAME_LEN];\n};\n\nBPF_HASH(p, u64, struct data_t);\nBPF_PERF_OUTPUT(events);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nHere we register a hashmap called \u003Cb\u003Ep\u003C\u002Fb\u003E with a \u003Cb\u003Eu64\u003C\u002Fb\u003E key type and a \u003Cb\u003Estruct data_t\u003C\u002Fb\u003E value type. This map is accessible from our BPF program context. The \u003Cb\u003EBPF_PERF_OUTPUT\u003C\u002Fb\u003E macro registers another map called \u003Cb\u003Eevents\u003C\u002Fb\u003E, which is used to \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002F12bd958186a8c3bfcf2f74d246b8c06dd20bbc20\u002Fsrc\u002Fcc\u002Fexport\u002Fhelpers.h#L112\"\u003Epush data\u003C\u002Fa\u003E to the userspace.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nWhen measuring latency between the function call and its return or between one function call and another, you have to be sure that the data you saved and access later relates to the same context. In other words, you have to be aware of any other parallel executions of the same function. It’s possible to trace latency between the function call of one process and the same function’s returns from another process, but this doesn’t help us. A good example is the \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002F12bd958186a8c3bfcf2f74d246b8c06dd20bbc20\u002Ftools\u002Fbiolatency.py#L74\"\u003Ebiolatency tool\u003C\u002Fa\u003E where pointer to \u003Cb\u003Estruct request\u003C\u002Fb\u003E is used as a hashmap key.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNext, we have to write a code that will be executed on function calls via a kprobe mechanism:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Evoid start(struct pt_regs *ctx, struct bio *bio) {\n\tu64 pid = bpf_get_current_pid_tgid();\n\tstruct data_t data = {};\n\tu64 ts = bpf_ktime_get_ns();\n\tdata.pid = pid;\n\tdata.ts = ts;\n\tbpf_probe_read_str(&amp;data.disk, sizeof(data.disk), (void*)bio-\u003Ebi_disk-\u003Edisk_name);\n\tp.update(&amp;pid, &amp;data);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nHere we have the first \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fsource\u002Fblock\u002Fblk-core.c#L2259\"\u003Egeneric_make_request() argument\u003C\u002Fa\u003E as our function’s second argument. Then we get the PID and current timestamp in nanoseconds and write it to the newly allocated \u003Cb\u003Estruct data_t data\u003C\u002Fb\u003E. We get the disk name from the bio structure, which is passed to \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E, and save it to our \u003Cb\u003Edata\u003C\u002Fb\u003E. The last step is to add an entry to the hashmap we described earlier.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis function will be executed on \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E returns:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Evoid stop(struct pt_regs *ctx) {\n    u64 pid = bpf_get_current_pid_tgid();\n    u64 ts = bpf_ktime_get_ns();\n    struct data_t* data = p.lookup(&amp;pid);\n    if (data != 0 &amp;&amp; data-\u003Ets \u003E 0) {\n        bpf_get_current_comm(&amp;data-\u003Ecomm, sizeof(data-\u003Ecomm));\n        data-\u003Elat = (ts - data-\u003Ets)\u002F1000;\n        if (data-\u003Elat \u003E MIN_US) {\n            FACTOR\n            data-\u003Epid \u003E\u003E= 32;\n            events.perf_submit(ctx, data, sizeof(struct data_t));\n        }\n        p.delete(&amp;pid);\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nWe get the PID and timestamp from the previous output and look up the hashmap for the value where \u003Cb\u003Ekey == current PID\u003C\u002Fb\u003E. If it’s found, we get the name of the running process and add it to the \u003Cb\u003Edata\u003C\u002Fb\u003E structure. What we do with \u003Cb\u003Edata-\u003Epid\u003C\u002Fb\u003E here gives us the thread group id. The previously called \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fsource\u002Fkernel\u002Fbpf\u002Fhelpers.c#L119\"\u003Ebpf_get_current_pid_tgid() function\u003C\u002Fa\u003E returns the thread GID and PID of the process in the same 64-bit value.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nWe’re not interested in every thread’s ID, but we want to know the PID of the main thread. After checking that the latency is above the threshold, we submit our \u003Cb\u003Edata\u003C\u002Fb\u003E structure to the userspace via \u003Cb\u003Eevents\u003C\u002Fb\u003E map, then delete the hashmap entry at the end.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIn our python script, we have to replace \u003Cb\u003EMIN_US\u003C\u002Fb\u003E and \u003Cb\u003EFACTOR\u003C\u002Fb\u003E according to the threshold we want and unit of time we want to see in our result:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Ebpf_text = bpf_text.replace('MIN_US',str(min_usec))\nif args.milliseconds:\n\tbpf_text = bpf_text.replace('FACTOR','data-\u003Elat \u002F= 1000;')\n\tlabel = \"msec\"\nelse:\n\tbpf_text = bpf_text.replace('FACTOR','')\n\tlabel = \"usec\"\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThen we have to prepare the BPF program with a \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002F12bd958186a8c3bfcf2f74d246b8c06dd20bbc20\u002Fsrc\u002Fpython\u002Fbcc\u002F__init__.py#L135\"\u003EBPF() macro\u003C\u002Fa\u003E and register probes:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Eb = BPF(text=bpf_text)\nb.attach_kprobe(event=\"generic_make_request\",fn_name=\"start\")\nb.attach_kretprobe(event=\"generic_make_request\",fn_name=\"stop\")\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nWe also need to define the same structure as \u003Cb\u003Estruct data_t\u003C\u002Fb\u003E in our script to read the data from the BPF program:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003ETASK_COMM_LEN = 16\t# linux\u002Fsched.h\nDISK_NAME_LEN = 32\t# linux\u002Fgenhd.h\nclass Data(ct.Structure):\n\t_fields_ = [(\"pid\", ct.c_ulonglong),\n            \t(\"ts\", ct.c_ulonglong),\n            \t(\"comm\", ct.c_char * TASK_COMM_LEN),\n            \t(\"lat\", ct.c_ulonglong),\n            \t(\"disk\",ct.c_char * DISK_NAME_LEN)]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThe last step is to print the data we want:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Edef print_event(cpu, data, size):\n    global start\n    event = ct.cast(data, ct.POINTER(Data)).contents\n    if start == 0:\n        start = event.ts\n    time_s = (float(event.ts - start)) \u002F 1000000000\n    print(\"%-18.9f %-16s %-6d   %-1s %s   %s\" % (time_s, event.comm, event.pid, event.lat, label, event.disk))\n\nb[\"events\"].open_perf_buffer(print_event)\n# format output\nstart = 0\nwhile 1:\n    try:\n        b.perf_buffer_poll()\n    except KeyboardInterrupt:\n        exit()\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nThe full script is available on \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FAlexZzz\u002Febpf-tools\u002Fblob\u002Fmaster\u002Fmake_request_slower\"\u003EGitHub\u003C\u002Fa\u003E. Let’s run the script and trigger udev events while fio writes to a bcache device:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftk\u002Fly\u002Fvf\u002Ftklyvf6i8rws0xu4gy3jothbxbi.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nSuccess! Now we see that what looked like high latency for bcache is really \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E latency for its backing device.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EDig into the Kernel\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nWhat drags when submitting requests? We see that a latency spike occurred before request accounting even started. This could be easily checked by running either iostat during the problem or the \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002Fmaster\u002Ftools\u002Fbiolatency.py\"\u003Ebiolatency BCC script\u003C\u002Fa\u003E, which are based on accounting request start, so neither tool will show the disk problem.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIf we take a look at \u003Cb\u003Egeneric_make_request()\u003C\u002Fb\u003E, we see that there are two functions running before accounting starts. The first is \u003Cb\u003Egeneric_make_request_checks()\u003C\u002Fb\u003E, which is lightweight and checks bio according to the device settings, etc. The second is \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fblk_queue_enter\"\u003Eblk_queue_enter()\u003C\u002Fa\u003E, which has a \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fwait_event_interruptible\"\u003Ewait_event_interruptible()\u003C\u002Fa\u003E call:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Eret = wait_event_interruptible(q-\u003Emq_freeze_wq,\n\t(atomic_read(&amp;q-\u003Emq_freeze_depth) == 0 &amp;&amp;\n\t(preempt || !blk_queue_preempt_only(q))) ||\n\tblk_queue_dying(q));\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nHere the kernel waits until the queue is unfrozen. Let’s measure the latency of blk_queue_enter():\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E~# \u002Fusr\u002Fshare\u002Fbcc\u002Ftools\u002Ffunclatency  blk_queue_enter -i 1 -m               \t \nTracing 1 functions for \"blk_queue_enter\"... Hit Ctrl-C to end.\n\n \tmsecs           \t: count \tdistribution\n     \t0 -\u003E 1      \t: 341  \t|****************************************|\n\n \tmsecs           \t: count \tdistribution\n     \t0 -\u003E 1      \t: 316  \t|****************************************|\n\n \tmsecs           \t: count \tdistribution\n     \t0 -\u003E 1      \t: 255  \t|****************************************|\n     \t2 -\u003E 3      \t: 0    \t|                                    \t|\n     \t4 -\u003E 7      \t: 0    \t|                                    \t|\n     \t8 -\u003E 15     \t: 1    \t|                                    \t|\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nIt looks like we’re close. The functions used to freeze\u002Funfreeze the queue are \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fblk_mq_freeze_queue\"\u003Eblk_mq_freeze_queue\u003C\u002Fa\u003E and \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fblk_mq_unfreeze_queue\"\u003Eblk_mq_unfreeze_queue\u003C\u002Fa\u003E. They’re used to change queue settings, which could affect io requests currently in flight. When \u003Cb\u003Eblk_mq_freeze_queue()\u003C\u002Fb\u003E is called, \u003Cb\u003Eq-\u003Emq_freeze_depth\u003C\u002Fb\u003E is incremented in \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fblk_freeze_queue_start\"\u003Eblk_freeze_queue_start()\u003C\u002Fa\u003E. After that, the kernel waits for the queue to be empty in \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fblk_mq_freeze_queue_wait\"\u003Eblk_mq_freeze_queue_wait()\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThis waiting time is equal to disk latency, because the kernel has to wait for all io operations to finish. When the queue is empty, changes can be made. The final step is to call \u003Ca href=\"https:\u002F\u002Felixir.bootlin.com\u002Flinux\u002Fv4.15.18\u002Fident\u002Fblk_mq_unfreeze_queue\"\u003Eblk_mq_unfreeze_queue()\u003C\u002Fa\u003E, which decreases the \u003Cb\u003Efreeze_depth\u003C\u002Fb\u003E counter.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNow we know enough to fix the issue. The udevadm trigger command changes the settings for block devices. Those settings are described in udev rules. We can find out what settings freeze the queue by changing them via sysfs or by looking at the kernel source code. Alternatively, we can \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002Fmaster\u002Ftools\u002Ftrace.py\"\u003Ecall trace\u003C\u002Fa\u003E from the BCC toolkit to print kernel and user stacks for every \u003Cb\u003Eblk_freeze_queue\u003C\u002Fb\u003E call:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E~# \u002Fusr\u002Fshare\u002Fbcc\u002Ftools\u002Ftrace blk_freeze_queue -K -U\nPID \tTID \tCOMM        \tFUNC        \t \n3809642 3809642 systemd-udevd   blk_freeze_queue\n    \tblk_freeze_queue+0x1 [kernel]\n    \televator_switch+0x29 [kernel]\n    \telv_iosched_store+0x197 [kernel]\n    \tqueue_attr_store+0x5c [kernel]\n    \tsysfs_kf_write+0x3c [kernel]\n    \tkernfs_fop_write+0x125 [kernel]\n    \t__vfs_write+0x1b [kernel]\n    \tvfs_write+0xb8 [kernel]\n    \tsys_write+0x55 [kernel]\n    \tdo_syscall_64+0x73 [kernel]\n    \tentry_SYSCALL_64_after_hwframe+0x3d [kernel]\n    \t__write_nocancel+0x7 [libc-2.23.so]\n    \t[unknown]\n\n3809631 3809631 systemd-udevd   blk_freeze_queue\n    \tblk_freeze_queue+0x1 [kernel]\n    \tqueue_requests_store+0xb6 [kernel]\n    \tqueue_attr_store+0x5c [kernel]\n    \tsysfs_kf_write+0x3c [kernel]\n    \tkernfs_fop_write+0x125 [kernel]\n    \t__vfs_write+0x1b [kernel]\n    \tvfs_write+0xb8 [kernel]\n    \tsys_write+0x55 [kernel]\n    \tdo_syscall_64+0x73 [kernel]\n    \tentry_SYSCALL_64_after_hwframe+0x3d [kernel]\n    \t__write_nocancel+0x7 [libc-2.23.so]\n    \t[unknown]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nUdev rules don’t change often, so even assigning already existing values to certain parameters causes a spike in submit latency for the application. Of course generating udev events when there aren’t any changes in a device’s configuration (no device is attached or detached) is not a good practice. Still, we can prevent the kernel from freezing the queue if there’s no reason to do this. \u003Ca href=\"https:\u002F\u002Fgit.kernel.org\u002Fpub\u002Fscm\u002Flinux\u002Fkernel\u002Fgit\u002Faxboe\u002Flinux-block.git\u002Fcommit\u002F?id=e5fa81408fb43ebabde65938ef8b20ae879017e7\"\u003EThree\u003C\u002Fa\u003E \u003Ca href=\"https:\u002F\u002Fgit.kernel.org\u002Fpub\u002Fscm\u002Flinux\u002Fkernel\u002Fgit\u002Faxboe\u002Flinux-block.git\u002Fcommit\u002F?id=b7143fe67bfc3b83a9e11371da659e1e70a1bbf3\"\u003Esmall\u003C\u002Fa\u003E \u003Ca href=\"https:\u002F\u002Fgit.kernel.org\u002Fpub\u002Fscm\u002Flinux\u002Fkernel\u002Fgit\u002Faxboe\u002Flinux-block.git\u002Fcommit\u002F?id=fbd72127c975dc8e532ecc73d52f3b1b00935bec\"\u003Ecommits\u003C\u002Fa\u003E fix the issue.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EConclusion\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\neBPF is highly flexible and powerful instrument. In this article, we looked at only one case and demonstrated a little bit of what it’s capable of. If you’re interested in developing BCC-based tools, you should take a look at the \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbcc\u002Fblob\u002Fmaster\u002Fdocs\u002Ftutorial.md\"\u003Eofficial tutorial\u003C\u002Fa\u003E, which describes its fundamental concepts.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nThere’re also other interesting eBPF-based tools available for profiling and debugging. One of them is \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fiovisor\u002Fbpftrace\"\u003Ebpftrace\u003C\u002Fa\u003E, which lets you write powerful oneliners and little programs in an awk-like language. Another one is \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fcloudflare\u002Febpf_exporter\"\u003Eebpf_exporter\u003C\u002Fa\u003E, which can collect low-level high-resolution metrics to your prometheus server with its great visualization and alerting abilities.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"linux"},{"titleHtml":"performance"},{"titleHtml":"bugs"},{"titleHtml":"ebpf"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450818\u002F9cd5744cff0198c467c4452134cf9667\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450818\u002F9cd5744cff0198c467c4452134cf9667\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fcompany\\\u002Fselectel\\\u002Fblog\\\u002F450818\\\u002F\"},\"headline\":\"From High Ceph Latency to Kernel Patch with eBPF\\\u002FBCC\",\"datePublished\":\"2019-05-23T14:00:20+03:00\",\"dateModified\":\"2019-07-04T15:59:34+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Алексей Захаров\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fcompany\\\u002Fselectel\\\u002Fblog\\\u002F450818\\\u002F#post-content-body\",\"about\":[\"c_selectel\",\"h_hi\",\"h_linux\",\"h_s_admin\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F-8\\\u002Fok\\\u002Fna\\\u002F-8okna9qfyroicvgoz-zenv7-si.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fuk\\\u002Fde\\\u002F-l\\\u002Fukde-lsu9sjqnmci1ix942xzgie.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fch\\\u002F5k\\\u002Fnn\\\u002Fch5knn22cmukd1oldmcozpxe98i.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F4c\\\u002Fcj\\\u002Fza\\\u002F4ccjza8x8bq0vqkxfol2j5d9sva.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftk\\\u002Fly\\\u002Fvf\\\u002Ftklyvf6i8rws0xu4gy3jothbxbi.png\"]}","metaDescription":"There are a lot of tools for debugging kernel and userspace programs in Linux. Most of them have performance impact and cannot easily be run in production environments. A few years ago, eBPF was...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"selectel":{"alias":"selectel","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F66a\u002Ff7d\u002F039\u002F66af7d03979b6d18654293d8f1e72837.png","titleHtml":"Selectel","descriptionHtml":"IT-инфраструктура для бизнеса","relatedData":null,"statistics":{"postsCount":935,"newsCount":37,"vacanciesCount":8,"employeesCount":113,"careerRating":4.73,"subscribersCount":27219,"rating":1505.36,"invest":null},"foundationDate":{"year":"2007","month":"09","day":"11"},"location":{"city":{"id":"447733","title":"Санкт-Петербург"},"region":{"id":"1948","title":"Санкт-Петербург и область"},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fselectel.ru\u002F","staffNumber":"501–1 000 человек","registrationDate":"2010-03-15T19:29:17+00:00","representativeUser":null,"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fselectel"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fselectel"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002FSelectelNews"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-8163992-13"}],"branding":null,"status":"active"},"metadata":{"titleHtml":"Selectel, Санкт-Петербург - IT-инфраструктура для бизнеса с 11 сентября 2007 г.","title":"Selectel, Санкт-Петербург - IT-инфраструктура для бизнеса с 11 сентября 2007 г.","keywords":["Компьютерное железо","Будущее здесь","Научно-популярное","Гаджеты","История IT"],"descriptionHtml":"935 статей от авторов компании Selectel","description":"935 статей от авторов компании Selectel"},"aDeskSettings":null,"careerAlias":"selectel","maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

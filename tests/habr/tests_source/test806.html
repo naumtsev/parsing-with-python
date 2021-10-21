@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Когда переменная среды ускоряет процесс в 40 раз / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450806\/"},"headline":"Когда переменная среды ускоряет процесс в 40 раз","datePublished":"2019-05-07T10:58:21+03:00","dateModified":"2019-05-07T19:00:05+03:00","author":{"@type":"Person","name":"Анатолий Ализар"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета&nbsp;&mdash; прим. пер.], которые...","url":"https:\/\/habr.com\/ru\/post\/450806\/#post-content-body","about":["h_linux","h_server_side_optimization","h_soft","f_admin","f_popsci"],"image":["https:\/\/habr.com\/share\/publication\/450806\/6d7a5078541458a5a71eed1943a8742f\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Когда переменная среды ускоряет процесс в 40 раз" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Когда переменная среды ускоряет процесс в 40 раз" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Когда переменная среды ускоряет процесс в 40 раз" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450806/6d7a5078541458a5a71eed1943a8742f/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450806/6d7a5078541458a5a71eed1943a8742f/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450806/6d7a5078541458a5a71eed1943a8742f/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450806/6d7a5078541458a5a71eed1943a8742f/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450806/6d7a5078541458a5a71eed1943a8742f/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450806" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T07:58:21.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450806/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450806/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450806/6d7a5078541458a5a71eed1943a8742f/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/m1rko/" title="m1rko" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/4ec/bd0/85d/4ecbd085d692835a931d03174ff19539.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/m1rko/" class="tm-user-info__username">
+      m1rko
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T07:58:21.000Z" title="2019-05-07, 10:58">7  мая  2019 в 10:58</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Когда переменная среды ускоряет процесс в 40 раз</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/linux/" class="tm-article-snippet__hubs-item-link"><span>Настройка Linux</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/server_side_optimization/" class="tm-article-snippet__hubs-item-link"><span>Серверная оптимизация</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/soft/" class="tm-article-snippet__hubs-item-link"><span>Софт</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://news.sherlock.stanford.edu/posts/when-setting-an-environment-variable-gives-you-a-40-x-speedup" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Kilian Cavalotti
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в каталогах с большим количеством записей.<br/>
+<br/>
+<blockquote>В отличие от обычных статей, это скорее инсайдерский отчёт о том, как происходит регулярная работа над Sherlock, чтобы поддерживать его в наилучшем виде для наших пользователей. Надеемся в будущем публиковать больше таких статей.</blockquote><br/>
+<h1>Листинг многих файлов занимает время</h1><br/>
+Всё началось с вопроса в техподдержку от пользователя. Он сообщил о проблеме, что выполнение <code>ls</code> занимает несколько минут в каталоге c более 15 000 записей в <code>$SCRATCH</code> [каталог для временных файлов — прим. пер.].<br/>
+<a name="habracut"></a><br/>
+Тысячи файлов в одном каталоге обычно создают трудности для файловой системы и такое определённо не рекомендуется. Пользователь знал это и признал, что это нехорошо, но упомянул, что на его ноутбуке листинг выполняется в 1000 раз быстрее, чем в Sherlock. Конечно, это нас задело. Поэтому мы заглянули глубже.<br/>
+<br/>
+<h1>Потому что ls выглядит красиво</h1><br/>
+Мы рассмотрели, что на самом деле делает <code>ls</code> при листинге каталога, и почему процесс занимает так много времени. В большинстве современных дистрибутивов <code>ls</code> по умолчанию выполняется как <code>ls --color=auto</code>, потому что всем нравится расцветка.<br/>
+<br/>
+Но красивые цвета имеют свою цену: для каждого файла <code>ls</code> должен получить информацию о типе файла, его разрешениях, флагах, расширенных атрибутах и тому подобном, чтобы выбрать соответствующий цвет.<br/>
+<br/>
+Одно из простых решений проблемы — вообще отключить цвет в ls, но представьте возмущение пользователей. Ни в коем случае нельзя забирать цветной вывод, мы не монстры.<br/>
+<br/>
+Поэтому мы заглянули глубже. <code>ls</code> раскрашивает записи через переменную среды <code>LS_COLORS</code>, которую задаёт <code>dircolors(1)</code> на основе файла конфигурации <code>dir_colors(5)</code>. Да, <a href="http://www.bigsoft.co.uk/blog/2008/04/11/configuring-ls_colors">исполняемый файл считывает конфигурационный файл для создания переменной среды, которую потом использует ls</a> (а если вы не знаете о файлах <a href="https://en.wikipedia.org/wiki/Unix_file_types#Door">door</a> (do), то dir_colors <a href="http://www.bigsoft.co.uk/blog/2008/04/11/configuring-ls_colors">сработает</a>, несмотря ни на что).<br/>
+<br/>
+<h1>Разберёмся подробнее</h1><br/>
+Чтобы определить, какая из схем расцвечивания вызывает замедление, мы создали экспериментальную среду:<br/>
+<br/>
+<pre><code class="plaintext">$ mkdir $SCRATCH/dont
+$ touch $SCRATCH/dont/{1..10000} # don't try this at home!
+$ time ls --color=always $SCRATCH/dont | wc -l
+10000
+
+real    0m12.758s
+user    0m0.104s
+sys     0m0.699s</code></pre><br/>
+<b>12,7 секунд для 10 000 файлов, не очень хорошо.</b> <br/>
+<blockquote>Кстати, нужен флаг <code>--color=always</code>: хотя он обращается в <code>ls --color=auto</code>, но <code>ls</code> обнаруживает, когда он не подключен к терминалу (например, по каналу или с перенаправлением выдачи) и отключает раскраску, если установлено значение <code>auto</code>. Умный парень.</blockquote> Так что же занимает столько времени? Мы посмотрели с помощью <code>strace</code>:<br/>
+<br/>
+<pre><code class="plaintext">$ strace -c ls --color=always $SCRATCH/dont | wc -l
+10000
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 44.21    0.186617          19     10000           lstat
+ 42.60    0.179807          18     10000     10000 getxattr
+ 12.19    0.051438           5     10000           capget
+  0.71    0.003002          38        80           getdents
+  0.07    0.000305          10        30           mmap
+  0.05    0.000217          12        18           mprotect
+  0.03    0.000135          14        10           read
+  0.03    0.000123          11        11           open
+  0.02    0.000082           6        14           close
+[...]</code></pre><br/>
+Ничего себе: 10 000 вызовов <code>lstat()</code>, 10 000 вызовов <code>getxattr()</code> (которые все терпят неудачу, потому что в нашей среде нет атрибутов, которые ищет ls), 10 000 вызовов <code>capget()</code>.<br/>
+<br/>
+Наверняка это можно оптимизировать.<br/>
+<br/>
+<h1>Атрибут capabilities? Неа</h1><br/>
+Следуя советам <a href="https://bugzilla.redhat.com/show_bug.cgi?id=467508">бага 10-летней давности</a>, мы попытались отключить проверку атрибута <a href="http://man7.org/linux/man-pages/man7/capabilities.7.html">capabilities</a>:<br/>
+<br/>
+<pre><code class="plaintext">$ eval $(dircolors -b | sed s/ca=[^:]*:/ca=:/)
+$ time strace -c ls --color=always $SCRATCH/dont | wc -l
+10000
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 98.95    0.423443          42     10000           lstat
+  0.78    0.003353          42        80           getdents
+  0.04    0.000188          10        18           mprotect
+  0.04    0.000181           6        30           mmap
+  0.02    0.000085           9        10           read
+  0.02    0.000084          28         3           mremap
+  0.02    0.000077           7        11           open
+  0.02    0.000066           5        14           close
+[...]
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.427920                 10221         6 total
+
+real    0m8.160s
+user    0m0.115s
+sys     0m0.961s</code></pre><br/>
+Ух ты, ускорение до 8 секунд! Мы избавились от всех этих дорогих вызовов <code>getxattr()</code>, и вызовы <code>capget()</code> тоже исчезли, отлично.<br/>
+<br/>
+Но ещё остались эти надоедливые вызовы <code>lstat()</code>, хотя…<br/>
+<br/>
+<h1>Сколько нужно цветов?</h1><br/>
+Поэтому мы более подробно рассмотрели <code>LS_COLORS</code>.<br/>
+<br/>
+Сначала просто отключили эту переменную:<br/>
+<br/>
+<pre>$ echo $LS_COLORS
+rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:
+$ unset LS_COLORS
+$ echo $LS_COLORS
+
+$  time ls --color=always $SCRATCH/dont | wc -l
+10000
+
+real    0m13.037s
+user    0m0.077s
+sys     0m1.092s</pre><br/>
+Что!?! По-прежнему 13 секунд?<br/>
+<br/>
+Оказывается, когда переменная среды <code>LS_COLORS</code> не определена или отсутствует только один из её элементов <code>&lt;type>=color:</code>, она по умолчанию использует встроенную базу данных и всё равно использует цвета. Поэтому, если вы хотите отключить раскраску для определённого типа файла, вам нужно переопределить её с помощью <code>&lt;type>=:</code> или <code>&lt;type> 00</code> в файле <code>DIR_COLORS</code>.<br/>
+<br/>
+После множества проб и ошибок мы сузили круг поиска до этого:<br/>
+<br/>
+<pre><code class="plaintext">EXEC 00
+SETUID 00
+SETGID 00
+CAPABILITY 00</code></pre><br/>
+что записывается как<br/>
+<br/>
+<pre><code class="plaintext">LS_COLORS='ex=00:su=00:sg=00:ca=00:'</code></pre><br/>
+Это означает: не раскрашивай файлы ни по атрубуту <a href="https://lwn.net/Articles/211883/">capabilities</a>, ни по битам <code><a href="https://en.wikipedia.org/wiki/Setuid">setuid/setgid</a></code>, ни по <a href="https://wiki.archlinux.org/index.php/File_permissions_and_attributes#Viewing_permissions">флагу исполняемости</a>.<br/>
+<br/>
+<h1>Ускоряем <code>ls</code></h1><br/>
+И если не делать ни одной из этих проверок, то вызовы <code>lstat()</code> исчезают, и теперь совсем другое дело:<br/>
+<br/>
+<pre><code class="plaintext">$ export LS_COLORS='ex=00:su=00:sg=00:ca=00:'
+$ time strace -c ls --color=always $SCRATCH/dont | wc -l
+10000
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 63.02    0.002865          36        80           getdents
+  8.10    0.000368          12        30           mmap
+  5.72    0.000260          14        18           mprotect
+  3.72    0.000169          15        11           open
+  2.79    0.000127          13        10           read
+[...]
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.004546                   221         6 total
+
+real    0m0.337s
+user    0m0.032s
+sys     0m0.029s</code></pre><br/>
+0,3 секунды на списке 10 000 файлов, рекорд. <br/>
+<br/>
+<h1>Настраиваем Sherlock</h1><br/>
+От 13 секунд с настройками по умолчанию до 0,3 секунды с небольшой настройкой <code>LS_COLORS</code> означает 40-кратное ускорение за счёт отсутствия <code>setuid</code> / <code>setgid</code> и раскрашенных исполняемых файлов. Не такая большая потеря.<br/>
+<br/>
+Конечно, теперь это настроено в Sherlock для каждого пользователя.<br/>
+<br/>
+Но если вы хотите вернуть раскраску, то можете просто вернуться к настройкам по умолчанию:<br/>
+<br/>
+<pre><code class="plaintext">$ unset LS_COLORS</code></pre><br/>
+Но тогда на каталогах с большим количеством файлов обязательно заваривайте кофе, пока работает <code>ls</code>.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BSherlock%5D" class="tm-tags-list__link">Sherlock</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bls%5D" class="tm-tags-list__link">ls</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F%5D" class="tm-tags-list__link">оптимизация</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/linux/" class="tm-hubs-list__link">
+    Настройка Linux
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/server_side_optimization/" class="tm-hubs-list__link">
+    Серверная оптимизация
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/soft/" class="tm-hubs-list__link">
+    Софт
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 48: ↑48 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 48: ↑48 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+48</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">14K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    93
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/m1rko/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/4ec/bd0/85d/4ecbd085d692835a931d03174ff19539.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 1502 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    1230.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Анатолий Ализар</span> <a href="/ru/users/m1rko/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @m1rko
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">автор, переводчик, редактор</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450806/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 10 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450806/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450806/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450806":{"id":"450806","timePublished":"2019-05-07T07:58:21+00:00","isCorporative":false,"lang":"ru","titleHtml":"Когда переменная среды ускоряет процесс в 40 раз","leadData":{"textHtml":"Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в каталогах с большим количеством записей.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cblockquote\u003EВ отличие от обычных статей, это скорее инсайдерский отчёт о том, как происходит регулярная работа над Sherlock, чтобы поддерживать его в наилучшем виде для наших пользователей. Надеемся в будущем публиковать больше таких статей.\u003C\u002Fblockquote\u003E\u003Cbr\u003E\r\n\u003Ch1\u003EЛистинг многих файлов занимает время\u003C\u002Fh1\u003E\u003Cbr\u003E\r\nВсё началось с вопроса в техподдержку от пользователя. Он сообщил о проблеме, что выполнение \u003Ccode\u003Els\u003C\u002Fcode\u003E занимает несколько минут в каталоге c более 15 000 записей в \u003Ccode\u003E$SCRATCH\u003C\u002Fcode\u003E [каталог для временных файлов — прим. пер.].\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Kilian Cavalotti","originalUrl":"https:\u002F\u002Fnews.sherlock.stanford.edu\u002Fposts\u002Fwhen-setting-an-environment-variable-gives-you-a-40-x-speedup"}}],"author":{"scoreStats":{"score":1230.5,"votesCount":1502},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1371978","alias":"m1rko","fullname":"Анатолий Ализар","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F4ec\u002Fbd0\u002F85d\u002F4ecbd085d692835a931d03174ff19539.png","speciality":"автор, переводчик, редактор"},"statistics":{"commentsCount":10,"favoritesCount":93,"readingCount":14349,"score":48,"votesCount":48},"hubs":[{"relatedData":null,"id":"36","alias":"linux","type":"collective","title":"Настройка Linux","titleHtml":"Настройка Linux","isProfiled":true},{"relatedData":null,"id":"8880","alias":"server_side_optimization","type":"collective","title":"Серверная оптимизация","titleHtml":"Серверная оптимизация","isProfiled":true},{"relatedData":null,"id":"21918","alias":"soft","type":"collective","title":"Софт","titleHtml":"Софт","isProfiled":false}],"flows":[{"id":"6","alias":"admin","title":"Администрирование"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EСегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в каталогах с большим количеством записей.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EВ отличие от обычных статей, это скорее инсайдерский отчёт о том, как происходит регулярная работа над Sherlock, чтобы поддерживать его в наилучшем виде для наших пользователей. Надеемся в будущем публиковать больше таких статей.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EЛистинг многих файлов занимает время\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nВсё началось с вопроса в техподдержку от пользователя. Он сообщил о проблеме, что выполнение \u003Ccode\u003Els\u003C\u002Fcode\u003E занимает несколько минут в каталоге c более 15 000 записей в \u003Ccode\u003E$SCRATCH\u003C\u002Fcode\u003E [каталог для временных файлов — прим. пер.].\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nТысячи файлов в одном каталоге обычно создают трудности для файловой системы и такое определённо не рекомендуется. Пользователь знал это и признал, что это нехорошо, но упомянул, что на его ноутбуке листинг выполняется в 1000 раз быстрее, чем в Sherlock. Конечно, это нас задело. Поэтому мы заглянули глубже.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EПотому что ls выглядит красиво\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nМы рассмотрели, что на самом деле делает \u003Ccode\u003Els\u003C\u002Fcode\u003E при листинге каталога, и почему процесс занимает так много времени. В большинстве современных дистрибутивов \u003Ccode\u003Els\u003C\u002Fcode\u003E по умолчанию выполняется как \u003Ccode\u003Els --color=auto\u003C\u002Fcode\u003E, потому что всем нравится расцветка.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо красивые цвета имеют свою цену: для каждого файла \u003Ccode\u003Els\u003C\u002Fcode\u003E должен получить информацию о типе файла, его разрешениях, флагах, расширенных атрибутах и тому подобном, чтобы выбрать соответствующий цвет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдно из простых решений проблемы — вообще отключить цвет в ls, но представьте возмущение пользователей. Ни в коем случае нельзя забирать цветной вывод, мы не монстры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоэтому мы заглянули глубже. \u003Ccode\u003Els\u003C\u002Fcode\u003E раскрашивает записи через переменную среды \u003Ccode\u003ELS_COLORS\u003C\u002Fcode\u003E, которую задаёт \u003Ccode\u003Edircolors(1)\u003C\u002Fcode\u003E на основе файла конфигурации \u003Ccode\u003Edir_colors(5)\u003C\u002Fcode\u003E. Да, \u003Ca href=\"http:\u002F\u002Fwww.bigsoft.co.uk\u002Fblog\u002F2008\u002F04\u002F11\u002Fconfiguring-ls_colors\"\u003Eисполняемый файл считывает конфигурационный файл для создания переменной среды, которую потом использует ls\u003C\u002Fa\u003E (а если вы не знаете о файлах \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FUnix_file_types#Door\"\u003Edoor\u003C\u002Fa\u003E (do), то dir_colors \u003Ca href=\"http:\u002F\u002Fwww.bigsoft.co.uk\u002Fblog\u002F2008\u002F04\u002F11\u002Fconfiguring-ls_colors\"\u003Eсработает\u003C\u002Fa\u003E, несмотря ни на что).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EРазберёмся подробнее\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nЧтобы определить, какая из схем расцвечивания вызывает замедление, мы создали экспериментальную среду:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ mkdir $SCRATCH\u002Fdont\n$ touch $SCRATCH\u002Fdont\u002F{1..10000} # don't try this at home!\n$ time ls --color=always $SCRATCH\u002Fdont | wc -l\n10000\n\nreal    0m12.758s\nuser    0m0.104s\nsys     0m0.699s\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003E12,7 секунд для 10 000 файлов, не очень хорошо.\u003C\u002Fb\u003E \u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EКстати, нужен флаг \u003Ccode\u003E--color=always\u003C\u002Fcode\u003E: хотя он обращается в \u003Ccode\u003Els --color=auto\u003C\u002Fcode\u003E, но \u003Ccode\u003Els\u003C\u002Fcode\u003E обнаруживает, когда он не подключен к терминалу (например, по каналу или с перенаправлением выдачи) и отключает раскраску, если установлено значение \u003Ccode\u003Eauto\u003C\u002Fcode\u003E. Умный парень.\u003C\u002Fblockquote\u003E Так что же занимает столько времени? Мы посмотрели с помощью \u003Ccode\u003Estrace\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ strace -c ls --color=always $SCRATCH\u002Fdont | wc -l\n10000\n% time     seconds  usecs\u002Fcall     calls    errors syscall\n------ ----------- ----------- --------- --------- ----------------\n 44.21    0.186617          19     10000           lstat\n 42.60    0.179807          18     10000     10000 getxattr\n 12.19    0.051438           5     10000           capget\n  0.71    0.003002          38        80           getdents\n  0.07    0.000305          10        30           mmap\n  0.05    0.000217          12        18           mprotect\n  0.03    0.000135          14        10           read\n  0.03    0.000123          11        11           open\n  0.02    0.000082           6        14           close\n[...]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНичего себе: 10 000 вызовов \u003Ccode\u003Elstat()\u003C\u002Fcode\u003E, 10 000 вызовов \u003Ccode\u003Egetxattr()\u003C\u002Fcode\u003E (которые все терпят неудачу, потому что в нашей среде нет атрибутов, которые ищет ls), 10 000 вызовов \u003Ccode\u003Ecapget()\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаверняка это можно оптимизировать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EАтрибут capabilities? Неа\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nСледуя советам \u003Ca href=\"https:\u002F\u002Fbugzilla.redhat.com\u002Fshow_bug.cgi?id=467508\"\u003Eбага 10-летней давности\u003C\u002Fa\u003E, мы попытались отключить проверку атрибута \u003Ca href=\"http:\u002F\u002Fman7.org\u002Flinux\u002Fman-pages\u002Fman7\u002Fcapabilities.7.html\"\u003Ecapabilities\u003C\u002Fa\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ eval $(dircolors -b | sed s\u002Fca=[^:]*:\u002Fca=:\u002F)\n$ time strace -c ls --color=always $SCRATCH\u002Fdont | wc -l\n10000\n% time     seconds  usecs\u002Fcall     calls    errors syscall\n------ ----------- ----------- --------- --------- ----------------\n 98.95    0.423443          42     10000           lstat\n  0.78    0.003353          42        80           getdents\n  0.04    0.000188          10        18           mprotect\n  0.04    0.000181           6        30           mmap\n  0.02    0.000085           9        10           read\n  0.02    0.000084          28         3           mremap\n  0.02    0.000077           7        11           open\n  0.02    0.000066           5        14           close\n[...]\n------ ----------- ----------- --------- --------- ----------------\n100.00    0.427920                 10221         6 total\n\nreal    0m8.160s\nuser    0m0.115s\nsys     0m0.961s\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nУх ты, ускорение до 8 секунд! Мы избавились от всех этих дорогих вызовов \u003Ccode\u003Egetxattr()\u003C\u002Fcode\u003E, и вызовы \u003Ccode\u003Ecapget()\u003C\u002Fcode\u003E тоже исчезли, отлично.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо ещё остались эти надоедливые вызовы \u003Ccode\u003Elstat()\u003C\u002Fcode\u003E, хотя…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EСколько нужно цветов?\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nПоэтому мы более подробно рассмотрели \u003Ccode\u003ELS_COLORS\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСначала просто отключили эту переменную:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E$ echo $LS_COLORS\nrs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:\n$ unset LS_COLORS\n$ echo $LS_COLORS\n\n$  time ls --color=always $SCRATCH\u002Fdont | wc -l\n10000\n\nreal    0m13.037s\nuser    0m0.077s\nsys     0m1.092s\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЧто!?! По-прежнему 13 секунд?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОказывается, когда переменная среды \u003Ccode\u003ELS_COLORS\u003C\u002Fcode\u003E не определена или отсутствует только один из её элементов \u003Ccode\u003E&lt;type\u003E=color:\u003C\u002Fcode\u003E, она по умолчанию использует встроенную базу данных и всё равно использует цвета. Поэтому, если вы хотите отключить раскраску для определённого типа файла, вам нужно переопределить её с помощью \u003Ccode\u003E&lt;type\u003E=:\u003C\u002Fcode\u003E или \u003Ccode\u003E&lt;type\u003E 00\u003C\u002Fcode\u003E в файле \u003Ccode\u003EDIR_COLORS\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле множества проб и ошибок мы сузили круг поиска до этого:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003EEXEC 00\nSETUID 00\nSETGID 00\nCAPABILITY 00\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nчто записывается как\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003ELS_COLORS='ex=00:su=00:sg=00:ca=00:'\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто означает: не раскрашивай файлы ни по атрубуту \u003Ca href=\"https:\u002F\u002Flwn.net\u002FArticles\u002F211883\u002F\"\u003Ecapabilities\u003C\u002Fa\u003E, ни по битам \u003Ccode\u003E\u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FSetuid\"\u003Esetuid\u002Fsetgid\u003C\u002Fa\u003E\u003C\u002Fcode\u003E, ни по \u003Ca href=\"https:\u002F\u002Fwiki.archlinux.org\u002Findex.php\u002FFile_permissions_and_attributes#Viewing_permissions\"\u003Eфлагу исполняемости\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EУскоряем \u003Ccode\u003Els\u003C\u002Fcode\u003E\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nИ если не делать ни одной из этих проверок, то вызовы \u003Ccode\u003Elstat()\u003C\u002Fcode\u003E исчезают, и теперь совсем другое дело:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ export LS_COLORS='ex=00:su=00:sg=00:ca=00:'\n$ time strace -c ls --color=always $SCRATCH\u002Fdont | wc -l\n10000\n% time     seconds  usecs\u002Fcall     calls    errors syscall\n------ ----------- ----------- --------- --------- ----------------\n 63.02    0.002865          36        80           getdents\n  8.10    0.000368          12        30           mmap\n  5.72    0.000260          14        18           mprotect\n  3.72    0.000169          15        11           open\n  2.79    0.000127          13        10           read\n[...]\n------ ----------- ----------- --------- --------- ----------------\n100.00    0.004546                   221         6 total\n\nreal    0m0.337s\nuser    0m0.032s\nsys     0m0.029s\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n0,3 секунды на списке 10 000 файлов, рекорд. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EНастраиваем Sherlock\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nОт 13 секунд с настройками по умолчанию до 0,3 секунды с небольшой настройкой \u003Ccode\u003ELS_COLORS\u003C\u002Fcode\u003E означает 40-кратное ускорение за счёт отсутствия \u003Ccode\u003Esetuid\u003C\u002Fcode\u003E \u002F \u003Ccode\u003Esetgid\u003C\u002Fcode\u003E и раскрашенных исполняемых файлов. Не такая большая потеря.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКонечно, теперь это настроено в Sherlock для каждого пользователя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо если вы хотите вернуть раскраску, то можете просто вернуться к настройкам по умолчанию:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ unset LS_COLORS\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНо тогда на каталогах с большим количеством файлов обязательно заваривайте кофе, пока работает \u003Ccode\u003Els\u003C\u002Fcode\u003E.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"Sherlock"},{"titleHtml":"ls"},{"titleHtml":"оптимизация"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450806\u002F6d7a5078541458a5a71eed1943a8742f\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450806\u002F6d7a5078541458a5a71eed1943a8742f\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450806\\\u002F\"},\"headline\":\"Когда переменная среды ускоряет процесс в 40 раз\",\"datePublished\":\"2019-05-07T10:58:21+03:00\",\"dateModified\":\"2019-05-07T19:00:05+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Анатолий Ализар\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета&nbsp;&mdash; прим. пер.], которые...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450806\\\u002F#post-content-body\",\"about\":[\"h_linux\",\"h_server_side_optimization\",\"h_soft\",\"f_admin\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450806\\\u002F6d7a5078541458a5a71eed1943a8742f\\\u002F\"]}","metaDescription":"Сегодня мы хотим рассказать о некоторых последних апдейтах системы Sherlock [это высокопроизводительный кластер Стэнфордского университета — прим. пер.], которые значительно ускоряют листинг файлов в...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"linux,server_side_optimization,soft"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

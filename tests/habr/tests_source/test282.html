@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как работают веб-приложения / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450282\/"},"headline":"Как работают веб-приложения","datePublished":"2019-05-01T21:59:31+03:00","dateModified":"2019-05-01T21:59:31+03:00","author":{"@type":"Person","name":"Dmitry Tiunov"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, че...","url":"https:\/\/habr.com\/ru\/post\/450282\/#post-content-body","about":["h_webdev","h_django","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/n6\/r1\/gk\/n6r1gkrjhdein6g5e9gkubookvw.png","https:\/\/habrastorage.org\/webt\/yn\/sq\/au\/ynsqauswsbcetx3xqml3bdfgzxo.png","https:\/\/habrastorage.org\/webt\/je\/bl\/tc\/jebltcmtyi4smsrgdigigywlh68.png","https:\/\/habrastorage.org\/webt\/6y\/hw\/hb\/6yhwhbiwsjekryhd-qexx_zvfye.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как работают веб-приложения" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как работают веб-приложения" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как работают веб-приложения" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов,..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов,..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов,..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов,..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов,..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450282/302bcdc56529d47391d1dda3f518fa48/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450282/302bcdc56529d47391d1dda3f518fa48/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450282/302bcdc56529d47391d1dda3f518fa48/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450282/302bcdc56529d47391d1dda3f518fa48/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450282/302bcdc56529d47391d1dda3f518fa48/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450282" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T18:59:31.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450282/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450282/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450282/302bcdc56529d47391d1dda3f518fa48/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Dizast/" title="Dizast" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/716/862/f38/716862f3817bb328356b9ce93a332c0c.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Dizast/" class="tm-user-info__username">
+      Dizast
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T18:59:31.000Z" title="2019-05-01, 21:59">1  мая  2019 в 21:59</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как работают веб-приложения</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/webdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка веб-сайтов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/django/" class="tm-article-snippet__hubs-item-link"><span>Django</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов, какие бывают веб-приложения, из чего они состоят и как работают.<br/>
+<a name="habracut"></a><br/>
+<h3>1. Чем веб-приложения отличаются от сайтов</h3><br/>
+Для меня сайт это в первую очередь что-то информационное и статичное: визитка компании, сайт рецептов, городской портал или вики. Набор подготовленных заранее HTML-файлов, которые лежат на удаленном сервере и отдаются браузеру по запросу. <br/>
+<br/>
+Сайты содержат различную статику, которая как и HTML-файл не генерируется на лету. Чаще всего это картинки, CSS-файлы, JS-скрипты, но могут быть и любые другие файлы: mp3, mov, csv, pdf. <br/>
+<br/>
+Блоги, визитки с формой для контакта, лендинги с кучей эффектов я тоже отношу для простоты к сайтам. Хотя в отличие от совсем статических сайтов, они уже включают в себя какую-то бизнес-логику. <br/>
+<br/>
+А веб-приложение — это что-то технически более сложное. Тут HTML-страницы генерируются на лету в зависимости от запроса пользователя. Почтовые клиенты, соцсети, поисковики, интернет-магазины, онлайн-программы для бизнеса, это все веб-приложения. <br/>
+<br/>
+<h3>2. Какие бывают веб-приложения</h3><br/>
+Веб-приложения можно разделить на несколько типов, в зависимости от разных сочетаний его основных составляющих: <br/>
+<br/>
+<ol>
+<li>Backend (бэкенд или серверная часть приложения) работает на удаленном компьютере, который может находиться где угодно. Она может быть написана на разных языках программирования: PHP, Python, Ruby, C# и других. Если создавать приложение используя только серверную часть, то в результате любых переходов между разделами, отправок форм, обновления данных, сервером будет генерироваться новый HTML-файл и страница в браузере будет перезагружаться.</li>
+<li>Frontend (фронтенд или клиентская часть приложения) выполняется в браузере пользователя. Эта часть написана на языке программирования Javascript. Приложение может состоять только из клиентской части, если не требуется хранить данные пользователя дольше одной сессии. Это могут быть, например, фоторедакторы или простые игрушки.</li>
+<li>Single page application (SPA или одностраничное приложение). Более интересный вариант, когда используются и бэкенд и фронтенд. С помощью их взаимодействия можно создать приложение, которое будет работать совсем без перезагрузок страницы в браузере. Или в упрощенном варианте, когда переходы между разделами вызывают перезагрузки, но любые действия в разделе обходятся без них.</li>
+</ol><br/>
+<h3>3. Pyhon-фреймворк Django aka бэкенд</h3><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/n6/r1/gk/n6r1gkrjhdein6g5e9gkubookvw.png"/><br/>
+<br/>
+В разработке фреймворк — это набор готовых библиотек и инструментов, которые помогают создавать веб-приложения. Для примера опишу принцип работы фреймворка Django, написанного на языке программирования Python. <br/>
+<br/>
+Первым этапом запрос от пользователя попадает в роутер (URL dispatcher), который решает какую функцию для обработки запроса надо вызвать. Решение принимается на основе списка правил, состоящих из регулярного выражения и названия функции: если такой-то урл, то вот такая функция. <br/>
+<br/>
+Функция, которая вызывается роутером, называется вью (view). Внутри может содержаться любая бизнес-логика, но чаще всего это одно из двух: либо из базы берутся данные, подготавливаются и возвращаются на фронт; либо пришел запрос с данными из какой-то формы, эти данные проверяются и сохраняются в базу. <br/>
+<br/>
+Данные приложения хранятся в базе данных (БД). Чаще всего используются реляционные БД. Это когда есть таблицы с заранее заданными колонками и эти таблицы связаны между собой через одну из колонок. <br/>
+<br/>
+Данные в БД можно создавать, читать, изменять и удалять. Иногда для обозначения этих действий можно встретить аббревиатуру CRUD (Create Read Update Delete). Для запроса к данным в БД используется специальный язык SQL (structured query language). <br/>
+<br/>
+В Джанго для работы с БД используются модели (model). Они позволяют описывать таблицы и делать запросы на привычном разработчику питоне, что гораздо удобнее. За это удобство приходится платить: такие запросы медленнее и ограничены в возможностях по сравнению с использованием чистого SQL. <br/>
+<br/>
+Полученные из БД данные подготавливаются во вью к отправке на фронт. Они могут быть подставлены в шаблон (template) и отправлены в виде HTML-файла. Но в случае одностраничного приложения это происходит всего один раз, когда генерируется HTML-страница, на который подключаются все JS-скрипты. В остальных случаях данные сериализуются и отправляются в JSON-формате. <br/>
+<br/>
+<h3>4. Javascript-фреймворки aka фронтенд</h3><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/yn/sq/au/ynsqauswsbcetx3xqml3bdfgzxo.png"/><br/>
+<br/>
+Клиентская часть приложения — это скрипты, написанные на языке программирования Javascript (JS) и исполняемые в браузере пользователя. Раньше вся клиентская логика основывалась на использовании библиотеки JQuery, которая позволяет работать с DOM, анимацией на странице и делать AJAX запросы. <br/>
+<br/>
+DOM (document object model) — это структура HTML-страницы. Работа с DOM — это поиск, добавление, изменение, перемещеие и удаление HTML-тегов. <br/>
+<br/>
+AJAX (asynchronous javascript and XML) — это общее название для технологий, которые позволяют делать асинхронные (без перезагрузки страницы) запросы к серверу и обмениваться данными. Так как клиентская и серверная части веб-приложения написаны на разных языках программирования, то для обмена информацией необходимо преобразовывать структуры данных (например, списки и словари), в которых она хранится, в JSON-формат. <br/>
+<br/>
+JSON (JavaScript Object Notation) — это универсальный формат для обмена данными между клиентом и сервером. Он представляет собой простую строку, которая может быть использована в любом языке программирования. <br/>
+<br/>
+Сериализация — это преобразование списка или словаря в JSON-строку. Для примера:<br/>
+<br/>
+Словарь:<br/>
+ <br/>
+ <pre><code class="python">    {
+        'id': 1, 
+        'email': 'mail@example.com'
+    }</code></pre><br/>
+ Сериализованная строка:<br/>
+ <br/>
+ <pre><code class="python">    '{"id": 1, "email": "mail@example.com"}'</code></pre><br/>
+Десериализация — это обратное преобразование строки в список или словарь.<br/>
+<br/>
+С помощью манипуляций с DOM можно полностью управлять содержимым страниц. С помощью AJAX можно обмениваться данными между клиентом и сервером. С этими технологиями уже можно создать SPA. Но при создании сложного приложения код фронтенда, основанного на JQuery, быстро становится запутанным и трудно поддерживаемым. <br/>
+<br/>
+К счастью, на смену JQuery пришли Javascript-фреймворки: Backbone Marionette, Angular, React, Vue и другие. У них разная философия и синтаксис, но все они позволяют с гораздо большим удобством управлять данными на фронтенде, имеют шаблонизаторы и инструменты для создания навигации между страницами. <br/>
+<br/>
+HTML-шаблон — это «умная» HTML-страница, в которой вместо конкретных значений используются переменные и доступны различные операторы: <i>if</i>, цикл <i>for</i> и другие. Процесс получения HTML-страницы из шаблона, когда подставляются переменные и применяются операторы, называется рендерингом шаблона. <br/>
+<br/>
+Полученная в результате рендеринга страница показывается пользователю. Переход в другой раздел в SPA это применение другого шаблона. Если необходимо использовать в шаблоне другие данные, то они запрашиваются у сервера. Все отправки форм с данными это AJAX запросы на сервер. <br/>
+<br/>
+<h3>5. Как клиент и сервер общаются между собой</h3><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/je/bl/tc/jebltcmtyi4smsrgdigigywlh68.png"/><br/>
+<br/>
+Общение клиента с сервером происходит по протоколу HTTP. Основа этого протокола — это запрос от клиента к серверу и ответ сервера клиенту. <br/>
+<br/>
+Для запросов обычно используют методы GET, если мы хотим получить данные, и POST, если мы хотим изменить данные. Еще в запросе указывается Host (домен сайта), тело запроса (если это POST-запрос) и много дополнительной технической информации. <br/>
+<br/>
+Современные веб-приложения используют протокол HTTPS, расширенную версию HTTP с поддержкой шифрования SSL/TLS. Использование шифрованного канала передачи данных, независимо от важности этих данных, стало хорошим тоном в интернете. <br/>
+<br/>
+Есть еще один запрос, который делается перед HTTP. Это DNS (domain name system) запроc. Он нужен для получения ip-адреса, к которому привязан запрашиваемый домен. Эта информация сохраняется в браузере и мы больше не тратим на это время. <br/>
+<br/>
+Когда запрос от браузера доходит до сервера, он не сразу попадает в Джанго. Сначала его обрабатывает веб-сервер Nginx. Если запрашивается статический файл (например, картинка), то сам Nginx его отправляет в ответ клиенту. Если запрос не к статике, то Nginx должен проксировать (передать) его в Джанго. <br/>
+<br/>
+К сожалению, он этого не умеет. Поэтому используется еще одна программа-прослойка — сервер приложений. Например для приложений на питоне, это могут быть uWSGI или Gunicorn. И вот уже они передают запрос в Джанго. <br/>
+<br/>
+После того как Джанго обработал запрос, он возвращает ответ c HTML-страницей или данными, и код ответа. Если все хорошо, то код ответа — 200; если страница не найдена, то — 404; если произошла ошибка и сервер не смог обработать запрос, то — 500. Это самые часто встречающиеся коды. <br/>
+<br/>
+<h3>6. Кэширование в веб-приложениях</h3><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/6y/hw/hb/6yhwhbiwsjekryhd-qexx_zvfye.jpeg" data-src="https://habrastorage.org/webt/6y/hw/hb/6yhwhbiwsjekryhd-qexx_zvfye.jpeg" data-blurred="true"/><br/>
+<br/>
+Еще одна технология, с которой мы постоянно сталкиваемся, которая присутствует как веб-приложениях и программном обеспечении, так и на уровне процессора в наших компьютерах и смартфонах.<br/>
+<br/>
+Cache — это концепция в разработке, когда часто используемые данные, вместо того чтобы их каждый раз доставать из БД, вычислять или подготавливать иным способом, сохраняются в быстро доступном месте. Несколько примеров использования кэша:<br/>
+<br/>
+<ul>
+<li>В Джанго пришел запрос на получение данных для графика в отчете. Мы достаем из БД данные, подготавливаем их и кладем в БД с быстрым доступом, например, memcached на 1 час. При следующем запросе мы сразу достанем их из memcached и отправим на фронтенд. Если мы узнаём, что данные перестали быть актуальными, мы их инвалидируем (удаляем из кэша). </li>
+<li>Для кэширования статических файлов используются CDN (content delivery network) провайдеры. Это серверы, расположенные по всему миру и оптимизированные для раздачи статики. Иногда бывает эффективнее положить картинки, видео, JS-скрипты на CDN вместо своего сервера. </li>
+<li>Во всех браузерах по умолчанию включено кэширование статических файлов. Благодаря этому, открывая сайт не в первый раз, все загружается заметно быстрее. Минус для разработчика в том, что со включенным кэшем не всегда сразу видны изменения сделанные в коде.</li>
+</ul></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bspa%5D" class="tm-tags-list__link">spa</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdjango%5D" class="tm-tags-list__link">django</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjavascript%20framework%5D" class="tm-tags-list__link">javascript framework</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bhttp%5D" class="tm-tags-list__link">http</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcache%5D" class="tm-tags-list__link">cache</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/webdev/" class="tm-hubs-list__link">
+    Разработка веб-сайтов
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/django/" class="tm-hubs-list__link">
+    Django
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 39: ↑32 и ↓7</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 39: ↑32 и ↓7" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+25</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">131K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    322
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Dizast/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/716/862/f38/716862f3817bb328356b9ce93a332c0c.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 18 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    6
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Dmitry Tiunov</span> <a href="/ru/users/Dizast/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Dizast
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Веб-разработчик</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://vk.com/294011252" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450282/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 14 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450282/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450282/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450282":{"id":"450282","timePublished":"2019-05-01T18:59:31+00:00","isCorporative":false,"lang":"ru","titleHtml":"Как работают веб-приложения","leadData":{"textHtml":"Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов, какие бывают веб-приложения, из чего они состоят и как работают.\u003Cbr\u002F\u003E\r\n","imageUrl":null,"buttonTextHtml":"Читать дальше &rarr;","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":6,"votesCount":18},"rating":0,"relatedData":null,"contacts":[{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002F294011252","value":"294011252"}],"authorContacts":[{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002F294011252","value":"294011252"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"165934","alias":"Dizast","fullname":"Dmitry Tiunov","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F716\u002F862\u002Ff38\u002F716862f3817bb328356b9ce93a332c0c.jpg","speciality":"Веб-разработчик"},"statistics":{"commentsCount":14,"favoritesCount":322,"readingCount":130552,"score":25,"votesCount":39},"hubs":[{"relatedData":null,"id":"91","alias":"webdev","type":"collective","title":"Разработка веб-сайтов","titleHtml":"Разработка веб-сайтов","isProfiled":true},{"relatedData":null,"id":"403","alias":"django","type":"collective","title":"Django","titleHtml":"Django","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EЭто статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов, какие бывают веб-приложения, из чего они состоят и как работают.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E1. Чем веб-приложения отличаются от сайтов\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДля меня сайт это в первую очередь что-то информационное и статичное: визитка компании, сайт рецептов, городской портал или вики. Набор подготовленных заранее HTML-файлов, которые лежат на удаленном сервере и отдаются браузеру по запросу. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСайты содержат различную статику, которая как и HTML-файл не генерируется на лету. Чаще всего это картинки, CSS-файлы, JS-скрипты, но могут быть и любые другие файлы: mp3, mov, csv, pdf. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБлоги, визитки с формой для контакта, лендинги с кучей эффектов я тоже отношу для простоты к сайтам. Хотя в отличие от совсем статических сайтов, они уже включают в себя какую-то бизнес-логику. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА веб-приложение — это что-то технически более сложное. Тут HTML-страницы генерируются на лету в зависимости от запроса пользователя. Почтовые клиенты, соцсети, поисковики, интернет-магазины, онлайн-программы для бизнеса, это все веб-приложения. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E2. Какие бывают веб-приложения\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВеб-приложения можно разделить на несколько типов, в зависимости от разных сочетаний его основных составляющих: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EBackend (бэкенд или серверная часть приложения) работает на удаленном компьютере, который может находиться где угодно. Она может быть написана на разных языках программирования: PHP, Python, Ruby, C# и других. Если создавать приложение используя только серверную часть, то в результате любых переходов между разделами, отправок форм, обновления данных, сервером будет генерироваться новый HTML-файл и страница в браузере будет перезагружаться.\u003C\u002Fli\u003E\r\n\u003Cli\u003EFrontend (фронтенд или клиентская часть приложения) выполняется в браузере пользователя. Эта часть написана на языке программирования Javascript. Приложение может состоять только из клиентской части, если не требуется хранить данные пользователя дольше одной сессии. Это могут быть, например, фоторедакторы или простые игрушки.\u003C\u002Fli\u003E\r\n\u003Cli\u003ESingle page application (SPA или одностраничное приложение). Более интересный вариант, когда используются и бэкенд и фронтенд. С помощью их взаимодействия можно создать приложение, которое будет работать совсем без перезагрузок страницы в браузере. Или в упрощенном варианте, когда переходы между разделами вызывают перезагрузки, но любые действия в разделе обходятся без них.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E3. Pyhon-фреймворк Django aka бэкенд\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fn6\u002Fr1\u002Fgk\u002Fn6r1gkrjhdein6g5e9gkubookvw.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ разработке фреймворк — это набор готовых библиотек и инструментов, которые помогают создавать веб-приложения. Для примера опишу принцип работы фреймворка Django, написанного на языке программирования Python. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервым этапом запрос от пользователя попадает в роутер (URL dispatcher), который решает какую функцию для обработки запроса надо вызвать. Решение принимается на основе списка правил, состоящих из регулярного выражения и названия функции: если такой-то урл, то вот такая функция. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФункция, которая вызывается роутером, называется вью (view). Внутри может содержаться любая бизнес-логика, но чаще всего это одно из двух: либо из базы берутся данные, подготавливаются и возвращаются на фронт; либо пришел запрос с данными из какой-то формы, эти данные проверяются и сохраняются в базу. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДанные приложения хранятся в базе данных (БД). Чаще всего используются реляционные БД. Это когда есть таблицы с заранее заданными колонками и эти таблицы связаны между собой через одну из колонок. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДанные в БД можно создавать, читать, изменять и удалять. Иногда для обозначения этих действий можно встретить аббревиатуру CRUD (Create Read Update Delete). Для запроса к данным в БД используется специальный язык SQL (structured query language). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ Джанго для работы с БД используются модели (model). Они позволяют описывать таблицы и делать запросы на привычном разработчику питоне, что гораздо удобнее. За это удобство приходится платить: такие запросы медленнее и ограничены в возможностях по сравнению с использованием чистого SQL. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПолученные из БД данные подготавливаются во вью к отправке на фронт. Они могут быть подставлены в шаблон (template) и отправлены в виде HTML-файла. Но в случае одностраничного приложения это происходит всего один раз, когда генерируется HTML-страница, на который подключаются все JS-скрипты. В остальных случаях данные сериализуются и отправляются в JSON-формате. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E4. Javascript-фреймворки aka фронтенд\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyn\u002Fsq\u002Fau\u002Fynsqauswsbcetx3xqml3bdfgzxo.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКлиентская часть приложения — это скрипты, написанные на языке программирования Javascript (JS) и исполняемые в браузере пользователя. Раньше вся клиентская логика основывалась на использовании библиотеки JQuery, которая позволяет работать с DOM, анимацией на странице и делать AJAX запросы. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nDOM (document object model) — это структура HTML-страницы. Работа с DOM — это поиск, добавление, изменение, перемещеие и удаление HTML-тегов. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nAJAX (asynchronous javascript and XML) — это общее название для технологий, которые позволяют делать асинхронные (без перезагрузки страницы) запросы к серверу и обмениваться данными. Так как клиентская и серверная части веб-приложения написаны на разных языках программирования, то для обмена информацией необходимо преобразовывать структуры данных (например, списки и словари), в которых она хранится, в JSON-формат. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nJSON (JavaScript Object Notation) — это универсальный формат для обмена данными между клиентом и сервером. Он представляет собой простую строку, которая может быть использована в любом языке программирования. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСериализация — это преобразование списка или словаря в JSON-строку. Для примера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСловарь:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n \u003Cpre\u003E\u003Ccode class=\"python\"\u003E    {\n        'id': 1, \n        'email': 'mail@example.com'\n    }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n Сериализованная строка:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n \u003Cpre\u003E\u003Ccode class=\"python\"\u003E    '{\"id\": 1, \"email\": \"mail@example.com\"}'\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДесериализация — это обратное преобразование строки в список или словарь.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС помощью манипуляций с DOM можно полностью управлять содержимым страниц. С помощью AJAX можно обмениваться данными между клиентом и сервером. С этими технологиями уже можно создать SPA. Но при создании сложного приложения код фронтенда, основанного на JQuery, быстро становится запутанным и трудно поддерживаемым. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК счастью, на смену JQuery пришли Javascript-фреймворки: Backbone Marionette, Angular, React, Vue и другие. У них разная философия и синтаксис, но все они позволяют с гораздо большим удобством управлять данными на фронтенде, имеют шаблонизаторы и инструменты для создания навигации между страницами. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nHTML-шаблон — это «умная» HTML-страница, в которой вместо конкретных значений используются переменные и доступны различные операторы: \u003Ci\u003Eif\u003C\u002Fi\u003E, цикл \u003Ci\u003Efor\u003C\u002Fi\u003E и другие. Процесс получения HTML-страницы из шаблона, когда подставляются переменные и применяются операторы, называется рендерингом шаблона. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПолученная в результате рендеринга страница показывается пользователю. Переход в другой раздел в SPA это применение другого шаблона. Если необходимо использовать в шаблоне другие данные, то они запрашиваются у сервера. Все отправки форм с данными это AJAX запросы на сервер. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E5. Как клиент и сервер общаются между собой\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fje\u002Fbl\u002Ftc\u002Fjebltcmtyi4smsrgdigigywlh68.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбщение клиента с сервером происходит по протоколу HTTP. Основа этого протокола — это запрос от клиента к серверу и ответ сервера клиенту. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля запросов обычно используют методы GET, если мы хотим получить данные, и POST, если мы хотим изменить данные. Еще в запросе указывается Host (домен сайта), тело запроса (если это POST-запрос) и много дополнительной технической информации. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСовременные веб-приложения используют протокол HTTPS, расширенную версию HTTP с поддержкой шифрования SSL\u002FTLS. Использование шифрованного канала передачи данных, независимо от важности этих данных, стало хорошим тоном в интернете. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть еще один запрос, который делается перед HTTP. Это DNS (domain name system) запроc. Он нужен для получения ip-адреса, к которому привязан запрашиваемый домен. Эта информация сохраняется в браузере и мы больше не тратим на это время. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда запрос от браузера доходит до сервера, он не сразу попадает в Джанго. Сначала его обрабатывает веб-сервер Nginx. Если запрашивается статический файл (например, картинка), то сам Nginx его отправляет в ответ клиенту. Если запрос не к статике, то Nginx должен проксировать (передать) его в Джанго. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК сожалению, он этого не умеет. Поэтому используется еще одна программа-прослойка — сервер приложений. Например для приложений на питоне, это могут быть uWSGI или Gunicorn. И вот уже они передают запрос в Джанго. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле того как Джанго обработал запрос, он возвращает ответ c HTML-страницей или данными, и код ответа. Если все хорошо, то код ответа — 200; если страница не найдена, то — 404; если произошла ошибка и сервер не смог обработать запрос, то — 500. Это самые часто встречающиеся коды. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E6. Кэширование в веб-приложениях\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F6y\u002Fhw\u002Fhb\u002F6yhwhbiwsjekryhd-qexx_zvfye.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F6y\u002Fhw\u002Fhb\u002F6yhwhbiwsjekryhd-qexx_zvfye.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕще одна технология, с которой мы постоянно сталкиваемся, которая присутствует как веб-приложениях и программном обеспечении, так и на уровне процессора в наших компьютерах и смартфонах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nCache — это концепция в разработке, когда часто используемые данные, вместо того чтобы их каждый раз доставать из БД, вычислять или подготавливать иным способом, сохраняются в быстро доступном месте. Несколько примеров использования кэша:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВ Джанго пришел запрос на получение данных для графика в отчете. Мы достаем из БД данные, подготавливаем их и кладем в БД с быстрым доступом, например, memcached на 1 час. При следующем запросе мы сразу достанем их из memcached и отправим на фронтенд. Если мы узнаём, что данные перестали быть актуальными, мы их инвалидируем (удаляем из кэша). \u003C\u002Fli\u003E\r\n\u003Cli\u003EДля кэширования статических файлов используются CDN (content delivery network) провайдеры. Это серверы, расположенные по всему миру и оптимизированные для раздачи статики. Иногда бывает эффективнее положить картинки, видео, JS-скрипты на CDN вместо своего сервера. \u003C\u002Fli\u003E\r\n\u003Cli\u003EВо всех браузерах по умолчанию включено кэширование статических файлов. Благодаря этому, открывая сайт не в первый раз, все загружается заметно быстрее. Минус для разработчика в том, что со включенным кэшем не всегда сразу видны изменения сделанные в коде.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"spa"},{"titleHtml":"django"},{"titleHtml":"javascript framework"},{"titleHtml":"http"},{"titleHtml":"cache"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450282\u002F302bcdc56529d47391d1dda3f518fa48\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450282\u002F302bcdc56529d47391d1dda3f518fa48\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450282\\\u002F\"},\"headline\":\"Как работают веб-приложения\",\"datePublished\":\"2019-05-01T21:59:31+03:00\",\"dateModified\":\"2019-05-01T21:59:31+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Dmitry Tiunov\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, че...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450282\\\u002F#post-content-body\",\"about\":[\"h_webdev\",\"h_django\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fn6\\\u002Fr1\\\u002Fgk\\\u002Fn6r1gkrjhdein6g5e9gkubookvw.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyn\\\u002Fsq\\\u002Fau\\\u002Fynsqauswsbcetx3xqml3bdfgzxo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fje\\\u002Fbl\\\u002Ftc\\\u002Fjebltcmtyi4smsrgdigigywlh68.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F6y\\\u002Fhw\\\u002Fhb\\\u002F6yhwhbiwsjekryhd-qexx_zvfye.jpeg\"]}","metaDescription":"Это статья для начинающих разработчиков и тех, кто хочет немного ориентироваться в терминах и технологиях современных веб-приложений. В статье написано о том, чем веб-приложения отличаются от сайтов,...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"webdev,django"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

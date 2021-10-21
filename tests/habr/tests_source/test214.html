@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Запускаем инспекции IntelliJ IDEA на Jenkins / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450214\/"},"headline":"Запускаем инспекции IntelliJ IDEA на Jenkins","datePublished":"2019-05-02T01:40:28+03:00","dateModified":"2019-05-02T15:29:09+03:00","author":{"@type":"Person","name":"Иван Пономарев"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких &laquo;ветеранов&raquo;, как...","url":"https:\/\/habr.com\/ru\/post\/450214\/#post-content-body","about":["h_it_testing","h_java","h_devops","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/f9\/sl\/at\/f9slatguudcvphteuhb7ryhxydm.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Запускаем инспекции IntelliJ IDEA на Jenkins" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Запускаем инспекции IntelliJ IDEA на Jenkins" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Запускаем инспекции IntelliJ IDEA на Jenkins" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как Checkstyle и Spotbugs. Её..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как Checkstyle и Spotbugs. Её..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как Checkstyle и Spotbugs. Её..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как Checkstyle и Spotbugs. Её..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как Checkstyle и Spotbugs. Её..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450214/841ca898a115298cecb1005d9d06cbc7/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450214/841ca898a115298cecb1005d9d06cbc7/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450214/841ca898a115298cecb1005d9d06cbc7/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450214/841ca898a115298cecb1005d9d06cbc7/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450214/841ca898a115298cecb1005d9d06cbc7/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450214" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T22:40:28.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450214/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450214/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450214/841ca898a115298cecb1005d9d06cbc7/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/IvanPonomarev/" title="IvanPonomarev" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/830/9bc/53c/8309bc53ce3e9cd47dfe12d1d0bb9484.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/IvanPonomarev/" class="tm-user-info__username">
+      IvanPonomarev
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T22:40:28.000Z" title="2019-05-02, 01:40">2  мая  2019 в 01:40</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Запускаем инспекции IntelliJ IDEA на Jenkins</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование IT-систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/java/" class="tm-article-snippet__hubs-item-link"><span>Java</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/devops/" class="tm-article-snippet__hubs-item-link"><span>DevOps</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как <a href="http://checkstyle.sourceforge.net/">Checkstyle</a> и <a href="https://spotbugs.github.io/">Spotbugs</a>. Её многочисленные «инспекции» проверяют код в различных аспектах, от стиля кодирования до характерных багов.</p><br/>
+<p>Однако пока результаты анализа отображаются лишь в локальном интерфейсе IDE разработчика, от них мало пользы для процесса разработки. Статический анализ <a href="https://habr.com/ru/post/436868/">необходимо выполнять</a> в качестве первого шага конвейера сборки, его результаты должны определять quality gates, а сборка должна фейлиться, если quality gates не пройдены. Известно, что TeamCity CI интегрирован с IDEA. Но даже если вы не используете TeamCity, вы вполне можете попробовать запускать инспекции IDEA в любом другом CI-сервере. Предлагаю посмотреть, как это можно сделать, используя IDEA Community Edition, Jenkins и Warnings NG plugin.</p><a name="habracut"></a><br/>
+<h2 id="shag-1-zapuskaem-analiz-v-konteynere-i-poluchaem-otchyot">Шаг 1. Запускаем анализ в контейнере и получаем отчёт</h2><br/>
+<p>Поначалу затея запускать IDE (десктопное приложение!) внутри CI-системы, не имеющей графического интерфейса, может показаться сомнительной и очень хлопотной. К счастью, разработчики IDEA предоставили возможность запускать <a href="https://www.jetbrains.com/help/idea/command-line-formatter.html">форматирование кода</a> и <a href="https://www.jetbrains.com/help/idea/command-line-code-inspector.html">инспекции</a> из командной строки. Причём для запуска IDEA в таком режиме не требуется графическая подсистема и эти задачи можно выполнять на серверах с текстовой оболочкой. </p><br/>
+<p>Запуск инспекций осуществляется при помощи скрипта <code>bin/inspect.sh</code> из установочной директории IDEA. В качестве параметров требуются:</p><br/>
+<ul>
+<li>полный путь к проекту (относительные не поддерживаются),</li>
+<li>путь к .xml-файлу с настройками инспекций (обычно находится внутри проекта в .idea/inspectionProfiles/Project_Default.xml),</li>
+<li>полный путь к папке, в которую будут сложены .xml-файлы с отчётами о результатах анализа.</li>
+</ul><br/>
+<p>Кроме того, ожидается, что</p><br/>
+<ul>
+<li>в IDE будет настроен путь к Java SDK, иначе анализ работать не будет. Эти настройки содержатся в конфигурационном файле <code>jdk.table.xml</code> в папке глобальной конфигурации IDEA. Сама глобальная конфигурация IDEA по умолчанию лежит в домашней директории пользователя, но это местоположение <a href="https://intellij-support.jetbrains.com/hc/en-us/articles/207240985">может быть явно задано</a> в файле <code>idea.properties</code>.</li>
+<li>анализируемый проект должен быть валидным проектом IDEA, для чего на контроль версий придётся закоммитить некоторые файлы, которые обычно игнорируются, а именно:<br/>
+<ul>
+<li><code>.idea/inspectionProfiles/Project_Default.xml</code> — настройки анализатора, они явно будут использованы при запуске инспекций в контейнере,</li>
+<li><code>.idea/modules.xml</code> — иначе получим ошибку 'This project contains no modules',</li>
+<li><code>.idea/misc.xml</code> — иначе получим ошибку 'The JDK is not configured properly for this project',</li>
+<li><code>*.iml-файлы</code> — иначе получим ошибку про не настроенный JDK в модуле.</li>
+</ul></li>
+</ul><br/>
+<p>Хотя обычно эти файлы включают в <code>.gitignore</code>, они не содержат никакой специфичной для окружения конкретного разработчика информации — в отличие от, например, файла <code>workspace.xml</code>, где такая информация, как раз, содержится, и потому коммитить его не надо.</p><br/>
+<p>Сам собою напрашивается выход запаковать JDK вместе с IDEA Community Edition в контейнер в виде, готовом к «натравливанию» на анализируемые проекты. Выберем подходящий базовый контейнер, и вот какой у нас получится Dockerfile:</p><br/>
+<div class="spoiler"><b class="spoiler_title">Dockerfile</b><div class="spoiler_text"><pre><code class="bash">FROM openkbs/ubuntu-bionic-jdk-mvn-py3
+
+ARG INTELLIJ_VERSION="ideaIC-2019.1.1"
+
+ARG INTELLIJ_IDE_TAR=${INTELLIJ_VERSION}.tar.gz
+
+ENV IDEA_PROJECT_DIR="/var/project"
+
+WORKDIR /opt
+
+COPY jdk.table.xml /etc/idea/config/options/
+
+RUN wget https://download-cf.jetbrains.com/idea/${INTELLIJ_IDE_TAR} &amp;&amp; \
+    tar xzf ${INTELLIJ_IDE_TAR} &amp;&amp; \
+    tar tzf ${INTELLIJ_IDE_TAR} | head -1 | sed -e 's/\/.*//' | xargs -I{} ln -s {} idea &amp;&amp; \
+    rm ${INTELLIJ_IDE_TAR} &amp;&amp; \
+    echo idea.config.path=/etc/idea/config >> idea/bin/idea.properties &amp;&amp; \
+    chmod -R 777 /etc/idea
+
+CMD idea/bin/inspect.sh ${IDEA_PROJECT_DIR} ${IDEA_PROJECT_DIR}/.idea/inspectionProfiles/Project_Default.xml ${IDEA_PROJECT_DIR}/target/idea_inspections -v2</code></pre></div></div><br/>
+<p>При помощи опции <code>idea.config.path</code> мы заставили IDEA искать свою глобальную конфигурацию в папке <code>/etc/idea</code>, т. к. домашняя папка пользователя в условиях работы в CI — вещь неопределённая и зачастую вовсе отсутствующая.</p><br/>
+<p>Так выглядит копируемый в контейнер файл <code>jdk.table.xml</code>, в котором прописаны пути к OpenJDK, установленной внутри контейнера (за основу может быть взят аналогичный файл из вашей собственной директории с настройками IDEA):</p><br/>
+<div class="spoiler"><b class="spoiler_title">jdk.table.xml</b><div class="spoiler_text"><pre><code class="xml">&lt;application>
+ &lt;component name="ProjectJdkTable">
+   &lt;jdk version="2">
+     &lt;name value="1.8" />
+     &lt;type value="JavaSDK" />
+     &lt;version value="1.8" />
+     &lt;homePath value="/usr/java" />
+     &lt;roots>
+       &lt;annotationsPath>
+         &lt;root type="composite">
+           &lt;root url="jar://$APPLICATION_HOME_DIR$/lib/jdkAnnotations.jar!/" type="simple" />
+         &lt;/root>
+       &lt;/annotationsPath>
+       &lt;classPath>
+         &lt;root type="composite">
+           &lt;root url="jar:///usr/java/jre/lib/charsets.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/deploy.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/access-bridge-64.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/cldrdata.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/dnsns.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/jaccess.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/jfxrt.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/localedata.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/nashorn.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/sunec.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/sunjce_provider.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/sunmscapi.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/sunpkcs11.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/ext/zipfs.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/javaws.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/jce.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/jfr.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/jfxswt.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/jsse.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/management-agent.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/plugin.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/resources.jar!/" type="simple" />
+           &lt;root url="jar:///usr/java/jre/lib/rt.jar!/" type="simple" />
+         &lt;/root>
+       &lt;/classPath>
+     &lt;/roots>
+     &lt;additional />
+   &lt;/jdk>
+ &lt;/component>
+&lt;/application></code></pre></div></div><br/>
+<p>Образ в готовом виде <a href="https://hub.docker.com/r/inponomarev/intellij-idea-analyzer">доступен на Docker Hub</a>.</p><br/>
+<p>Перед тем, как двинуться дальше, проверим запуск анализатора IDEA в контейнере:</p><br/>
+<pre><code class="bash">docker run --rm -v &lt;путь/к/вашему/проекту>:/var/project inponomarev/intellij-idea-analyzer</code></pre><br/>
+<p>Анализ должен успешно отработать, а в подпапке target/idea_inspections должны появиться многочисленные .xml-файлы с отчётами анализатора. </p><br/>
+<p>Теперь больше нет никаких сомнений в том, что анализатор IDEA может быть запущен в автономном режиме в любом CI-окружении, и мы переходим ко второму шагу.</p><br/>
+<h2 id="shag-2-otobrazhaem-i-analiziruem-otchyot">Шаг 2. Отображаем и анализируем отчёт</h2><br/>
+<p>Получить отчёт в виде .xml-файлов — полдела, теперь его нужно сделать человекочитаемым. А также его результаты должны быть использованы в quality gates — логике определения того, проходит или не проходит принимаемое изменение по критериям качества.</p><br/>
+<p>В этом нам поможет <a href="https://github.com/jenkinsci/warnings-ng-plugin">Jenkins Warnings NG Plugin</a>, релиз которого был сделан в январе 2019 года. С его появлением многие отдельные плагины для работы с результатами статического анализа в Jenkins (CheckStyle, FindBugs, PMD и т. п.) теперь помечены как устаревшие (obsolete).</p><br/>
+<p>Плагин состоит из двух частей: </p><br/>
+<ul>
+<li>многочисленных сборщиков сообщений анализаторов (<a href="https://github.com/jenkinsci/warnings-ng-plugin/blob/master/SUPPORTED-FORMATS.md">полный список</a> включает в себя все известные науке анализаторы от AcuCobol до ZPT Lint),</li>
+<li>единого для всех них просмотрщика отчётов.</li>
+</ul><br/>
+<p>В перечне того, что умеет анализировать Warnings NG, находятся в том числе предупреждения компилятора Java и предупреждения из логов выполнения Maven: хотя они постоянно на виду, их редко когда целенаправленно анализируют. Отчёты IntelliJ IDEA также входят в перечень распознаваемых форматов.</p><br/>
+<p>Т. к. плагин новый, он изначально хорошо взаимодействует Jenkins Pipeline. Шаг сборки с его участием будет выглядеть следующим образом (мы просто говорим плагину, какой формат отчёта распознаём и какие файлы следует просканировать): </p><br/>
+<pre><code class="plaintext">stage ('Static analysis'){
+    sh 'rm -rf target/idea_inspections'
+    docker.image('inponomarev/intellij-idea-analyzer').inside {
+       sh '/opt/idea/bin/inspect.sh $WORKSPACE $WORKSPACE/.idea/inspectionProfiles/Project_Default.xml $WORKSPACE/target/idea_inspections -v2'
+    }
+    recordIssues(
+       tools: [ideaInspection(pattern: 'target/idea_inspections/*.xml')]
+    )
+}</code></pre><br/>
+<p>Интерфейс отчёта выглядит так:</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/f9/sl/at/f9slatguudcvphteuhb7ryhxydm.png"/></p><br/>
+<p>Удобно, что этот интерфейс является универсальным для всех распознаваемых анализаторов. Он содержит интерактивную диаграмму распределения находок по категориям и график динамики изменения количества находок. В гриде внизу страницы можно выполнять быстрый поиск. Единственное, что для испекций IDEA не заработало корректно — возможность браузить код непосредственно в Jenkins (хотя для других отчётов, например Checkstyle, этот плагин умеет это делать красиво). Похоже, это баг парсера отчётов IDEA, который предстоит починить. </p><br/>
+<p>Среди возможностей Warnings NG — возможность агрегировать в одном отчёте находки из разных источников и программировать Quality Gates, в том числе — «храповик» по референтной сборке. Некоторая документация по программированию Quality Gates доступна <a href="https://github.com/jenkinsci/warnings-ng-plugin/blob/master/doc/Documentation.md#quality-gate-configuration">здесь</a> — впрочем, она не полная, и приходится смотреть в исходники. С другой стороны, для полного контроля над происходящим «храповик» можно реализовать и самостоятельно (см. мой <a href="https://habr.com/ru/post/436868/">предыдущий пост</a> на эту тему).</p><br/>
+<h2 id="zaklyuchenie">Заключение</h2><br/>
+<p>Перед тем, как начать готовить данный материал, я решил поискать: а не писал ли уже кто-нибудь на эту тему на Хабре? Я нашёл лишь <a href="https://habr.com/ru/company/jugru/blog/320494">интервью 2017 года</a> с <a href="https://habr.com/ru/users/lany/" class="user_link">lany</a>, где он говорит:</p><br/>
+<blockquote>Насколько мне известно, интеграции с Jenkins или maven-плагина нету [...] В принципе, любой энтузиаст мог бы подружить IDEA Community Edition и Jenkins, многие бы от этого только выиграли.<br/>
+</blockquote><p>Что же: спустя два года у нас есть Warnings NG Plugin, и наконец-то эта дружба осуществилась!</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bintellij%20idea%5D" class="tm-tags-list__link">intellij idea</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjenkins%5D" class="tm-tags-list__link">jenkins</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bstatic%20code%20analysis%5D" class="tm-tags-list__link">static code analysis</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/it_testing/" class="tm-hubs-list__link">
+    Тестирование IT-систем
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/java/" class="tm-hubs-list__link">
+    Java
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/devops/" class="tm-hubs-list__link">
+    DevOps
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 34: ↑33 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 34: ↑33 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+32</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">8.1K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    68
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/IvanPonomarev/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/830/9bc/53c/8309bc53ce3e9cd47dfe12d1d0bb9484.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 96 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    78
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Иван Пономарев</span> <a href="/ru/users/IvanPonomarev/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @IvanPonomarev
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Программист</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://inponomarev.ru/it" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://corchestra.ru/ru/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://twitter.com/inponomarev" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://github.com/inponomarev/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Github
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450214/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 7 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450214/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450214/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450214":{"id":"450214","timePublished":"2019-05-01T22:40:28+00:00","isCorporative":false,"lang":"ru","titleHtml":"Запускаем инспекции IntelliJ IDEA на Jenkins","leadData":{"textHtml":"\u003Cp\u003EIntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как \u003Ca href=\"http:\u002F\u002Fcheckstyle.sourceforge.net\u002F\"\u003ECheckstyle\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fspotbugs.github.io\u002F\"\u003ESpotbugs\u003C\u002Fa\u003E. Её многочисленные «инспекции» проверяют код в различных аспектах, от стиля кодирования до характерных багов.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EОднако пока результаты анализа отображаются лишь в локальном интерфейсе IDE разработчика, от них мало пользы для процесса разработки. Статический анализ \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F436868\u002F\"\u003Eнеобходимо выполнять\u003C\u002Fa\u003E в качестве первого шага конвейера сборки, его результаты должны определять quality gates, а сборка должна фейлиться, если quality gates не пройдены. Известно, что TeamCity CI интегрирован с IDEA. Но даже если вы не используете TeamCity, вы вполне можете попробовать запускать инспекции IDEA в любом другом CI-сервере. Предлагаю посмотреть, как это можно сделать, используя IDEA Community Edition, Jenkins и Warnings NG plugin.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":78,"votesCount":96},"rating":0,"relatedData":null,"contacts":[{"title":"Сайт","url":"https:\u002F\u002Finponomarev.ru\u002Fit","value":"https:\u002F\u002Finponomarev.ru\u002Fit"},{"title":"Сайт","url":"https:\u002F\u002Fcorchestra.ru\u002Fru\u002F","value":"https:\u002F\u002Fcorchestra.ru\u002Fru\u002F"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Finponomarev","value":"inponomarev"},{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Finponomarev\u002F","value":"inponomarev"}],"authorContacts":[{"title":"Сайт","url":"https:\u002F\u002Finponomarev.ru\u002Fit","value":"https:\u002F\u002Finponomarev.ru\u002Fit"},{"title":"Сайт","url":"https:\u002F\u002Fcorchestra.ru\u002Fru\u002F","value":"https:\u002F\u002Fcorchestra.ru\u002Fru\u002F"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Finponomarev","value":"inponomarev"},{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Finponomarev\u002F","value":"inponomarev"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1187014","alias":"IvanPonomarev","fullname":"Иван Пономарев","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F830\u002F9bc\u002F53c\u002F8309bc53ce3e9cd47dfe12d1d0bb9484.jpg","speciality":"Программист"},"statistics":{"commentsCount":7,"favoritesCount":68,"readingCount":8061,"score":32,"votesCount":34},"hubs":[{"relatedData":null,"id":"210","alias":"it_testing","type":"collective","title":"Тестирование IT-систем","titleHtml":"Тестирование IT-систем","isProfiled":true},{"relatedData":null,"id":"375","alias":"java","type":"collective","title":"Java","titleHtml":"Java","isProfiled":true},{"relatedData":null,"id":"20788","alias":"devops","type":"collective","title":"DevOps","titleHtml":"DevOps","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EIntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как \u003Ca href=\"http:\u002F\u002Fcheckstyle.sourceforge.net\u002F\"\u003ECheckstyle\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fspotbugs.github.io\u002F\"\u003ESpotbugs\u003C\u002Fa\u003E. Её многочисленные «инспекции» проверяют код в различных аспектах, от стиля кодирования до характерных багов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОднако пока результаты анализа отображаются лишь в локальном интерфейсе IDE разработчика, от них мало пользы для процесса разработки. Статический анализ \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F436868\u002F\"\u003Eнеобходимо выполнять\u003C\u002Fa\u003E в качестве первого шага конвейера сборки, его результаты должны определять quality gates, а сборка должна фейлиться, если quality gates не пройдены. Известно, что TeamCity CI интегрирован с IDEA. Но даже если вы не используете TeamCity, вы вполне можете попробовать запускать инспекции IDEA в любом другом CI-сервере. Предлагаю посмотреть, как это можно сделать, используя IDEA Community Edition, Jenkins и Warnings NG plugin.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"shag-1-zapuskaem-analiz-v-konteynere-i-poluchaem-otchyot\"\u003EШаг 1. Запускаем анализ в контейнере и получаем отчёт\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПоначалу затея запускать IDE (десктопное приложение!) внутри CI-системы, не имеющей графического интерфейса, может показаться сомнительной и очень хлопотной. К счастью, разработчики IDEA предоставили возможность запускать \u003Ca href=\"https:\u002F\u002Fwww.jetbrains.com\u002Fhelp\u002Fidea\u002Fcommand-line-formatter.html\"\u003Eформатирование кода\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fwww.jetbrains.com\u002Fhelp\u002Fidea\u002Fcommand-line-code-inspector.html\"\u003Eинспекции\u003C\u002Fa\u003E из командной строки. Причём для запуска IDEA в таком режиме не требуется графическая подсистема и эти задачи можно выполнять на серверах с текстовой оболочкой. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗапуск инспекций осуществляется при помощи скрипта \u003Ccode\u003Ebin\u002Finspect.sh\u003C\u002Fcode\u003E из установочной директории IDEA. В качестве параметров требуются:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eполный путь к проекту (относительные не поддерживаются),\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпуть к .xml-файлу с настройками инспекций (обычно находится внутри проекта в .idea\u002FinspectionProfiles\u002FProject_Default.xml),\u003C\u002Fli\u003E\r\n\u003Cli\u003Eполный путь к папке, в которую будут сложены .xml-файлы с отчётами о результатах анализа.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКроме того, ожидается, что\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eв IDE будет настроен путь к Java SDK, иначе анализ работать не будет. Эти настройки содержатся в конфигурационном файле \u003Ccode\u003Ejdk.table.xml\u003C\u002Fcode\u003E в папке глобальной конфигурации IDEA. Сама глобальная конфигурация IDEA по умолчанию лежит в домашней директории пользователя, но это местоположение \u003Ca href=\"https:\u002F\u002Fintellij-support.jetbrains.com\u002Fhc\u002Fen-us\u002Farticles\u002F207240985\"\u003Eможет быть явно задано\u003C\u002Fa\u003E в файле \u003Ccode\u003Eidea.properties\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eанализируемый проект должен быть валидным проектом IDEA, для чего на контроль версий придётся закоммитить некоторые файлы, которые обычно игнорируются, а именно:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003E.idea\u002FinspectionProfiles\u002FProject_Default.xml\u003C\u002Fcode\u003E — настройки анализатора, они явно будут использованы при запуске инспекций в контейнере,\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003E.idea\u002Fmodules.xml\u003C\u002Fcode\u003E — иначе получим ошибку 'This project contains no modules',\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003E.idea\u002Fmisc.xml\u003C\u002Fcode\u003E — иначе получим ошибку 'The JDK is not configured properly for this project',\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003E*.iml-файлы\u003C\u002Fcode\u003E — иначе получим ошибку про не настроенный JDK в модуле.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EХотя обычно эти файлы включают в \u003Ccode\u003E.gitignore\u003C\u002Fcode\u003E, они не содержат никакой специфичной для окружения конкретного разработчика информации — в отличие от, например, файла \u003Ccode\u003Eworkspace.xml\u003C\u002Fcode\u003E, где такая информация, как раз, содержится, и потому коммитить его не надо.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСам собою напрашивается выход запаковать JDK вместе с IDEA Community Edition в контейнер в виде, готовом к «натравливанию» на анализируемые проекты. Выберем подходящий базовый контейнер, и вот какой у нас получится Dockerfile:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EDockerfile\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"bash\"\u003EFROM openkbs\u002Fubuntu-bionic-jdk-mvn-py3\n\nARG INTELLIJ_VERSION=\"ideaIC-2019.1.1\"\n\nARG INTELLIJ_IDE_TAR=${INTELLIJ_VERSION}.tar.gz\n\nENV IDEA_PROJECT_DIR=\"\u002Fvar\u002Fproject\"\n\nWORKDIR \u002Fopt\n\nCOPY jdk.table.xml \u002Fetc\u002Fidea\u002Fconfig\u002Foptions\u002F\n\nRUN wget https:\u002F\u002Fdownload-cf.jetbrains.com\u002Fidea\u002F${INTELLIJ_IDE_TAR} &amp;&amp; \\\n    tar xzf ${INTELLIJ_IDE_TAR} &amp;&amp; \\\n    tar tzf ${INTELLIJ_IDE_TAR} | head -1 | sed -e 's\u002F\\\u002F.*\u002F\u002F' | xargs -I{} ln -s {} idea &amp;&amp; \\\n    rm ${INTELLIJ_IDE_TAR} &amp;&amp; \\\n    echo idea.config.path=\u002Fetc\u002Fidea\u002Fconfig \u003E\u003E idea\u002Fbin\u002Fidea.properties &amp;&amp; \\\n    chmod -R 777 \u002Fetc\u002Fidea\n\nCMD idea\u002Fbin\u002Finspect.sh ${IDEA_PROJECT_DIR} ${IDEA_PROJECT_DIR}\u002F.idea\u002FinspectionProfiles\u002FProject_Default.xml ${IDEA_PROJECT_DIR}\u002Ftarget\u002Fidea_inspections -v2\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПри помощи опции \u003Ccode\u003Eidea.config.path\u003C\u002Fcode\u003E мы заставили IDEA искать свою глобальную конфигурацию в папке \u003Ccode\u003E\u002Fetc\u002Fidea\u003C\u002Fcode\u003E, т. к. домашняя папка пользователя в условиях работы в CI — вещь неопределённая и зачастую вовсе отсутствующая.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТак выглядит копируемый в контейнер файл \u003Ccode\u003Ejdk.table.xml\u003C\u002Fcode\u003E, в котором прописаны пути к OpenJDK, установленной внутри контейнера (за основу может быть взят аналогичный файл из вашей собственной директории с настройками IDEA):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003Ejdk.table.xml\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;application\u003E\n &lt;component name=\"ProjectJdkTable\"\u003E\n   &lt;jdk version=\"2\"\u003E\n     &lt;name value=\"1.8\" \u002F\u003E\n     &lt;type value=\"JavaSDK\" \u002F\u003E\n     &lt;version value=\"1.8\" \u002F\u003E\n     &lt;homePath value=\"\u002Fusr\u002Fjava\" \u002F\u003E\n     &lt;roots\u003E\n       &lt;annotationsPath\u003E\n         &lt;root type=\"composite\"\u003E\n           &lt;root url=\"jar:\u002F\u002F$APPLICATION_HOME_DIR$\u002Flib\u002FjdkAnnotations.jar!\u002F\" type=\"simple\" \u002F\u003E\n         &lt;\u002Froot\u003E\n       &lt;\u002FannotationsPath\u003E\n       &lt;classPath\u003E\n         &lt;root type=\"composite\"\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fcharsets.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fdeploy.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Faccess-bridge-64.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fcldrdata.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fdnsns.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fjaccess.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fjfxrt.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Flocaledata.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fnashorn.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fsunec.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fsunjce_provider.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fsunmscapi.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fsunpkcs11.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fext\u002Fzipfs.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fjavaws.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fjce.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fjfr.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fjfxswt.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fjsse.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fmanagement-agent.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fplugin.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Fresources.jar!\u002F\" type=\"simple\" \u002F\u003E\n           &lt;root url=\"jar:\u002F\u002F\u002Fusr\u002Fjava\u002Fjre\u002Flib\u002Frt.jar!\u002F\" type=\"simple\" \u002F\u003E\n         &lt;\u002Froot\u003E\n       &lt;\u002FclassPath\u003E\n     &lt;\u002Froots\u003E\n     &lt;additional \u002F\u003E\n   &lt;\u002Fjdk\u003E\n &lt;\u002Fcomponent\u003E\n&lt;\u002Fapplication\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбраз в готовом виде \u003Ca href=\"https:\u002F\u002Fhub.docker.com\u002Fr\u002Finponomarev\u002Fintellij-idea-analyzer\"\u003Eдоступен на Docker Hub\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПеред тем, как двинуться дальше, проверим запуск анализатора IDEA в контейнере:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Edocker run --rm -v &lt;путь\u002Fк\u002Fвашему\u002Fпроекту\u003E:\u002Fvar\u002Fproject inponomarev\u002Fintellij-idea-analyzer\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EАнализ должен успешно отработать, а в подпапке target\u002Fidea_inspections должны появиться многочисленные .xml-файлы с отчётами анализатора. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь больше нет никаких сомнений в том, что анализатор IDEA может быть запущен в автономном режиме в любом CI-окружении, и мы переходим ко второму шагу.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"shag-2-otobrazhaem-i-analiziruem-otchyot\"\u003EШаг 2. Отображаем и анализируем отчёт\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолучить отчёт в виде .xml-файлов — полдела, теперь его нужно сделать человекочитаемым. А также его результаты должны быть использованы в quality gates — логике определения того, проходит или не проходит принимаемое изменение по критериям качества.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этом нам поможет \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fjenkinsci\u002Fwarnings-ng-plugin\"\u003EJenkins Warnings NG Plugin\u003C\u002Fa\u003E, релиз которого был сделан в январе 2019 года. С его появлением многие отдельные плагины для работы с результатами статического анализа в Jenkins (CheckStyle, FindBugs, PMD и т. п.) теперь помечены как устаревшие (obsolete).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПлагин состоит из двух частей: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eмногочисленных сборщиков сообщений анализаторов (\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fjenkinsci\u002Fwarnings-ng-plugin\u002Fblob\u002Fmaster\u002FSUPPORTED-FORMATS.md\"\u003Eполный список\u003C\u002Fa\u003E включает в себя все известные науке анализаторы от AcuCobol до ZPT Lint),\u003C\u002Fli\u003E\r\n\u003Cli\u003Eединого для всех них просмотрщика отчётов.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ перечне того, что умеет анализировать Warnings NG, находятся в том числе предупреждения компилятора Java и предупреждения из логов выполнения Maven: хотя они постоянно на виду, их редко когда целенаправленно анализируют. Отчёты IntelliJ IDEA также входят в перечень распознаваемых форматов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТ. к. плагин новый, он изначально хорошо взаимодействует Jenkins Pipeline. Шаг сборки с его участием будет выглядеть следующим образом (мы просто говорим плагину, какой формат отчёта распознаём и какие файлы следует просканировать): \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Estage ('Static analysis'){\n    sh 'rm -rf target\u002Fidea_inspections'\n    docker.image('inponomarev\u002Fintellij-idea-analyzer').inside {\n       sh '\u002Fopt\u002Fidea\u002Fbin\u002Finspect.sh $WORKSPACE $WORKSPACE\u002F.idea\u002FinspectionProfiles\u002FProject_Default.xml $WORKSPACE\u002Ftarget\u002Fidea_inspections -v2'\n    }\n    recordIssues(\n       tools: [ideaInspection(pattern: 'target\u002Fidea_inspections\u002F*.xml')]\n    )\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИнтерфейс отчёта выглядит так:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ff9\u002Fsl\u002Fat\u002Ff9slatguudcvphteuhb7ryhxydm.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EУдобно, что этот интерфейс является универсальным для всех распознаваемых анализаторов. Он содержит интерактивную диаграмму распределения находок по категориям и график динамики изменения количества находок. В гриде внизу страницы можно выполнять быстрый поиск. Единственное, что для испекций IDEA не заработало корректно — возможность браузить код непосредственно в Jenkins (хотя для других отчётов, например Checkstyle, этот плагин умеет это делать красиво). Похоже, это баг парсера отчётов IDEA, который предстоит починить. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСреди возможностей Warnings NG — возможность агрегировать в одном отчёте находки из разных источников и программировать Quality Gates, в том числе — «храповик» по референтной сборке. Некоторая документация по программированию Quality Gates доступна \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fjenkinsci\u002Fwarnings-ng-plugin\u002Fblob\u002Fmaster\u002Fdoc\u002FDocumentation.md#quality-gate-configuration\"\u003Eздесь\u003C\u002Fa\u003E — впрочем, она не полная, и приходится смотреть в исходники. С другой стороны, для полного контроля над происходящим «храповик» можно реализовать и самостоятельно (см. мой \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F436868\u002F\"\u003Eпредыдущий пост\u003C\u002Fa\u003E на эту тему).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"zaklyuchenie\"\u003EЗаключение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПеред тем, как начать готовить данный материал, я решил поискать: а не писал ли уже кто-нибудь на эту тему на Хабре? Я нашёл лишь \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fjugru\u002Fblog\u002F320494\"\u003Eинтервью 2017 года\u003C\u002Fa\u003E с \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fusers\u002Flany\u002F\" class=\"user_link\"\u003Elany\u003C\u002Fa\u003E, где он говорит:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EНасколько мне известно, интеграции с Jenkins или maven-плагина нету [...] В принципе, любой энтузиаст мог бы подружить IDEA Community Edition и Jenkins, многие бы от этого только выиграли.\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cp\u003EЧто же: спустя два года у нас есть Warnings NG Plugin, и наконец-то эта дружба осуществилась!\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"intellij idea"},{"titleHtml":"jenkins"},{"titleHtml":"static code analysis"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450214\u002F841ca898a115298cecb1005d9d06cbc7\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450214\u002F841ca898a115298cecb1005d9d06cbc7\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450214\\\u002F\"},\"headline\":\"Запускаем инспекции IntelliJ IDEA на Jenkins\",\"datePublished\":\"2019-05-02T01:40:28+03:00\",\"dateModified\":\"2019-05-02T15:29:09+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Иван Пономарев\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких &laquo;ветеранов&raquo;, как...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450214\\\u002F#post-content-body\",\"about\":[\"h_it_testing\",\"h_java\",\"h_devops\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ff9\\\u002Fsl\\\u002Fat\\\u002Ff9slatguudcvphteuhb7ryhxydm.png\"]}","metaDescription":"IntelliJ IDEA на сегодня обладает наиболее продвинутым статическим анализатором кода Java, по своим возможностям оставившим далеко позади таких «ветеранов», как Checkstyle и Spotbugs. Её...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"it_testing,java,devops"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

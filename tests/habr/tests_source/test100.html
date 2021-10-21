@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Генерация кода для бекенда. Что генерировать, как и зачем? / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450100\/"},"headline":"Генерация кода для бекенда. Что генерировать, как и зачем?","datePublished":"2019-05-10T14:13:02+03:00","dateModified":"2019-05-10T14:58:10+03:00","author":{"@type":"Person","name":"javax"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.  Что именно будем ге...","url":"https:\/\/habr.com\/ru\/post\/450100\/#post-content-body","about":["h_programming","h_java","h_kotlin","f_develop"],"image":["https:\/\/habr.com\/share\/publication\/450100\/e18c2952a9ca32189f4fcc259ddc00d4\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Генерация кода для бекенда. Что генерировать, как и зачем?" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Генерация кода для бекенда. Что генерировать, как и зачем?" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Генерация кода для бекенда. Что генерировать, как и зачем?" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.
+
+Что именно будем генерировать — не так важно.
+Важно что..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.
+
+Что именно будем генерировать — не так важно.
+Важно что..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.
+
+Что именно будем генерировать — не так важно.
+Важно что..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.
+
+Что именно будем генерировать — не так важно.
+Важно что..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.
+
+Что именно будем генерировать — не так важно.
+Важно что..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450100/e18c2952a9ca32189f4fcc259ddc00d4/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450100/e18c2952a9ca32189f4fcc259ddc00d4/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450100/e18c2952a9ca32189f4fcc259ddc00d4/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450100/e18c2952a9ca32189f4fcc259ddc00d4/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450100/e18c2952a9ca32189f4fcc259ddc00d4/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450100" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-10T11:13:02.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450100/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450100/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450100/e18c2952a9ca32189f4fcc259ddc00d4/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/javax/" title="javax" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/javax/" class="tm-user-info__username">
+      javax
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-10T11:13:02.000Z" title="2019-05-10, 14:13">10  мая  2019 в 14:13</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Генерация кода для бекенда. Что генерировать, как и зачем?</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/programming/" class="tm-article-snippet__hubs-item-link"><span>Программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/java/" class="tm-article-snippet__hubs-item-link"><span>Java</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/kotlin/" class="tm-article-snippet__hubs-item-link"><span>Kotlin</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.<br/>
+<br/>
+Что именно будем генерировать — не так важно.<br/>
+Важно что мы опишем 3 вида объектов на основе которых сгенерируем взаимодействие фронтенда с бекендом, а кое где и полностью реализацию бекенда<br/>
+<br/>
+Эти типы объектов:<br/>
+1. <i>Messages </i> — объекты, которые будучи сериализoванными в JSON участвуют в обмене информации между фронтендом и бекендом<br/>
+2. <i>Endpoints </i> — URI, который вызывает фронтенд вместе с описанием HTTP метода, параметров запроса, типа Request Body и типа респонса<br/>
+3. <i>Entities </i> — Это такие messages, для которых них есть стандартные endpoints для Create/Update/List/Delete (может быть не все), они хранятся в базе данных и для них есть Data Access Object, или Spring JPA repository — вообщем зависит от технологии, но какой то доступ к базе данных<br/>
+<br/>
+Фронтендом я не занимаюсь вообще, но<br/>
+1) Знаю, что он пишется на Typescript, поэтому мы генерируем и классы тайпскрипта<br/>
+2) Большая часть требований к бекенду приходит от разработчиков фронтенда.<br/>
+<br/>
+<h3>Требования к коду</h3><br/>
+<br/>
+<a name="habracut"></a>Итак, какие есть требования со стороны фронтенда?<br/>
+<br/>
+1. RESTподобный интерфейс взаимодействия<br/>
+2. Однообразные респонсы — json, полезная нагрузка в поле 'data'<br/>
+3. Однообразные ошибки если на бекенде случилось исключение, желательно также добавить stack trace <br/>
+4. «правильные» HTTP коды — 404 если книга не найдена, 400 если плохой запрос (скажем, не валидный json) и т.д.<br/>
+<br/>
+Добавлю требования к коду бекенда «от себя»:<br/>
+1. Обработка ошибок в одном месте<br/>
+2. Возможность в любом месте кода прекратить flow и вернуть нужный HTTP код<br/>
+3. Некоторую бизнес логику я хочу писать как блокирущую, а некоторую как асинхронную, в зависимости от используемых библиотек. Но всё это должно работать в одном асинхронном фреймворке<br/>
+4. Желательно, чтобы разработчики бекенда вообще не думали про HTTP реквесты и респонсы, про Vertx роуты и ивент басы, а просто писали свою бизнес логику.<br/>
+<br/>
+Желательно все вышеупомянутые требование реализовывать наследованием и композицией и только там, где это не получается, использовать генерацию кода<br/>
+<br/>
+Желательно также генерировать паралельно классы для тайпскрипта и котлина, чтобы всегда фронтенд посылал бекенду то, что надо (а не полагаться на разработчиков, что не забудут добавить в класс новое поле)<br/>
+<br/>
+<h3>Что будем генерировать</h3><br/>
+<br/>
+Для примера возьмём гипотетическое веб приложение, которое может сохранять и редактировать книги, показывать их список и искать по названию.<br/>
+<br/>
+С точки зрения технологий на бекенде Котлин, Vert.x, корутины. Что то вроде того, что я показал в статье <a href="https://habr.com/ru/post/449092/">«Три парадигмы асинхронного программирования в Vertx»</a><br/>
+<br/>
+Чтобы было интереснее, доступ к базе сделаем на основе Spring Data JPA.<br/>
+Я не говорю, что надо смешивать Spring и Vert.x в одном проекте (хотя сам так делаю, признаюсь), а просто беру Spring так как для него проще всего показать генерацию на основе Entities.<br/>
+<br/>
+<h3>Структура проекта с генерацией</h3><br/>
+<cut></cut><br/>
+Теперь нужно сделать проект для генерации.<br/>
+Gradle проектов у нас будет много. Сейчас я их сделаю в одном гит репозитории, но в реальной жизни каждый должен сидеть в своём, потому что меняться они будут в разное время, у них будут свои версии.<br/>
+<br/>
+Итак, первый проект это проект с аннотациями, которые будут обозначать наши раутеры, HTTP методы и т.д. Назовем его <i>metainfo</i><br/>
+От него зависят два других проекта:<br/>
+<i>codegen</i> и <i>api</i><br/>
+<br/>
+<i>api</i> содержит описания раутеров и мессаджей — тех классов, который будут ходить туда-сюда между бекендом и фронтендом<br/>
+<i>codegen</i> — проект кодегенерации (но не проект в котором генерируется код!) — он содержит сбор информации из <i>api</i> классов и собственно генераторы кода.<br/>
+Генераторы будут получать все детали генерации в аргументах — из какого пакета брать описания раутеров, в какую директорию генерить, какое имя Velocity шаблона для генерации — т.е. <i>metainfo</i> и <i>codegen</i> можно будет вообще испольовать совсем в других проектах<br/>
+<br/>
+Ну и два проекта в которых собственно будет осуществляться генерация:<br/>
+<i>frontend-generated</i> в котором мы будем генерировать класс Typescript, которые соответствуют нашим котлин мессаджам<br/>
+и <i>backend</i> — с собственно Vertx приложением.<br/>
+<br/>
+Для того, чтобы один проект «увидел» результат компиляции другого, будем использовать плагин для публикации артифактов в локальном репоситории Maven.<br/>
+<br/>
+<b>Проект <i>metafinfo</i></b>:<br/>
+<br/>
+Аннотации, которыми будем помечать источники генерации — описания endpoins, messages, entities:<br/>
+<pre><code class="kotlin">/* Contains a number of endpoints. We will generate Vert.x router or Spring MVC controller from it*/
+annotation class EndpointController(val url:String)
+
+/* Endpoint inside a controller. Concrete URI and HTTP method. May be has query param */
+annotation class Endpoint(val method: HttpMethodName, val param: String = "")
+
+/* For empty constructor generation */
+annotation class EmptyConstructorMessage
+
+/* Make abstract implementation method for endpoint logic asynchronous */
+annotation class AsyncHandler
+
+
+/* All the next annotations are for Entities only:*/
+annotation class GenerateCreate
+annotation class GenerateUpdate
+annotation class GenerateGetById
+annotation class GenerateList
+annotation class GenerateDelete
+
+/* Make CRUD implementation abstract, so that we will override it*/
+annotation class AbstractImplementation
+
+/* Generate search by this field in DAO layer */
+annotation class FindBy
+
+/* This entity is child of another entity, so generate end point like
+ /parent/$id/child to bring all children of concrete parent
+ instead of
+ /child - bring all entities of this type
+ */
+annotation class ChildOf(vararg val parents: KClass&lt;*>)
+
+enum class HttpMethodName {
+    POST,PUT,GET,DELETE
+}
+</code></pre><br/>
+Для классов Typescript мы определим аннотации, которые можно вешать на поля и которыв попадут в сгенерированный класс Typescript<br/>
+<pre><code class="kotlin">annotation class IsString
+annotation class IsEmail
+annotation class IsBoolean
+annotation class MaxLength(val len:Int)
+</code></pre><br/>
+<br/>
+<a href="https://gitlab.com/bernshtam-articles/kotlin-codegen-part-1/tree/master/metainfo">Исходный код проекта metainfo</a><br/>
+<br/>
+<b>Проект <i>api</i>:</b><br/>
+<br/>
+Обратите внимание на плагины noArg и jpa в build.gradle для генерации конструкторов без аргументов<br/>
+<br/>
+Фантазии у меня не хватает, поэтому создадим какие то безумные описания контроллеров и Entities для нашего приложения:<br/>
+<br/>
+<pre><code class="kotlin">@EndpointController("/util")
+interface SearchRouter {
+    @Endpoint(HttpMethodName.GET, param = "id")
+    fun search(id: String): String
+
+    @Endpoint(method = HttpMethodName.POST)
+    @AsyncHandler
+    fun search(searchRequest: SearchRequest) // we have no check or response type
+}
+
+data class SearchRequest(
+    @field:IsString
+    val author: String?,
+
+    @field:IsEmail
+    val someEmail: String,
+
+    @field:IsString
+    val title: String?
+)
+
+
+@GenerateList
+@GenerateGetById
+@GenerateUpdate
+@Entity
+@AbstractImplementation
+data class Book(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long?,
+
+    @field:IsBoolean
+    @Column(name = "is_deleted")
+    var hardcover: Boolean,
+
+    @field:IsString
+    @field:MaxLength(128)
+    @Column(nullable = false, length = 128)
+    val title: String,
+
+    @field:IsString
+    @field:MaxLength(128)
+    @Column(nullable = false, length = 255)
+    val author: String
+)
+
+@GenerateList
+@GenerateGetById
+@GenerateUpdate
+@GenerateDelete
+@GenerateCreate
+@Entity
+@ChildOf(Book::class)
+data class Chapter(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long?,
+    @Column(nullable = false, name = "book_id")
+    var bookId: Long?,
+
+    @field:IsString
+    @field:MaxLength(128)
+    @Column(nullable = false, length = 128)
+    @field:FindBy
+    val name: String,
+
+    @Column(nullable = false)
+    val page:Int
+)</code></pre><br/>
+<br/>
+<a href="https://gitlab.com/bernshtam-articles/kotlin-codegen-part-1/tree/master/api">Исходный код проекта api</a><br/>
+<br/>
+<b>Проект <i>codegen</i>:</b><br/>
+<br/>
+Сначала определим «дескрипторы» — те классы, которые мы заполним, пройдясь рефлекцией по нашему проекту «api»:<br/>
+<br/>
+<pre><code class="kotlin">data class EndPoint(
+    val url: String, val input: String?, val param: String?, val output: String, val method: String,
+    val handler: String, val asyncHandler: Boolean
+)
+
+data class Router(val name: String, val url: String, val endpoints: List&lt;EndPoint>)
+
+class Entity(
+    name: String, val parents: List&lt;String>, val abstractVerticle: Boolean,
+    val crudFeatures: CrudFeatures, fields: List&lt;Field>, var children: List&lt;Entity>
+) : Message(name, fields) {
+
+    fun shouldGenerateRouterAndVerticle(): Boolean {
+        return crudFeatures.generateRouterAndVerticle()
+    }
+
+    override fun toString(): String {
+        return "Entity(parents=$parents, abstractVerticle=$abstractVerticle, crudFeatures=$crudFeatures, children=$children)"
+    }
+
+}
+
+data class CrudFeatures(
+    val list: Boolean, val create: Boolean, val update: Boolean, val delete: Boolean,
+    val get: Boolean
+) {
+
+    fun generateRouterAndVerticle(): Boolean {
+        return list || create || update || delete || get
+    }
+}
+
+
+open class Message(val name: String, val fields: List&lt;Field>)
+
+data class Field(val name: String, val type: String, val validators: List&lt;Annotation>, val findBy: Boolean)
+</code></pre><br/>
+<br/>
+Код, который собирает информацию выглядит так:<br/>
+<pre><code class="kotlin">class EntitiesCreator(typeMapper: TypeMapper, frontendAnnoPackage:String) {
+
+    private val messagesDescriptor =
+        MessagesCreator(typeMapper, frontendAnnoPackage)
+
+    fun createEntities(entitiesPackage: String): List&lt;Entity> {
+        val reflections = Reflections(entitiesPackage, SubTypesScanner(false))
+        val types = reflections.getSubTypesOf(Object::class.java)
+        return types.map { createEntity(it) }
+    }
+
+    fun createEntityRestEndpoints(entity: Entity): List&lt;EndPoint> {
+        val name = entity.name
+
+        val url = name.toLowerCase()
+        val endpoints: MutableList&lt;EndPoint> = mutableListOf()
+        if (entity.crudFeatures.create) {
+            endpoints.add(
+                EndPoint(url, name, null, name, "post", "handleNew$name", false)
+            )
+        }
+        if (entity.crudFeatures.get) {
+            endpoints.add(
+                EndPoint(
+                    "$url/:id", null, "id", name, "get", "handleGet$name", false
+                )
+            )
+        }
+        if (entity.crudFeatures.update) {
+            endpoints.add(
+                EndPoint(url, name, null, name, "put", "handleUpdate$name", false)
+            )
+        }
+        if (entity.crudFeatures.delete) {
+            endpoints.add(
+                EndPoint(
+                    "$url/:id", null, "id", "", "delete", "handleDelete$name", false
+                )
+            )
+        }
+
+        if (entity.crudFeatures.list) {
+            if (entity.parents.isEmpty()) {
+                endpoints.add(
+                    EndPoint(
+                        url, null, null, "List&lt;$name>", "get", "handleGetAllFor$name", false
+                    )
+                )
+            }
+        }
+        entity.children.forEach {
+            endpoints.add(
+                EndPoint(
+                    "$url/:id/${it.name.toLowerCase()}", null, "id", "List&lt;$name>", "get",
+                    "handleGet${it.name}For$name", false
+                )
+            )
+        }
+        return endpoints
+    }
+
+    private fun createEntity(aClass: Class&lt;*>): Entity {
+        return Entity(
+            aClass.simpleName, getParents(aClass),
+            isVerticleAbstract(aClass),
+            shouldGenerateCrud(aClass),
+            messagesDescriptor.createFields(aClass), listOf()
+        )
+    }
+
+    private fun isVerticleAbstract(aClass: Class&lt;*>): Boolean {
+        return aClass.getDeclaredAnnotation(AbstractImplementation::class.java) != null
+    }
+
+    private fun getParents(aClass: Class&lt;*>): List&lt;String> {
+        return aClass.getDeclaredAnnotation(ChildOf::class.java)?.parents?.map { it.simpleName }?.requireNoNulls()
+            ?: listOf()
+    }
+
+    private fun shouldGenerateCrud(aClass: Class&lt;*>): CrudFeatures {
+        val listAnno = aClass.getDeclaredAnnotation(GenerateList::class.java)
+        val createAnno = aClass.getDeclaredAnnotation(GenerateCreate::class.java)
+        val getAnno = aClass.getDeclaredAnnotation(GenerateGetById::class.java)
+        val updateAnno = aClass.getDeclaredAnnotation(GenerateUpdate::class.java)
+        val deleteAnno = aClass.getDeclaredAnnotation(GenerateDelete::class.java)
+        return CrudFeatures(
+            list = listAnno != null,
+            create = createAnno != null,
+            update = updateAnno != null,
+            delete = deleteAnno != null,
+            get = getAnno != null
+        )
+    }
+}
+
+class MessagesCreator(private val typeMapper: TypeMapper, private val frontendAnnotationsPackageName: String) {
+
+
+    fun createMessages(packageName: String): List&lt;Message> {
+        val reflections = Reflections(packageName, SubTypesScanner(false))
+        return reflections.allTypes.map { Class.forName(it) }.map { createMessages(it) }
+    }
+
+
+    private fun createMessages(aClass: Class&lt;*>): Message {
+        return Message(aClass.simpleName, createFields(aClass))
+    }
+
+    fun createFields(aClass: Class&lt;*>): List&lt;Field> {
+        return ReflectionUtils.getAllFields(aClass).map { createField(it) }
+    }
+
+    private fun createField(field: java.lang.reflect.Field): Field {
+        val annotations = field.declaredAnnotations
+        return Field(
+            field.name, typeMapper.map(field.type),
+            createConstraints(annotations),
+            annotations.map { anno -> anno::annotationClass.get() }.contains(FindBy::class)
+        )
+    }
+
+    private fun createConstraints(annotations: Array&lt;out Annotation>): List&lt;Annotation> {
+        return annotations.filter { it.toString().startsWith("@$frontendAnnotationsPackageName") }
+    }
+}
+
+class RoutersCreator(private val typeMapper: TypeMapper, private val endpointsPackage:String ) {
+
+    fun createRouters(): List&lt;Router> {
+        val reflections = Reflections(endpointsPackage, SubTypesScanner(false))
+        return reflections.allTypes.map {
+            createRouter(
+                Class.forName(
+                    it
+                )
+            )
+        }
+    }
+
+    private fun createRouter(aClass: Class&lt;*>): Router {
+        return Router(aClass.simpleName, getUrl(aClass),
+            ReflectionUtils.getAllMethods(aClass).map {
+                createEndpoint(it)
+            })
+    }
+
+    private fun getUrl(aClass: Class&lt;*>): String {
+        return aClass.getAnnotation(EndpointController::class.java).url
+    }
+
+    private fun getEndPointMethodName(declaredAnnotation: Endpoint?): String {
+        val httpMethodName = declaredAnnotation?.method
+        return (httpMethodName ?: HttpMethodName.GET).name.toLowerCase()
+    }
+
+    private fun getParamName(declaredAnnotation: Endpoint?): String {
+        val paramName = declaredAnnotation?.param
+        return (paramName ?: "id")
+    }
+
+    private fun createEndpoint(method: Method): EndPoint {
+        val types = method.parameterTypes
+        val declaredAnnotation: Endpoint? = method.getDeclaredAnnotation(Endpoint::class.java)
+
+        val methodName = getEndPointMethodName(declaredAnnotation)
+        var url = method.name
+        var input: String? = null
+        var param: String? = null
+        val hasInput = types.isNotEmpty()
+        val handlerName = "$methodName${StringUtils.capitalize(url)}"
+
+        if (hasInput) {
+            val inputType = types[0]
+            val inputTypeName = typeMapper.map(inputType)
+            val createUrlParameterName = inputType == java.lang.String::class.java
+            if (createUrlParameterName) {
+                param = getParamName(declaredAnnotation)
+                url += "/:$param"
+            } else {
+                input = simpleName(inputTypeName)
+            }
+        }
+
+        return EndPoint(
+            url, input, param, method.returnType.toString(),
+            methodName, handlerName, isHandlerAsync(method)
+        )
+    }
+
+    private fun isHandlerAsync(method: Method): Boolean {
+        val declaredAnnotation: AsyncHandler? = method.getDeclaredAnnotation(AsyncHandler::class.java)
+        return declaredAnnotation != null
+    }
+
+    private fun simpleName(name: String): String {
+        val index = name.lastIndexOf(".")
+        return if (index >= 0) name.substring(index + 1) else name
+    }
+
+}
+</code></pre><br/>
+<br/>
+Ну и есть еще «main» классы, которые получают аргументы — по каким пакетам проходить рефлексией, какие Velocity темплейты использовать и т.д.<br/>
+Они не так интересы, на всё можно посмотреть в репозитории: <a href="https://gitlab.com/bernshtam-articles/kotlin-codegen-part-1/tree/master/codegen">Исходный код</a><br/>
+<br/>
+<b>В проектах <i>frontend-generated</i> и <i>backend</i></b> мы делаем похожие вещи:<br/>
+1. зависимость от <i>api</i> на этапе компиляции<br/>
+2. зависимость от <i>codegen</i> на этапе билда<br/>
+3. Шаблоны генерации находятся в директории <i>buildSrc</i> в которую в gradle кладут файлы и код, которые нужны на этапе билда, но не на этапе компиляции или рантайма. Т.е. мы можем менять шаблон генерации, не перекомпилируя проект <i>codegen</i><br/>
+4. <i>frontend-generated</i> компилирует сгенерированный Typescript и публикует его в репозиторий npm пакетов<br/>
+5. В <i>backend</i> генерируются раутеры, которые наследуют от не генерируемого абстрактного раутера, который знает как обрабатывать разные типы запросов. Также генерируются абстрактные Verticles, которые надо наследовать с имплементацией собственно бизнес логики. Кроме того генерируются всякие мелочи, о которых я как программист не хочу думать — регистрация кодеков и константы адресов в ивент басе.<br/>
+Исходный код <i><a href="https://gitlab.com/bernshtam-articles/kotlin-codegen-part-1/tree/master/frontend-generated">frontend-generated</a></i> и <i><a href="https://gitlab.com/bernshtam-articles/kotlin-codegen-part-1/tree/master/backend">backend</a></i><br/>
+<br/>
+Во <i>frontend-generated</i> надо обратить внимание на плагин, который публикует сгенерированные соурсы в npm репозиторий. Чтобы это работало, надо поставить IP своего репозитория в build.gradle и поставить свой токен аутентификации в .npmrc<br/>
+<br/>
+Выглядят сгенерированные классы так:<br/>
+<pre><code class="javascript">import {
+    IsString,
+    MaxLength,
+IsDate,
+IsArray,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+// Entity(parents=[], abstractVerticle=false, crudFeatures=CrudFeatures(list=true, create=true, update=true, delete=true, get=true), children=[])
+export class Chapter {
+
+    
+    // Field(name=bookId, type=number, validators=[], findBy=false)
+     bookId!: number;
+
+    
+      @IsString()
+      @MaxLength(128)
+    // Field(name=name, type=string, validators=[@com.valapay.test.annotations.frontend.IsString(), @com.valapay.test.annotations.frontend.MaxLength(len=128)], findBy=false)
+     name!: string;
+
+    
+    // Field(name=id, type=number, validators=[], findBy=false)
+     id!: number;
+
+    
+    // Field(name=page, type=number, validators=[], findBy=false)
+     page!: number;
+}
+
+</code></pre><br/>
+<br/>
+Обратите внимание на class-validator аннотации тс.<br/>
+<br/>
+В проекте бекенда генерируются также репозитории для Spring Data JPA, есть возможность сказать что проект обработки сообщения в Verticle блокирующий (и запускаться через Vertx.executeBlocking) или асинхронный (с корутинами), есть возможность сказать чтобы Verticle сгенерированный для Entity был абстрактный и тогда есть возможность переопределить хуки, которые вызываются до и после вызова сгенерированных методов. Деплоймент Verticles автоматический по интерфейсу спринг бинов — ну короче много плюшек.<br/>
+<br/>
+И всё это легко расширить — например навесить на Endpoints список ролей и генерировать проверку роли залогиненого пользователя при вызове ендпоинта и многое другое — на что хватит фантазии.<br/>
+<br/>
+Так же легко сгенерировать не Vertx, не Spring, а что то другое — хоть akka-http, достаочно только изменить темплейты в проекте backend.<br/>
+<br/>
+Другое возможное направление развития — генерировать больше фронтенда.<br/>
+<br/>
+Весь исходный код <a href="https://gitlab.com/bernshtam-articles/kotlin-codegen-part-1">тут</a>.<br/>
+<br/>
+Спасибо Ильдару с фронтенда за помощь в создании генерации у нас в проекте и при написании статьи<br/></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bkotlin%5D" class="tm-tags-list__link">kotlin</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjava%5D" class="tm-tags-list__link">java</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bvertx%5D" class="tm-tags-list__link">vertx</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcallback%5D" class="tm-tags-list__link">callback</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcoroutines%5D" class="tm-tags-list__link">coroutines</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Basynchronous%5D" class="tm-tags-list__link">asynchronous</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcode%20generation%5D" class="tm-tags-list__link">code generation</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B3%D0%B5%D0%BD%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BA%D0%BE%D0%B4%D0%B0%5D" class="tm-tags-list__link">генерация кода</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/programming/" class="tm-hubs-list__link">
+    Программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/java/" class="tm-hubs-list__link">
+    Java
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/kotlin/" class="tm-hubs-list__link">
+    Kotlin
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 14: ↑13 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 14: ↑13 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+12</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">5.9K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    41
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/javax/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 233 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    105.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0.1</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/javax/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @javax
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Software architect</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450100/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 8 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450100/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450100/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450100":{"id":"450100","timePublished":"2019-05-10T11:13:02+00:00","isCorporative":false,"lang":"ru","titleHtml":"Генерация кода для бекенда. Что генерировать, как и зачем?","leadData":{"textHtml":"Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЧто именно будем генерировать — не так важно.\u003Cbr\u003E\r\nВажно что мы опишем 3 вида объектов на основе которых сгенерируем взаимодействие фронтенда с бекендом, а кое где и полностью реализацию бекенда\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЭти типы объектов:\u003Cbr\u003E\r\n1. \u003Ci\u003EMessages \u003C\u002Fi\u003E — объекты, которые будучи сериализoванными в JSON участвуют в обмене информации между фронтендом и бекендом\u003Cbr\u003E\r\n2. \u003Ci\u003EEndpoints \u003C\u002Fi\u003E — URI, который вызывает фронтенд вместе с описанием HTTP метода, параметров запроса, типа Request Body и типа респонса\u003Cbr\u003E\r\n3. \u003Ci\u003EEntities \u003C\u002Fi\u003E — Это такие messages, для которых них есть стандартные endpoints для Create\u002FUpdate\u002FList\u002FDelete (может быть не все), они хранятся в базе данных и для них есть Data Access Object, или Spring JPA repository — вообщем зависит от технологии, но какой то доступ к базе данных\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nФронтендом я не занимаюсь вообще, но\u003Cbr\u003E\r\n1) Знаю, что он пишется на Typescript, поэтому мы генерируем и классы тайпскрипта\u003Cbr\u003E\r\n2) Большая часть требований к бекенду приходит от разработчиков фронтенда.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Ch3\u003EТребования к коду\u003C\u002Fh3\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":105.5,"votesCount":233},"rating":0.1,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"52312","alias":"javax","fullname":null,"avatarUrl":null,"speciality":"Software architect"},"statistics":{"commentsCount":8,"favoritesCount":41,"readingCount":5873,"score":12,"votesCount":14},"hubs":[{"relatedData":null,"id":"359","alias":"programming","type":"collective","title":"Программирование","titleHtml":"Программирование","isProfiled":true},{"relatedData":null,"id":"375","alias":"java","type":"collective","title":"Java","titleHtml":"Java","isProfiled":true},{"relatedData":null,"id":"19441","alias":"kotlin","type":"collective","title":"Kotlin","titleHtml":"Kotlin","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EЯ хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто именно будем генерировать — не так важно.\u003Cbr\u002F\u003E\r\nВажно что мы опишем 3 вида объектов на основе которых сгенерируем взаимодействие фронтенда с бекендом, а кое где и полностью реализацию бекенда\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭти типы объектов:\u003Cbr\u002F\u003E\r\n1. \u003Ci\u003EMessages \u003C\u002Fi\u003E — объекты, которые будучи сериализoванными в JSON участвуют в обмене информации между фронтендом и бекендом\u003Cbr\u002F\u003E\r\n2. \u003Ci\u003EEndpoints \u003C\u002Fi\u003E — URI, который вызывает фронтенд вместе с описанием HTTP метода, параметров запроса, типа Request Body и типа респонса\u003Cbr\u002F\u003E\r\n3. \u003Ci\u003EEntities \u003C\u002Fi\u003E — Это такие messages, для которых них есть стандартные endpoints для Create\u002FUpdate\u002FList\u002FDelete (может быть не все), они хранятся в базе данных и для них есть Data Access Object, или Spring JPA repository — вообщем зависит от технологии, но какой то доступ к базе данных\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФронтендом я не занимаюсь вообще, но\u003Cbr\u002F\u003E\r\n1) Знаю, что он пишется на Typescript, поэтому мы генерируем и классы тайпскрипта\u003Cbr\u002F\u003E\r\n2) Большая часть требований к бекенду приходит от разработчиков фронтенда.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EТребования к коду\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003EИтак, какие есть требования со стороны фронтенда?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n1. RESTподобный интерфейс взаимодействия\u003Cbr\u002F\u003E\r\n2. Однообразные респонсы — json, полезная нагрузка в поле 'data'\u003Cbr\u002F\u003E\r\n3. Однообразные ошибки если на бекенде случилось исключение, желательно также добавить stack trace \u003Cbr\u002F\u003E\r\n4. «правильные» HTTP коды — 404 если книга не найдена, 400 если плохой запрос (скажем, не валидный json) и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДобавлю требования к коду бекенда «от себя»:\u003Cbr\u002F\u003E\r\n1. Обработка ошибок в одном месте\u003Cbr\u002F\u003E\r\n2. Возможность в любом месте кода прекратить flow и вернуть нужный HTTP код\u003Cbr\u002F\u003E\r\n3. Некоторую бизнес логику я хочу писать как блокирущую, а некоторую как асинхронную, в зависимости от используемых библиотек. Но всё это должно работать в одном асинхронном фреймворке\u003Cbr\u002F\u003E\r\n4. Желательно, чтобы разработчики бекенда вообще не думали про HTTP реквесты и респонсы, про Vertx роуты и ивент басы, а просто писали свою бизнес логику.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЖелательно все вышеупомянутые требование реализовывать наследованием и композицией и только там, где это не получается, использовать генерацию кода\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЖелательно также генерировать паралельно классы для тайпскрипта и котлина, чтобы всегда фронтенд посылал бекенду то, что надо (а не полагаться на разработчиков, что не забудут добавить в класс новое поле)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EЧто будем генерировать\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля примера возьмём гипотетическое веб приложение, которое может сохранять и редактировать книги, показывать их список и искать по названию.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС точки зрения технологий на бекенде Котлин, Vert.x, корутины. Что то вроде того, что я показал в статье \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449092\u002F\"\u003E«Три парадигмы асинхронного программирования в Vertx»\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы было интереснее, доступ к базе сделаем на основе Spring Data JPA.\u003Cbr\u002F\u003E\r\nЯ не говорю, что надо смешивать Spring и Vert.x в одном проекте (хотя сам так делаю, признаюсь), а просто беру Spring так как для него проще всего показать генерацию на основе Entities.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EСтруктура проекта с генерацией\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Ccut\u003E\u003C\u002Fcut\u003E\u003Cbr\u002F\u003E\r\nТеперь нужно сделать проект для генерации.\u003Cbr\u002F\u003E\r\nGradle проектов у нас будет много. Сейчас я их сделаю в одном гит репозитории, но в реальной жизни каждый должен сидеть в своём, потому что меняться они будут в разное время, у них будут свои версии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, первый проект это проект с аннотациями, которые будут обозначать наши раутеры, HTTP методы и т.д. Назовем его \u003Ci\u003Emetainfo\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\nОт него зависят два других проекта:\u003Cbr\u002F\u003E\r\n\u003Ci\u003Ecodegen\u003C\u002Fi\u003E и \u003Ci\u003Eapi\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003Eapi\u003C\u002Fi\u003E содержит описания раутеров и мессаджей — тех классов, который будут ходить туда-сюда между бекендом и фронтендом\u003Cbr\u002F\u003E\r\n\u003Ci\u003Ecodegen\u003C\u002Fi\u003E — проект кодегенерации (но не проект в котором генерируется код!) — он содержит сбор информации из \u003Ci\u003Eapi\u003C\u002Fi\u003E классов и собственно генераторы кода.\u003Cbr\u002F\u003E\r\nГенераторы будут получать все детали генерации в аргументах — из какого пакета брать описания раутеров, в какую директорию генерить, какое имя Velocity шаблона для генерации — т.е. \u003Ci\u003Emetainfo\u003C\u002Fi\u003E и \u003Ci\u003Ecodegen\u003C\u002Fi\u003E можно будет вообще испольовать совсем в других проектах\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНу и два проекта в которых собственно будет осуществляться генерация:\u003Cbr\u002F\u003E\r\n\u003Ci\u003Efrontend-generated\u003C\u002Fi\u003E в котором мы будем генерировать класс Typescript, которые соответствуют нашим котлин мессаджам\u003Cbr\u002F\u003E\r\nи \u003Ci\u003Ebackend\u003C\u002Fi\u003E — с собственно Vertx приложением.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля того, чтобы один проект «увидел» результат компиляции другого, будем использовать плагин для публикации артифактов в локальном репоситории Maven.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПроект \u003Ci\u003Emetafinfo\u003C\u002Fi\u003E\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАннотации, которыми будем помечать источники генерации — описания endpoins, messages, entities:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"kotlin\"\u003E\u002F* Contains a number of endpoints. We will generate Vert.x router or Spring MVC controller from it*\u002F\nannotation class EndpointController(val url:String)\n\n\u002F* Endpoint inside a controller. Concrete URI and HTTP method. May be has query param *\u002F\nannotation class Endpoint(val method: HttpMethodName, val param: String = \"\")\n\n\u002F* For empty constructor generation *\u002F\nannotation class EmptyConstructorMessage\n\n\u002F* Make abstract implementation method for endpoint logic asynchronous *\u002F\nannotation class AsyncHandler\n\n\n\u002F* All the next annotations are for Entities only:*\u002F\nannotation class GenerateCreate\nannotation class GenerateUpdate\nannotation class GenerateGetById\nannotation class GenerateList\nannotation class GenerateDelete\n\n\u002F* Make CRUD implementation abstract, so that we will override it*\u002F\nannotation class AbstractImplementation\n\n\u002F* Generate search by this field in DAO layer *\u002F\nannotation class FindBy\n\n\u002F* This entity is child of another entity, so generate end point like\n \u002Fparent\u002F$id\u002Fchild to bring all children of concrete parent\n instead of\n \u002Fchild - bring all entities of this type\n *\u002F\nannotation class ChildOf(vararg val parents: KClass&lt;*\u003E)\n\nenum class HttpMethodName {\n    POST,PUT,GET,DELETE\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДля классов Typescript мы определим аннотации, которые можно вешать на поля и которыв попадут в сгенерированный класс Typescript\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"kotlin\"\u003Eannotation class IsString\nannotation class IsEmail\nannotation class IsBoolean\nannotation class MaxLength(val len:Int)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fbernshtam-articles\u002Fkotlin-codegen-part-1\u002Ftree\u002Fmaster\u002Fmetainfo\"\u003EИсходный код проекта metainfo\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПроект \u003Ci\u003Eapi\u003C\u002Fi\u003E:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбратите внимание на плагины noArg и jpa в build.gradle для генерации конструкторов без аргументов\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФантазии у меня не хватает, поэтому создадим какие то безумные описания контроллеров и Entities для нашего приложения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"kotlin\"\u003E@EndpointController(\"\u002Futil\")\ninterface SearchRouter {\n    @Endpoint(HttpMethodName.GET, param = \"id\")\n    fun search(id: String): String\n\n    @Endpoint(method = HttpMethodName.POST)\n    @AsyncHandler\n    fun search(searchRequest: SearchRequest) \u002F\u002F we have no check or response type\n}\n\ndata class SearchRequest(\n    @field:IsString\n    val author: String?,\n\n    @field:IsEmail\n    val someEmail: String,\n\n    @field:IsString\n    val title: String?\n)\n\n\n@GenerateList\n@GenerateGetById\n@GenerateUpdate\n@Entity\n@AbstractImplementation\ndata class Book(\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    var id: Long?,\n\n    @field:IsBoolean\n    @Column(name = \"is_deleted\")\n    var hardcover: Boolean,\n\n    @field:IsString\n    @field:MaxLength(128)\n    @Column(nullable = false, length = 128)\n    val title: String,\n\n    @field:IsString\n    @field:MaxLength(128)\n    @Column(nullable = false, length = 255)\n    val author: String\n)\n\n@GenerateList\n@GenerateGetById\n@GenerateUpdate\n@GenerateDelete\n@GenerateCreate\n@Entity\n@ChildOf(Book::class)\ndata class Chapter(\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    var id: Long?,\n    @Column(nullable = false, name = \"book_id\")\n    var bookId: Long?,\n\n    @field:IsString\n    @field:MaxLength(128)\n    @Column(nullable = false, length = 128)\n    @field:FindBy\n    val name: String,\n\n    @Column(nullable = false)\n    val page:Int\n)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fbernshtam-articles\u002Fkotlin-codegen-part-1\u002Ftree\u002Fmaster\u002Fapi\"\u003EИсходный код проекта api\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПроект \u003Ci\u003Ecodegen\u003C\u002Fi\u003E:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСначала определим «дескрипторы» — те классы, которые мы заполним, пройдясь рефлекцией по нашему проекту «api»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"kotlin\"\u003Edata class EndPoint(\n    val url: String, val input: String?, val param: String?, val output: String, val method: String,\n    val handler: String, val asyncHandler: Boolean\n)\n\ndata class Router(val name: String, val url: String, val endpoints: List&lt;EndPoint\u003E)\n\nclass Entity(\n    name: String, val parents: List&lt;String\u003E, val abstractVerticle: Boolean,\n    val crudFeatures: CrudFeatures, fields: List&lt;Field\u003E, var children: List&lt;Entity\u003E\n) : Message(name, fields) {\n\n    fun shouldGenerateRouterAndVerticle(): Boolean {\n        return crudFeatures.generateRouterAndVerticle()\n    }\n\n    override fun toString(): String {\n        return \"Entity(parents=$parents, abstractVerticle=$abstractVerticle, crudFeatures=$crudFeatures, children=$children)\"\n    }\n\n}\n\ndata class CrudFeatures(\n    val list: Boolean, val create: Boolean, val update: Boolean, val delete: Boolean,\n    val get: Boolean\n) {\n\n    fun generateRouterAndVerticle(): Boolean {\n        return list || create || update || delete || get\n    }\n}\n\n\nopen class Message(val name: String, val fields: List&lt;Field\u003E)\n\ndata class Field(val name: String, val type: String, val validators: List&lt;Annotation\u003E, val findBy: Boolean)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКод, который собирает информацию выглядит так:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"kotlin\"\u003Eclass EntitiesCreator(typeMapper: TypeMapper, frontendAnnoPackage:String) {\n\n    private val messagesDescriptor =\n        MessagesCreator(typeMapper, frontendAnnoPackage)\n\n    fun createEntities(entitiesPackage: String): List&lt;Entity\u003E {\n        val reflections = Reflections(entitiesPackage, SubTypesScanner(false))\n        val types = reflections.getSubTypesOf(Object::class.java)\n        return types.map { createEntity(it) }\n    }\n\n    fun createEntityRestEndpoints(entity: Entity): List&lt;EndPoint\u003E {\n        val name = entity.name\n\n        val url = name.toLowerCase()\n        val endpoints: MutableList&lt;EndPoint\u003E = mutableListOf()\n        if (entity.crudFeatures.create) {\n            endpoints.add(\n                EndPoint(url, name, null, name, \"post\", \"handleNew$name\", false)\n            )\n        }\n        if (entity.crudFeatures.get) {\n            endpoints.add(\n                EndPoint(\n                    \"$url\u002F:id\", null, \"id\", name, \"get\", \"handleGet$name\", false\n                )\n            )\n        }\n        if (entity.crudFeatures.update) {\n            endpoints.add(\n                EndPoint(url, name, null, name, \"put\", \"handleUpdate$name\", false)\n            )\n        }\n        if (entity.crudFeatures.delete) {\n            endpoints.add(\n                EndPoint(\n                    \"$url\u002F:id\", null, \"id\", \"\", \"delete\", \"handleDelete$name\", false\n                )\n            )\n        }\n\n        if (entity.crudFeatures.list) {\n            if (entity.parents.isEmpty()) {\n                endpoints.add(\n                    EndPoint(\n                        url, null, null, \"List&lt;$name\u003E\", \"get\", \"handleGetAllFor$name\", false\n                    )\n                )\n            }\n        }\n        entity.children.forEach {\n            endpoints.add(\n                EndPoint(\n                    \"$url\u002F:id\u002F${it.name.toLowerCase()}\", null, \"id\", \"List&lt;$name\u003E\", \"get\",\n                    \"handleGet${it.name}For$name\", false\n                )\n            )\n        }\n        return endpoints\n    }\n\n    private fun createEntity(aClass: Class&lt;*\u003E): Entity {\n        return Entity(\n            aClass.simpleName, getParents(aClass),\n            isVerticleAbstract(aClass),\n            shouldGenerateCrud(aClass),\n            messagesDescriptor.createFields(aClass), listOf()\n        )\n    }\n\n    private fun isVerticleAbstract(aClass: Class&lt;*\u003E): Boolean {\n        return aClass.getDeclaredAnnotation(AbstractImplementation::class.java) != null\n    }\n\n    private fun getParents(aClass: Class&lt;*\u003E): List&lt;String\u003E {\n        return aClass.getDeclaredAnnotation(ChildOf::class.java)?.parents?.map { it.simpleName }?.requireNoNulls()\n            ?: listOf()\n    }\n\n    private fun shouldGenerateCrud(aClass: Class&lt;*\u003E): CrudFeatures {\n        val listAnno = aClass.getDeclaredAnnotation(GenerateList::class.java)\n        val createAnno = aClass.getDeclaredAnnotation(GenerateCreate::class.java)\n        val getAnno = aClass.getDeclaredAnnotation(GenerateGetById::class.java)\n        val updateAnno = aClass.getDeclaredAnnotation(GenerateUpdate::class.java)\n        val deleteAnno = aClass.getDeclaredAnnotation(GenerateDelete::class.java)\n        return CrudFeatures(\n            list = listAnno != null,\n            create = createAnno != null,\n            update = updateAnno != null,\n            delete = deleteAnno != null,\n            get = getAnno != null\n        )\n    }\n}\n\nclass MessagesCreator(private val typeMapper: TypeMapper, private val frontendAnnotationsPackageName: String) {\n\n\n    fun createMessages(packageName: String): List&lt;Message\u003E {\n        val reflections = Reflections(packageName, SubTypesScanner(false))\n        return reflections.allTypes.map { Class.forName(it) }.map { createMessages(it) }\n    }\n\n\n    private fun createMessages(aClass: Class&lt;*\u003E): Message {\n        return Message(aClass.simpleName, createFields(aClass))\n    }\n\n    fun createFields(aClass: Class&lt;*\u003E): List&lt;Field\u003E {\n        return ReflectionUtils.getAllFields(aClass).map { createField(it) }\n    }\n\n    private fun createField(field: java.lang.reflect.Field): Field {\n        val annotations = field.declaredAnnotations\n        return Field(\n            field.name, typeMapper.map(field.type),\n            createConstraints(annotations),\n            annotations.map { anno -\u003E anno::annotationClass.get() }.contains(FindBy::class)\n        )\n    }\n\n    private fun createConstraints(annotations: Array&lt;out Annotation\u003E): List&lt;Annotation\u003E {\n        return annotations.filter { it.toString().startsWith(\"@$frontendAnnotationsPackageName\") }\n    }\n}\n\nclass RoutersCreator(private val typeMapper: TypeMapper, private val endpointsPackage:String ) {\n\n    fun createRouters(): List&lt;Router\u003E {\n        val reflections = Reflections(endpointsPackage, SubTypesScanner(false))\n        return reflections.allTypes.map {\n            createRouter(\n                Class.forName(\n                    it\n                )\n            )\n        }\n    }\n\n    private fun createRouter(aClass: Class&lt;*\u003E): Router {\n        return Router(aClass.simpleName, getUrl(aClass),\n            ReflectionUtils.getAllMethods(aClass).map {\n                createEndpoint(it)\n            })\n    }\n\n    private fun getUrl(aClass: Class&lt;*\u003E): String {\n        return aClass.getAnnotation(EndpointController::class.java).url\n    }\n\n    private fun getEndPointMethodName(declaredAnnotation: Endpoint?): String {\n        val httpMethodName = declaredAnnotation?.method\n        return (httpMethodName ?: HttpMethodName.GET).name.toLowerCase()\n    }\n\n    private fun getParamName(declaredAnnotation: Endpoint?): String {\n        val paramName = declaredAnnotation?.param\n        return (paramName ?: \"id\")\n    }\n\n    private fun createEndpoint(method: Method): EndPoint {\n        val types = method.parameterTypes\n        val declaredAnnotation: Endpoint? = method.getDeclaredAnnotation(Endpoint::class.java)\n\n        val methodName = getEndPointMethodName(declaredAnnotation)\n        var url = method.name\n        var input: String? = null\n        var param: String? = null\n        val hasInput = types.isNotEmpty()\n        val handlerName = \"$methodName${StringUtils.capitalize(url)}\"\n\n        if (hasInput) {\n            val inputType = types[0]\n            val inputTypeName = typeMapper.map(inputType)\n            val createUrlParameterName = inputType == java.lang.String::class.java\n            if (createUrlParameterName) {\n                param = getParamName(declaredAnnotation)\n                url += \"\u002F:$param\"\n            } else {\n                input = simpleName(inputTypeName)\n            }\n        }\n\n        return EndPoint(\n            url, input, param, method.returnType.toString(),\n            methodName, handlerName, isHandlerAsync(method)\n        )\n    }\n\n    private fun isHandlerAsync(method: Method): Boolean {\n        val declaredAnnotation: AsyncHandler? = method.getDeclaredAnnotation(AsyncHandler::class.java)\n        return declaredAnnotation != null\n    }\n\n    private fun simpleName(name: String): String {\n        val index = name.lastIndexOf(\".\")\n        return if (index \u003E= 0) name.substring(index + 1) else name\n    }\n\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНу и есть еще «main» классы, которые получают аргументы — по каким пакетам проходить рефлексией, какие Velocity темплейты использовать и т.д.\u003Cbr\u002F\u003E\r\nОни не так интересы, на всё можно посмотреть в репозитории: \u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fbernshtam-articles\u002Fkotlin-codegen-part-1\u002Ftree\u002Fmaster\u002Fcodegen\"\u003EИсходный код\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВ проектах \u003Ci\u003Efrontend-generated\u003C\u002Fi\u003E и \u003Ci\u003Ebackend\u003C\u002Fi\u003E\u003C\u002Fb\u003E мы делаем похожие вещи:\u003Cbr\u002F\u003E\r\n1. зависимость от \u003Ci\u003Eapi\u003C\u002Fi\u003E на этапе компиляции\u003Cbr\u002F\u003E\r\n2. зависимость от \u003Ci\u003Ecodegen\u003C\u002Fi\u003E на этапе билда\u003Cbr\u002F\u003E\r\n3. Шаблоны генерации находятся в директории \u003Ci\u003EbuildSrc\u003C\u002Fi\u003E в которую в gradle кладут файлы и код, которые нужны на этапе билда, но не на этапе компиляции или рантайма. Т.е. мы можем менять шаблон генерации, не перекомпилируя проект \u003Ci\u003Ecodegen\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n4. \u003Ci\u003Efrontend-generated\u003C\u002Fi\u003E компилирует сгенерированный Typescript и публикует его в репозиторий npm пакетов\u003Cbr\u002F\u003E\r\n5. В \u003Ci\u003Ebackend\u003C\u002Fi\u003E генерируются раутеры, которые наследуют от не генерируемого абстрактного раутера, который знает как обрабатывать разные типы запросов. Также генерируются абстрактные Verticles, которые надо наследовать с имплементацией собственно бизнес логики. Кроме того генерируются всякие мелочи, о которых я как программист не хочу думать — регистрация кодеков и константы адресов в ивент басе.\u003Cbr\u002F\u003E\r\nИсходный код \u003Ci\u003E\u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fbernshtam-articles\u002Fkotlin-codegen-part-1\u002Ftree\u002Fmaster\u002Ffrontend-generated\"\u003Efrontend-generated\u003C\u002Fa\u003E\u003C\u002Fi\u003E и \u003Ci\u003E\u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fbernshtam-articles\u002Fkotlin-codegen-part-1\u002Ftree\u002Fmaster\u002Fbackend\"\u003Ebackend\u003C\u002Fa\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВо \u003Ci\u003Efrontend-generated\u003C\u002Fi\u003E надо обратить внимание на плагин, который публикует сгенерированные соурсы в npm репозиторий. Чтобы это работало, надо поставить IP своего репозитория в build.gradle и поставить свой токен аутентификации в .npmrc\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВыглядят сгенерированные классы так:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport {\n    IsString,\n    MaxLength,\nIsDate,\nIsArray,\n} from 'class-validator';\nimport { Type } from 'class-transformer';\n\n\u002F\u002F Entity(parents=[], abstractVerticle=false, crudFeatures=CrudFeatures(list=true, create=true, update=true, delete=true, get=true), children=[])\nexport class Chapter {\n\n    \n    \u002F\u002F Field(name=bookId, type=number, validators=[], findBy=false)\n     bookId!: number;\n\n    \n      @IsString()\n      @MaxLength(128)\n    \u002F\u002F Field(name=name, type=string, validators=[@com.valapay.test.annotations.frontend.IsString(), @com.valapay.test.annotations.frontend.MaxLength(len=128)], findBy=false)\n     name!: string;\n\n    \n    \u002F\u002F Field(name=id, type=number, validators=[], findBy=false)\n     id!: number;\n\n    \n    \u002F\u002F Field(name=page, type=number, validators=[], findBy=false)\n     page!: number;\n}\n\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбратите внимание на class-validator аннотации тс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ проекте бекенда генерируются также репозитории для Spring Data JPA, есть возможность сказать что проект обработки сообщения в Verticle блокирующий (и запускаться через Vertx.executeBlocking) или асинхронный (с корутинами), есть возможность сказать чтобы Verticle сгенерированный для Entity был абстрактный и тогда есть возможность переопределить хуки, которые вызываются до и после вызова сгенерированных методов. Деплоймент Verticles автоматический по интерфейсу спринг бинов — ну короче много плюшек.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ всё это легко расширить — например навесить на Endpoints список ролей и генерировать проверку роли залогиненого пользователя при вызове ендпоинта и многое другое — на что хватит фантазии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак же легко сгенерировать не Vertx, не Spring, а что то другое — хоть akka-http, достаочно только изменить темплейты в проекте backend.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДругое возможное направление развития — генерировать больше фронтенда.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВесь исходный код \u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fbernshtam-articles\u002Fkotlin-codegen-part-1\"\u003Eтут\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпасибо Ильдару с фронтенда за помощь в создании генерации у нас в проекте и при написании статьи\u003Cbr\u002F\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"kotlin"},{"titleHtml":"java"},{"titleHtml":"vertx"},{"titleHtml":"callback"},{"titleHtml":"coroutines"},{"titleHtml":"asynchronous"},{"titleHtml":"code generation"},{"titleHtml":"генерация кода"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450100\u002Fe18c2952a9ca32189f4fcc259ddc00d4\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450100\u002Fe18c2952a9ca32189f4fcc259ddc00d4\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450100\\\u002F\"},\"headline\":\"Генерация кода для бекенда. Что генерировать, как и зачем?\",\"datePublished\":\"2019-05-10T14:13:02+03:00\",\"dateModified\":\"2019-05-10T14:58:10+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"javax\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.  Что именно будем ге...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450100\\\u002F#post-content-body\",\"about\":[\"h_programming\",\"h_java\",\"h_kotlin\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450100\\\u002Fe18c2952a9ca32189f4fcc259ddc00d4\\\u002F\"]}","metaDescription":"Я хочу показать в этой статье как у нас в фирме генерируется бекенд (и немного фронтенд) код, зачем вообще это нужно и как это лучше делать.\r\n\r\nЧто именно будем генерировать — не так важно.\r\nВажно что...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"programming,java,kotlin"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

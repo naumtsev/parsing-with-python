@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Terraformer — Infrastructure To Code / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450410\/"},"headline":"Terraformer — Infrastructure To Code","datePublished":"2019-05-07T01:53:11+03:00","dateModified":"2019-05-08T00:01:26+03:00","author":{"@type":"Person","name":"sergeylanz"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы.   Проблема Terraform уже давно стал стандартом в Devops\/Cloud\/IT соо...","url":"https:\/\/habr.com\/ru\/post\/450410\/#post-content-body","about":["h_open_source","h_aws","h_go","h_devops","h_googlecloud","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3ac\/04c\/136\/3ac04c136f4060b5f1cc3c80401cb8b4.png","https:\/\/asciinema.org\/a\/243961.svg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Terraformer — Infrastructure To Code" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Terraformer — Infrastructure To Code" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Terraformer — Infrastructure To Code" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. 
+
+Проблема
+Terraform уже давно стал стандартом в Devops/Cloud/IT сообществе. Вещь очень удобная и..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. 
+
+Проблема
+Terraform уже давно стал стандартом в Devops/Cloud/IT сообществе. Вещь очень удобная и..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. 
+
+Проблема
+Terraform уже давно стал стандартом в Devops/Cloud/IT сообществе. Вещь очень удобная и..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. 
+
+Проблема
+Terraform уже давно стал стандартом в Devops/Cloud/IT сообществе. Вещь очень удобная и..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. 
+
+Проблема
+Terraform уже давно стал стандартом в Devops/Cloud/IT сообществе. Вещь очень удобная и..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450410/0542abd6aa8beaf8734fdf833fc04dc8/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450410/0542abd6aa8beaf8734fdf833fc04dc8/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450410/0542abd6aa8beaf8734fdf833fc04dc8/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450410/0542abd6aa8beaf8734fdf833fc04dc8/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450410/0542abd6aa8beaf8734fdf833fc04dc8/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450410" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T22:53:11.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450410/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450410/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450410/0542abd6aa8beaf8734fdf833fc04dc8/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/sergeylanz/" title="sergeylanz" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/8d4/e18/3df/8d4e183df9697e9f3a5434bd5f1b2018.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/sergeylanz/" class="tm-user-info__username">
+      sergeylanz
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T22:53:11.000Z" title="2019-05-07, 01:53">7  мая  2019 в 01:53</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Terraformer — Infrastructure To Code</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/open_source/" class="tm-article-snippet__hubs-item-link"><span>Open source</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/aws/" class="tm-article-snippet__hubs-item-link"><span>Amazon Web Services</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/go/" class="tm-article-snippet__hubs-item-link"><span>Go</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/devops/" class="tm-article-snippet__hubs-item-link"><span>DevOps</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/googlecloud/" class="tm-article-snippet__hubs-item-link"><span>Google Cloud Platform</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" alt="image" data-src="https://habrastorage.org/getpro/habr/post_images/3ac/04c/136/3ac04c136f4060b5f1cc3c80401cb8b4.png"/><br/>
+Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. <br/>
+<br/>
+<h3>Проблема</h3><br/>
+Terraform уже давно стал стандартом в Devops/Cloud/IT сообществе. Вещь очень удобная и полезная чтоб заниматся infrastructure as code. Есть много прелестей в Terraform а так же много вилок, острых ножей и граблей. <br/>
+С Terraform очень удобно делать новые вещи и потом ими управлять, менять или удалять. А что делать тем у кого есть огромная инфраструктура в облаке и не создано через Terraform? Переписывать и пересоздавать все облако как то дорого и небезопасно. <br/>
+Я сталкивался с такой проблемой на 2 работах, самый простой пример когда хочешь что все было в гите виде терраформ файлов, а у тебя 250+ бакетов и писать их для терраформа руками как то много. <br/>
+Есть <a href="https://github.com/hashicorp/terraform/issues/581">issue</a> еще с 2014 года в terrafom которую закрыли в 2016 с надеждой что будет import.<br/>
+<br/>
+Вообщем все как на картинке только справа налево<br/>
+<a name="habracut"></a><br/>
+<br/>
+Предупреждения: Автор пол жизни живет не в России и пишет на русском мало. Осторожно ошибки в орфографии.<br/>
+<br/>
+<h3>Решения</h3><br/>
+1. Есть готовое и старое решения для AWS <a href="https://github.com/dtan4/terraforming">terraforming</a>. Когда я пытался через него получить мои 250+ бакетов то понял что там все плохо. AWS уже давно накидали много новых опций а terraforming про них не знает и вообще у него ruby <a href="https://github.com/dtan4/terraforming/blob/master/lib/terraforming/template/tf/s3.erb">темплет выглядят скудно</a>. После 2 вечером я послал <a href="https://github.com/dtan4/terraforming/pull/396">Pull request</a> чтоб добавить больше возможностей туда и понял что такое решения не подходит вообще. <br/>
+Как работает terraforming он берет с SDK AWS данные и генерирует tf и tfstate через темплет. <br/>
+Тут 3 проблемы:<br/>
+1. Всегда там будет отставания в обновлениях<br/>
+2. tf файлы иногда выходят битые <br/>
+3. tfstate собирается отдельно от tf и не всегда сходится<br/>
+Вообще сложно получит результат при котором `terraform plan` скажет что не изменений<br/>
+<br/>
+2. `terraform import` — встроенная команда в terraform. Как работает? <br/>
+Пишешь пустой TF файл с именем и видом ресурса, потом запускаешь `terraform import` и передаешь ID ресурса. terraform обращается к провайдеру получает данные и делает tfstate файл. <br/>
+Тут 3 проблемы:<br/>
+1. Получаем только tfstate файл а tf пустой надо руками писать или конвертировать с tfstate<br/>
+2. Умеет работать только с одним ресурсов каждый раз и не поддерживает все ресурсы. И что мне сново делать с 250+ бакетами<br/>
+3. Надо знать ID ресурсов — то есть надо обматывать его это в код который достает список ресурсов<br/>
+Вообще результат частичный и не масштабируется хорошо<br/>
+<br/>
+<h3>Мое решения<br/>
+</h3>Требования:<br/>
+1. Возможность создать файлы tf и tfstate по ресурсам. Например скачать все бакеты/security group/load balancer и что `terraform plan` возвращал что нет изменений<br/>
+2. Надо 2 облака GCP + AWS<br/>
+3. Глобальное решения которое легко обновлять каждый раз и не тратить время на каждый ресурс по 3 дня работы<br/>
+4. Сделать Open source — проблема у всех такая<br/>
+<br/>
+Язык Go — потому я люблю, и на нем есть библиотека для создания HCL файлов которая используется в terraform + много кода в terraform который может быть полезный<br/>
+<br/>
+<h3>Путь</h3><br/>
+Попытка первая<br/>
+Начал простой вариант. Обращения в облако через SDK за нужным ресурсом и конвертирования его в поля для terraform. Попытка умерла сразу на security group потому что мне не понравилось 1.5 дня конвертировать только security group(а ресурсов много). Долго и потом поля могут менять/добавлятся<br/>
+<br/>
+Попытка вторая<br/>
+Основано на идеи описанной <a href="https://github.com/hashicorp/terraform/issues/15608">тут</a>. Просто взять и сконвертировать tfstate в tf. Все данные там есть и поля те же. Как получить полный tfstate для много ресурсов?? Тут на помощь пришла команда `terraform refresh`. terraform берет все ресурсы в tfstate и по ID вытаскивает по ним данные и пишет все в tfstate. То есть создать пустой tfstate только с именами и ID, запустить `terraform refresh` то получаем полные tfstate. Ура!<br/>
+Теперь займемся <s>рекурсивной порнографием</s> написание конвертора для tfstate в tf. Для тех кто никогда не читал tfstate то это JSON, но особенный. <br/>
+Вот его важная часть attributes<br/>
+<pre><code class="javascript"> "attributes": {
+                            "id": "default/backend-logging-load-deployment",
+                            "metadata.#": "1",
+                            "metadata.0.annotations.%": "0",
+                            "metadata.0.generate_name": "",
+                            "metadata.0.generation": "24",
+                            "metadata.0.labels.%": "1",
+                            "metadata.0.labels.app": "backend-logging",
+                            "metadata.0.name": "backend-logging-load-deployment",
+                            "metadata.0.namespace": "default",
+                            "metadata.0.resource_version": "109317427",
+                            "metadata.0.self_link": "/apis/apps/v1/namespaces/default/deployments/backend-logging-load-deployment",
+                            "metadata.0.uid": "300ecda1-4138-11e9-9d5d-42010a8400b5",
+                            "spec.#": "1",
+                            "spec.0.min_ready_seconds": "0",
+                            "spec.0.paused": "false",
+                            "spec.0.progress_deadline_seconds": "600",
+                            "spec.0.replicas": "1",
+                            "spec.0.revision_history_limit": "10",
+                            "spec.0.selector.#": "1",
+</code></pre><br/>
+Тут есть:<br/>
+1. id — string<br/>
+2. metadata — array размером 1 и в нем объект с полями который описан ниже<br/>
+3. spec — hash размером 1 и в нем key,value<br/>
+Короче веселый формат, все может быть в глубь тоже на несколько уровней<br/>
+<pre><code class="javascript">                   "spec.#": "1",
+                            "spec.0.min_ready_seconds": "0",
+                            "spec.0.paused": "false",
+                            "spec.0.progress_deadline_seconds": "600",
+                            "spec.0.replicas": "1",
+                            "spec.0.revision_history_limit": "10",
+                            "spec.0.selector.#": "1",
+                            "spec.0.selector.0.match_expressions.#": "0",
+                            "spec.0.selector.0.match_labels.%": "1",
+                            "spec.0.selector.0.match_labels.app": "backend-logging-load",
+                            "spec.0.strategy.#": "0",
+                            "spec.0.template.#": "1",
+                            "spec.0.template.0.metadata.#": "1",
+                            "spec.0.template.0.metadata.0.annotations.%": "0",
+                            "spec.0.template.0.metadata.0.generate_name": "",
+                            "spec.0.template.0.metadata.0.generation": "0",
+                            "spec.0.template.0.metadata.0.labels.%": "1",
+                            "spec.0.template.0.metadata.0.labels.app": "backend-logging-load",
+                            "spec.0.template.0.metadata.0.name": "",
+                            "spec.0.template.0.metadata.0.namespace": "",
+                            "spec.0.template.0.metadata.0.resource_version": "",
+                            "spec.0.template.0.metadata.0.self_link": "",
+                            "spec.0.template.0.metadata.0.uid": "",
+                            "spec.0.template.0.spec.#": "1",
+                            "spec.0.template.0.spec.0.active_deadline_seconds": "0",
+                            "spec.0.template.0.spec.0.container.#": "1",
+                            "spec.0.template.0.spec.0.container.0.args.#": "3",</code></pre><br/>
+Вообщем кто хочет задачку на программирования для собеседования то просто попросите написать парсер на это дело :)<br/>
+После долгих попыток написать парсер без багов я нашел часть его в коде terraform причем самую важную часть. И все вроде работало норм<br/>
+<br/>
+Попытка три<br/>
+terraform provider — это бинарки в которых есть код со всеми ресурсами и логикой для работы с API облаков. У каждого облака есть свой provider и сам terraform только вызывает их через свой протокол RPC между двумя процессами.<br/>
+Теперь я решил обращаться напрямую к terraform providers через RPC вызовы. Так вышло красиво и дало возможность менять terraform providers на более новые и получать новые возможность не меняя код. Еще оказалось не все поля в tfstate должны быть в tf, а как это узнать? Только спросить provider об этом. Потом началась еще одна <s>рекурсивной порнографием по сборки регулярных выражений</s> канитель с поиском полей внутри tfstate на всех уровнях в глубь.<br/>
+<br/>
+В конце получилось полезный CLI tool у которого общая инфраструктура для всех terraform providers и можно легко добавить нового. Также добавления ресурсов занимает мало кода. Плюс всякие плюшки типа соединения между ресурсами. Конечно было много разных проблем которые все не описать.<br/>
+Назвал зверушку Terrafomer. <br/>
+<br/>
+<h3>Финал</h3><br/>
+Мы с помощью Terrafomer сгенерировали 500-700 тысяч строк кода tf + tfstate c двух облаках. Смогли взять легаси вещи и начать их трогать только через terraform как в лучших идеях infrastructure as code. Просто магия когда берешь огромное облако и получаешь через команду его в виде terraform файлов рабочих. А дальше grep/replace/git и так далее.<br/>
+<br/>
+Вычесал и привел в порядок, получил разрешения. Выпустил на гитхаб для всех в четверг(02.05.19). <a href="https://github.com/GoogleCloudPlatform/terraformer">github.com/GoogleCloudPlatform/terraformer</a><br/>
+Получил уже 600 звезд, 2 pull requests добавления поддержки openstack и kubernetes. Хорошие отзывы. Вообще проект полезный для людей<br/>
+Советую всем кто хочет начать работать с Terraform и не переписывать все для этого. <br/>
+Буду рад pull requests, issues, stars.<br/>
+<br/>
+Демо<br/>
+<a href="https://asciinema.org/a/243961"><img src="https://asciinema.org/a/243961.svg"/></a><br/>
+<br/>
+Обновления: прикрутили минимальную поддержку Openstack и почти готова поддержка kubernetes, спасибо людям за PRs</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bterraform%5D" class="tm-tags-list__link">terraform</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcloud%5D" class="tm-tags-list__link">cloud</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgcp%5D" class="tm-tags-list__link">gcp</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgoogle%20cloud%5D" class="tm-tags-list__link">google cloud</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Baws%5D" class="tm-tags-list__link">aws</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdevops%5D" class="tm-tags-list__link">devops</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bhcl%5D" class="tm-tags-list__link">hcl</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgolang%5D" class="tm-tags-list__link">golang</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgo%5D" class="tm-tags-list__link">go</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Binfrastructure%20as%20code%5D" class="tm-tags-list__link">infrastructure as code</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bopenstack%5D" class="tm-tags-list__link">openstack</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bkubernetes%5D" class="tm-tags-list__link">kubernetes</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/open_source/" class="tm-hubs-list__link">
+    Open source
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/aws/" class="tm-hubs-list__link">
+    Amazon Web Services
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/go/" class="tm-hubs-list__link">
+    Go
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/devops/" class="tm-hubs-list__link">
+    DevOps
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/googlecloud/" class="tm-hubs-list__link">
+    Google Cloud Platform
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 30: ↑29 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 30: ↑29 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+28</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">12K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    87
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/sergeylanz/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/8d4/e18/3df/8d4e183df9697e9f3a5434bd5f1b2018.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 29 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    19
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/sergeylanz/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @sergeylanz
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">SRE</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://github.com/sergeylanzman/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Github
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450410/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 14 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section data-async-called="true" class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Работа</h2> <!----></header> <div class="tm-block__body"><div class="tm-vacancies-block__item"><a href="https://career.habr.com/vacancies/go_razrabotchik" target="_blank" class="tm-vacancies-block__vacancy-title">
+        Go разработчик
+      </a> <div class="tm-vacancies-block__vacancies-count">
+        117
+    вакансий
+      </div></div></div> <footer class="tm-block__footer"><a href="https://career.habr.com/vacancies" class="tm-block-extralink">
+      Все вакансии
+    </a></footer></section></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450410/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450410/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450410":{"id":"450410","timePublished":"2019-05-06T22:53:11+00:00","isCorporative":false,"lang":"ru","titleHtml":"Terraformer — Infrastructure To Code","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F3ac\u002F04c\u002F136\u002F3ac04c136f4060b5f1cc3c80401cb8b4.png\" alt=\"image\"\u003E\u003Cbr\u003E\r\nХотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Ch3\u003EПроблема\u003C\u002Fh3\u003E\u003Cbr\u003E\r\nTerraform уже давно стал стандартом в Devops\u002FCloud\u002FIT сообществе. Вещь очень удобная и полезная чтоб заниматся infrastructure as code. Есть много прелестей в Terraform а так же много вилок, острых ножей и граблей. \u003Cbr\u003E\r\nС Terraform очень удобно делать новые вещи и потом ими управлять, менять или удалять. А что делать тем у кого есть огромная инфраструктура в облаке и не создано через Terraform? Переписывать и пересоздавать все облако как то дорого и небезопасно. \u003Cbr\u003E\r\nЯ сталкивался с такой проблемой на 2 работах, самый простой пример когда хочешь что все было в гите виде терраформ файлов, а у тебя 250+ бакетов и писать их для терраформа руками как то много. \u003Cbr\u003E\r\nЕсть \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fhashicorp\u002Fterraform\u002Fissues\u002F581\"\u003Eissue\u003C\u002Fa\u003E еще с 2014 года в terrafom которую закрыли в 2016 с надеждой что будет import.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВообщем все как на картинке только справа налево\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":19,"votesCount":29},"rating":0,"relatedData":null,"contacts":[{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Fsergeylanzman\u002F","value":"sergeylanzman"}],"authorContacts":[{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Fsergeylanzman\u002F","value":"sergeylanzman"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"173530","alias":"sergeylanz","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F8d4\u002Fe18\u002F3df\u002F8d4e183df9697e9f3a5434bd5f1b2018.jpg","speciality":"SRE"},"statistics":{"commentsCount":14,"favoritesCount":87,"readingCount":12248,"score":28,"votesCount":30},"hubs":[{"relatedData":null,"id":"144","alias":"open_source","type":"collective","title":"Open source","titleHtml":"Open source","isProfiled":true},{"relatedData":null,"id":"17682","alias":"aws","type":"collective","title":"Amazon Web Services","titleHtml":"Amazon Web Services","isProfiled":true},{"relatedData":null,"id":"17748","alias":"go","type":"collective","title":"Go","titleHtml":"Go","isProfiled":true},{"relatedData":null,"id":"20788","alias":"devops","type":"collective","title":"DevOps","titleHtml":"DevOps","isProfiled":true},{"relatedData":null,"id":"20922","alias":"googlecloud","type":"collective","title":"Google Cloud Platform","titleHtml":"Google Cloud Platform","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F3ac\u002F04c\u002F136\u002F3ac04c136f4060b5f1cc3c80401cb8b4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\nХотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПроблема\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nTerraform уже давно стал стандартом в Devops\u002FCloud\u002FIT сообществе. Вещь очень удобная и полезная чтоб заниматся infrastructure as code. Есть много прелестей в Terraform а так же много вилок, острых ножей и граблей. \u003Cbr\u002F\u003E\r\nС Terraform очень удобно делать новые вещи и потом ими управлять, менять или удалять. А что делать тем у кого есть огромная инфраструктура в облаке и не создано через Terraform? Переписывать и пересоздавать все облако как то дорого и небезопасно. \u003Cbr\u002F\u003E\r\nЯ сталкивался с такой проблемой на 2 работах, самый простой пример когда хочешь что все было в гите виде терраформ файлов, а у тебя 250+ бакетов и писать их для терраформа руками как то много. \u003Cbr\u002F\u003E\r\nЕсть \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fhashicorp\u002Fterraform\u002Fissues\u002F581\"\u003Eissue\u003C\u002Fa\u003E еще с 2014 года в terrafom которую закрыли в 2016 с надеждой что будет import.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВообщем все как на картинке только справа налево\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПредупреждения: Автор пол жизни живет не в России и пишет на русском мало. Осторожно ошибки в орфографии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EРешения\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n1. Есть готовое и старое решения для AWS \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdtan4\u002Fterraforming\"\u003Eterraforming\u003C\u002Fa\u003E. Когда я пытался через него получить мои 250+ бакетов то понял что там все плохо. AWS уже давно накидали много новых опций а terraforming про них не знает и вообще у него ruby \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdtan4\u002Fterraforming\u002Fblob\u002Fmaster\u002Flib\u002Fterraforming\u002Ftemplate\u002Ftf\u002Fs3.erb\"\u003Eтемплет выглядят скудно\u003C\u002Fa\u003E. После 2 вечером я послал \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdtan4\u002Fterraforming\u002Fpull\u002F396\"\u003EPull request\u003C\u002Fa\u003E чтоб добавить больше возможностей туда и понял что такое решения не подходит вообще. \u003Cbr\u002F\u003E\r\nКак работает terraforming он берет с SDK AWS данные и генерирует tf и tfstate через темплет. \u003Cbr\u002F\u003E\r\nТут 3 проблемы:\u003Cbr\u002F\u003E\r\n1. Всегда там будет отставания в обновлениях\u003Cbr\u002F\u003E\r\n2. tf файлы иногда выходят битые \u003Cbr\u002F\u003E\r\n3. tfstate собирается отдельно от tf и не всегда сходится\u003Cbr\u002F\u003E\r\nВообще сложно получит результат при котором `terraform plan` скажет что не изменений\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n2. `terraform import` — встроенная команда в terraform. Как работает? \u003Cbr\u002F\u003E\r\nПишешь пустой TF файл с именем и видом ресурса, потом запускаешь `terraform import` и передаешь ID ресурса. terraform обращается к провайдеру получает данные и делает tfstate файл. \u003Cbr\u002F\u003E\r\nТут 3 проблемы:\u003Cbr\u002F\u003E\r\n1. Получаем только tfstate файл а tf пустой надо руками писать или конвертировать с tfstate\u003Cbr\u002F\u003E\r\n2. Умеет работать только с одним ресурсов каждый раз и не поддерживает все ресурсы. И что мне сново делать с 250+ бакетами\u003Cbr\u002F\u003E\r\n3. Надо знать ID ресурсов — то есть надо обматывать его это в код который достает список ресурсов\u003Cbr\u002F\u003E\r\nВообще результат частичный и не масштабируется хорошо\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EМое решения\u003Cbr\u002F\u003E\r\n\u003C\u002Fh3\u003EТребования:\u003Cbr\u002F\u003E\r\n1. Возможность создать файлы tf и tfstate по ресурсам. Например скачать все бакеты\u002Fsecurity group\u002Fload balancer и что `terraform plan` возвращал что нет изменений\u003Cbr\u002F\u003E\r\n2. Надо 2 облака GCP + AWS\u003Cbr\u002F\u003E\r\n3. Глобальное решения которое легко обновлять каждый раз и не тратить время на каждый ресурс по 3 дня работы\u003Cbr\u002F\u003E\r\n4. Сделать Open source — проблема у всех такая\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЯзык Go — потому я люблю, и на нем есть библиотека для создания HCL файлов которая используется в terraform + много кода в terraform который может быть полезный\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПуть\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПопытка первая\u003Cbr\u002F\u003E\r\nНачал простой вариант. Обращения в облако через SDK за нужным ресурсом и конвертирования его в поля для terraform. Попытка умерла сразу на security group потому что мне не понравилось 1.5 дня конвертировать только security group(а ресурсов много). Долго и потом поля могут менять\u002Fдобавлятся\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПопытка вторая\u003Cbr\u002F\u003E\r\nОсновано на идеи описанной \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fhashicorp\u002Fterraform\u002Fissues\u002F15608\"\u003Eтут\u003C\u002Fa\u003E. Просто взять и сконвертировать tfstate в tf. Все данные там есть и поля те же. Как получить полный tfstate для много ресурсов?? Тут на помощь пришла команда `terraform refresh`. terraform берет все ресурсы в tfstate и по ID вытаскивает по ним данные и пишет все в tfstate. То есть создать пустой tfstate только с именами и ID, запустить `terraform refresh` то получаем полные tfstate. Ура!\u003Cbr\u002F\u003E\r\nТеперь займемся \u003Cs\u003Eрекурсивной порнографием\u003C\u002Fs\u003E написание конвертора для tfstate в tf. Для тех кто никогда не читал tfstate то это JSON, но особенный. \u003Cbr\u002F\u003E\r\nВот его важная часть attributes\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E \"attributes\": {\n                            \"id\": \"default\u002Fbackend-logging-load-deployment\",\n                            \"metadata.#\": \"1\",\n                            \"metadata.0.annotations.%\": \"0\",\n                            \"metadata.0.generate_name\": \"\",\n                            \"metadata.0.generation\": \"24\",\n                            \"metadata.0.labels.%\": \"1\",\n                            \"metadata.0.labels.app\": \"backend-logging\",\n                            \"metadata.0.name\": \"backend-logging-load-deployment\",\n                            \"metadata.0.namespace\": \"default\",\n                            \"metadata.0.resource_version\": \"109317427\",\n                            \"metadata.0.self_link\": \"\u002Fapis\u002Fapps\u002Fv1\u002Fnamespaces\u002Fdefault\u002Fdeployments\u002Fbackend-logging-load-deployment\",\n                            \"metadata.0.uid\": \"300ecda1-4138-11e9-9d5d-42010a8400b5\",\n                            \"spec.#\": \"1\",\n                            \"spec.0.min_ready_seconds\": \"0\",\n                            \"spec.0.paused\": \"false\",\n                            \"spec.0.progress_deadline_seconds\": \"600\",\n                            \"spec.0.replicas\": \"1\",\n                            \"spec.0.revision_history_limit\": \"10\",\n                            \"spec.0.selector.#\": \"1\",\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТут есть:\u003Cbr\u002F\u003E\r\n1. id — string\u003Cbr\u002F\u003E\r\n2. metadata — array размером 1 и в нем объект с полями который описан ниже\u003Cbr\u002F\u003E\r\n3. spec — hash размером 1 и в нем key,value\u003Cbr\u002F\u003E\r\nКороче веселый формат, все может быть в глубь тоже на несколько уровней\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E                   \"spec.#\": \"1\",\n                            \"spec.0.min_ready_seconds\": \"0\",\n                            \"spec.0.paused\": \"false\",\n                            \"spec.0.progress_deadline_seconds\": \"600\",\n                            \"spec.0.replicas\": \"1\",\n                            \"spec.0.revision_history_limit\": \"10\",\n                            \"spec.0.selector.#\": \"1\",\n                            \"spec.0.selector.0.match_expressions.#\": \"0\",\n                            \"spec.0.selector.0.match_labels.%\": \"1\",\n                            \"spec.0.selector.0.match_labels.app\": \"backend-logging-load\",\n                            \"spec.0.strategy.#\": \"0\",\n                            \"spec.0.template.#\": \"1\",\n                            \"spec.0.template.0.metadata.#\": \"1\",\n                            \"spec.0.template.0.metadata.0.annotations.%\": \"0\",\n                            \"spec.0.template.0.metadata.0.generate_name\": \"\",\n                            \"spec.0.template.0.metadata.0.generation\": \"0\",\n                            \"spec.0.template.0.metadata.0.labels.%\": \"1\",\n                            \"spec.0.template.0.metadata.0.labels.app\": \"backend-logging-load\",\n                            \"spec.0.template.0.metadata.0.name\": \"\",\n                            \"spec.0.template.0.metadata.0.namespace\": \"\",\n                            \"spec.0.template.0.metadata.0.resource_version\": \"\",\n                            \"spec.0.template.0.metadata.0.self_link\": \"\",\n                            \"spec.0.template.0.metadata.0.uid\": \"\",\n                            \"spec.0.template.0.spec.#\": \"1\",\n                            \"spec.0.template.0.spec.0.active_deadline_seconds\": \"0\",\n                            \"spec.0.template.0.spec.0.container.#\": \"1\",\n                            \"spec.0.template.0.spec.0.container.0.args.#\": \"3\",\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВообщем кто хочет задачку на программирования для собеседования то просто попросите написать парсер на это дело :)\u003Cbr\u002F\u003E\r\nПосле долгих попыток написать парсер без багов я нашел часть его в коде terraform причем самую важную часть. И все вроде работало норм\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПопытка три\u003Cbr\u002F\u003E\r\nterraform provider — это бинарки в которых есть код со всеми ресурсами и логикой для работы с API облаков. У каждого облака есть свой provider и сам terraform только вызывает их через свой протокол RPC между двумя процессами.\u003Cbr\u002F\u003E\r\nТеперь я решил обращаться напрямую к terraform providers через RPC вызовы. Так вышло красиво и дало возможность менять terraform providers на более новые и получать новые возможность не меняя код. Еще оказалось не все поля в tfstate должны быть в tf, а как это узнать? Только спросить provider об этом. Потом началась еще одна \u003Cs\u003Eрекурсивной порнографием по сборки регулярных выражений\u003C\u002Fs\u003E канитель с поиском полей внутри tfstate на всех уровнях в глубь.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ конце получилось полезный CLI tool у которого общая инфраструктура для всех terraform providers и можно легко добавить нового. Также добавления ресурсов занимает мало кода. Плюс всякие плюшки типа соединения между ресурсами. Конечно было много разных проблем которые все не описать.\u003Cbr\u002F\u003E\r\nНазвал зверушку Terrafomer. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EФинал\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nМы с помощью Terrafomer сгенерировали 500-700 тысяч строк кода tf + tfstate c двух облаках. Смогли взять легаси вещи и начать их трогать только через terraform как в лучших идеях infrastructure as code. Просто магия когда берешь огромное облако и получаешь через команду его в виде terraform файлов рабочих. А дальше grep\u002Freplace\u002Fgit и так далее.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВычесал и привел в порядок, получил разрешения. Выпустил на гитхаб для всех в четверг(02.05.19). \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FGoogleCloudPlatform\u002Fterraformer\"\u003Egithub.com\u002FGoogleCloudPlatform\u002Fterraformer\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nПолучил уже 600 звезд, 2 pull requests добавления поддержки openstack и kubernetes. Хорошие отзывы. Вообще проект полезный для людей\u003Cbr\u002F\u003E\r\nСоветую всем кто хочет начать работать с Terraform и не переписывать все для этого. \u003Cbr\u002F\u003E\r\nБуду рад pull requests, issues, stars.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДемо\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fasciinema.org\u002Fa\u002F243961\"\u003E\u003Cimg src=\"https:\u002F\u002Fasciinema.org\u002Fa\u002F243961.svg\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбновления: прикрутили минимальную поддержку Openstack и почти готова поддержка kubernetes, спасибо людям за PRs\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"terraform"},{"titleHtml":"cloud"},{"titleHtml":"gcp"},{"titleHtml":"google cloud"},{"titleHtml":"aws"},{"titleHtml":"devops"},{"titleHtml":"hcl"},{"titleHtml":"golang"},{"titleHtml":"go"},{"titleHtml":"infrastructure as code"},{"titleHtml":"openstack"},{"titleHtml":"kubernetes"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450410\u002F0542abd6aa8beaf8734fdf833fc04dc8\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450410\u002F0542abd6aa8beaf8734fdf833fc04dc8\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450410\\\u002F\"},\"headline\":\"Terraformer — Infrastructure To Code\",\"datePublished\":\"2019-05-07T01:53:11+03:00\",\"dateModified\":\"2019-05-08T00:01:26+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"sergeylanz\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы.   Проблема Terraform уже давно стал стандартом в Devops\\\u002FCloud\\\u002FIT соо...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450410\\\u002F#post-content-body\",\"about\":[\"h_open_source\",\"h_aws\",\"h_go\",\"h_devops\",\"h_googlecloud\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3ac\\\u002F04c\\\u002F136\\\u002F3ac04c136f4060b5f1cc3c80401cb8b4.png\",\"https:\\\u002F\\\u002Fasciinema.org\\\u002Fa\\\u002F243961.svg\"]}","metaDescription":"Хотел бы рассказать про новый CLI tool который я написал для решения одной старой проблемы. \r\n\r\nПроблема\r\nTerraform уже давно стал стандартом в Devops\u002FCloud\u002FIT сообществе. Вещь очень удобная и...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[{"title":"Go разработчик","vacanciesCount":117,"itemUrl":"https:\u002F\u002Fcareer.habr.com\u002Fvacancies\u002Fgo_razrabotchik","itemHubs":["go"]}],"hubs":"open_source,aws,go,devops,googlecloud"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

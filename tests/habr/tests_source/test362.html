@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Сосчитаем агентов «Ревизор» / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450362\/"},"headline":"Сосчитаем агентов «Ревизор»","datePublished":"2019-05-06T12:46:24+03:00","dateModified":"2019-05-07T22:24:25+03:00","author":{"@type":"Person","name":"Михаил Васильев"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система &laquo;Ревизор&raquo;. Как это работает неплохо написано в...","url":"https:\/\/habr.com\/ru\/post\/450362\/#post-content-body","about":["h_infosecurity","h_network_technologies","h_business-laws","f_develop","f_management","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/su\/ur\/bk\/suurbkltagwxo_-8ahlb4p27flu.jpeg","https:\/\/habrastorage.org\/webt\/h2\/g3\/km\/h2g3kmutwnwd0okyaeh4n5siymw.png","https:\/\/habrastorage.org\/webt\/qk\/ub\/zq\/qkubzqtbua5tty6vppqyzx-k5yw.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Сосчитаем агентов «Ревизор»" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Сосчитаем агентов «Ревизор»" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Сосчитаем агентов «Ревизор»" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой статье на Habr, картинка..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой статье на Habr, картинка..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой статье на Habr, картинка..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой статье на Habr, картинка..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой статье на Habr, картинка..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450362/7be09ab7272e9c78b6429817fc650dd6/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450362/7be09ab7272e9c78b6429817fc650dd6/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450362/7be09ab7272e9c78b6429817fc650dd6/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450362/7be09ab7272e9c78b6429817fc650dd6/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450362/7be09ab7272e9c78b6429817fc650dd6/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450362" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T09:46:24.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450362/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450362/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450362/7be09ab7272e9c78b6429817fc650dd6/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Loiqig/" title="Loiqig" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/949/d93/f9d/949d93f9d77cb94bed274e0f7b4b2978.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Loiqig/" class="tm-user-info__username">
+      Loiqig
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T09:46:24.000Z" title="2019-05-06, 12:46">6  мая  2019 в 12:46</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Сосчитаем агентов «Ревизор»</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/infosecurity/" class="tm-article-snippet__hubs-item-link"><span>Информационная безопасность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/network_technologies/" class="tm-article-snippet__hubs-item-link"><span>Сетевые технологии</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/business-laws/" class="tm-article-snippet__hubs-item-link"><span>Законодательство в IT</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой <a href="https://habr.com/ru/company/cloud4y/blog/347964/">статье на Habr</a>, картинка оттуда же:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/su/ur/bk/suurbkltagwxo_-8ahlb4p27flu.jpeg" alt="АС Ревизор" data-src="https://habrastorage.org/webt/su/ur/bk/suurbkltagwxo_-8ahlb4p27flu.jpeg" data-blurred="true"/><br/>
+<br/>
+Непосредственно у провайдера устанавливается <a href="https://portal.rfc-revizor.ru/docs/manualHarwareAgent20160229.pdf">модуль «Агент Ревизор»</a>:<br/>
+<blockquote>Модуль «Агент Ревизор» является структурным элементом автоматизированной системы «Ревизор» (АС «Ревизор»). Данная система предназначена для осуществления контроля над выполнением операторами связи требований по ограничению доступа в рамках положений, установленных статьями 15.1-15.4 Федерального закона от 27 июля 2006 года № 149-ФЗ «Об информации, информационных технологиях и о защите информации».<br/>
+<br/>
+Основной целью создания АС «Ревизор» является обеспечение мониторинга соблюдения операторами связи требований, установленных статьями 15.1-15.4 Федерального закона от 27 июля 2006 года № 149-ФЗ «Об информации, информационных технологиях и о защите информации» в части выявления фактов доступа к запрещенной информации и получения подтверждающих материалов (данных) о нарушениях по ограничению доступа к запрещенной информации.<br/>
+</blockquote><br/>
+С учётом того что, если не все, то многие провайдеры установили данное устройство у себя, должна была получиться большая сеть из пробников-маяков наподобие <a href="https://atlas.ripe.net/probes/?search=&amp;status=1&amp;af=&amp;country=RU">RIPE Atlas</a> и даже больше, но с закрытым доступом. Однако, маяк он и есть маяк чтобы посылать сигналы во все стороны, а что если их поймать и посмотреть, что мы поймали и сколько?<br/>
+<a name="habracut"></a><br/>
+Прежде чем считать, посмотрим почему это вообще может быть возможно. <br/>
+<br/>
+<h3>Немного теории</h3><br/>
+Агенты проверяют доступность ресурса, в том числе, посредством HTTP(S) запросов, как этот например:<br/>
+<br/>
+<pre><code class="bash">TCP, 14678  >  80, "[SYN] Seq=0"
+TCP, 80  >  14678, "[SYN, ACK] Seq=0 Ack=1"
+TCP, 14678  >  80, "[ACK] Seq=1 Ack=1"
+
+HTTP, "GET /somepage HTTP/1.1"
+TCP, 80  >  14678, "[ACK] Seq=1 Ack=71"
+HTTP, "HTTP/1.1 302 Found"
+
+TCP, 14678  >  80, "[FIN, ACK] Seq=71 Ack=479"
+TCP, 80  >  14678, "[FIN, ACK] Seq=479 Ack=72"
+TCP, 14678  >  80, "[ACK] Seq=72 Ack=480"
+</code></pre><br/>
+Запрос помимо полезной нагрузки, состоит ещё из фазы установки соединения: обмен <code>SYN</code> и <code>SYN-ACK</code>, и фазы завершения соединения: <code>FIN-ACK</code>.<br/>
+<br/>
+Реестр запрещённой информации содержит несколько типов блокировок. Очевидно, что если ресурс будет блокироваться по IP адресу или доменному имени, то никаких запросов мы не увидим. Это самые разрушительные типы блокировок, которые приводят к недоступности всех ресурсов на одном IP адресе или всей информации на домене. Существует также тип блокировки «по URL». В этом случае система фильтрации должна разбирать HTTP заголовок запроса, чтобы точно определить что блокировать. А до него, как видно выше, должна случится фаза установки соединения которую можно попытаться отследить, так как скорее всего фильтр её пропустит.<br/>
+<br/>
+Для этого надо выбрать подходящий свободный домен с типом блокировки «по URL» и HTTP, чтобы облегчить работу системе фильтрации, желательно давно заброшенный, для минимизации попадания постороннего трафика кроме как с Агентов. Эта задача оказалась совсем не сложной, свободных доменов в реестре запрещённой информации достаточно много и на любой вкус. Поэтому домен был приобретён, привязан к IP адресам на VPS с запущенным <code>tcpdump</code> и начался подсчёт.<br/>
+<br/>
+<h3>Ревизия «Ревизоров»</h3><br/>
+Я ожидал увидеть периодические всплески запросов, что говорило бы на мой взгляд об управляемом действии. Нельзя сказать чтобы я совсем этого не увидел, но чёткой картины определённо не было:<br/>
+<br/>
+<a href="https://habrastorage.org/webt/h2/g3/km/h2g3kmutwnwd0okyaeh4n5siymw.png"><img src="/img/image-loader.svg" alt="Исходный дамп" data-src="https://habrastorage.org/webt/h2/g3/km/h2g3kmutwnwd0okyaeh4n5siymw.png"/></a><br/>
+<br/>
+Что неудивительно, даже на никому ненужный домен на никогда не используемый IP будет поступать просто масса незапрашиваемой информации, таков современный Интернет. Но к счастью, мне нужны были только запросы конкретного URL, поэтому все сканеры и переборщики паролей быстро были найдены. Также, достаточно просто было понять где флуд по массе однотипных запросов. Дальше я составил частоты появления IP адресов и прошёлся по всему топу вручную отделяя тех кто проскочил на предыдущих этапах. Дополнительно я вырезал все источники которые прислали по одному пакету, их было уже не много. И получилось вот это:<br/>
+<br/>
+<a href="https://habrastorage.org/webt/qk/ub/zq/qkubzqtbua5tty6vppqyzx-k5yw.png"><img src="/img/image-loader.svg" alt="Запросы Ревизоров" data-src="https://habrastorage.org/webt/qk/ub/zq/qkubzqtbua5tty6vppqyzx-k5yw.png"/></a><br/>
+<br/>
+Небольшое лирическое отступление. Чуть больше суток спустя мой хостинг провайдер прислал письмо довольно обтекаемого содержания, дескать на ваших мощностях есть ресурс из запрещённого списка РКН поэтому он блокируется. Сначала я подумал что заблокировали мой аккаунт, это было не так. Потом я подумал что меня просто предупреждают о том, о чём я и так знаю. Но оказалось, что хостер включил свой фильтр перед моим доменом и в итоге я попал под двойную фильтрацию: со стороны провайдеров и со стороны хостера. Фильтр пропускал только концы запросов: <code>FIN-ACK</code> и <code>RST</code> срезая весь HTTP по запрещённому URL. Как видно из графика выше, после первых суток я стал получать меньше данных, но я всё равно их получал чего вполне хватило для задачи подсчёта источников запросов.<br/>
+<br/>
+Ближе к делу. На мой взгляд совершенно чётко видно два всплеска каждый день, первый поменьше, после полуночи по Москве, второй ближе к 6 утра с хвостом до 12 дня. Пик не приходится точно на одно и то же время. Сначала я хотел выделить IP адреса попавшие только в эти периоды и каждый во все периоды, исходя из предположения что проверки Агентами выполняются периодически. Но при внимательном просмотре я достаточно быстро обнаружил периоды попадающее в другие интервалы, с другими частотами, вплоть до одного запроса каждый час. Потом я подумал про часовые пояса и что возможно в них дело, потом я подумал что вообще система может быть не синхронизирована глобально. Кроме того, наверняка, свою роль сыграет NAT и один и тот же Агент может сделать запросы с разных публичных IP.<br/>
+<br/>
+Так как изначальная моя цель не была в точности, я посчитал вообще все адреса которые попались за неделю и получил — <b>2791</b>. Количество TCP сессий установленных с одного адреса в среднем по 4, с медианой 2. Топ сессий на адрес: 464, 231, 149, 83, 77. Максимум из 95% выборки — 8 сессий на адрес. Медиана не очень высокая, напомню что по графику видна явная суточная периодичность поэтому можно было ожидать что-то около 4 до 8 за 7 суток. Если выкинуть все единожды встречающиеся сессии то как раз получим медиану равную 5. Но я не смог их исключить по чёткому признаку. Наоборот, выборочная проверка показала, что они имеют отношение к запросам запрещённого ресурса.<br/>
+<br/>
+Адреса адресами, а в Интернете важнее автономные системы — AS, которых получилось <b>1510</b>, в среднем 2 адреса на AS с медианой 1. Топ адресов на AS: 288, 77, 66, 39, 27. Максимум из 95% выборки — 4 адреса на AS. Вот тут медиана ожидаема — один Агент на провайдера. Топ тоже ожидаем — в нём крупные игроки. В большой сети Агенты, наверное, должны стоять в каждом регионе присутствия оператора, не забываем и про NAT. Если взять по странам, то максимумы будут: 1409 — RU, 42 — UA, 23 — CZ, 36 из других регионов, не RIPE NCC. Запросы не из России обращают на себя внимание. Наверное, это можно объяснить ошибками геолокации или ошибками регистраторов при заполнении данных. Или тем что российская компания может иметь нероссийские корни, или иметь иностранное представительство потому что так проще, что естественно имея дело с заграничной организацией RIPE NCC. Какая-то часть несомненно является лишней, но отделить её достоверно сложно, так как ресурс находится под блокировкой, а со вторых суток под двойной блокировкой и большинство сессий представляют собой лишь обмен несколькими служебными пакетами. Условимся на том что это небольшая часть.<br/>
+<br/>
+Эти числа можно уже сравнивать с количеством провайдеров в России. <a href="https://rkn.gov.ru/communication/register/license/">По данным РКН</a> лицензий на «Услуги связи по передаче данных, за исключением голоса» — 6387, но это сильно задранная оценка сверху, не все эти лицензии относятся именно к провайдерам Интернет которым нужно ставить Агента. В зоне RIPE NCC похожее число AS зарегистрированных в России — 6230, из которых не все провайдеры. <a href="https://habr.com/ru/post/345258/">UserSide делал более строгий подсчёт</a> и получил 3940 компаний в 2017 году, и это скорее оценка сверху. В любом случае мы имеем число засветившихся AS в два с половиной раза меньше. Но тут стоит понимать что AS не строго равно провайдеру. У некоторых провайдеров нет своей AS, у некоторых их больше одной. Если предположить что Агенты всё же стоят у всех, значит кто-то фильтрует сильнее остальных, так что их запросы неотличимы от мусора если вообще доходят. Но для грубой оценки вполне терпимо, даже если что-то и потерялось из-за моей оплошности.<br/>
+<br/>
+<h3>Про DPI</h3><br/>
+Несмотря на то что мой хостинг провайдер включил свой фильтр начиная со вторых суток, по информации за первый день можно сделать вывод что блокировки работают успешно. Только 4 источника смогли пробиться и имеют полностью законченные HTTP и TCP сессии (как в примере выше). Ещё 460 могут прислать <code>GET</code>, но сессия мгновенно обрывается по <code>RST</code>. Обратите внимание на <code>TTL</code>:<br/>
+<br/>
+<pre><code class="bash">TTL 50, TCP, 14678  >  80, "[SYN] Seq=0"
+TTL 64, TCP, 80  >  14678, "[SYN, ACK] Seq=0 Ack=1"
+TTL 50, TCP, 14678  >  80, "[ACK] Seq=1 Ack=1"
+
+HTTP, "GET /filteredpage HTTP/1.1"
+TTL 64, TCP, 80  >  14678, "[ACK] Seq=1 Ack=294"
+
+#Вот это прислал фильтр
+TTL 53, TCP, 14678  >  80, "[RST] Seq=3458729893"
+TTL 53, TCP, 14678  >  80, "[RST] Seq=3458729893"
+
+HTTP, "HTTP/1.1 302 Found"
+
+#А это попытка исходного узла получить потерю
+TTL 50, TCP ACKed unseen segment, 14678 > 80, "[ACK] Seq=294 Ack=145"
+
+TTL 50, TCP, 14678  >  80, "[FIN, ACK] Seq=294 Ack=145"
+TTL 64, TCP, 80  >  14678, "[FIN, ACK] Seq=171 Ack=295"
+
+TTL 50, TCP Dup ACK 14678 > 80 "[ACK] Seq=295 Ack=145"
+
+#Исходный узел понимает что сессия разрушена
+TTL 50, TCP, 14678  >  80, "[RST] Seq=294"
+TTL 50, TCP, 14678  >  80, "[RST] Seq=295"
+</code></pre><br/>
+Вариации этого могут быть различны: меньше <code>RST</code> или больше ретрансмитов — зависит ещё от того что фильтр посылает исходному узлу. В любом случае это наиболее достоверный шаблон, из которого видно что запрашивался именно запрещённый ресурс. Плюс всегда есть ответ который появляется в сессии с <code>TTL</code> большим чем в предыдущих и последующих пакетах.<br/>
+<br/>
+От остальных не видно даже <code>GET</code>:<br/>
+<br/>
+<pre><code class="bash">TTL 50, TCP, 14678  >  80, "[SYN] Seq=0"
+TTL 64, TCP, 80  >  14678, "[SYN, ACK] Seq=0 Ack=1"
+
+#Вот это прислал фильтр
+TTL 53, TCP, 14678  >  80, "[RST] Seq=1"
+</code></pre><br/>
+Или так:<br/>
+<br/>
+<pre><code class="bash">TTL 50, TCP, 14678  >  80, "[SYN] Seq=0"
+TTL 64, TCP, 80  >  14678, "[SYN, ACK] Seq=0 Ack=1"
+TTL 50, TCP, 14678  >  80, "[ACK] Seq=1 Ack=1"
+
+#Вот это прислал фильтр
+TTL 53, TCP, 14678  >  80, "[RST, PSH] Seq=1"
+
+TTL 50, TCP ACKed unseen segment, 14678 > 80, "[FIN, ACK] Seq=89 Ack=172"
+TTL 50, TCP ACKed unseen segment, 14678 > 80, "[FIN, ACK] Seq=89 Ack=172"
+
+#Опять фильтр, много раз
+TTL 53, TCP, 14678  >  80, "[RST, PSH] Seq=1"
+...
+</code></pre><br/>
+Обязательно видна разница в <code>TTL</code> если что-то прилетает от фильтра. Но часто может вообще ничего не прилететь:<br/>
+<br/>
+<pre><code class="bash">TCP, 14678  >  80, "[SYN] Seq=0"
+TCP, 80  >  14678, "[SYN, ACK] Seq=0 Ack=1"
+TCP Retransmission, 80 > 14678, "[SYN, ACK] Seq=0 Ack=1"
+...
+</code></pre><br/>
+Или так:<br/>
+<br/>
+<pre><code class="bash">TCP, 14678  >  80, "[SYN] Seq=0"
+TCP, 80  >  14678, "[SYN, ACK] Seq=0 Ack=1"
+TCP, 14678  >  80, "[ACK] Seq=1 Ack=1"
+
+#Прошло несколько секунд без трафика
+
+TCP, 80  >  14678, "[FIN, ACK] Seq=1 Ack=1"
+TCP Retransmission, 80 > 14678, "[FIN, ACK] Seq=1 Ack=1"
+...
+</code></pre><br/>
+И всё это повторяется и повторяется и повторяется, как видно на графике, точно не один раз, каждые сутки.<br/>
+<br/>
+<h3>Про IPv6</h3><br/>
+Хорошая новость — он есть. Я могу сказать достоверно что с 5 различных IPv6 адресов происходят периодические запросы к запрещённому ресурсу, именно то поведение Агентов которое я ожидал. Причём один из IPv6 адресов не попадает под фильтрацию и я вижу полноценную сессию. Ещё с двух я увидел только по одной незавершённой сессии, одна из которых прервалась по <code>RST</code> от фильтра, вторая по времени. Итого всего <b>7</b>.<br/>
+<br/>
+Так как адресов мало я подробно изучил все их и оказалось, что собственно провайдеров там всего 3, им можно аплодировать стоя! Ещё один адрес — облачный хостинг в России (не фильтрует), ещё один — исследовательский центр в Германии (есть фильтр, где?). А вот зачем они проверяют по расписанию доступность запрещённых ресурсов вопрос хороший. Оставшиеся два сделали по одному запросу и находятся в не пределов России, причём один из них фильтруется (всё-таки на транзите?).<br/>
+<br/>
+Блокировки и Агенты это большой тормоз для IPv6, внедрение которого итак движется не очень быстро. Это печально. Те кто решил эту задачу в полной мере могут собой гордиться.<br/>
+<br/>
+<h3>В заключение</h3><br/>
+Я не гнался за 100% точностью прошу меня за это простить, надеюсь кто-то захочет повторить такую работу с большей аккуратностью. Для меня было важно понять будет ли в принципе работать такой подход. Ответ — будет. Полученные цифры в первом приближении, я думаю, вполне достоверны.<br/>
+<br/>
+Что можно было бы ещё сделать и что я поленился сделать — посчитать запросы к DNS. Они не фильтруются, но и не дают большой точности так как работают только для домена, а не для всего URL. Периодичность должно быть видно. Если совместить с тем что видно непосредственно в запросах, то это позволит отделить лишнее и получить больше сведений. Возможно даже определить разработчиков DNS используемых провайдерами и много что ещё.<br/>
+<br/>
+Я совершенно не ожидал того, что для моего VPS хостер включит ещё и свой фильтр. Может быть это обычная практика. В конце концов РКН присылает запрос на удаление ресурса как раз хостеру. Но меня это не удивило и даже где-то сыграло на пользу. Фильтр работал очень эффективно срезая все правильные HTTP запросы к запрещённому URL, но не правильные, прошедшие до этого через фильтр провайдеров долетали, пусть только в виде концовок: <code>FIN-ACK</code> и <code>RST</code> — минус на минус и почти получился плюс. Кстати, IPv6 хостером не фильтровался. Конечно это повлияло на качество собранного материала, но всё равно дало возможность увидеть периодичность. Оказалось это важный момент при выборе площадки для размещения ресурсов, не забывайте интересоваться вопросом организации работы со списком запрещённых сайтов и запросами от РКН.<br/>
+<br/>
+В начале я сравнил АС «Ревизор» с <a href="https://atlas.ripe.net/">RIPE Atlas</a>. Это сравнение вполне оправдано и большая сеть из Агентов может приносить пользу. Например, определение качества доступности ресурса из различных провайдеров различных частей страны. Можно посчитать задержки, можно строить графики, можно это всё анализировать и видеть изменения происходящие как локально так и глобально. Это не самый прямой путь, но используют же астрономы «стандартные свечи», почему не использовать Агенты? Зная (найдя) их стандартное поведение можно определять изменения которые происходят вокруг них и как это влияет на качество оказываемых услуг. И при этом не надо самостоятельно расставлять пробники по сети, их уже поставил Роскомнадзор.<br/>
+<br/>
+Ещё один момент который я хочу затронуть, каждый инструмент может быть оружием. АС «Ревизор» закрытая сеть, но Агенты сдают всех с потрохами посылая запросы на все ресурсы из запрещённого списка. Заиметь такой ресурс не представляет ровным счётом никаких проблем. Итого, провайдеры через Агентов, сами того не желая рассказывают о своей сети много больше, чем возможно стоило бы: типы DPI и DNS, местоположение Агента (центрального узла и служебной сети?), сетевые маркеры задержек и потерь — и это только самое очевидное. Так же как кто-то может мониторить действия Агентов для улучшения доступности своих ресурсов, кто-то может это делать в других целях и этому нет препятствий. Обоюдоострый и очень многогранный инструмент получился, любой может в этом убедиться.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%BE%D0%B2%D0%B0%D0%B9%D0%B4%D0%B5%D1%80%D1%8B%5D" class="tm-tags-list__link">провайдеры</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%BE%D1%81%D0%BA%D0%BE%D0%BC%D0%BD%D0%B0%D0%B4%D0%B7%D0%BE%D1%80%5D" class="tm-tags-list__link">роскомнадзор</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%BA%D0%BD%5D" class="tm-tags-list__link">ркн</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B1%D0%BB%D0%BE%D0%BA%D0%B8%D1%80%D0%BE%D0%B2%D0%BA%D0%B8%5D" class="tm-tags-list__link">блокировки</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdpi%5D" class="tm-tags-list__link">dpi</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B5%D0%B2%D0%B8%D0%B7%D0%BE%D1%80%5D" class="tm-tags-list__link">ревизор</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bhttp%5D" class="tm-tags-list__link">http</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Btcp%5D" class="tm-tags-list__link">tcp</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/infosecurity/" class="tm-hubs-list__link">
+    Информационная безопасность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/network_technologies/" class="tm-hubs-list__link">
+    Сетевые технологии
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/business-laws/" class="tm-hubs-list__link">
+    Законодательство в IT
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 52: ↑51 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 52: ↑51 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+50</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">13K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    36
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Loiqig/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/949/d93/f9d/949d93f9d77cb94bed274e0f7b4b2978.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 98 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    96
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Михаил Васильев</span> <a href="/ru/users/Loiqig/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Loiqig
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Сетевой инженер</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450362/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 10 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450362/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450362/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450362":{"id":"450362","timePublished":"2019-05-06T09:46:24+00:00","isCorporative":false,"lang":"ru","titleHtml":"Сосчитаем агентов «Ревизор»","leadData":{"textHtml":"Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fcloud4y\u002Fblog\u002F347964\u002F\"\u003Eстатье на Habr\u003C\u002Fa\u003E, картинка оттуда же:\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fsu\u002Fur\u002Fbk\u002Fsuurbkltagwxo_-8ahlb4p27flu.jpeg\" alt=\"АС Ревизор\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nНепосредственно у провайдера устанавливается \u003Ca href=\"https:\u002F\u002Fportal.rfc-revizor.ru\u002Fdocs\u002FmanualHarwareAgent20160229.pdf\"\u003Eмодуль «Агент Ревизор»\u003C\u002Fa\u003E:\u003Cbr\u003E\r\n\u003Cblockquote\u003EМодуль «Агент Ревизор» является структурным элементом автоматизированной системы «Ревизор» (АС «Ревизор»). Данная система предназначена для осуществления контроля над выполнением операторами связи требований по ограничению доступа в рамках положений, установленных статьями 15.1-15.4 Федерального закона от 27 июля 2006 года № 149-ФЗ «Об информации, информационных технологиях и о защите информации».\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nОсновной целью создания АС «Ревизор» является обеспечение мониторинга соблюдения операторами связи требований, установленных статьями 15.1-15.4 Федерального закона от 27 июля 2006 года № 149-ФЗ «Об информации, информационных технологиях и о защите информации» в части выявления фактов доступа к запрещенной информации и получения подтверждающих материалов (данных) о нарушениях по ограничению доступа к запрещенной информации.\u003Cbr\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cbr\u003E\r\nС учётом того что, если не все, то многие провайдеры установили данное устройство у себя, должна была получиться большая сеть из пробников-маяков наподобие \u003Ca href=\"https:\u002F\u002Fatlas.ripe.net\u002Fprobes\u002F?search=&amp;status=1&amp;af=&amp;country=RU\"\u003ERIPE Atlas\u003C\u002Fa\u003E и даже больше, но с закрытым доступом. Однако, маяк он и есть маяк чтобы посылать сигналы во все стороны, а что если их поймать и посмотреть, что мы поймали и сколько?\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":96,"votesCount":98},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"4100112056051329","paymentPayPalMe":"angstrem","paymentWebmoney":"386430366152"},"id":"89296","alias":"Loiqig","fullname":"Михаил Васильев","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F949\u002Fd93\u002Ff9d\u002F949d93f9d77cb94bed274e0f7b4b2978.jpg","speciality":"Сетевой инженер"},"statistics":{"commentsCount":10,"favoritesCount":36,"readingCount":13345,"score":50,"votesCount":52},"hubs":[{"relatedData":null,"id":"50","alias":"infosecurity","type":"collective","title":"Информационная безопасность","titleHtml":"Информационная безопасность","isProfiled":true},{"relatedData":null,"id":"17123","alias":"network_technologies","type":"collective","title":"Сетевые технологии","titleHtml":"Сетевые технологии","isProfiled":true},{"relatedData":null,"id":"20738","alias":"business-laws","type":"collective","title":"Законодательство в IT","titleHtml":"Законодательство в IT","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"3","alias":"management","title":"Менеджмент"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EНе секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fcloud4y\u002Fblog\u002F347964\u002F\"\u003Eстатье на Habr\u003C\u002Fa\u003E, картинка оттуда же:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fsu\u002Fur\u002Fbk\u002Fsuurbkltagwxo_-8ahlb4p27flu.jpeg\" alt=\"АС Ревизор\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fsu\u002Fur\u002Fbk\u002Fsuurbkltagwxo_-8ahlb4p27flu.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНепосредственно у провайдера устанавливается \u003Ca href=\"https:\u002F\u002Fportal.rfc-revizor.ru\u002Fdocs\u002FmanualHarwareAgent20160229.pdf\"\u003Eмодуль «Агент Ревизор»\u003C\u002Fa\u003E:\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EМодуль «Агент Ревизор» является структурным элементом автоматизированной системы «Ревизор» (АС «Ревизор»). Данная система предназначена для осуществления контроля над выполнением операторами связи требований по ограничению доступа в рамках положений, установленных статьями 15.1-15.4 Федерального закона от 27 июля 2006 года № 149-ФЗ «Об информации, информационных технологиях и о защите информации».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОсновной целью создания АС «Ревизор» является обеспечение мониторинга соблюдения операторами связи требований, установленных статьями 15.1-15.4 Федерального закона от 27 июля 2006 года № 149-ФЗ «Об информации, информационных технологиях и о защите информации» в части выявления фактов доступа к запрещенной информации и получения подтверждающих материалов (данных) о нарушениях по ограничению доступа к запрещенной информации.\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nС учётом того что, если не все, то многие провайдеры установили данное устройство у себя, должна была получиться большая сеть из пробников-маяков наподобие \u003Ca href=\"https:\u002F\u002Fatlas.ripe.net\u002Fprobes\u002F?search=&amp;status=1&amp;af=&amp;country=RU\"\u003ERIPE Atlas\u003C\u002Fa\u003E и даже больше, но с закрытым доступом. Однако, маяк он и есть маяк чтобы посылать сигналы во все стороны, а что если их поймать и посмотреть, что мы поймали и сколько?\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nПрежде чем считать, посмотрим почему это вообще может быть возможно. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EНемного теории\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nАгенты проверяют доступность ресурса, в том числе, посредством HTTP(S) запросов, как этот например:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003ETCP, 14678  \u003E  80, \"[SYN] Seq=0\"\nTCP, 80  \u003E  14678, \"[SYN, ACK] Seq=0 Ack=1\"\nTCP, 14678  \u003E  80, \"[ACK] Seq=1 Ack=1\"\n\nHTTP, \"GET \u002Fsomepage HTTP\u002F1.1\"\nTCP, 80  \u003E  14678, \"[ACK] Seq=1 Ack=71\"\nHTTP, \"HTTP\u002F1.1 302 Found\"\n\nTCP, 14678  \u003E  80, \"[FIN, ACK] Seq=71 Ack=479\"\nTCP, 80  \u003E  14678, \"[FIN, ACK] Seq=479 Ack=72\"\nTCP, 14678  \u003E  80, \"[ACK] Seq=72 Ack=480\"\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗапрос помимо полезной нагрузки, состоит ещё из фазы установки соединения: обмен \u003Ccode\u003ESYN\u003C\u002Fcode\u003E и \u003Ccode\u003ESYN-ACK\u003C\u002Fcode\u003E, и фазы завершения соединения: \u003Ccode\u003EFIN-ACK\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРеестр запрещённой информации содержит несколько типов блокировок. Очевидно, что если ресурс будет блокироваться по IP адресу или доменному имени, то никаких запросов мы не увидим. Это самые разрушительные типы блокировок, которые приводят к недоступности всех ресурсов на одном IP адресе или всей информации на домене. Существует также тип блокировки «по URL». В этом случае система фильтрации должна разбирать HTTP заголовок запроса, чтобы точно определить что блокировать. А до него, как видно выше, должна случится фаза установки соединения которую можно попытаться отследить, так как скорее всего фильтр её пропустит.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля этого надо выбрать подходящий свободный домен с типом блокировки «по URL» и HTTP, чтобы облегчить работу системе фильтрации, желательно давно заброшенный, для минимизации попадания постороннего трафика кроме как с Агентов. Эта задача оказалась совсем не сложной, свободных доменов в реестре запрещённой информации достаточно много и на любой вкус. Поэтому домен был приобретён, привязан к IP адресам на VPS с запущенным \u003Ccode\u003Etcpdump\u003C\u002Fcode\u003E и начался подсчёт.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EРевизия «Ревизоров»\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЯ ожидал увидеть периодические всплески запросов, что говорило бы на мой взгляд об управляемом действии. Нельзя сказать чтобы я совсем этого не увидел, но чёткой картины определённо не было:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fh2\u002Fg3\u002Fkm\u002Fh2g3kmutwnwd0okyaeh4n5siymw.png\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"Исходный дамп\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fh2\u002Fg3\u002Fkm\u002Fh2g3kmutwnwd0okyaeh4n5siymw.png\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто неудивительно, даже на никому ненужный домен на никогда не используемый IP будет поступать просто масса незапрашиваемой информации, таков современный Интернет. Но к счастью, мне нужны были только запросы конкретного URL, поэтому все сканеры и переборщики паролей быстро были найдены. Также, достаточно просто было понять где флуд по массе однотипных запросов. Дальше я составил частоты появления IP адресов и прошёлся по всему топу вручную отделяя тех кто проскочил на предыдущих этапах. Дополнительно я вырезал все источники которые прислали по одному пакету, их было уже не много. И получилось вот это:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqk\u002Fub\u002Fzq\u002Fqkubzqtbua5tty6vppqyzx-k5yw.png\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"Запросы Ревизоров\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqk\u002Fub\u002Fzq\u002Fqkubzqtbua5tty6vppqyzx-k5yw.png\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНебольшое лирическое отступление. Чуть больше суток спустя мой хостинг провайдер прислал письмо довольно обтекаемого содержания, дескать на ваших мощностях есть ресурс из запрещённого списка РКН поэтому он блокируется. Сначала я подумал что заблокировали мой аккаунт, это было не так. Потом я подумал что меня просто предупреждают о том, о чём я и так знаю. Но оказалось, что хостер включил свой фильтр перед моим доменом и в итоге я попал под двойную фильтрацию: со стороны провайдеров и со стороны хостера. Фильтр пропускал только концы запросов: \u003Ccode\u003EFIN-ACK\u003C\u002Fcode\u003E и \u003Ccode\u003ERST\u003C\u002Fcode\u003E срезая весь HTTP по запрещённому URL. Как видно из графика выше, после первых суток я стал получать меньше данных, но я всё равно их получал чего вполне хватило для задачи подсчёта источников запросов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБлиже к делу. На мой взгляд совершенно чётко видно два всплеска каждый день, первый поменьше, после полуночи по Москве, второй ближе к 6 утра с хвостом до 12 дня. Пик не приходится точно на одно и то же время. Сначала я хотел выделить IP адреса попавшие только в эти периоды и каждый во все периоды, исходя из предположения что проверки Агентами выполняются периодически. Но при внимательном просмотре я достаточно быстро обнаружил периоды попадающее в другие интервалы, с другими частотами, вплоть до одного запроса каждый час. Потом я подумал про часовые пояса и что возможно в них дело, потом я подумал что вообще система может быть не синхронизирована глобально. Кроме того, наверняка, свою роль сыграет NAT и один и тот же Агент может сделать запросы с разных публичных IP.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак как изначальная моя цель не была в точности, я посчитал вообще все адреса которые попались за неделю и получил — \u003Cb\u003E2791\u003C\u002Fb\u003E. Количество TCP сессий установленных с одного адреса в среднем по 4, с медианой 2. Топ сессий на адрес: 464, 231, 149, 83, 77. Максимум из 95% выборки — 8 сессий на адрес. Медиана не очень высокая, напомню что по графику видна явная суточная периодичность поэтому можно было ожидать что-то около 4 до 8 за 7 суток. Если выкинуть все единожды встречающиеся сессии то как раз получим медиану равную 5. Но я не смог их исключить по чёткому признаку. Наоборот, выборочная проверка показала, что они имеют отношение к запросам запрещённого ресурса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАдреса адресами, а в Интернете важнее автономные системы — AS, которых получилось \u003Cb\u003E1510\u003C\u002Fb\u003E, в среднем 2 адреса на AS с медианой 1. Топ адресов на AS: 288, 77, 66, 39, 27. Максимум из 95% выборки — 4 адреса на AS. Вот тут медиана ожидаема — один Агент на провайдера. Топ тоже ожидаем — в нём крупные игроки. В большой сети Агенты, наверное, должны стоять в каждом регионе присутствия оператора, не забываем и про NAT. Если взять по странам, то максимумы будут: 1409 — RU, 42 — UA, 23 — CZ, 36 из других регионов, не RIPE NCC. Запросы не из России обращают на себя внимание. Наверное, это можно объяснить ошибками геолокации или ошибками регистраторов при заполнении данных. Или тем что российская компания может иметь нероссийские корни, или иметь иностранное представительство потому что так проще, что естественно имея дело с заграничной организацией RIPE NCC. Какая-то часть несомненно является лишней, но отделить её достоверно сложно, так как ресурс находится под блокировкой, а со вторых суток под двойной блокировкой и большинство сессий представляют собой лишь обмен несколькими служебными пакетами. Условимся на том что это небольшая часть.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭти числа можно уже сравнивать с количеством провайдеров в России. \u003Ca href=\"https:\u002F\u002Frkn.gov.ru\u002Fcommunication\u002Fregister\u002Flicense\u002F\"\u003EПо данным РКН\u003C\u002Fa\u003E лицензий на «Услуги связи по передаче данных, за исключением голоса» — 6387, но это сильно задранная оценка сверху, не все эти лицензии относятся именно к провайдерам Интернет которым нужно ставить Агента. В зоне RIPE NCC похожее число AS зарегистрированных в России — 6230, из которых не все провайдеры. \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F345258\u002F\"\u003EUserSide делал более строгий подсчёт\u003C\u002Fa\u003E и получил 3940 компаний в 2017 году, и это скорее оценка сверху. В любом случае мы имеем число засветившихся AS в два с половиной раза меньше. Но тут стоит понимать что AS не строго равно провайдеру. У некоторых провайдеров нет своей AS, у некоторых их больше одной. Если предположить что Агенты всё же стоят у всех, значит кто-то фильтрует сильнее остальных, так что их запросы неотличимы от мусора если вообще доходят. Но для грубой оценки вполне терпимо, даже если что-то и потерялось из-за моей оплошности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПро DPI\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nНесмотря на то что мой хостинг провайдер включил свой фильтр начиная со вторых суток, по информации за первый день можно сделать вывод что блокировки работают успешно. Только 4 источника смогли пробиться и имеют полностью законченные HTTP и TCP сессии (как в примере выше). Ещё 460 могут прислать \u003Ccode\u003EGET\u003C\u002Fcode\u003E, но сессия мгновенно обрывается по \u003Ccode\u003ERST\u003C\u002Fcode\u003E. Обратите внимание на \u003Ccode\u003ETTL\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003ETTL 50, TCP, 14678  \u003E  80, \"[SYN] Seq=0\"\nTTL 64, TCP, 80  \u003E  14678, \"[SYN, ACK] Seq=0 Ack=1\"\nTTL 50, TCP, 14678  \u003E  80, \"[ACK] Seq=1 Ack=1\"\n\nHTTP, \"GET \u002Ffilteredpage HTTP\u002F1.1\"\nTTL 64, TCP, 80  \u003E  14678, \"[ACK] Seq=1 Ack=294\"\n\n#Вот это прислал фильтр\nTTL 53, TCP, 14678  \u003E  80, \"[RST] Seq=3458729893\"\nTTL 53, TCP, 14678  \u003E  80, \"[RST] Seq=3458729893\"\n\nHTTP, \"HTTP\u002F1.1 302 Found\"\n\n#А это попытка исходного узла получить потерю\nTTL 50, TCP ACKed unseen segment, 14678 \u003E 80, \"[ACK] Seq=294 Ack=145\"\n\nTTL 50, TCP, 14678  \u003E  80, \"[FIN, ACK] Seq=294 Ack=145\"\nTTL 64, TCP, 80  \u003E  14678, \"[FIN, ACK] Seq=171 Ack=295\"\n\nTTL 50, TCP Dup ACK 14678 \u003E 80 \"[ACK] Seq=295 Ack=145\"\n\n#Исходный узел понимает что сессия разрушена\nTTL 50, TCP, 14678  \u003E  80, \"[RST] Seq=294\"\nTTL 50, TCP, 14678  \u003E  80, \"[RST] Seq=295\"\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВариации этого могут быть различны: меньше \u003Ccode\u003ERST\u003C\u002Fcode\u003E или больше ретрансмитов — зависит ещё от того что фильтр посылает исходному узлу. В любом случае это наиболее достоверный шаблон, из которого видно что запрашивался именно запрещённый ресурс. Плюс всегда есть ответ который появляется в сессии с \u003Ccode\u003ETTL\u003C\u002Fcode\u003E большим чем в предыдущих и последующих пакетах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОт остальных не видно даже \u003Ccode\u003EGET\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003ETTL 50, TCP, 14678  \u003E  80, \"[SYN] Seq=0\"\nTTL 64, TCP, 80  \u003E  14678, \"[SYN, ACK] Seq=0 Ack=1\"\n\n#Вот это прислал фильтр\nTTL 53, TCP, 14678  \u003E  80, \"[RST] Seq=1\"\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИли так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003ETTL 50, TCP, 14678  \u003E  80, \"[SYN] Seq=0\"\nTTL 64, TCP, 80  \u003E  14678, \"[SYN, ACK] Seq=0 Ack=1\"\nTTL 50, TCP, 14678  \u003E  80, \"[ACK] Seq=1 Ack=1\"\n\n#Вот это прислал фильтр\nTTL 53, TCP, 14678  \u003E  80, \"[RST, PSH] Seq=1\"\n\nTTL 50, TCP ACKed unseen segment, 14678 \u003E 80, \"[FIN, ACK] Seq=89 Ack=172\"\nTTL 50, TCP ACKed unseen segment, 14678 \u003E 80, \"[FIN, ACK] Seq=89 Ack=172\"\n\n#Опять фильтр, много раз\nTTL 53, TCP, 14678  \u003E  80, \"[RST, PSH] Seq=1\"\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nОбязательно видна разница в \u003Ccode\u003ETTL\u003C\u002Fcode\u003E если что-то прилетает от фильтра. Но часто может вообще ничего не прилететь:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003ETCP, 14678  \u003E  80, \"[SYN] Seq=0\"\nTCP, 80  \u003E  14678, \"[SYN, ACK] Seq=0 Ack=1\"\nTCP Retransmission, 80 \u003E 14678, \"[SYN, ACK] Seq=0 Ack=1\"\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИли так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003ETCP, 14678  \u003E  80, \"[SYN] Seq=0\"\nTCP, 80  \u003E  14678, \"[SYN, ACK] Seq=0 Ack=1\"\nTCP, 14678  \u003E  80, \"[ACK] Seq=1 Ack=1\"\n\n#Прошло несколько секунд без трафика\n\nTCP, 80  \u003E  14678, \"[FIN, ACK] Seq=1 Ack=1\"\nTCP Retransmission, 80 \u003E 14678, \"[FIN, ACK] Seq=1 Ack=1\"\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИ всё это повторяется и повторяется и повторяется, как видно на графике, точно не один раз, каждые сутки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПро IPv6\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nХорошая новость — он есть. Я могу сказать достоверно что с 5 различных IPv6 адресов происходят периодические запросы к запрещённому ресурсу, именно то поведение Агентов которое я ожидал. Причём один из IPv6 адресов не попадает под фильтрацию и я вижу полноценную сессию. Ещё с двух я увидел только по одной незавершённой сессии, одна из которых прервалась по \u003Ccode\u003ERST\u003C\u002Fcode\u003E от фильтра, вторая по времени. Итого всего \u003Cb\u003E7\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак как адресов мало я подробно изучил все их и оказалось, что собственно провайдеров там всего 3, им можно аплодировать стоя! Ещё один адрес — облачный хостинг в России (не фильтрует), ещё один — исследовательский центр в Германии (есть фильтр, где?). А вот зачем они проверяют по расписанию доступность запрещённых ресурсов вопрос хороший. Оставшиеся два сделали по одному запросу и находятся в не пределов России, причём один из них фильтруется (всё-таки на транзите?).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБлокировки и Агенты это большой тормоз для IPv6, внедрение которого итак движется не очень быстро. Это печально. Те кто решил эту задачу в полной мере могут собой гордиться.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EВ заключение\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЯ не гнался за 100% точностью прошу меня за это простить, надеюсь кто-то захочет повторить такую работу с большей аккуратностью. Для меня было важно понять будет ли в принципе работать такой подход. Ответ — будет. Полученные цифры в первом приближении, я думаю, вполне достоверны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто можно было бы ещё сделать и что я поленился сделать — посчитать запросы к DNS. Они не фильтруются, но и не дают большой точности так как работают только для домена, а не для всего URL. Периодичность должно быть видно. Если совместить с тем что видно непосредственно в запросах, то это позволит отделить лишнее и получить больше сведений. Возможно даже определить разработчиков DNS используемых провайдерами и много что ещё.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЯ совершенно не ожидал того, что для моего VPS хостер включит ещё и свой фильтр. Может быть это обычная практика. В конце концов РКН присылает запрос на удаление ресурса как раз хостеру. Но меня это не удивило и даже где-то сыграло на пользу. Фильтр работал очень эффективно срезая все правильные HTTP запросы к запрещённому URL, но не правильные, прошедшие до этого через фильтр провайдеров долетали, пусть только в виде концовок: \u003Ccode\u003EFIN-ACK\u003C\u002Fcode\u003E и \u003Ccode\u003ERST\u003C\u002Fcode\u003E — минус на минус и почти получился плюс. Кстати, IPv6 хостером не фильтровался. Конечно это повлияло на качество собранного материала, но всё равно дало возможность увидеть периодичность. Оказалось это важный момент при выборе площадки для размещения ресурсов, не забывайте интересоваться вопросом организации работы со списком запрещённых сайтов и запросами от РКН.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ начале я сравнил АС «Ревизор» с \u003Ca href=\"https:\u002F\u002Fatlas.ripe.net\u002F\"\u003ERIPE Atlas\u003C\u002Fa\u003E. Это сравнение вполне оправдано и большая сеть из Агентов может приносить пользу. Например, определение качества доступности ресурса из различных провайдеров различных частей страны. Можно посчитать задержки, можно строить графики, можно это всё анализировать и видеть изменения происходящие как локально так и глобально. Это не самый прямой путь, но используют же астрономы «стандартные свечи», почему не использовать Агенты? Зная (найдя) их стандартное поведение можно определять изменения которые происходят вокруг них и как это влияет на качество оказываемых услуг. И при этом не надо самостоятельно расставлять пробники по сети, их уже поставил Роскомнадзор.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕщё один момент который я хочу затронуть, каждый инструмент может быть оружием. АС «Ревизор» закрытая сеть, но Агенты сдают всех с потрохами посылая запросы на все ресурсы из запрещённого списка. Заиметь такой ресурс не представляет ровным счётом никаких проблем. Итого, провайдеры через Агентов, сами того не желая рассказывают о своей сети много больше, чем возможно стоило бы: типы DPI и DNS, местоположение Агента (центрального узла и служебной сети?), сетевые маркеры задержек и потерь — и это только самое очевидное. Так же как кто-то может мониторить действия Агентов для улучшения доступности своих ресурсов, кто-то может это делать в других целях и этому нет препятствий. Обоюдоострый и очень многогранный инструмент получился, любой может в этом убедиться.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"провайдеры"},{"titleHtml":"роскомнадзор"},{"titleHtml":"ркн"},{"titleHtml":"блокировки"},{"titleHtml":"dpi"},{"titleHtml":"ревизор"},{"titleHtml":"http"},{"titleHtml":"tcp"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450362\u002F7be09ab7272e9c78b6429817fc650dd6\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450362\u002F7be09ab7272e9c78b6429817fc650dd6\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450362\\\u002F\"},\"headline\":\"Сосчитаем агентов «Ревизор»\",\"datePublished\":\"2019-05-06T12:46:24+03:00\",\"dateModified\":\"2019-05-07T22:24:25+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Михаил Васильев\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система &laquo;Ревизор&raquo;. Как это работает неплохо написано в...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450362\\\u002F#post-content-body\",\"about\":[\"h_infosecurity\",\"h_network_technologies\",\"h_business-laws\",\"f_develop\",\"f_management\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fsu\\\u002Fur\\\u002Fbk\\\u002Fsuurbkltagwxo_-8ahlb4p27flu.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fh2\\\u002Fg3\\\u002Fkm\\\u002Fh2g3kmutwnwd0okyaeh4n5siymw.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqk\\\u002Fub\\\u002Fzq\\\u002Fqkubzqtbua5tty6vppqyzx-k5yw.png\"]}","metaDescription":"Не секрет, что за контролем блокировок по списку запрещённой информации в России следит автоматизированная система «Ревизор». Как это работает неплохо написано вот в этой статье на Habr, картинка...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"infosecurity,network_technologies,business-laws"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

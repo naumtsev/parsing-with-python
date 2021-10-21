@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>История небольшого исследования легаси-кода / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450384\/"},"headline":"История небольшого исследования легаси-кода","datePublished":"2019-05-03T12:58:35+03:00","dateModified":"2019-05-04T13:00:55+03:00","author":{"@type":"Person","name":"Дмитрий Панкрашов"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи ве...","url":"https:\/\/habr.com\/ru\/post\/450384\/#post-content-body","about":["h_infosecurity","h_analysis_design","f_develop"],"image":["https:\/\/habr.com\/share\/publication\/450384\/69ed957b999f27b087ea018be20c801a\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="История небольшого исследования легаси-кода" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="История небольшого исследования легаси-кода" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="История небольшого исследования легаси-кода" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450384/69ed957b999f27b087ea018be20c801a/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450384/69ed957b999f27b087ea018be20c801a/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450384/69ed957b999f27b087ea018be20c801a/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450384/69ed957b999f27b087ea018be20c801a/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450384/69ed957b999f27b087ea018be20c801a/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450384" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-03T09:58:35.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450384/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450384/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450384/69ed957b999f27b087ea018be20c801a/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Dmitry89/" title="Dmitry89" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/64b/094/82f/64b09482f978d9fb9c9408006a90a66a.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Dmitry89/" class="tm-user-info__username">
+      Dmitry89
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-03T09:58:35.000Z" title="2019-05-03, 12:58">3  мая  2019 в 12:58</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>История небольшого исследования легаси-кода</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/infosecurity/" class="tm-article-snippet__hubs-item-link"><span>Информационная безопасность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/analysis_design/" class="tm-article-snippet__hubs-item-link"><span>Анализ и проектирование систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта история о том, как желаемое было выдано за действительное, что получилось в результате, и как был преодолен кризис.<br/>
+<br/>
+Это случилось в ту пору, когда я, имея весьма, как мне казалось, посредственный опыт в разработке, искал место, где можно из недоджуниора эволюционировать (или мутировать) хотя бы в уверенного джуниора. Неисповедимыми путями Господними такое место нашлось, в довесок к месту прилагался проект, и “олдскульный” программер, который за свою карьеру систем написал больше чем девок перепортил. “Отлично! Проект, а следовательно деньги на ЗП есть, наставник прилагается, живем!” — подумал я, но затем, как в описании к типичному хоррору, герои в темной тьме столкнулись с ужасным ужасом…<br/>
+<a name="habracut"></a><br/>
+Обо всем по порядку:<br/>
+<br/>
+<h4>1. Размер имеет значение</h4><br/>
+ Разработку начали на самописном кем-то когда-то php-движке, для хранения данных использовали (тут вы можете подумать MySQL\PostgreSQL\SQLite\MongoDB\Что-то-там-еще-но-обязательно-с-суффуиксом DB-иначе-пацаны-не-поймут, а вот и не угадали) api-шлюз. <br/>
+ <br/>
+“Нафига, используя php, вы приделываете к нему еще какой-то api-шлюз, и храните на нем данные? Не проще ли работать с api напрямую из js-кода? Или использовать СУБД+PHP?” — спросит видавший виды читатель. И будет прав. Но в ту пору я, не видавший еще видов, так не думал, ну кто ж его знает, крутые пацаны так наверное делают, и “олдскульным” программерам виднее.<br/>
+ <br/>
+Как мне было далее разъяснено:<br/>
+<br/>
+<ol>
+<li> Шлюз = безопасность, никто не войдет и не выйдет просто так</li>
+<li> Шлюз = защищенное хранение данных, просто так не залезешь, +бекапы</li>
+<li> Шлюз = скорость, работает быстро и без сбоев, проверено временем</li>
+<li> Авторитетная точка зрения “олдскульных” программистов гласит — ваш php дырявый весь, любое веб-приложение взломано по умолчанию, поэтому нечего данные хранить рядом с ним</li>
+</ol><br/>
+Характерной особенностью api-шлюза являлось то, что json-данные передавались в get-запросе. Да-да, те самые милые сердцу json-объекты, подвергались url-кодированию, и клались в query string. И все бы хорошо, как вдруг однажды… длины get-запроса перестало хватать. Тупо не влезал туда url-кодированный json, каналья! “Олдскульный” программер, почесав затылок, спросил:<br/>
+“Шо будем делать? Подрос наш json, а мы и не заметили…”. <br/>
+“Ну, эээ, может тогда в post их будем передавать?” — предложил я, так вроде правильней будет.<br/>
+“Ок, передавайте в post”.<br/>
+Это был атас номер раз.<br/>
+<br/>
+<h4>2. Тайм-энд-бекап-менеджмент</h4><br/>
+Чтобы прикрутить новую функциональность в проект, надо было реализовать<br/>
+соответствующие CRUD-запросы на шлюзе, чем собственно и занимался наш “олдскульный” товарищ. Проблема заключалась в том, что занимался он этим раз в 3 дня, выдавая — “Готово, проверяй”. Проверки временами показывали что работало не все, например получение списка — ок, добавление нового элемента — не ок. На исправление и доработку уходило еще какое-то время, после чего можно было выпускать функционал в массовый доступ. Предложение самому заняться реализацией запросов на шлюзе, потому что это как минимум быстрее, было отклонено, потому что “там сложно, ты не разберешься”. Итогом такого подхода стало замыкание работы “на себя”. Если, например, нужно было что-то массово исправить в БД, то, выбирая между 3-х дневным ожиданием и реализацией исправлений самому через запросы — я выбирал 2-й вариант. Заказчики ждать особо не любили, новые вводные прилетали стабильно. Одну из таких вводных, а именно массовое проставление пользователям некоего признака мне и поручили реализовать, времени на все про все — час, начальство ждало красивый отчет. Здесь нас поджидает атас номер два-с.<br/>
+ <br/>
+Дело в том, что формат json-данных, передаваемые в запросах, предполагал лишь несколько обязательных полей, все остальные были произвольными, четкой и окончательной структуры не существовало. Например, для добавления пользователя я передавал json вида:<br/>
+<br/>
+<pre><code class="json">POST /api/users
+{
+	"email":"ivanov@mail.ru",
+	"password":"myEmailIsVeryBig",
+	"name_last":"Иванов",
+	"name_first":"Иван",
+	"name_middle":"Иваныч",
+	"birth":"01.01.1961",
+	//а вот тут следует вольноопределяемая часть, что считаем нужным - то и отдаем
+	"living_at":"ул.Сусаниа, д.3 к.4 кв.24",
+	"phone_num":"+70000000000"
+	
+}
+</code></pre><br/>
+Та необязательная часть, которую передавали в запросах добавления\обновления — сохранялась и отдавалась в полном составе (о том как это было реализовано — расскажу ниже). Суть да дело, время на месте не стоит, надо бы и задачу решить — обновить пользователей, проставить им метки. Но не гонять же каждый раз всю структуру? Надо проверить! Протестировал на себе — передал в запросе на обновление только одно поле, проверил, поле появилось, остальные данные на месте. Дело за малым — зациклить и обновить остальных.<br/>
+<br/>
+Скрипт тихонько пыхтел, принимая и отдавая данные, и вроде бы все шло хорошо… как вдруг — звонок. “Мы не видим ФИО пользователей в системе!” — сообщают с того конца провода. “Да ну нафиг! Нормально ж отрабатывало!” — по спине пробежал неприятный холодок. Дальнейшее расследование показало, что действительно, в строке ФИО значилось “”, хотя все остальные данные были на месте. Что делать в такой ситуации? Разворачивать бекап! <br/>
+<br/>
+“Товарищ “олдскульный” программер, уи хэв э проблем хир! Нужно бекап! Когда последний актуальный сделан?” — спрашиваю.<br/>
+<br/>
+“Э-э-э… Сейчас посмотрю…. Не, бакапа нету”.<br/>
+<br/>
+Спасло ситуацию то, что парой часов ранее я доработал и протестировал модуль с отчетами, у меня была csv-шка со всеми необходимыми данными, в течение еще одного часа порядок был восстановлен.<br/>
+ <br/>
+Отсутствие внятной документации, описания алгоритмов работы, входных проверок на валидность, и что самое главное — бекапов БД — атас номер два-с.<br/>
+<br/>
+С тех пор бекапы стали сниматься каждый день.<br/>
+<br/>
+<h4>3. Deep striking</h4><br/>
+Шатко-валко, но работа двигалась, проблемы решались, какие-то быстрее, какие-то медленнее, как вдруг… заказчики спохватились, что система лежит на не пойми чьих серверах, и за такое отношение к ПДн и организации мероприятий по ЗИ в ИСПДн их по головке не погладят. Надо переносить сервера к себе.<br/>
+<br/>
+Почему изначально система не была передана? У руководства была одна страсть — централизация. Руководство мечтало о системе которая будет делать всё! Нужно тебе детёнка в школу пристроить? Заходишь в систему, в специальный кабинет, там подаешь заявление. Нужно тебе, скажем пиццу заказать — заходишь в систему, в другой специальный кабинет, подаешь заявление на пиццу. Может тебе общения с прекрасными дамами\кавалерами захотелось? К вашим услугам третий специальный кабинет — там тоже заявление подаешь.И так до бесконечности. <br/>
+<br/>
+Преимущества — один логин и пароль на всё, данные надежно и безопасно хранятся на шлюзе. Даже бекапы есть. И, заметьте, никто у нас эту систему не отнимет! А даже если отнимет — что дальше? Все равно не разберутся в системе защиты от “олдскульных” программистов — там сложно всё.<br/>
+ <br/>
+VDS с системой выгрузили, отнесли к заказчикам, они ее развернули, все танцует и поет, красота!<br/>
+ <br/>
+И тут меня накрыло волной любопытства и некоторых подозрений.<br/>
+<br/>
+Если наше веб-приложение дырявое, то где же данные? Неужели остались на других серверах? А если систему решат закрыть извне — то все рухнет?<br/>
+<br/>
+Простая проверка показала, что данные, как и сами обработчики шлюза стояли на этом же сервере. И, нет, их не перенесли туда по причине передачи сервера, они там были всегда.<br/>
+Теперь у меня в распоряжении была та самая секретная “олдскульная” разработка, которую я и принялся исследовать. Конечно, крутого реверс-инжинирнга в стиле статей журнала “Хакер”, с ollydbg, смещениями, и прочими крутыми штуками не получилось, поэтому делюсь тем, что есть.<br/>
+Собственно разработка была вполнена на python, остались только .pyc-файлы, которые легко декомпилировались обратно в читаемый код. Скажу честно, много времени, целых 25 минут, ушло на то, чтобы разобраться как это работает.<br/>
+<br/>
+Итак, сложная система, разработанная “олдскульным” программером, в которой мало кто может разобраться, состоит из:<br/>
+<br/>
+<ol>
+<li> Скрипта, обрабатываемого апачем, который собственно и получал запрос. Что делал данный скрипт? Открывал соединение на определенный порт localhost`а и передавал туда запрос со всеми его данными. Всё. Интересности идут дальше.</li>
+<li>Серверной части, обрабатывавшей запросы от скрипта. Логика его действий была достаточно интересна. Во-первых, в коде не было никаких манипуляций с данными, и запросов в БД, вместо этого вызывались функции БД на PL\SQL. Вся логика, проверки, и прочее, все было заложено в функции БД. 50% скрипта составлял словарь содержащий имя запроса, сопоставленную ему функцию, и имена параметров функции, которые должны были соответствовать данным, переданным в строке get-запроса. JSON-данные, если они были нужны, передавали как отдельный параметр. Особенностью организации серверной части явилось резервирование подключения при аутентификации пользователя. Если логин и пароль обнаружены в БД — генерировался ИД сессии, а экземпляр открытого подключения складывался в словарь (и убивался по таймауту в 10 минут, чтобы не убивался — был специальный метод на продление жизни сессии), ключом являлся ИД сессии, который в БД напрямую не хранился. Как же именно связан ИД сессии с данными пользователя? Ведь есть запрос на получение данных, в который ИД пользователя не передается? Он работает, а значит что-то тут не так. </li>
+</ol><br/>
+Очень сложная разработка давалась сознанию с трудом и не спешила раскрывать давно утерянные секреты мастеров прошлого.<br/>
+<br/>
+Невероятным (Go to > Definition, спасибо PhpStorm за понимание PL\SQL), непостижимым разуму обывателя страданием Истинное Знание Утерянной Цивилизации Олдскульных Программистов было все же обретено. В общем — при подключении, в функции проверки данных аутентификации генерировалась временная таблица, в которой хранился ид пользователя.<br/>
+<br/>
+Это было только началом, примерный список найденных серьезных уязвимостей:<br/>
+<br/>
+<ul>
+<li>DDoS с помощью массовой аутентификации (подключения резезвировались, и, следовательно, упирались в лимит соединений СУБД, что с учетом имеющейся возможности продления времени жизни сессии позволяло полностью забить память подключениями, и работа новых пользователей в системе станет невозможна);</li>
+<li>отсутствие защиты от брутфорса (кол-во неудачных попыток входа не детектится, не хранится, не проверяется;</li>
+<li>отсутствие контроля действий с сущностями (например, список документов, запрошенный пользователем, выдавался с учетом организации, к которой пользователь привязан, при этом, если знать ИД документа, то можно успешно выполнить запрос на обновление\удаление документа, а список пользователей, хорошо хоть без паролей, которые, кстати, хранились в БД в открытом виде, без хеширования, мог получить вообще кто угодно).</li>
+</ul><br/>
+И еще одна серьезная проблема — не формализованная схема хранения данных. Как и обещал ранее — рассказываю о хранении “любых полей” из JSON. Нет, они не хранились как строка в таблице. Они разбивались на key-value пары и хранились в отдельной таблице. Например, для пользователей было 2 таблицы — users, и users_data (string key, string value) — где собственно и хранились данные. Итогом такого подхода стало увеличение времени при сложных выборках из БД.<br/>
+<br/>
+Собственно этого хватило, чтобы принять и привести в жизнь решение о переводе системы на новое api, понятное, документированное, и поддерживаемое.<br/>
+<br/>
+<h4>Мораль</h4><br/>
+Возможно, эта система являет собой “легаси”, а “олдскульный” программер, создавший ее — суть хранитель легаси. <br/>
+<br/>
+Но тем не менее выводы следующие:<br/>
+<br/>
+<ol>
+<li>Если вам говорят “там сложно, ты не разберешься” — значит там полный атас</li>
+<li>Если давят авторитетом — значит что-то нечисто</li>
+<li>Доверяй, но проверяй — безопасность — не состояние, безопасность — процесс, притом непрерывный, посему лучше убедиться в соответствии декларируемых качеств действительности, чем потом узнать что все пользователи вдруг стали “Ивановыми Иванами Иванычами”, а бакапов нету.</li>
+</ol></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blegacy%20code%5D" class="tm-tags-list__link">legacy code</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Breverse%20engineering%5D" class="tm-tags-list__link">reverse engineering</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bapi%5D" class="tm-tags-list__link">api</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%B1%5D" class="tm-tags-list__link">иб</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/infosecurity/" class="tm-hubs-list__link">
+    Информационная безопасность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/analysis_design/" class="tm-hubs-list__link">
+    Анализ и проектирование систем
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 27: ↑25 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 27: ↑25 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+23</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">9.1K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    25
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Dmitry89/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/64b/094/82f/64b09482f978d9fb9c9408006a90a66a.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 15 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Дмитрий Панкрашов</span> <a href="/ru/users/Dmitry89/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Dmitry89
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Web-developer</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450384/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 18 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450384/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450384/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450384":{"id":"450384","timePublished":"2019-05-03T09:58:35+00:00","isCorporative":false,"lang":"ru","titleHtml":"История небольшого исследования легаси-кода","leadData":{"textHtml":"Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта история о том, как желаемое было выдано за действительное, что получилось в результате, и как был преодолен кризис.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЭто случилось в ту пору, когда я, имея весьма, как мне казалось, посредственный опыт в разработке, искал место, где можно из недоджуниора эволюционировать (или мутировать) хотя бы в уверенного джуниора. Неисповедимыми путями Господними такое место нашлось, в довесок к месту прилагался проект, и “олдскульный” программер, который за свою карьеру систем написал больше чем девок перепортил. “Отлично! Проект, а следовательно деньги на ЗП есть, наставник прилагается, живем!” — подумал я, но затем, как в описании к типичному хоррору, герои в темной тьме столкнулись с ужасным ужасом…\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":7,"votesCount":15},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"666635","alias":"Dmitry89","fullname":"Дмитрий Панкрашов","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F64b\u002F094\u002F82f\u002F64b09482f978d9fb9c9408006a90a66a.jpg","speciality":"Web-developer"},"statistics":{"commentsCount":18,"favoritesCount":25,"readingCount":9143,"score":23,"votesCount":27},"hubs":[{"relatedData":null,"id":"50","alias":"infosecurity","type":"collective","title":"Информационная безопасность","titleHtml":"Информационная безопасность","isProfiled":true},{"relatedData":null,"id":"397","alias":"analysis_design","type":"collective","title":"Анализ и проектирование систем","titleHtml":"Анализ и проектирование систем","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EХорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта история о том, как желаемое было выдано за действительное, что получилось в результате, и как был преодолен кризис.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто случилось в ту пору, когда я, имея весьма, как мне казалось, посредственный опыт в разработке, искал место, где можно из недоджуниора эволюционировать (или мутировать) хотя бы в уверенного джуниора. Неисповедимыми путями Господними такое место нашлось, в довесок к месту прилагался проект, и “олдскульный” программер, который за свою карьеру систем написал больше чем девок перепортил. “Отлично! Проект, а следовательно деньги на ЗП есть, наставник прилагается, живем!” — подумал я, но затем, как в описании к типичному хоррору, герои в темной тьме столкнулись с ужасным ужасом…\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nОбо всем по порядку:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E1. Размер имеет значение\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n Разработку начали на самописном кем-то когда-то php-движке, для хранения данных использовали (тут вы можете подумать MySQL\\PostgreSQL\\SQLite\\MongoDB\\Что-то-там-еще-но-обязательно-с-суффуиксом DB-иначе-пацаны-не-поймут, а вот и не угадали) api-шлюз. \u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n“Нафига, используя php, вы приделываете к нему еще какой-то api-шлюз, и храните на нем данные? Не проще ли работать с api напрямую из js-кода? Или использовать СУБД+PHP?” — спросит видавший виды читатель. И будет прав. Но в ту пору я, не видавший еще видов, так не думал, ну кто ж его знает, крутые пацаны так наверное делают, и “олдскульным” программерам виднее.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nКак мне было далее разъяснено:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E Шлюз = безопасность, никто не войдет и не выйдет просто так\u003C\u002Fli\u003E\r\n\u003Cli\u003E Шлюз = защищенное хранение данных, просто так не залезешь, +бекапы\u003C\u002Fli\u003E\r\n\u003Cli\u003E Шлюз = скорость, работает быстро и без сбоев, проверено временем\u003C\u002Fli\u003E\r\n\u003Cli\u003E Авторитетная точка зрения “олдскульных” программистов гласит — ваш php дырявый весь, любое веб-приложение взломано по умолчанию, поэтому нечего данные хранить рядом с ним\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nХарактерной особенностью api-шлюза являлось то, что json-данные передавались в get-запросе. Да-да, те самые милые сердцу json-объекты, подвергались url-кодированию, и клались в query string. И все бы хорошо, как вдруг однажды… длины get-запроса перестало хватать. Тупо не влезал туда url-кодированный json, каналья! “Олдскульный” программер, почесав затылок, спросил:\u003Cbr\u002F\u003E\r\n“Шо будем делать? Подрос наш json, а мы и не заметили…”. \u003Cbr\u002F\u003E\r\n“Ну, эээ, может тогда в post их будем передавать?” — предложил я, так вроде правильней будет.\u003Cbr\u002F\u003E\r\n“Ок, передавайте в post”.\u003Cbr\u002F\u003E\r\nЭто был атас номер раз.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E2. Тайм-энд-бекап-менеджмент\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nЧтобы прикрутить новую функциональность в проект, надо было реализовать\u003Cbr\u002F\u003E\r\nсоответствующие CRUD-запросы на шлюзе, чем собственно и занимался наш “олдскульный” товарищ. Проблема заключалась в том, что занимался он этим раз в 3 дня, выдавая — “Готово, проверяй”. Проверки временами показывали что работало не все, например получение списка — ок, добавление нового элемента — не ок. На исправление и доработку уходило еще какое-то время, после чего можно было выпускать функционал в массовый доступ. Предложение самому заняться реализацией запросов на шлюзе, потому что это как минимум быстрее, было отклонено, потому что “там сложно, ты не разберешься”. Итогом такого подхода стало замыкание работы “на себя”. Если, например, нужно было что-то массово исправить в БД, то, выбирая между 3-х дневным ожиданием и реализацией исправлений самому через запросы — я выбирал 2-й вариант. Заказчики ждать особо не любили, новые вводные прилетали стабильно. Одну из таких вводных, а именно массовое проставление пользователям некоего признака мне и поручили реализовать, времени на все про все — час, начальство ждало красивый отчет. Здесь нас поджидает атас номер два-с.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nДело в том, что формат json-данных, передаваемые в запросах, предполагал лишь несколько обязательных полей, все остальные были произвольными, четкой и окончательной структуры не существовало. Например, для добавления пользователя я передавал json вида:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"json\"\u003EPOST \u002Fapi\u002Fusers\n{\n\t\"email\":\"ivanov@mail.ru\",\n\t\"password\":\"myEmailIsVeryBig\",\n\t\"name_last\":\"Иванов\",\n\t\"name_first\":\"Иван\",\n\t\"name_middle\":\"Иваныч\",\n\t\"birth\":\"01.01.1961\",\n\t\u002F\u002Fа вот тут следует вольноопределяемая часть, что считаем нужным - то и отдаем\n\t\"living_at\":\"ул.Сусаниа, д.3 к.4 кв.24\",\n\t\"phone_num\":\"+70000000000\"\n\t\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТа необязательная часть, которую передавали в запросах добавления\\обновления — сохранялась и отдавалась в полном составе (о том как это было реализовано — расскажу ниже). Суть да дело, время на месте не стоит, надо бы и задачу решить — обновить пользователей, проставить им метки. Но не гонять же каждый раз всю структуру? Надо проверить! Протестировал на себе — передал в запросе на обновление только одно поле, проверил, поле появилось, остальные данные на месте. Дело за малым — зациклить и обновить остальных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСкрипт тихонько пыхтел, принимая и отдавая данные, и вроде бы все шло хорошо… как вдруг — звонок. “Мы не видим ФИО пользователей в системе!” — сообщают с того конца провода. “Да ну нафиг! Нормально ж отрабатывало!” — по спине пробежал неприятный холодок. Дальнейшее расследование показало, что действительно, в строке ФИО значилось “”, хотя все остальные данные были на месте. Что делать в такой ситуации? Разворачивать бекап! \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n“Товарищ “олдскульный” программер, уи хэв э проблем хир! Нужно бекап! Когда последний актуальный сделан?” — спрашиваю.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n“Э-э-э… Сейчас посмотрю…. Не, бакапа нету”.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпасло ситуацию то, что парой часов ранее я доработал и протестировал модуль с отчетами, у меня была csv-шка со всеми необходимыми данными, в течение еще одного часа порядок был восстановлен.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nОтсутствие внятной документации, описания алгоритмов работы, входных проверок на валидность, и что самое главное — бекапов БД — атас номер два-с.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС тех пор бекапы стали сниматься каждый день.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E3. Deep striking\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nШатко-валко, но работа двигалась, проблемы решались, какие-то быстрее, какие-то медленнее, как вдруг… заказчики спохватились, что система лежит на не пойми чьих серверах, и за такое отношение к ПДн и организации мероприятий по ЗИ в ИСПДн их по головке не погладят. Надо переносить сервера к себе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПочему изначально система не была передана? У руководства была одна страсть — централизация. Руководство мечтало о системе которая будет делать всё! Нужно тебе детёнка в школу пристроить? Заходишь в систему, в специальный кабинет, там подаешь заявление. Нужно тебе, скажем пиццу заказать — заходишь в систему, в другой специальный кабинет, подаешь заявление на пиццу. Может тебе общения с прекрасными дамами\\кавалерами захотелось? К вашим услугам третий специальный кабинет — там тоже заявление подаешь.И так до бесконечности. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПреимущества — один логин и пароль на всё, данные надежно и безопасно хранятся на шлюзе. Даже бекапы есть. И, заметьте, никто у нас эту систему не отнимет! А даже если отнимет — что дальше? Все равно не разберутся в системе защиты от “олдскульных” программистов — там сложно всё.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nVDS с системой выгрузили, отнесли к заказчикам, они ее развернули, все танцует и поет, красота!\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nИ тут меня накрыло волной любопытства и некоторых подозрений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли наше веб-приложение дырявое, то где же данные? Неужели остались на других серверах? А если систему решат закрыть извне — то все рухнет?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПростая проверка показала, что данные, как и сами обработчики шлюза стояли на этом же сервере. И, нет, их не перенесли туда по причине передачи сервера, они там были всегда.\u003Cbr\u002F\u003E\r\nТеперь у меня в распоряжении была та самая секретная “олдскульная” разработка, которую я и принялся исследовать. Конечно, крутого реверс-инжинирнга в стиле статей журнала “Хакер”, с ollydbg, смещениями, и прочими крутыми штуками не получилось, поэтому делюсь тем, что есть.\u003Cbr\u002F\u003E\r\nСобственно разработка была вполнена на python, остались только .pyc-файлы, которые легко декомпилировались обратно в читаемый код. Скажу честно, много времени, целых 25 минут, ушло на то, чтобы разобраться как это работает.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, сложная система, разработанная “олдскульным” программером, в которой мало кто может разобраться, состоит из:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E Скрипта, обрабатываемого апачем, который собственно и получал запрос. Что делал данный скрипт? Открывал соединение на определенный порт localhost`а и передавал туда запрос со всеми его данными. Всё. Интересности идут дальше.\u003C\u002Fli\u003E\r\n\u003Cli\u003EСерверной части, обрабатывавшей запросы от скрипта. Логика его действий была достаточно интересна. Во-первых, в коде не было никаких манипуляций с данными, и запросов в БД, вместо этого вызывались функции БД на PL\\SQL. Вся логика, проверки, и прочее, все было заложено в функции БД. 50% скрипта составлял словарь содержащий имя запроса, сопоставленную ему функцию, и имена параметров функции, которые должны были соответствовать данным, переданным в строке get-запроса. JSON-данные, если они были нужны, передавали как отдельный параметр. Особенностью организации серверной части явилось резервирование подключения при аутентификации пользователя. Если логин и пароль обнаружены в БД — генерировался ИД сессии, а экземпляр открытого подключения складывался в словарь (и убивался по таймауту в 10 минут, чтобы не убивался — был специальный метод на продление жизни сессии), ключом являлся ИД сессии, который в БД напрямую не хранился. Как же именно связан ИД сессии с данными пользователя? Ведь есть запрос на получение данных, в который ИД пользователя не передается? Он работает, а значит что-то тут не так. \u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nОчень сложная разработка давалась сознанию с трудом и не спешила раскрывать давно утерянные секреты мастеров прошлого.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНевероятным (Go to \u003E Definition, спасибо PhpStorm за понимание PL\\SQL), непостижимым разуму обывателя страданием Истинное Знание Утерянной Цивилизации Олдскульных Программистов было все же обретено. В общем — при подключении, в функции проверки данных аутентификации генерировалась временная таблица, в которой хранился ид пользователя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто было только началом, примерный список найденных серьезных уязвимостей:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EDDoS с помощью массовой аутентификации (подключения резезвировались, и, следовательно, упирались в лимит соединений СУБД, что с учетом имеющейся возможности продления времени жизни сессии позволяло полностью забить память подключениями, и работа новых пользователей в системе станет невозможна);\u003C\u002Fli\u003E\r\n\u003Cli\u003Eотсутствие защиты от брутфорса (кол-во неудачных попыток входа не детектится, не хранится, не проверяется;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eотсутствие контроля действий с сущностями (например, список документов, запрошенный пользователем, выдавался с учетом организации, к которой пользователь привязан, при этом, если знать ИД документа, то можно успешно выполнить запрос на обновление\\удаление документа, а список пользователей, хорошо хоть без паролей, которые, кстати, хранились в БД в открытом виде, без хеширования, мог получить вообще кто угодно).\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nИ еще одна серьезная проблема — не формализованная схема хранения данных. Как и обещал ранее — рассказываю о хранении “любых полей” из JSON. Нет, они не хранились как строка в таблице. Они разбивались на key-value пары и хранились в отдельной таблице. Например, для пользователей было 2 таблицы — users, и users_data (string key, string value) — где собственно и хранились данные. Итогом такого подхода стало увеличение времени при сложных выборках из БД.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСобственно этого хватило, чтобы принять и привести в жизнь решение о переводе системы на новое api, понятное, документированное, и поддерживаемое.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EМораль\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nВозможно, эта система являет собой “легаси”, а “олдскульный” программер, создавший ее — суть хранитель легаси. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо тем не менее выводы следующие:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EЕсли вам говорят “там сложно, ты не разберешься” — значит там полный атас\u003C\u002Fli\u003E\r\n\u003Cli\u003EЕсли давят авторитетом — значит что-то нечисто\u003C\u002Fli\u003E\r\n\u003Cli\u003EДоверяй, но проверяй — безопасность — не состояние, безопасность — процесс, притом непрерывный, посему лучше убедиться в соответствии декларируемых качеств действительности, чем потом узнать что все пользователи вдруг стали “Ивановыми Иванами Иванычами”, а бакапов нету.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"legacy code"},{"titleHtml":"reverse engineering"},{"titleHtml":"api"},{"titleHtml":"иб"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450384\u002F69ed957b999f27b087ea018be20c801a\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450384\u002F69ed957b999f27b087ea018be20c801a\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450384\\\u002F\"},\"headline\":\"История небольшого исследования легаси-кода\",\"datePublished\":\"2019-05-03T12:58:35+03:00\",\"dateModified\":\"2019-05-04T13:00:55+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Дмитрий Панкрашов\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи ве...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450384\\\u002F#post-content-body\",\"about\":[\"h_infosecurity\",\"h_analysis_design\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450384\\\u002F69ed957b999f27b087ea018be20c801a\\\u002F\"]}","metaDescription":"Хорошо, когда в команде есть кто-то более опытный, кто покажет что и как надо делать, какие грабли и за каким углом подстерегают, и где скачать лучшие чертежи велосипедов за 2007 год на DVD. Эта...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"infosecurity,analysis_design"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

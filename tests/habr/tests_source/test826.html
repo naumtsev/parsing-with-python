@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как поговорить с микроконтроллером из JS / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/oleg-bunin\/blog\/450826\/"},"headline":"Как поговорить с микроконтроллером из JS","datePublished":"2019-07-23T13:44:14+03:00","dateModified":"2019-07-23T14:18:25+03:00","author":{"@type":"Person","name":"Глеб Михеев"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, о...","url":"https:\/\/habr.com\/ru\/company\/oleg-bunin\/blog\/450826\/#post-content-body","about":["c_oleg-bunin","h_javascript","h_controllers","h_internet_of_things","h_DIY","f_develop","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/cc\/wc\/ou\/ccwcoucl5o2c-9xayxy04jc8fsq.jpeg","https:\/\/habrastorage.org\/webt\/pd\/ya\/be\/pdyabe5bjmklkee0jjco7nontue.jpeg","https:\/\/habrastorage.org\/webt\/oc\/z5\/re\/ocz5rert1d774i6ic7dzkaahjpa.gif","https:\/\/habrastorage.org\/webt\/5r\/7h\/it\/5r7hit4db5ds9369m2fgmsua8t4.jpeg","https:\/\/habrastorage.org\/webt\/th\/dz\/jc\/thdzjcdluwlertps_bl5lbkdjui.jpeg","https:\/\/habrastorage.org\/webt\/io\/1t\/aj\/io1tajdpojik7cxsab0mrddw0bi.jpeg","https:\/\/habrastorage.org\/webt\/y1\/3e\/mt\/y13emt_fcb-qdw2j_tihccn8ukm.jpeg","https:\/\/habrastorage.org\/webt\/gb\/fx\/9-\/gbfx9-t4nskmti1hepnxlkz-lx0.png","https:\/\/habrastorage.org\/webt\/y_\/af\/ws\/y_afwsgmlr9e7fvkesyrwlvobak.jpeg","https:\/\/habrastorage.org\/webt\/if\/1a\/jf\/if1ajfsmxsvwwcap7ac_cpu8i2k.jpeg","https:\/\/habrastorage.org\/webt\/0r\/sz\/oj\/0rszojmbxar2o-zhp26divehxj4.jpeg","https:\/\/habrastorage.org\/webt\/fc\/z2\/gx\/fcz2gxhtqtz7gsoqbopfki6tlqm.jpeg","https:\/\/habrastorage.org\/webt\/-p\/-9\/j0\/-p-9j0ex1ngdm7pfdq-lv5dej9u.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как поговорить с микроконтроллером из JS" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как поговорить с микроконтроллером из JS" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как поговорить с микроконтроллером из JS" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450826/62e3bc105648a44d60cf8088ec1defe8/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450826/62e3bc105648a44d60cf8088ec1defe8/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450826/62e3bc105648a44d60cf8088ec1defe8/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450826/62e3bc105648a44d60cf8088ec1defe8/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450826/62e3bc105648a44d60cf8088ec1defe8/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450826" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-07-23T10:44:14.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450826/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/oleg-bunin/blog/450826/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450826/62e3bc105648a44d60cf8088ec1defe8/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="oleg-bunin" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://www.highload.ru/moscow/2021/?utm_source=habr&amp;utm_medium=cpc&amp;utm_campaign=title&amp;utm_content=banner"><img src="//habrastorage.org/getpro/habr/branding/673/a67/310/673a67310118a40a792e1eb97151fd97.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/7c3/ad4/7b2/7c3ad47b2aae71b56795f618534e7a51.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">374.29</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-card__name">
+        Конференции Олега Бунина (Онтико)
+      </a> <div class="tm-company-card__description">Профессиональные конференции для IT-разработчиков</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/glebmachine/" title="glebmachine" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/118/ea7/631/118ea7631403936094eafd562562e94d.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/glebmachine/" class="tm-user-info__username">
+      glebmachine
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-07-23T10:44:14.000Z" title="2019-07-23, 13:44">23  июля  2019 в 13:44</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как поговорить с микроконтроллером из JS</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/oleg-bunin/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Конференции Олега Бунина (Онтико)</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/javascript/" class="tm-article-snippet__hubs-item-link"><span>JavaScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/controllers/" class="tm-article-snippet__hubs-item-link"><span>Программирование микроконтроллеров</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/internet_of_things/" class="tm-article-snippet__hubs-item-link"><span>Интернет вещей</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/DIY/" class="tm-article-snippet__hubs-item-link"><span>DIY или Сделай сам</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный фонтан, который рисует картину каплями, или выставочный стенд для большой компании. С микроконтроллером можно сделать что угодно — все зависит от фантазии.<br/>
+<br/>
+Есть заблуждение, что для создания своих железок требуется знать ассемблер, C/C++, уметь управлять памятью и глубоко понимать электричество. Когда-то так и было, но технологии развиваются и сейчас для полноценной реализации своего проекта достаточно только JS!<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/cc/wc/ou/ccwcoucl5o2c-9xayxy04jc8fsq.jpeg" data-src="https://habrastorage.org/webt/cc/wc/ou/ccwcoucl5o2c-9xayxy04jc8fsq.jpeg" data-blurred="true"/><br/>
+<br/>
+Ок, JavaScript мы знаем, а как соединить его с железом? Какое вообще бывает железо и что умеет? Как настроить всю систему? В расшифровке доклада Виктор Накорякова на <a href="https://frontendconf.ru/">FrontendConf</a> узнаем: как, с помощью одного лишь JS, управлять сервоприводами, как физически объединить систему с PC, и о вариантах коммуникации приложения на JS. Обсудим пакеты serialport и Firmata, serialport с самописной прошивкой на C++, Espruino и программирование контроллера прямо на JS, Raspberry Pi, HTTP в локальной сети и HTTP и MQTT через облако.<br/>
+<a name="habracut"></a><br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/yqeTaf44vNk?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+<br/>
+<strong>Виктор Накоряков </strong>(<a href="https://habr.com/ru/users/nailxx/" class="user_link">nailxx</a>) — технический директор, сооснователь компании «Амперка». Любит передовые технологии разработки, функциональное программирование и physical computing. «Амперка» производит и продает электронные модули, чтобы непрофессионалы создавали умные устройства своими руками, обучающие наборы и отдельные строительные кубики, которые можно добавлять к своему устройству — моторы, GPS, SMS.<br/>
+<br/>
+<h2>Куда писать JavaScript</h2><br/>
+<strong>В Espruino — автономный микроконтроллер с JavaScript.</strong> Платформа Espruino позволяет писать JS прямо в микроконтроллер. Это автономная вещь в себе: подключили к компьютеру, прошили, и дальше работает самостоятельно.<br/>
+<br/>
+<strong>В Raspberry Pi </strong>— маленький компьютер с GPIO.<br/>
+<br/>
+<strong>В веб-приложение </strong>— на фронтенд или бэкенд.<br/>
+<br/>
+Работу системы покажу на примере лягушки. Заходите с телефона на <a href="http://toad.amperka.ru">toad.amperka.ru</a> — появится нехитрый веб-интерфейс.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/pd/ya/be/pdyabe5bjmklkee0jjco7nontue.jpeg" data-src="https://habrastorage.org/webt/pd/ya/be/pdyabe5bjmklkee0jjco7nontue.jpeg" data-blurred="true"/><br/>
+<br/>
+Левая колонка управляет левым глазом, правая — правым. Принцип простой — нажал на кнопку, сервомотор крутит глаз.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/oc/z5/re/ocz5rert1d774i6ic7dzkaahjpa.gif" data-width="350"/></div><br/>
+<br/>
+<a href="https://www.youtube.com/watch?v=yqeTaf44vNk&amp;feature=youtu.be&amp;t=222">Видео</a> демонстрации стенда с лягушкой во время доклада.<br/>
+<br/>
+<h2>Как работает лягушка</h2><br/>
+При открытии toad.amperka.ru, вы получаете статичную веб-страницу со статичным JS, который использует библиотеку <a href="https://github.com/mqttjs/MQTT.js">MQTT.js</a>. Эта библиотека связывается с брокером MQTT в облаке.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/5r/7h/it/5r7hit4db5ds9369m2fgmsua8t4.jpeg" data-src="https://habrastorage.org/webt/5r/7h/it/5r7hit4db5ds9369m2fgmsua8t4.jpeg" data-blurred="true"/><br/>
+<br/>
+Если знакомы Redis, Publish/Subscribe, RabbitMQ или другие очереди сообщений, то сразу поняли о чем речь. <strong>MQTT — это брокер сообщений Machine-to-Machine</strong>. Легковесный и простой, чтобы даже слабые железки могли им пользоваться.<br/>
+<br/>
+Для MQTT требуется брокер на сервере. Но вам даже не нужно его поднимать — арендуйте. За пару долларов в месяц у вас будет свой собственный MQTT-брокер. Бэкенд не нужен.<br/>
+<br/>
+С другой стороны от брокера MQTT находится контроллер. Существует много разных устройств с этой ролью, например, <a href="https://amperka.ru/product/wifi-slot">Wi-Fi Slot</a>. Это контроллер, который умеет соединяться с интернетом.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/th/dz/jc/thdzjcdluwlertps_bl5lbkdjui.jpeg" data-src="https://habrastorage.org/webt/th/dz/jc/thdzjcdluwlertps_bl5lbkdjui.jpeg" data-blurred="true"/><br/>
+<br/>
+Он работает на базе популярного чипа ESP8266. К чипу добавлена возможность питания через микро-USB и подключение внешней периферии через тройные контакты для соединения с другими устройствами.<br/>
+<br/>
+<h2>Как программировать железо на JS</h2><br/>
+Ничего необычного, JS обычный — почти полный ES6. В стандартную библиотеку добавлены некоторые функции и объекты для работы на низком уровне с электрическими сигналами. Например, функции для простого цифрового считывания и записи.<br/>
+<br/>
+<strong>digitalRead — цифровое считывание</strong>. Это вопрос контроллеру: «Есть три вольта на пине №4?». Если напряжение есть, он вернет TRUE, если нет — FALSE. Так реализуется считывание простых бинарных датчиков: кнопок, переключателей, герконовых замков и инфракрасных датчиков движения.<br/>
+<br/>
+<strong>digitalWrite — простая цифровая запись</strong>. Говорим digitalWrite TRUE — с pin уходит 3V. Говорим digitalWrite FALSE — 0V. С помощью этого простого принципа можно зажечь/погасить светодиодную ленту или запустить ядерную ракету. Мы посылаем слабый сигнал на реле, оно коммутирует большую нагрузку и ракета полетела.<br/>
+<br/>
+Также есть функции для работы с промежуточными значениями между 0 и 3V:<br/>
+<br/>
+<ul>
+<li>analogRead;</li>
+<li>analogWrite;</li>
+<li>setWatch;</li>
+<li>digitalPulse.</li>
+</ul><br/>
+Команды позволяют опрашивать всевозможные крутилки и предоставляют функции для нечеткой записи.<br/>
+<br/>
+Дальше идут объекты для работы с интерфейсами, которые приняты в микроконтроллерном мире. Если в вебе нам понятны и знакомы HTTP, WebSocket, TCP, то для микроконтроллера это:<br/>
+<br/>
+<ul>
+<li>Serial — последовательный порт;</li>
+<li>шина I2C;</li>
+<li>шина SPI;</li>
+<li>шина OneWire.</li>
+</ul><br/>
+<h2>Как пинать сервомотор</h2><br/>
+Для примера расскажу, как управлять мотором, который стоит в гипножабе. Протокол мотора простой. На контрольный пин подается 0V — нижняя граница. Раз в 20 мкс его нужно пинать, давая стабильную единичку — 3V, а через некоторое время — сбрасывать до 0.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/io/1t/aj/io1tajdpojik7cxsab0mrddw0bi.jpeg" data-src="https://habrastorage.org/webt/io/1t/aj/io1tajdpojik7cxsab0mrddw0bi.jpeg" data-blurred="true"/><br/>
+<br/>
+Дальше все повторяется заново. В зависимости от длины единички, получаем разную скорость вращения. При длине импульса в 1500 мкс мотор стоит на месте. При отклонении в ту или иную сторону он крутится по часовой или против часовой стрелки. Величина отклонения влияет на скорость вращения.<br/>
+<br/>
+<h2>Как программировать</h2><br/>
+Программирование платформы Espruino производится в одноименной среде Espruino IDE. Плата микроконтроллера подсоединяется к компьютеру микро-USB кабелем. Единственное, придется поставить драйвер, что занимает 1,5 минуты. Драйвер ставится для MAC и Windows, а на Linux всё работает из коробки.<br/>
+<br/>
+Вот пример программы, которая загружается в среду одной кнопкой. Она мигает светодиодом раз в секунду:<br/>
+<br/>
+<pre><code class="javascript">var on = false;
+setInterval(function() {
+    on = !on;
+    LED1.write(on);
+},500);</code></pre><br/>
+Слева в среде находится REPL-интерпретатор. Вводим «1+1». Программа выдаёт ответ «2». Чудо!<br/>
+<br/>
+Чудо в том, что при нажатии кнопок, цифра «1», знак «+» и следующая единичка ушли по кабелю на контроллер. При нажатии «ENTER», выражение исполнилось внутри микроконтроллера, а не компьютера. Микроконтроллер получил результат «2» и вернул его обратно по кабелю на компьютер. На мониторе высветилось «2».<br/>
+<br/>
+<blockquote>JavaScript исполняется внутри железа.</blockquote><br/>
+Кроме развлечений с арифметикой, можно крутить моторы. Понадобится функция «analogWrite», которая посылает квадратную волну. Говорим на какой пин выдавать волну. Например, у меня на плате он подписан как A7. Затем указываем длительность — например, 1300 мкс из 20 000 мкс будем подавать единицу. Также требуется опция, которая задает частоту этого пинания — 50 раз в секунду, это и есть 20 000 мкс.<br/>
+<br/>
+<pre><code class="javascript">>analogWrite(A7, 1300 / 2000, {freq: 50}}
+=undefined
+></code></pre><br/>
+Перевалим за 1500 — заставим крутиться в другую сторону с большей скоростью.<br/>
+<br/>
+<pre><code class="javascript">>analogWrite(A7, 2300 / 2000, {freq: 50}}
+=undefined
+></code></pre><br/>
+Или скажем остановиться.<br/>
+<br/>
+<pre><code class="javascript">>digitalWrite(A7, 0)
+=undefined
+></code></pre><br/>
+Используя те же функции, можно написать целую программу, которая в зависимости от внешних факторов — нажатия кнопок, показаний сенсоров — выполнит то, что вам хочется.<br/>
+<br/>
+<h3>Библиотеки</h3><br/>
+Не всегда удобно вспоминать детали реализации протокола. Поэтому для всевозможного железа создана масса библиотек, от маленьких до гигантских. Они содержат все технические особенности. В библиотеках используются понятные методы: считать данные с nfc-метки, прочитать концентрацию углекислого газа в промилле, или отправить сообщение в Telegram.<br/>
+<ul>
+<li>servo.write;</li>
+<li>barometer.init;</li>
+<li>barometer.read;</li>
+<li>barometer.temperature;</li>
+<li>nfc.listen;</li>
+<li>nfc.on('tag', ...);</li>
+<li>nfc.readPage;</li>
+<li>nfc.writePage;</li>
+<li>relay.turnOn;</li>
+<li>relay.turnOff;</li>
+<li>gas.calibrate;</li>
+<li>gas.read('CO2');</li>
+<li>telegram.sendMessage.</li>
+</ul><br/>
+Полезно понимать низкоуровневые команды, но, чтобы начать творить — знать не обязательно.<br/>
+<br/>
+<h2>Код на клиенте</h2><br/>
+Итак, когда нажимаем одну из кнопок левого или правого столбика в нашей лягушке, на топик toad/eye/left или right отправляется значение, которое мы хотим установить на соответствующий сервопривод.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/y1/3e/mt/y13emt_fcb-qdw2j_tihccn8ukm.jpeg" data-src="https://habrastorage.org/webt/y1/3e/mt/y13emt_fcb-qdw2j_tihccn8ukm.jpeg" data-blurred="true"/><br/>
+<br/>
+<pre><code class="javascript">&lt;button
+    class="toad__eye__control"     
+    data-queue="left"     
+    data-payload="1300">
+    -1
+&lt;/button></code></pre><br/>
+1300 — это длительность импульса. Откуда берется left и 1300? Я их просто добавил в HTML в виде data-attributes. <br/>
+<br/>
+В JS мы пишем простой код.<br/>
+<br/>
+<pre><code class="javascript">import mqtt from 'mqtt'; 
+
+const client = mqtt.connect(`ws://${location.hostname}:9001`);
+
+function onEyeControlClick() {
+    const { queue, payload } = this.dataset;   
+    client.publish(`toad/eye/${queue}`, payload);
+}
+
+document.querySelectorAll(".toad__eye__control")
+    .forEach(e => e.addEventListener('click', onEyeControlClick));</code></pre><br/>
+Разберем код по частям. На старте подключаемся к брокеру, который по умолчанию работает на порту 9001: <code>const client = mqtt.connect(`ws://${location.hostname}:9001`);</code>.<br/>
+<br/>
+При нажатии на любую из кнопок публикуем новый message с payload, который достали из data-attribute: <code>client.publish(`toad/eye/${queue}`, payload);</code>.<br/>
+<br/>
+Дальше публикуем на топик, который сформировали тоже на основе data-attribute. Это весь наш JS-код в браузере.<br/>
+<br/>
+<h2>Код на плате</h2><br/>
+Когда стартует Wi-fi Slot, он подписывается на интересующие его топики и принимает данные. Когда они приходят, слот реагирует и заставляет работать моторы.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/5r/7h/it/5r7hit4db5ds9369m2fgmsua8t4.jpeg" data-src="https://habrastorage.org/webt/5r/7h/it/5r7hit4db5ds9369m2fgmsua8t4.jpeg" data-blurred="true"/><br/>
+<br/>
+Код на плате условно разбит на несколько частей. Для начала мы подключаем библиотеки. В частности, это как раз <strong>библиотека, которая управляет Servo</strong>, чтобы не вспоминать детали. Они находятся в скоупе «amperka».<br/>
+<br/>
+<pre><code class="javascript">const ssid = "Droidxx";
+const password = "****"; 
+const brokerHostname = "toad.amperka.ru";
+
+const leftEye = require("@amperka/servo").connect(A5); 
+const rightEye = require("@amperka/servo").connect(A7).</code></pre><br/>
+Каждый может создавать и публиковать свои библиотеки. Мы сделали несколько десятков для наших собственных и других популярных модулей. Все Open Source — <a href="https://github.com/amperka/espruino-modcat/">заходите, пользуйтесь</a>.<br/>
+<br/>
+Затем нам понадобятся <strong>библиотеки для работы с Wi-Fi и MQTT-брокерами</strong>.<br/>
+<br/>
+<pre><code class="javascript">const wifi = require("Wifi");
+const mqtt = require("tinyMQTT").create(brokerHostname); </code></pre><br/>
+Здесь нет ОС, поэтому даже подключение к Wi-Fi — ручная операция. Забота о подключении лежит на вас, но это не так уж сложно. Чтобы подключиться к сети просто вызываем метод «connect», который в случае успеха или неудачи вызовет «callback» и сообщит об итогах операции.<br/>
+<br/>
+<pre><code class="javascript">wifi.connect(ssid, { password: password }, function(e) {
+    if (e) {
+        console.log("Error connecting:", e);
+        wifi.disconnect();
+    } else {
+        console.log("Wi-Fi OK, connecting to broker ...");
+        mqtt.connect();
+    }
+}); </code></pre><br/>
+Если все хорошо — подключимся к MQTT-брокеру.<br/>
+<br/>
+При успешном подключении подпишемся на интересные топики, то есть на все, что начинается с toad/eye.<br/>
+<br/>
+<pre><code class="javascript">mqtt.on("connected", function() {
+    mqtt.subscribe("toad/eye/*");
+        console.log("Connected to broker", brokerHostname);
+}); </code></pre><br/>
+Когда получаем какое-либо сообщение — разбираемся, куда оно пришло. Это очень похоже на простой разбор URL. В зависимости от топика решаем, на какой глаз будем влиять. Если получили что-то осознанное, то на этот глаз пишем то, что пришло в «payload» в микросекундах.<br/>
+<br/>
+<pre><code class="javascript">mqtt.on("message", function(msg) {
+    const eye =
+        (msg.topic === "toad/eye/left") ? leftEye :
+        (msg.topic === "toad/eye/right") ? rightEye : null;
+    if (eye) {
+        eye.write(Number(msg.message), "us");
+    }
+}); </code></pre><br/>
+Вот и вся магия лягушки.<br/>
+<br/>
+<h2>Ограничения Espruino JS</h2><br/>
+Мы пробежались по платформе Espruino. Крутить глаза лягушкам — не единственная ее опция. Но у платформы есть свои косяки, которые заставляют рассматривать другие варианты.<br/>
+<br/>
+<strong>«Всего» 1–4 Mb RAM</strong>. Есть ограничение по оперативной памяти. На код и data одновременно дается всего несколько мегабайт. Может показаться, что в эру, когда оперативка измеряется гигами, это мало. Но для группы небольших устройств этого достаточно. На 2 Mb можно делать шикарные вещи — на фонтан хватит.<br/>
+<br/>
+<strong>Не всё так просто с NPM</strong>. Эта проблема относится к Espruino IDE. Если пишем «require», Espruino смотрит в одном месте, в другом, и если не нашла — производит fallback на NPM. В этот момент может тормозить. Espruino не всегда может разобраться со сложными пакетами. Ее мощь в этом смысле гораздо ниже, чем у того же Webpack или Parcel. Это боль, но если вы настроите toolchain самостоятельно, с пониманием того, что происходит внутри железа, то проблемы нет.<br/>
+<br/>
+<strong>Ассортимент железа. </strong>Не каждая железка, которая называется платформой для разработки, потянет Espruino. По меркам мира микроконтроллеров, Espruino прожорлива — ей нужно от 500 Kb оперативной памяти. Такую память даст не любая железка. У канонических Arduino Uno или Arduino Nano всего 2 Kb RAM — поэтому там нельзя. Работать с Espruino возможно на железе, которое делаем мы и на официальном железе от Espruino.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gb/fx/9-/gbfx9-t4nskmti1hepnxlkz-lx0.png"/><br/>
+<br/>
+Espruino — это компания одного человека, который часто выходит на Kickstarter с новыми продуктами и всегда успешно проводит сбор. Если хотите поддержать платформу — покупайте официально.<br/>
+<br/>
+Есть третий вариант — взять достаточно мощный, но сторонний devboard. Например, у компании ST, которая производит «Nuclear» и «Discovery». Железо с надписью STM32, скорее всего, потянет Espruino.<br/>
+<br/>
+Пробежимся по двум альтернативным вариантам. Первый — Raspberry Pi.<br/>
+<br/>
+<h2>Raspberry Pi</h2><br/>
+<blockquote>Это полноценный компьютер с Linux размером с визитку.</blockquote><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/y_/af/ws/y_afwsgmlr9e7fvkesyrwlvobak.jpeg" data-src="https://habrastorage.org/webt/y_/af/ws/y_afwsgmlr9e7fvkesyrwlvobak.jpeg" data-blurred="true"/><br/>
+<br/>
+Дополнительно есть пины ввода/вывода. Если у вас в распоряжении Raspberry Pi — используйте следующую топологию устройства.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/if/1a/jf/if1ajfsmxsvwwcap7ac_cpu8i2k.jpeg" data-src="https://habrastorage.org/webt/if/1a/jf/if1ajfsmxsvwwcap7ac_cpu8i2k.jpeg" data-blurred="true"/><br/>
+<br/>
+Здесь облако опционально — мобильное устройство может подключаться непосредственно к устройству через hostname, API или систему автоматического определения устройству в сети. У меня дома есть умный телевизор и винчестер для бэкапа. Они доступны со всех других устройств просто потому, что они находятся в том же LAN.<br/>
+<br/>
+Принцип тот же самый. Ставите устройство на Raspberry Pi в сеть и строите клиент так, что он через HTTP или WebSocket непосредственно соединяется с ним, минуя посредников. Облако для своих целей использует само приложение на Raspberry Pi: протоколирует сенсоры или транслирует прогноз погоды.<br/>
+<br/>
+Следующая возможная топология с полноценным бэкендом.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/if/1a/jf/if1ajfsmxsvwwcap7ac_cpu8i2k.jpeg" data-src="https://habrastorage.org/webt/if/1a/jf/if1ajfsmxsvwwcap7ac_cpu8i2k.jpeg" data-blurred="true"/><br/>
+<br/>
+В облаке поднимается сервер. Его клиент — то же мобильное приложение, которое держит соединение через HTTP или WebSocket. С другой стороны соединение держится уже через Raspberry Pi, используя HTTP или тот же самый MQTT.<br/>
+<br/>
+В таком подходе преимущество в полном контроле: валидация, авторизация, отказ клиентам. При этом всемирная доступность — устройство в Москве, а коммуникация с ним доступна из Владивостока.<br/>
+<br/>
+<h3>Ограничения Raspberry Pi</h3><br/>
+<strong>Длинная загрузка.</strong> Raspberry Pi — полноценный компьютер и на старт требуется время. В качестве винчестера используется SD-карта. Даже самая быстрая карта все равно проигрывает обычным HDD, не говоря о SSD. По времени загрузка приближается к минуте.<br/>
+<br/>
+<strong>Следующий недостаток — это энергопотребление</strong>. В плане энергоэффективности, рассуждайте о Raspberry Pi как о мобильном устройстве. От аккумулятора она протянет недолго — счет идет на часы. Чтобы устройство работало полгода или год, требуется грамотная программа для микроконтроллера и комплект батареек.<br/>
+<br/>
+<strong>Бедный GPIO — general-purpose input/output</strong>. Фичи подачи волн, считывание волн, работа с аналоговыми сигналами у Raspberry Pi гораздо слабее, чем у микроконтроллеров, для которых это основная задача. Например, из коробки на Raspberry Pi не удастся управлять сервоприводом в аппаратном режиме.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/0r/sz/oj/0rszojmbxar2o-zhp26divehxj4.jpeg" data-src="https://habrastorage.org/webt/0r/sz/oj/0rszojmbxar2o-zhp26divehxj4.jpeg" data-blurred="true"/><br/>
+<br/>
+Ограничение условно, потому что его можно обойти расширением. Например, железкой <a href="https://amperka.ru/product/raspberry-troyka-cap">Troyka Cap</a>, которая берет все низкоуровневое управление работы с сигналами на себя. Raspberry Pi общается с ней с помощью высокоуровневого пакета. Отдает команды покрутить сервопривод и он работает. С помощью таких плат расширения можно подключать все, что угодно.<br/>
+<br/>
+<h2>Arduino</h2><br/>
+Можно взять обычную <strong>Arduino</strong>, которая всем надоела. Но JavaScript придется перенести куда-нибудь, что может крутить Node JS — старый компьютер или та же Raspberry Pi.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/fc/z2/gx/fcz2gxhtqtz7gsoqbopfki6tlqm.jpeg" data-src="https://habrastorage.org/webt/fc/z2/gx/fcz2gxhtqtz7gsoqbopfki6tlqm.jpeg" data-blurred="true"/><br/>
+<br/>
+Соединяем старый ненужный компьютер с Arduino через USB-кабель. В Arduino один раз заливаем стандартную прошивку <a href="https://github.com/firmata/firmata.js">Firmata</a>. Она превращает Arduino в зомби, который выполняет указания мастера — старого компьютера. Мастер говорит передать на такой-то пин такой-то сигнал, и Arduino передает.<br/>
+<br/>
+Для коммуникации используются библиотеки с NPM — <a href="https://serialport.io/">SerialPort</a> и Firmata с понятным API. Так вы опять в мире JS, пишете высокоуровневую программу, которую отправляете на свой сервер. Работу с сигналами доверяете Arduino, и она ее исполняет.<br/>
+<br/>
+Не всегда с Firmata получится управлять всем. Она способна обеспечить взаимодействие с тем железом, для которого предназначена: сервоприводы, светодиодные ленты, медиа-контроллеры. Но если возможность считывать вполне конкретный гироскоп или акселерометр не заложена — не подойдет. Тогда придётся на обычную Arduino писать программу на C.<br/>
+<br/>
+Но это еще не все — если писать на C нет желания, воспользуйтесь Open Source инструментом <a href="https://xod.io">XOD.io</a>.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/-p/-9/j0/-p-9j0ex1ngdm7pfdq-lv5dej9u.jpeg" data-src="https://habrastorage.org/webt/-p/-9/j0/-p-9j0ex1ngdm7pfdq-lv5dej9u.jpeg" data-blurred="true"/><br/>
+<br/>
+Это визуальная среда программирования, где граф, который вы строите, превращается в сишный код, и уже его можно компилировать и заливать. XOD.io позволяет людям, которые слабо знакомы с тонкостями и нюансами микроконтроллерного программирования, быстро создавать простые программы. Если вы выросли из Firmata, но пока не чувствуете сил писать на низком уровне — используйте XOD.io.<br/>
+<br/>
+<blockquote>Следующая конференция <a href="https://frontendconf.ru/moscow/2019/">FrontendConf</a> пройдет в октябре. Знаете о JavaScript такое, чего не знает большинство фронтенд-разработчиков, разрабатываете интерфейсы, которыми удобно пользоваться или нашли грааль производительности и готовы рассказать, где он находится, — <a href="https://conf.ontico.ru/lectures/propose?conference=fc2019-moscow">ждем заявки</a> на доклады. <br/>
+<br/>
+Интересные доклады в программе, новости конференции, видео и статьи собираем в регулярную рассылку — <a href="http://eepurl.com/bb99tn">подписывайтесь</a>.</blockquote></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjavascript%5D" class="tm-tags-list__link">javascript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B8%D0%BA%D1%80%D0%BE%D0%BA%D0%BE%D0%BD%D1%82%D1%80%D0%BE%D0%BB%D0%BB%D0%B5%D1%80%D1%8B%5D" class="tm-tags-list__link">микроконтроллеры</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bespruino%5D" class="tm-tags-list__link">espruino</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpaspberry%20pi%5D" class="tm-tags-list__link">paspberry pi</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Barduino%5D" class="tm-tags-list__link">arduino</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bfrontendconf%5D" class="tm-tags-list__link">frontendconf</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/oleg-bunin/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Конференции Олега Бунина (Онтико)
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/javascript/" class="tm-hubs-list__link">
+    JavaScript
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/controllers/" class="tm-hubs-list__link">
+    Программирование микроконтроллеров
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/internet_of_things/" class="tm-hubs-list__link">
+    Интернет вещей
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/DIY/" class="tm-hubs-list__link">
+    DIY или Сделай сам
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 43: ↑38 и ↓5</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 43: ↑38 и ↓5" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+33</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">12K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    105
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/7c3/ad4/7b2/7c3ad47b2aae71b56795f618534e7a51.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-snippet__title">Конференции Олега Бунина (Онтико)</a> <div class="tm-company-snippet__description">Профессиональные конференции для IT-разработчиков</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/oleg.bunin" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://facebook.com/HighLoadConference" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://facebook.com/ritfest" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/glebmachine/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/118/ea7/631/118ea7631403936094eafd562562e94d.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 86 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    64
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">36</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Глеб Михеев</span> <a href="/ru/users/glebmachine/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @glebmachine
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Фронтенд-разработчик</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/oleg-bunin/blog/450826/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 11 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2007-12-31T21:00:00.000Z" title="2008-01-01, 00:00">1  января  2008</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://www.ontico.ru/" target="_blank" class="tm-company-basic-info__link">
+      www.ontico.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    11–30 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2010-02-24T19:37:40.000Z" title="2010-02-24, 22:37">24  февраля  2010</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/oleg-bunin/blog/450826/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/oleg-bunin/blog/450826/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450826":{"id":"450826","timePublished":"2019-07-23T10:44:14+00:00","isCorporative":true,"lang":"ru","titleHtml":"Как поговорить с микроконтроллером из JS","leadData":{"textHtml":"Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный фонтан, который рисует картину каплями, или выставочный стенд для большой компании. С микроконтроллером можно сделать что угодно &mdash; все зависит от фантазии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть заблуждение, что для создания своих железок требуется знать ассемблер, C\u002FC++, уметь управлять памятью и глубоко понимать электричество. Когда-то так и было, но технологии развиваются и сейчас для полноценной реализации своего проекта достаточно только JS!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcc\u002Fwc\u002Fou\u002Fccwcoucl5o2c-9xayxy04jc8fsq.jpeg\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОк, JavaScript мы знаем, а как соединить его с железом? Какое вообще бывает железо и что умеет? Как настроить всю систему? В расшифровке доклада Виктор Накорякова на \u003Ca href=\"https:\u002F\u002Ffrontendconf.ru\u002F\"\u003EFrontendConf\u003C\u002Fa\u003E узнаем: как, с помощью одного лишь JS, управлять сервоприводами, как физически объединить систему с PC, и о вариантах коммуникации приложения на JS. Обсудим пакеты serialport и Firmata, serialport с самописной прошивкой на C++, Espruino и программирование контроллера прямо на JS, Raspberry Pi, HTTP в локальной сети и HTTP и MQTT через облако.\u003Cbr\u002F\u003E\r\n","imageUrl":null,"buttonTextHtml":null,"image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":64,"votesCount":86},"rating":36,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"61891","alias":"glebmachine","fullname":"Глеб Михеев","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F118\u002Fea7\u002F631\u002F118ea7631403936094eafd562562e94d.jpg","speciality":"Фронтенд-разработчик"},"statistics":{"commentsCount":11,"favoritesCount":105,"readingCount":12346,"score":33,"votesCount":43},"hubs":[{"relatedData":null,"id":"14332","alias":"oleg-bunin","type":"corporative","title":"Блог компании Конференции Олега Бунина (Онтико)","titleHtml":"Блог компании Конференции Олега Бунина (Онтико)","isProfiled":false},{"relatedData":null,"id":"357","alias":"javascript","type":"collective","title":"JavaScript","titleHtml":"JavaScript","isProfiled":true},{"relatedData":null,"id":"19737","alias":"controllers","type":"collective","title":"Программирование микроконтроллеров","titleHtml":"Программирование микроконтроллеров","isProfiled":true},{"relatedData":null,"id":"21970","alias":"internet_of_things","type":"collective","title":"Интернет вещей","titleHtml":"Интернет вещей","isProfiled":false},{"relatedData":null,"id":"21976","alias":"DIY","type":"collective","title":"DIY или Сделай сам","titleHtml":"DIY или Сделай сам","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EЗачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный фонтан, который рисует картину каплями, или выставочный стенд для большой компании. С микроконтроллером можно сделать что угодно — все зависит от фантазии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть заблуждение, что для создания своих железок требуется знать ассемблер, C\u002FC++, уметь управлять памятью и глубоко понимать электричество. Когда-то так и было, но технологии развиваются и сейчас для полноценной реализации своего проекта достаточно только JS!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fcc\u002Fwc\u002Fou\u002Fccwcoucl5o2c-9xayxy04jc8fsq.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcc\u002Fwc\u002Fou\u002Fccwcoucl5o2c-9xayxy04jc8fsq.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОк, JavaScript мы знаем, а как соединить его с железом? Какое вообще бывает железо и что умеет? Как настроить всю систему? В расшифровке доклада Виктор Накорякова на \u003Ca href=\"https:\u002F\u002Ffrontendconf.ru\u002F\"\u003EFrontendConf\u003C\u002Fa\u003E узнаем: как, с помощью одного лишь JS, управлять сервоприводами, как физически объединить систему с PC, и о вариантах коммуникации приложения на JS. Обсудим пакеты serialport и Firmata, serialport с самописной прошивкой на C++, Espruino и программирование контроллера прямо на JS, Raspberry Pi, HTTP в локальной сети и HTTP и MQTT через облако.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FyqeTaf44vNk?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EВиктор Накоряков \u003C\u002Fstrong\u003E(\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fusers\u002Fnailxx\u002F\" class=\"user_link\"\u003Enailxx\u003C\u002Fa\u003E) — технический директор, сооснователь компании «Амперка». Любит передовые технологии разработки, функциональное программирование и physical computing. «Амперка» производит и продает электронные модули, чтобы непрофессионалы создавали умные устройства своими руками, обучающие наборы и отдельные строительные кубики, которые можно добавлять к своему устройству — моторы, GPS, SMS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКуда писать JavaScript\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EВ Espruino — автономный микроконтроллер с JavaScript.\u003C\u002Fstrong\u003E Платформа Espruino позволяет писать JS прямо в микроконтроллер. Это автономная вещь в себе: подключили к компьютеру, прошили, и дальше работает самостоятельно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EВ Raspberry Pi \u003C\u002Fstrong\u003E— маленький компьютер с GPIO.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EВ веб-приложение \u003C\u002Fstrong\u003E— на фронтенд или бэкенд.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРаботу системы покажу на примере лягушки. Заходите с телефона на \u003Ca href=\"http:\u002F\u002Ftoad.amperka.ru\"\u003Etoad.amperka.ru\u003C\u002Fa\u003E — появится нехитрый веб-интерфейс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fpd\u002Fya\u002Fbe\u002Fpdyabe5bjmklkee0jjco7nontue.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpd\u002Fya\u002Fbe\u002Fpdyabe5bjmklkee0jjco7nontue.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЛевая колонка управляет левым глазом, правая — правым. Принцип простой — нажал на кнопку, сервомотор крутит глаз.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Foc\u002Fz5\u002Fre\u002Focz5rert1d774i6ic7dzkaahjpa.gif\" data-width=\"350\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fwww.youtube.com\u002Fwatch?v=yqeTaf44vNk&amp;feature=youtu.be&amp;t=222\"\u003EВидео\u003C\u002Fa\u003E демонстрации стенда с лягушкой во время доклада.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКак работает лягушка\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПри открытии toad.amperka.ru, вы получаете статичную веб-страницу со статичным JS, который использует библиотеку \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fmqttjs\u002FMQTT.js\"\u003EMQTT.js\u003C\u002Fa\u003E. Эта библиотека связывается с брокером MQTT в облаке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F5r\u002F7h\u002Fit\u002F5r7hit4db5ds9369m2fgmsua8t4.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F5r\u002F7h\u002Fit\u002F5r7hit4db5ds9369m2fgmsua8t4.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли знакомы Redis, Publish\u002FSubscribe, RabbitMQ или другие очереди сообщений, то сразу поняли о чем речь. \u003Cstrong\u003EMQTT — это брокер сообщений Machine-to-Machine\u003C\u002Fstrong\u003E. Легковесный и простой, чтобы даже слабые железки могли им пользоваться.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля MQTT требуется брокер на сервере. Но вам даже не нужно его поднимать — арендуйте. За пару долларов в месяц у вас будет свой собственный MQTT-брокер. Бэкенд не нужен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС другой стороны от брокера MQTT находится контроллер. Существует много разных устройств с этой ролью, например, \u003Ca href=\"https:\u002F\u002Famperka.ru\u002Fproduct\u002Fwifi-slot\"\u003EWi-Fi Slot\u003C\u002Fa\u003E. Это контроллер, который умеет соединяться с интернетом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fth\u002Fdz\u002Fjc\u002Fthdzjcdluwlertps_bl5lbkdjui.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fth\u002Fdz\u002Fjc\u002Fthdzjcdluwlertps_bl5lbkdjui.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОн работает на базе популярного чипа ESP8266. К чипу добавлена возможность питания через микро-USB и подключение внешней периферии через тройные контакты для соединения с другими устройствами.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКак программировать железо на JS\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНичего необычного, JS обычный — почти полный ES6. В стандартную библиотеку добавлены некоторые функции и объекты для работы на низком уровне с электрическими сигналами. Например, функции для простого цифрового считывания и записи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EdigitalRead — цифровое считывание\u003C\u002Fstrong\u003E. Это вопрос контроллеру: «Есть три вольта на пине №4?». Если напряжение есть, он вернет TRUE, если нет — FALSE. Так реализуется считывание простых бинарных датчиков: кнопок, переключателей, герконовых замков и инфракрасных датчиков движения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EdigitalWrite — простая цифровая запись\u003C\u002Fstrong\u003E. Говорим digitalWrite TRUE — с pin уходит 3V. Говорим digitalWrite FALSE — 0V. С помощью этого простого принципа можно зажечь\u002Fпогасить светодиодную ленту или запустить ядерную ракету. Мы посылаем слабый сигнал на реле, оно коммутирует большую нагрузку и ракета полетела.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакже есть функции для работы с промежуточными значениями между 0 и 3V:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EanalogRead;\u003C\u002Fli\u003E\r\n\u003Cli\u003EanalogWrite;\u003C\u002Fli\u003E\r\n\u003Cli\u003EsetWatch;\u003C\u002Fli\u003E\r\n\u003Cli\u003EdigitalPulse.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nКоманды позволяют опрашивать всевозможные крутилки и предоставляют функции для нечеткой записи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДальше идут объекты для работы с интерфейсами, которые приняты в микроконтроллерном мире. Если в вебе нам понятны и знакомы HTTP, WebSocket, TCP, то для микроконтроллера это:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003ESerial — последовательный порт;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eшина I2C;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eшина SPI;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eшина OneWire.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКак пинать сервомотор\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДля примера расскажу, как управлять мотором, который стоит в гипножабе. Протокол мотора простой. На контрольный пин подается 0V — нижняя граница. Раз в 20 мкс его нужно пинать, давая стабильную единичку — 3V, а через некоторое время — сбрасывать до 0.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fio\u002F1t\u002Faj\u002Fio1tajdpojik7cxsab0mrddw0bi.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fio\u002F1t\u002Faj\u002Fio1tajdpojik7cxsab0mrddw0bi.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДальше все повторяется заново. В зависимости от длины единички, получаем разную скорость вращения. При длине импульса в 1500 мкс мотор стоит на месте. При отклонении в ту или иную сторону он крутится по часовой или против часовой стрелки. Величина отклонения влияет на скорость вращения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКак программировать\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПрограммирование платформы Espruino производится в одноименной среде Espruino IDE. Плата микроконтроллера подсоединяется к компьютеру микро-USB кабелем. Единственное, придется поставить драйвер, что занимает 1,5 минуты. Драйвер ставится для MAC и Windows, а на Linux всё работает из коробки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот пример программы, которая загружается в среду одной кнопкой. Она мигает светодиодом раз в секунду:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Evar on = false;\nsetInterval(function() {\n    on = !on;\n    LED1.write(on);\n},500);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nСлева в среде находится REPL-интерпретатор. Вводим «1+1». Программа выдаёт ответ «2». Чудо!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧудо в том, что при нажатии кнопок, цифра «1», знак «+» и следующая единичка ушли по кабелю на контроллер. При нажатии «ENTER», выражение исполнилось внутри микроконтроллера, а не компьютера. Микроконтроллер получил результат «2» и вернул его обратно по кабелю на компьютер. На мониторе высветилось «2».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EJavaScript исполняется внутри железа.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nКроме развлечений с арифметикой, можно крутить моторы. Понадобится функция «analogWrite», которая посылает квадратную волну. Говорим на какой пин выдавать волну. Например, у меня на плате он подписан как A7. Затем указываем длительность — например, 1300 мкс из 20 000 мкс будем подавать единицу. Также требуется опция, которая задает частоту этого пинания — 50 раз в секунду, это и есть 20 000 мкс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u003EanalogWrite(A7, 1300 \u002F 2000, {freq: 50}}\n=undefined\n\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПеревалим за 1500 — заставим крутиться в другую сторону с большей скоростью.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u003EanalogWrite(A7, 2300 \u002F 2000, {freq: 50}}\n=undefined\n\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИли скажем остановиться.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u003EdigitalWrite(A7, 0)\n=undefined\n\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИспользуя те же функции, можно написать целую программу, которая в зависимости от внешних факторов — нажатия кнопок, показаний сенсоров — выполнит то, что вам хочется.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EБиблиотеки\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nНе всегда удобно вспоминать детали реализации протокола. Поэтому для всевозможного железа создана масса библиотек, от маленьких до гигантских. Они содержат все технические особенности. В библиотеках используются понятные методы: считать данные с nfc-метки, прочитать концентрацию углекислого газа в промилле, или отправить сообщение в Telegram.\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eservo.write;\u003C\u002Fli\u003E\r\n\u003Cli\u003Ebarometer.init;\u003C\u002Fli\u003E\r\n\u003Cli\u003Ebarometer.read;\u003C\u002Fli\u003E\r\n\u003Cli\u003Ebarometer.temperature;\u003C\u002Fli\u003E\r\n\u003Cli\u003Enfc.listen;\u003C\u002Fli\u003E\r\n\u003Cli\u003Enfc.on('tag', ...);\u003C\u002Fli\u003E\r\n\u003Cli\u003Enfc.readPage;\u003C\u002Fli\u003E\r\n\u003Cli\u003Enfc.writePage;\u003C\u002Fli\u003E\r\n\u003Cli\u003Erelay.turnOn;\u003C\u002Fli\u003E\r\n\u003Cli\u003Erelay.turnOff;\u003C\u002Fli\u003E\r\n\u003Cli\u003Egas.calibrate;\u003C\u002Fli\u003E\r\n\u003Cli\u003Egas.read('CO2');\u003C\u002Fli\u003E\r\n\u003Cli\u003Etelegram.sendMessage.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПолезно понимать низкоуровневые команды, но, чтобы начать творить — знать не обязательно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКод на клиенте\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nИтак, когда нажимаем одну из кнопок левого или правого столбика в нашей лягушке, на топик toad\u002Feye\u002Fleft или right отправляется значение, которое мы хотим установить на соответствующий сервопривод.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fy1\u002F3e\u002Fmt\u002Fy13emt_fcb-qdw2j_tihccn8ukm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fy1\u002F3e\u002Fmt\u002Fy13emt_fcb-qdw2j_tihccn8ukm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E&lt;button\n    class=\"toad__eye__control\"     \n    data-queue=\"left\"     \n    data-payload=\"1300\"\u003E\n    -1\n&lt;\u002Fbutton\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n1300 — это длительность импульса. Откуда берется left и 1300? Я их просто добавил в HTML в виде data-attributes. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ JS мы пишем простой код.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport mqtt from 'mqtt'; \n\nconst client = mqtt.connect(`ws:\u002F\u002F${location.hostname}:9001`);\n\nfunction onEyeControlClick() {\n    const { queue, payload } = this.dataset;   \n    client.publish(`toad\u002Feye\u002F${queue}`, payload);\n}\n\ndocument.querySelectorAll(\".toad__eye__control\")\n    .forEach(e =\u003E e.addEventListener('click', onEyeControlClick));\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nРазберем код по частям. На старте подключаемся к брокеру, который по умолчанию работает на порту 9001: \u003Ccode\u003Econst client = mqtt.connect(`ws:\u002F\u002F${location.hostname}:9001`);\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри нажатии на любую из кнопок публикуем новый message с payload, который достали из data-attribute: \u003Ccode\u003Eclient.publish(`toad\u002Feye\u002F${queue}`, payload);\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДальше публикуем на топик, который сформировали тоже на основе data-attribute. Это весь наш JS-код в браузере.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКод на плате\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nКогда стартует Wi-fi Slot, он подписывается на интересующие его топики и принимает данные. Когда они приходят, слот реагирует и заставляет работать моторы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F5r\u002F7h\u002Fit\u002F5r7hit4db5ds9369m2fgmsua8t4.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F5r\u002F7h\u002Fit\u002F5r7hit4db5ds9369m2fgmsua8t4.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКод на плате условно разбит на несколько частей. Для начала мы подключаем библиотеки. В частности, это как раз \u003Cstrong\u003Eбиблиотека, которая управляет Servo\u003C\u002Fstrong\u003E, чтобы не вспоминать детали. Они находятся в скоупе «amperka».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst ssid = \"Droidxx\";\nconst password = \"****\"; \nconst brokerHostname = \"toad.amperka.ru\";\n\nconst leftEye = require(\"@amperka\u002Fservo\").connect(A5); \nconst rightEye = require(\"@amperka\u002Fservo\").connect(A7).\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКаждый может создавать и публиковать свои библиотеки. Мы сделали несколько десятков для наших собственных и других популярных модулей. Все Open Source — \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Famperka\u002Fespruino-modcat\u002F\"\u003Eзаходите, пользуйтесь\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗатем нам понадобятся \u003Cstrong\u003Eбиблиотеки для работы с Wi-Fi и MQTT-брокерами\u003C\u002Fstrong\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst wifi = require(\"Wifi\");\nconst mqtt = require(\"tinyMQTT\").create(brokerHostname); \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь нет ОС, поэтому даже подключение к Wi-Fi — ручная операция. Забота о подключении лежит на вас, но это не так уж сложно. Чтобы подключиться к сети просто вызываем метод «connect», который в случае успеха или неудачи вызовет «callback» и сообщит об итогах операции.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Ewifi.connect(ssid, { password: password }, function(e) {\n    if (e) {\n        console.log(\"Error connecting:\", e);\n        wifi.disconnect();\n    } else {\n        console.log(\"Wi-Fi OK, connecting to broker ...\");\n        mqtt.connect();\n    }\n}); \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЕсли все хорошо — подключимся к MQTT-брокеру.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри успешном подключении подпишемся на интересные топики, то есть на все, что начинается с toad\u002Feye.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Emqtt.on(\"connected\", function() {\n    mqtt.subscribe(\"toad\u002Feye\u002F*\");\n        console.log(\"Connected to broker\", brokerHostname);\n}); \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКогда получаем какое-либо сообщение — разбираемся, куда оно пришло. Это очень похоже на простой разбор URL. В зависимости от топика решаем, на какой глаз будем влиять. Если получили что-то осознанное, то на этот глаз пишем то, что пришло в «payload» в микросекундах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Emqtt.on(\"message\", function(msg) {\n    const eye =\n        (msg.topic === \"toad\u002Feye\u002Fleft\") ? leftEye :\n        (msg.topic === \"toad\u002Feye\u002Fright\") ? rightEye : null;\n    if (eye) {\n        eye.write(Number(msg.message), \"us\");\n    }\n}); \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВот и вся магия лягушки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EОграничения Espruino JS\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nМы пробежались по платформе Espruino. Крутить глаза лягушкам — не единственная ее опция. Но у платформы есть свои косяки, которые заставляют рассматривать другие варианты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003E«Всего» 1–4 Mb RAM\u003C\u002Fstrong\u003E. Есть ограничение по оперативной памяти. На код и data одновременно дается всего несколько мегабайт. Может показаться, что в эру, когда оперативка измеряется гигами, это мало. Но для группы небольших устройств этого достаточно. На 2 Mb можно делать шикарные вещи — на фонтан хватит.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EНе всё так просто с NPM\u003C\u002Fstrong\u003E. Эта проблема относится к Espruino IDE. Если пишем «require», Espruino смотрит в одном месте, в другом, и если не нашла — производит fallback на NPM. В этот момент может тормозить. Espruino не всегда может разобраться со сложными пакетами. Ее мощь в этом смысле гораздо ниже, чем у того же Webpack или Parcel. Это боль, но если вы настроите toolchain самостоятельно, с пониманием того, что происходит внутри железа, то проблемы нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EАссортимент железа. \u003C\u002Fstrong\u003EНе каждая железка, которая называется платформой для разработки, потянет Espruino. По меркам мира микроконтроллеров, Espruino прожорлива — ей нужно от 500 Kb оперативной памяти. Такую память даст не любая железка. У канонических Arduino Uno или Arduino Nano всего 2 Kb RAM — поэтому там нельзя. Работать с Espruino возможно на железе, которое делаем мы и на официальном железе от Espruino.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgb\u002Ffx\u002F9-\u002Fgbfx9-t4nskmti1hepnxlkz-lx0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nEspruino — это компания одного человека, который часто выходит на Kickstarter с новыми продуктами и всегда успешно проводит сбор. Если хотите поддержать платформу — покупайте официально.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть третий вариант — взять достаточно мощный, но сторонний devboard. Например, у компании ST, которая производит «Nuclear» и «Discovery». Железо с надписью STM32, скорее всего, потянет Espruino.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПробежимся по двум альтернативным вариантам. Первый — Raspberry Pi.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ERaspberry Pi\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EЭто полноценный компьютер с Linux размером с визитку.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fy_\u002Faf\u002Fws\u002Fy_afwsgmlr9e7fvkesyrwlvobak.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fy_\u002Faf\u002Fws\u002Fy_afwsgmlr9e7fvkesyrwlvobak.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДополнительно есть пины ввода\u002Fвывода. Если у вас в распоряжении Raspberry Pi — используйте следующую топологию устройства.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fif\u002F1a\u002Fjf\u002Fif1ajfsmxsvwwcap7ac_cpu8i2k.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fif\u002F1a\u002Fjf\u002Fif1ajfsmxsvwwcap7ac_cpu8i2k.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗдесь облако опционально — мобильное устройство может подключаться непосредственно к устройству через hostname, API или систему автоматического определения устройству в сети. У меня дома есть умный телевизор и винчестер для бэкапа. Они доступны со всех других устройств просто потому, что они находятся в том же LAN.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПринцип тот же самый. Ставите устройство на Raspberry Pi в сеть и строите клиент так, что он через HTTP или WebSocket непосредственно соединяется с ним, минуя посредников. Облако для своих целей использует само приложение на Raspberry Pi: протоколирует сенсоры или транслирует прогноз погоды.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСледующая возможная топология с полноценным бэкендом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fif\u002F1a\u002Fjf\u002Fif1ajfsmxsvwwcap7ac_cpu8i2k.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fif\u002F1a\u002Fjf\u002Fif1ajfsmxsvwwcap7ac_cpu8i2k.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ облаке поднимается сервер. Его клиент — то же мобильное приложение, которое держит соединение через HTTP или WebSocket. С другой стороны соединение держится уже через Raspberry Pi, используя HTTP или тот же самый MQTT.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ таком подходе преимущество в полном контроле: валидация, авторизация, отказ клиентам. При этом всемирная доступность — устройство в Москве, а коммуникация с ним доступна из Владивостока.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EОграничения Raspberry Pi\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EДлинная загрузка.\u003C\u002Fstrong\u003E Raspberry Pi — полноценный компьютер и на старт требуется время. В качестве винчестера используется SD-карта. Даже самая быстрая карта все равно проигрывает обычным HDD, не говоря о SSD. По времени загрузка приближается к минуте.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EСледующий недостаток — это энергопотребление\u003C\u002Fstrong\u003E. В плане энергоэффективности, рассуждайте о Raspberry Pi как о мобильном устройстве. От аккумулятора она протянет недолго — счет идет на часы. Чтобы устройство работало полгода или год, требуется грамотная программа для микроконтроллера и комплект батареек.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EБедный GPIO — general-purpose input\u002Foutput\u003C\u002Fstrong\u003E. Фичи подачи волн, считывание волн, работа с аналоговыми сигналами у Raspberry Pi гораздо слабее, чем у микроконтроллеров, для которых это основная задача. Например, из коробки на Raspberry Pi не удастся управлять сервоприводом в аппаратном режиме.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F0r\u002Fsz\u002Foj\u002F0rszojmbxar2o-zhp26divehxj4.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F0r\u002Fsz\u002Foj\u002F0rszojmbxar2o-zhp26divehxj4.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОграничение условно, потому что его можно обойти расширением. Например, железкой \u003Ca href=\"https:\u002F\u002Famperka.ru\u002Fproduct\u002Fraspberry-troyka-cap\"\u003ETroyka Cap\u003C\u002Fa\u003E, которая берет все низкоуровневое управление работы с сигналами на себя. Raspberry Pi общается с ней с помощью высокоуровневого пакета. Отдает команды покрутить сервопривод и он работает. С помощью таких плат расширения можно подключать все, что угодно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EArduino\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nМожно взять обычную \u003Cstrong\u003EArduino\u003C\u002Fstrong\u003E, которая всем надоела. Но JavaScript придется перенести куда-нибудь, что может крутить Node JS — старый компьютер или та же Raspberry Pi.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffc\u002Fz2\u002Fgx\u002Ffcz2gxhtqtz7gsoqbopfki6tlqm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffc\u002Fz2\u002Fgx\u002Ffcz2gxhtqtz7gsoqbopfki6tlqm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСоединяем старый ненужный компьютер с Arduino через USB-кабель. В Arduino один раз заливаем стандартную прошивку \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Ffirmata\u002Ffirmata.js\"\u003EFirmata\u003C\u002Fa\u003E. Она превращает Arduino в зомби, который выполняет указания мастера — старого компьютера. Мастер говорит передать на такой-то пин такой-то сигнал, и Arduino передает.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля коммуникации используются библиотеки с NPM — \u003Ca href=\"https:\u002F\u002Fserialport.io\u002F\"\u003ESerialPort\u003C\u002Fa\u003E и Firmata с понятным API. Так вы опять в мире JS, пишете высокоуровневую программу, которую отправляете на свой сервер. Работу с сигналами доверяете Arduino, и она ее исполняет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНе всегда с Firmata получится управлять всем. Она способна обеспечить взаимодействие с тем железом, для которого предназначена: сервоприводы, светодиодные ленты, медиа-контроллеры. Но если возможность считывать вполне конкретный гироскоп или акселерометр не заложена — не подойдет. Тогда придётся на обычную Arduino писать программу на C.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо это еще не все — если писать на C нет желания, воспользуйтесь Open Source инструментом \u003Ca href=\"https:\u002F\u002Fxod.io\"\u003EXOD.io\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F-p\u002F-9\u002Fj0\u002F-p-9j0ex1ngdm7pfdq-lv5dej9u.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F-p\u002F-9\u002Fj0\u002F-p-9j0ex1ngdm7pfdq-lv5dej9u.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто визуальная среда программирования, где граф, который вы строите, превращается в сишный код, и уже его можно компилировать и заливать. XOD.io позволяет людям, которые слабо знакомы с тонкостями и нюансами микроконтроллерного программирования, быстро создавать простые программы. Если вы выросли из Firmata, но пока не чувствуете сил писать на низком уровне — используйте XOD.io.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EСледующая конференция \u003Ca href=\"https:\u002F\u002Ffrontendconf.ru\u002Fmoscow\u002F2019\u002F\"\u003EFrontendConf\u003C\u002Fa\u003E пройдет в октябре. Знаете о JavaScript такое, чего не знает большинство фронтенд-разработчиков, разрабатываете интерфейсы, которыми удобно пользоваться или нашли грааль производительности и готовы рассказать, где он находится, — \u003Ca href=\"https:\u002F\u002Fconf.ontico.ru\u002Flectures\u002Fpropose?conference=fc2019-moscow\"\u003Eждем заявки\u003C\u002Fa\u003E на доклады. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнтересные доклады в программе, новости конференции, видео и статьи собираем в регулярную рассылку — \u003Ca href=\"http:\u002F\u002Feepurl.com\u002Fbb99tn\"\u003Eподписывайтесь\u003C\u002Fa\u003E.\u003C\u002Fblockquote\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"javascript"},{"titleHtml":"микроконтроллеры"},{"titleHtml":"espruino"},{"titleHtml":"paspberry pi"},{"titleHtml":"arduino"},{"titleHtml":"frontendconf"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450826\u002F62e3bc105648a44d60cf8088ec1defe8\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450826\u002F62e3bc105648a44d60cf8088ec1defe8\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Foleg-bunin\\\u002Fblog\\\u002F450826\\\u002F\"},\"headline\":\"Как поговорить с микроконтроллером из JS\",\"datePublished\":\"2019-07-23T13:44:14+03:00\",\"dateModified\":\"2019-07-23T14:18:25+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Глеб Михеев\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, о...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Foleg-bunin\\\u002Fblog\\\u002F450826\\\u002F#post-content-body\",\"about\":[\"c_oleg-bunin\",\"h_javascript\",\"h_controllers\",\"h_internet_of_things\",\"h_DIY\",\"f_develop\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcc\\\u002Fwc\\\u002Fou\\\u002Fccwcoucl5o2c-9xayxy04jc8fsq.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpd\\\u002Fya\\\u002Fbe\\\u002Fpdyabe5bjmklkee0jjco7nontue.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Foc\\\u002Fz5\\\u002Fre\\\u002Focz5rert1d774i6ic7dzkaahjpa.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F5r\\\u002F7h\\\u002Fit\\\u002F5r7hit4db5ds9369m2fgmsua8t4.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fth\\\u002Fdz\\\u002Fjc\\\u002Fthdzjcdluwlertps_bl5lbkdjui.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fio\\\u002F1t\\\u002Faj\\\u002Fio1tajdpojik7cxsab0mrddw0bi.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fy1\\\u002F3e\\\u002Fmt\\\u002Fy13emt_fcb-qdw2j_tihccn8ukm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgb\\\u002Ffx\\\u002F9-\\\u002Fgbfx9-t4nskmti1hepnxlkz-lx0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fy_\\\u002Faf\\\u002Fws\\\u002Fy_afwsgmlr9e7fvkesyrwlvobak.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fif\\\u002F1a\\\u002Fjf\\\u002Fif1ajfsmxsvwwcap7ac_cpu8i2k.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F0r\\\u002Fsz\\\u002Foj\\\u002F0rszojmbxar2o-zhp26divehxj4.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffc\\\u002Fz2\\\u002Fgx\\\u002Ffcz2gxhtqtz7gsoqbopfki6tlqm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F-p\\\u002F-9\\\u002Fj0\\\u002F-p-9j0ex1ngdm7pfdq-lv5dej9u.jpeg\"]}","metaDescription":"Зачем нужен микроконтроллер? Например, чтобы устроить дома пивоварню. Если своего пивного заводика мало, то можно и что-то масштабнее: построить квест-комнату, оформить презентацию, интерактивный...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"oleg-bunin":{"alias":"oleg-bunin","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F7c3\u002Fad4\u002F7b2\u002F7c3ad47b2aae71b56795f618534e7a51.jpg","titleHtml":"Конференции Олега Бунина (Онтико)","descriptionHtml":"Профессиональные конференции для IT-разработчиков","relatedData":null,"statistics":{"postsCount":676,"newsCount":7,"vacanciesCount":0,"employeesCount":83,"careerRating":null,"subscribersCount":48348,"rating":374.29,"invest":null},"foundationDate":{"year":"2008","month":"01","day":"01"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fwww.ontico.ru\u002F","staffNumber":"11–30 человек","registrationDate":"2010-02-24T19:37:40+00:00","representativeUser":null,"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Foleg.bunin"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002FHighLoadConference"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fritfest"}],"settings":{"analyticsSettings":[{"type":"ym","trackingId":"55760638"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F673\u002Fa67\u002F310\u002F673a67310118a40a792e1eb97151fd97.png","linkUrl":"https:\u002F\u002Fwww.highload.ru\u002Fmoscow\u002F2021\u002F?utm_source=habr&utm_medium=cpc&utm_campaign=title&utm_content=banner","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"Конференции Олега Бунина (Онтико), Москва - Профессиональные конференции для IT-разработчиков с 1 января 2008 г.","title":"Конференции Олега Бунина (Онтико), Москва - Профессиональные конференции для IT-разработчиков с 1 января 2008 г.","keywords":["Конференции","Управление разработкой","Программирование","DevOps","Карьера в IT-индустрии"],"descriptionHtml":"676 статей от авторов компании Конференции Олега Бунина (Онтико)","description":"676 статей от авторов компании Конференции Олега Бунина (Онтико)"},"aDeskSettings":null,"careerAlias":"ontico","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

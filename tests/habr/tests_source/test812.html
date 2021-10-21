@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>PSR-14 — главное событие в PHP / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/oleg-bunin\/blog\/450812\/"},"headline":"PSR-14 — главное событие в PHP","datePublished":"2019-05-07T13:23:45+03:00","dateModified":"2019-05-07T14:49:19+03:00","author":{"@type":"Person","name":"Евгения Финкельштейн"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"В&nbsp;прошлом году PHP-FIG&nbsp;&mdash; Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из&nbsp;них&nbsp;&mdash; PSR-14, посвящена диспетчеризации событий...","url":"https:\/\/habr.com\/ru\/company\/oleg-bunin\/blog\/450812\/#post-content-body","about":["c_oleg-bunin","h_webdev","h_php","h_programming","h_itstandarts","f_develop"],"image":["https:\/\/habr.com\/share\/publication\/450812\/9607e19b3a8f1a79594f7884f895de2a\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="PSR-14 — главное событие в PHP" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="PSR-14 — главное событие в PHP" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="PSR-14 — главное событие в PHP" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="В прошлом году PHP-FIG — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — PSR-14, посвящена диспетчеризации событий. Как и другие PSR, это локальная..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="В прошлом году PHP-FIG — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — PSR-14, посвящена диспетчеризации событий. Как и другие PSR, это локальная..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="В прошлом году PHP-FIG — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — PSR-14, посвящена диспетчеризации событий. Как и другие PSR, это локальная..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="В прошлом году PHP-FIG — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — PSR-14, посвящена диспетчеризации событий. Как и другие PSR, это локальная..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="В прошлом году PHP-FIG — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — PSR-14, посвящена диспетчеризации событий. Как и другие PSR, это локальная..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450812/9607e19b3a8f1a79594f7884f895de2a/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450812/9607e19b3a8f1a79594f7884f895de2a/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450812/9607e19b3a8f1a79594f7884f895de2a/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450812/9607e19b3a8f1a79594f7884f895de2a/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450812/9607e19b3a8f1a79594f7884f895de2a/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450812" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T10:23:45.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450812/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/oleg-bunin/blog/450812/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450812/9607e19b3a8f1a79594f7884f895de2a/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="oleg-bunin" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://www.highload.ru/moscow/2021/?utm_source=habr&amp;utm_medium=cpc&amp;utm_campaign=title&amp;utm_content=banner"><img src="//habrastorage.org/getpro/habr/branding/673/a67/310/673a67310118a40a792e1eb97151fd97.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/7c3/ad4/7b2/7c3ad47b2aae71b56795f618534e7a51.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">374.29</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-card__name">
+        Конференции Олега Бунина (Онтико)
+      </a> <div class="tm-company-card__description">Профессиональные конференции для IT-разработчиков</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/e_finkel/" title="e_finkel" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_pink"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/e_finkel/" class="tm-user-info__username">
+      e_finkel
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T10:23:45.000Z" title="2019-05-07, 13:23">7  мая  2019 в 13:23</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>PSR-14 — главное событие в PHP</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/oleg-bunin/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Конференции Олега Бунина (Онтико)</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/webdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка веб-сайтов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/php/" class="tm-article-snippet__hubs-item-link"><span>PHP</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/programming/" class="tm-article-snippet__hubs-item-link"><span>Программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/itstandarts/" class="tm-article-snippet__hubs-item-link"><span>IT-стандарты</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://steemit.com/php/@crell/psr-14-a-major-event-in-php" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Larry (Crell) Garfield
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">В прошлом году <a href="https://www.php-fig.org/">PHP-FIG</a> — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — <a href="https://www.php-fig.org/psr/psr-14/">PSR-14</a>, посвящена диспетчеризации событий. Как и другие PSR, это локальная спецификация, но имеет большое влияние на многие аспекты стандартизации.<br/>
+<br/>
+<i>От переводчика: Это перевод первой части целой серии публикаций, в которой Larry (Crell) Garfield, один из членов PHP-FIG, объясняет, что такое PSR-14, на что способен, а на что нет, и как лучше всего использовать его в своих проектах.</i><br/>
+<a name="habracut"></a><br/>
+<h2>Цель</h2><br/>
+Диспетчеризация событий давно используется во многих языках. Если вы когда-нибудь использовали EventDispatcher в <a href="https://symfony.com/doc/current/event_dispatcher.html">Symfony</a>, Event system в <a href="https://laravel.com/docs/5.8/events">Laravel</a>, хуки в Drupal, <a href="https://docs.zendframework.com/zend-eventmanager/">Event Manager</a> во фреймворке Zend, пакет <a href="https://event.thephpleague.com/">League\Event</a>, или что-то подобное, то понимаете о чём речь. <br/>
+<br/>
+В общем смысле, все эти системы представляют из себя некую форму «наблюдателя-посредника». Один фрагмент кода отправляет сообщение типа — «событие», а посредник передает его другим отдельным фрагментам кода — «слушателям». Иногда сигнал направлен только в одну сторону, иногда «слушатель» может как-то передавать данные обратно вызывающей стороне. Конечно же, они все разные и не очень совместимы между собой.<br/>
+<br/>
+Это проблема для автономных библиотек, которые хотят подключаться к различным библиотекам и приложениям. Многие библиотеки можно расширить через отправку событий в той или иной форме, чтобы другой код мог связаться с ними. Но такой посреднический слой, фактически, проприетарный. Библиотека, которая запускает Symfony EventDispatcher, затем объединяется с Symfony. Тогда использование ее где-то еще требует установки EventDispatcher и соединения с библиотеками в программе. Библиотека, которая вызывает связывающую систему от Drupal <code>module_invoke_all()</code>, затем связывается с Drupal. И так далее. <br/>
+<br/>
+Цель PSR-14 — избавить библиотеки от этой зависимости. Это позволяет библиотекам расширяться через тонкий общий слой, и потом облегчит их перенос в другую среду без дополнительных усилий и затрат, например, в Symfony, Zend Framework, Laravel, TYPO3, eZ Platform или Slim. Пока у среды есть совместимость с PSR-14, всё будет работать.<br/>
+<br/>
+<h2>Спецификация </h2><br/>
+Как уже говорил, спецификация довольно легкая. Это три интерфейса в одном методе и мета-описание, как их использовать. Все просто и удобно. Ниже код этих интерфейсов (без комментариев для экономии места).<br/>
+<br/>
+<pre><code class="php">namespace Psr\EventDispatcher;
+
+interface EventDispatcherInterface
+{
+    public function dispatch(object $event);
+}
+
+interface ListenerProviderInterface
+{
+    public function getListenersForEvent(object $event) : iterable;
+}
+
+interface StoppableEventInterface
+{
+    public function isPropagationStopped() : bool;
+} </code></pre><br/>
+Первые два это ядро спецификации. <code>StoppableEventInterface</code> — это расширение, к которому вернёмся позже.<br/>
+<br/>
+Думаю, <code>EventDispatcher</code> большинству из вас знаком — это всего лишь объект с методом, которому вы передаете событие — посредник, о котором уже говорили. Само событие, однако, не определено — им может быть <b>любой PHP-объект</b>. Подробнее об этом позже.<br/>
+<br/>
+Большинство существующих реализаций имеют один объект или набор функций, которые работают как посредник или диспетчер и место для регистрации кода, которое получает событие (слушателей). Для PSR-14 мы сознательно разделили эти две обязанности на отдельные объекты. Диспетчер получает список слушателей от объекта поставщика, который составляет этот список.<br/>
+<br/>
+Откуда тогда поставщик получает список слушателей? Да откуда хочет! Существует миллиард и один способ связать слушателя и событие, все они абсолютно действующие и несовместимые. Еще в начале мы решили, что стандартизация «Единого Истинного Пути» регистрации слушателей будет слишком ограничена. Однако, стандартизировав процесс подключения слушателя к диспетчеру, можно получить отличную гибкость, не заставляя пользователя делать что-то странное и непонятное. <br/>
+<br/>
+Также в коде не указывается, что представляют из себя слушатель. Им может быть любой способный к восприятию сигнала фрагмент PHP: функция, анонимная функция, метод объекта, всё что угодно. Поскольку вызываемый объект может делать что угодно, это значит, что допустимо иметь в качестве слушателя, скажем, анонимную функцию, которая выполняет отложенную загрузку сервиса из DI-контейнера и вызывает в сервисе метод, который на самом деле и содержит слушающий код.<br/>
+<br/>
+Вкратце, диспетчер это простой и лёгкий API для авторов библиотек. Поставщики слушателей предлагают надёжный и гибкий API для интеграторов фрэймворков, а отношения между диспетчером и провайдером объединяют их вместе. <br/>
+<br/>
+<h2>Простой пример</h2><br/>
+В общем виде, схема объединения всех частей в целое, будет выглядеть примерно так.<br/>
+<br/>
+<pre><code class="php">class Dispatcher implements EventDispatcherInterface
+{
+
+    public function __construct(ListenerProviderInterface $provider)
+    {
+        $this->provider = $provider;
+    }
+
+    public function dispatch(object $event)
+    {
+        foreach ($this->provider->getListenersForEvent($event) as $listener) {
+            $listener($event);
+        }
+       return $event;
+    }
+}
+
+$dispatcher = new Dispatcher($provider);
+
+$event = new SomethingHappened();
+$dispatcher->dispatch($event);
+</code></pre><br/>
+Этот небольшой фрагмент кода открывает большие возможности, и он очень гибкий. В следующих статьях подробно поговорим о его свойствах, разберем некоторые конструкционные решения и рассмотрим множеств способов использования таких легковесных событий.<br/>
+<br/>
+<h2>Код</h2><br/>
+PSR-14 уже поддерживается основными фреймворками и приложениями.<br/>
+<br/>
+<ul>
+<li>Matthew Weier O’Phinney уже обязался ввести поддержку PSR-14 в zend-eventmanager 4.0 во фрэймворке Zend.<br/>
+</li>
+<li>Symfony <a href="https://symfony.com/blog/new-in-symfony-4-3-simpler-event-dispatching">недавно анонсировали</a> изменения в EventDispatcher для совместимости с PSR-14, что даст полную поддержку в 5.0/5.1.<br/>
+</li>
+<li>Фрэймворк Yii объявил о намерении интегрировать PSR-14 <a href="https://github.com/yiisoft/docs/blob/master/003-roadmap.md#psr-14-event-dispatcher">в версии 3.0</a>.<br/>
+</li>
+<li>Benni Mack из TYPO3 CMS заявил, что в следующем релизе TYPO3 все существующие концепции типа «ловушка+сигнал/слот» будут поддерживать PSR-14. <br/>
+</li>
+</ul><br/>
+Также PSR-14 имеет три полнофункциональные независимые реализации, которые вы уже можете использовать в любом приложении.<br/>
+<br/>
+<ul>
+<li><a href="https://github.com/crell/tukio">Tukio</a> от Larry Garfield, автора этой статьи.<br/>
+</li>
+<li> <a href="https://github.com/phly/phly-event-dispatcher">Phly Event Dispatcher</a> от Matthew Weier O’Phinney.<br/>
+</li>
+<li> <a href="https://github.com/bmack/kart-composer-plugin">Kart</a> от Benni Mack, который работает как встраиваемый плагин.<br/>
+</li>
+</ul><br/>
+Автор благодарит всю рабочую группу PSR: <a href="https://twitter.com/Crell">Larry Garfield</a>, <a href="https://twitter.com/WyriHaximus">Cees-Jan Kiewiet</a>, <a href="https://twitter.com/bennimack">Benjamin Mack</a>, <a href="https://twitter.com/auroraeosrose">Elizabeth Smith</a>, <a href="https://twitter.com/weaverryan">Ryan Weaver</a>, <a href="https://twitter.com/mwop">Matthew Weier O’Phinney</a>. На протяжении всей работы процесс был в высшей степени продуктивным: все работали вместе, коллективно, как и должно быть. Результат радует, и хотелось бы, чтобы и все дальнейшие усилия в совместной работе над архитектурой были так же продуктивны. <br/>
+<br/>
+<blockquote>Узнать больше подробностей можно или из оригинала следующей <a href="https://steemit.com/php/@crell/psr-14-all-about-events">части</a> и <a href="https://www.php-fig.org/psr/psr-14/">документации</a> или 17 мая на <a href="https://phprussia.ru/2019">PHP Russia</a>. Второй вариант привлекателен по нескольким причинам. Например, глава Программного комитета Александр (<a href="https://habr.com/ru/users/samdark/" class="user_link">samdark</a>) Макаров в числе тех, кто внедрил PSR-14 в Yii. Да и в принципе состав Программного комитета и <a href="https://phprussia.ru/2019/abstracts">спикеров</a> невероятно силен, вряд ли найдется хоть одна тема из сферы профессионального использования PHP, которую не удастся обсудить на этой конференции. </blockquote></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bphp%5D" class="tm-tags-list__link">php</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpsr-14%5D" class="tm-tags-list__link">psr-14</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bphp-fig%5D" class="tm-tags-list__link">php-fig</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/oleg-bunin/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Конференции Олега Бунина (Онтико)
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/webdev/" class="tm-hubs-list__link">
+    Разработка веб-сайтов
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/php/" class="tm-hubs-list__link">
+    PHP
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/programming/" class="tm-hubs-list__link">
+    Программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/itstandarts/" class="tm-hubs-list__link">
+    IT-стандарты
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 43: ↑43 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 43: ↑43 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+43</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">16K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    53
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/7c3/ad4/7b2/7c3ad47b2aae71b56795f618534e7a51.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-snippet__title">Конференции Олега Бунина (Онтико)</a> <div class="tm-company-snippet__description">Профессиональные конференции для IT-разработчиков</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/oleg.bunin" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://facebook.com/HighLoadConference" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://facebook.com/ritfest" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/e_finkel/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_pink"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 78 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    62
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Евгения Финкельштейн</span> <a href="/ru/users/e_finkel/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @e_finkel
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">редактор</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/oleg-bunin/blog/450812/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 27 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2007-12-31T21:00:00.000Z" title="2008-01-01, 00:00">1  января  2008</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://www.ontico.ru/" target="_blank" class="tm-company-basic-info__link">
+      www.ontico.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    11–30 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2010-02-24T19:37:40.000Z" title="2010-02-24, 22:37">24  февраля  2010</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/oleg-bunin/blog/450812/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/oleg-bunin/blog/450812/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450812":{"id":"450812","timePublished":"2019-05-07T10:23:45+00:00","isCorporative":true,"lang":"ru","titleHtml":"PSR-14 — главное событие в PHP","leadData":{"textHtml":"В прошлом году \u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002F\"\u003EPHP-FIG\u003C\u002Fa\u003E — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — \u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002Fpsr\u002Fpsr-14\u002F\"\u003EPSR-14\u003C\u002Fa\u003E, посвящена диспетчеризации событий. Как и другие PSR, это локальная спецификация, но имеет большое влияние на многие аспекты стандартизации.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Ci\u003EОт переводчика: Это перевод первой части целой серии публикаций, в которой Larry (Crell) Garfield, один из членов PHP-FIG, объясняет, что такое PSR-14, на что способен, а на что нет, и как лучше всего использовать его в своих проектах.\u003C\u002Fi\u003E\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Larry (Crell) Garfield","originalUrl":"https:\u002F\u002Fsteemit.com\u002Fphp\u002F@crell\u002Fpsr-14-a-major-event-in-php"}}],"author":{"scoreStats":{"score":62,"votesCount":78},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1633243","alias":"e_finkel","fullname":"Евгения Финкельштейн","avatarUrl":null,"speciality":"редактор"},"statistics":{"commentsCount":27,"favoritesCount":53,"readingCount":16027,"score":43,"votesCount":43},"hubs":[{"relatedData":null,"id":"14332","alias":"oleg-bunin","type":"corporative","title":"Блог компании Конференции Олега Бунина (Онтико)","titleHtml":"Блог компании Конференции Олега Бунина (Онтико)","isProfiled":false},{"relatedData":null,"id":"91","alias":"webdev","type":"collective","title":"Разработка веб-сайтов","titleHtml":"Разработка веб-сайтов","isProfiled":true},{"relatedData":null,"id":"260","alias":"php","type":"collective","title":"PHP","titleHtml":"PHP","isProfiled":true},{"relatedData":null,"id":"359","alias":"programming","type":"collective","title":"Программирование","titleHtml":"Программирование","isProfiled":true},{"relatedData":null,"id":"17189","alias":"itstandarts","type":"collective","title":"IT-стандарты","titleHtml":"IT-стандарты","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EВ прошлом году \u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002F\"\u003EPHP-FIG\u003C\u002Fa\u003E — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — \u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002Fpsr\u002Fpsr-14\u002F\"\u003EPSR-14\u003C\u002Fa\u003E, посвящена диспетчеризации событий. Как и другие PSR, это локальная спецификация, но имеет большое влияние на многие аспекты стандартизации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EОт переводчика: Это перевод первой части целой серии публикаций, в которой Larry (Crell) Garfield, один из членов PHP-FIG, объясняет, что такое PSR-14, на что способен, а на что нет, и как лучше всего использовать его в своих проектах.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЦель\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДиспетчеризация событий давно используется во многих языках. Если вы когда-нибудь использовали EventDispatcher в \u003Ca href=\"https:\u002F\u002Fsymfony.com\u002Fdoc\u002Fcurrent\u002Fevent_dispatcher.html\"\u003ESymfony\u003C\u002Fa\u003E, Event system в \u003Ca href=\"https:\u002F\u002Flaravel.com\u002Fdocs\u002F5.8\u002Fevents\"\u003ELaravel\u003C\u002Fa\u003E, хуки в Drupal, \u003Ca href=\"https:\u002F\u002Fdocs.zendframework.com\u002Fzend-eventmanager\u002F\"\u003EEvent Manager\u003C\u002Fa\u003E во фреймворке Zend, пакет \u003Ca href=\"https:\u002F\u002Fevent.thephpleague.com\u002F\"\u003ELeague\\Event\u003C\u002Fa\u003E, или что-то подобное, то понимаете о чём речь. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ общем смысле, все эти системы представляют из себя некую форму «наблюдателя-посредника». Один фрагмент кода отправляет сообщение типа — «событие», а посредник передает его другим отдельным фрагментам кода — «слушателям». Иногда сигнал направлен только в одну сторону, иногда «слушатель» может как-то передавать данные обратно вызывающей стороне. Конечно же, они все разные и не очень совместимы между собой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто проблема для автономных библиотек, которые хотят подключаться к различным библиотекам и приложениям. Многие библиотеки можно расширить через отправку событий в той или иной форме, чтобы другой код мог связаться с ними. Но такой посреднический слой, фактически, проприетарный. Библиотека, которая запускает Symfony EventDispatcher, затем объединяется с Symfony. Тогда использование ее где-то еще требует установки EventDispatcher и соединения с библиотеками в программе. Библиотека, которая вызывает связывающую систему от Drupal \u003Ccode\u003Emodule_invoke_all()\u003C\u002Fcode\u003E, затем связывается с Drupal. И так далее. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЦель PSR-14 — избавить библиотеки от этой зависимости. Это позволяет библиотекам расширяться через тонкий общий слой, и потом облегчит их перенос в другую среду без дополнительных усилий и затрат, например, в Symfony, Zend Framework, Laravel, TYPO3, eZ Platform или Slim. Пока у среды есть совместимость с PSR-14, всё будет работать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EСпецификация \u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nКак уже говорил, спецификация довольно легкая. Это три интерфейса в одном методе и мета-описание, как их использовать. Все просто и удобно. Ниже код этих интерфейсов (без комментариев для экономии места).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Enamespace Psr\\EventDispatcher;\n\ninterface EventDispatcherInterface\n{\n    public function dispatch(object $event);\n}\n\ninterface ListenerProviderInterface\n{\n    public function getListenersForEvent(object $event) : iterable;\n}\n\ninterface StoppableEventInterface\n{\n    public function isPropagationStopped() : bool;\n} \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПервые два это ядро спецификации. \u003Ccode\u003EStoppableEventInterface\u003C\u002Fcode\u003E — это расширение, к которому вернёмся позже.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДумаю, \u003Ccode\u003EEventDispatcher\u003C\u002Fcode\u003E большинству из вас знаком — это всего лишь объект с методом, которому вы передаете событие — посредник, о котором уже говорили. Само событие, однако, не определено — им может быть \u003Cb\u003Eлюбой PHP-объект\u003C\u002Fb\u003E. Подробнее об этом позже.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБольшинство существующих реализаций имеют один объект или набор функций, которые работают как посредник или диспетчер и место для регистрации кода, которое получает событие (слушателей). Для PSR-14 мы сознательно разделили эти две обязанности на отдельные объекты. Диспетчер получает список слушателей от объекта поставщика, который составляет этот список.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОткуда тогда поставщик получает список слушателей? Да откуда хочет! Существует миллиард и один способ связать слушателя и событие, все они абсолютно действующие и несовместимые. Еще в начале мы решили, что стандартизация «Единого Истинного Пути» регистрации слушателей будет слишком ограничена. Однако, стандартизировав процесс подключения слушателя к диспетчеру, можно получить отличную гибкость, не заставляя пользователя делать что-то странное и непонятное. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакже в коде не указывается, что представляют из себя слушатель. Им может быть любой способный к восприятию сигнала фрагмент PHP: функция, анонимная функция, метод объекта, всё что угодно. Поскольку вызываемый объект может делать что угодно, это значит, что допустимо иметь в качестве слушателя, скажем, анонимную функцию, которая выполняет отложенную загрузку сервиса из DI-контейнера и вызывает в сервисе метод, который на самом деле и содержит слушающий код.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВкратце, диспетчер это простой и лёгкий API для авторов библиотек. Поставщики слушателей предлагают надёжный и гибкий API для интеграторов фрэймворков, а отношения между диспетчером и провайдером объединяют их вместе. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПростой пример\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ общем виде, схема объединения всех частей в целое, будет выглядеть примерно так.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Eclass Dispatcher implements EventDispatcherInterface\n{\n\n    public function __construct(ListenerProviderInterface $provider)\n    {\n        $this-\u003Eprovider = $provider;\n    }\n\n    public function dispatch(object $event)\n    {\n        foreach ($this-\u003Eprovider-\u003EgetListenersForEvent($event) as $listener) {\n            $listener($event);\n        }\n       return $event;\n    }\n}\n\n$dispatcher = new Dispatcher($provider);\n\n$event = new SomethingHappened();\n$dispatcher-\u003Edispatch($event);\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭтот небольшой фрагмент кода открывает большие возможности, и он очень гибкий. В следующих статьях подробно поговорим о его свойствах, разберем некоторые конструкционные решения и рассмотрим множеств способов использования таких легковесных событий.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКод\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nPSR-14 уже поддерживается основными фреймворками и приложениями.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EMatthew Weier O’Phinney уже обязался ввести поддержку PSR-14 в zend-eventmanager 4.0 во фрэймворке Zend.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003ESymfony \u003Ca href=\"https:\u002F\u002Fsymfony.com\u002Fblog\u002Fnew-in-symfony-4-3-simpler-event-dispatching\"\u003Eнедавно анонсировали\u003C\u002Fa\u003E изменения в EventDispatcher для совместимости с PSR-14, что даст полную поддержку в 5.0\u002F5.1.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EФрэймворк Yii объявил о намерении интегрировать PSR-14 \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fyiisoft\u002Fdocs\u002Fblob\u002Fmaster\u002F003-roadmap.md#psr-14-event-dispatcher\"\u003Eв версии 3.0\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EBenni Mack из TYPO3 CMS заявил, что в следующем релизе TYPO3 все существующие концепции типа «ловушка+сигнал\u002Fслот» будут поддерживать PSR-14. \u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nТакже PSR-14 имеет три полнофункциональные независимые реализации, которые вы уже можете использовать в любом приложении.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fcrell\u002Ftukio\"\u003ETukio\u003C\u002Fa\u003E от Larry Garfield, автора этой статьи.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fphly\u002Fphly-event-dispatcher\"\u003EPhly Event Dispatcher\u003C\u002Fa\u003E от Matthew Weier O’Phinney.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fbmack\u002Fkart-composer-plugin\"\u003EKart\u003C\u002Fa\u003E от Benni Mack, который работает как встраиваемый плагин.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nАвтор благодарит всю рабочую группу PSR: \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002FCrell\"\u003ELarry Garfield\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002FWyriHaximus\"\u003ECees-Jan Kiewiet\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Fbennimack\"\u003EBenjamin Mack\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Fauroraeosrose\"\u003EElizabeth Smith\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Fweaverryan\"\u003ERyan Weaver\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Fmwop\"\u003EMatthew Weier O’Phinney\u003C\u002Fa\u003E. На протяжении всей работы процесс был в высшей степени продуктивным: все работали вместе, коллективно, как и должно быть. Результат радует, и хотелось бы, чтобы и все дальнейшие усилия в совместной работе над архитектурой были так же продуктивны. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EУзнать больше подробностей можно или из оригинала следующей \u003Ca href=\"https:\u002F\u002Fsteemit.com\u002Fphp\u002F@crell\u002Fpsr-14-all-about-events\"\u003Eчасти\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002Fpsr\u002Fpsr-14\u002F\"\u003Eдокументации\u003C\u002Fa\u003E или 17 мая на \u003Ca href=\"https:\u002F\u002Fphprussia.ru\u002F2019\"\u003EPHP Russia\u003C\u002Fa\u003E. Второй вариант привлекателен по нескольким причинам. Например, глава Программного комитета Александр (\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fusers\u002Fsamdark\u002F\" class=\"user_link\"\u003Esamdark\u003C\u002Fa\u003E) Макаров в числе тех, кто внедрил PSR-14 в Yii. Да и в принципе состав Программного комитета и \u003Ca href=\"https:\u002F\u002Fphprussia.ru\u002F2019\u002Fabstracts\"\u003Eспикеров\u003C\u002Fa\u003E невероятно силен, вряд ли найдется хоть одна тема из сферы профессионального использования PHP, которую не удастся обсудить на этой конференции. \u003C\u002Fblockquote\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"php"},{"titleHtml":"psr-14"},{"titleHtml":"php-fig"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450812\u002F9607e19b3a8f1a79594f7884f895de2a\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450812\u002F9607e19b3a8f1a79594f7884f895de2a\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Foleg-bunin\\\u002Fblog\\\u002F450812\\\u002F\"},\"headline\":\"PSR-14 — главное событие в PHP\",\"datePublished\":\"2019-05-07T13:23:45+03:00\",\"dateModified\":\"2019-05-07T14:49:19+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Евгения Финкельштейн\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"В&nbsp;прошлом году PHP-FIG&nbsp;&mdash; Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из&nbsp;них&nbsp;&mdash; PSR-14, посвящена диспетчеризации событий...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Foleg-bunin\\\u002Fblog\\\u002F450812\\\u002F#post-content-body\",\"about\":[\"c_oleg-bunin\",\"h_webdev\",\"h_php\",\"h_programming\",\"h_itstandarts\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450812\\\u002F9607e19b3a8f1a79594f7884f895de2a\\\u002F\"]}","metaDescription":"В прошлом году PHP-FIG — Группа концепций совместимости PHP, выпустила несколько новых спецификаций. Последняя из них — PSR-14, посвящена диспетчеризации событий. Как и другие PSR, это локальная...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"oleg-bunin":{"alias":"oleg-bunin","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F7c3\u002Fad4\u002F7b2\u002F7c3ad47b2aae71b56795f618534e7a51.jpg","titleHtml":"Конференции Олега Бунина (Онтико)","descriptionHtml":"Профессиональные конференции для IT-разработчиков","relatedData":null,"statistics":{"postsCount":676,"newsCount":7,"vacanciesCount":0,"employeesCount":83,"careerRating":null,"subscribersCount":48348,"rating":374.29,"invest":null},"foundationDate":{"year":"2008","month":"01","day":"01"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fwww.ontico.ru\u002F","staffNumber":"11–30 человек","registrationDate":"2010-02-24T19:37:40+00:00","representativeUser":null,"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Foleg.bunin"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002FHighLoadConference"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fritfest"}],"settings":{"analyticsSettings":[{"type":"ym","trackingId":"55760638"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F673\u002Fa67\u002F310\u002F673a67310118a40a792e1eb97151fd97.png","linkUrl":"https:\u002F\u002Fwww.highload.ru\u002Fmoscow\u002F2021\u002F?utm_source=habr&utm_medium=cpc&utm_campaign=title&utm_content=banner","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"Конференции Олега Бунина (Онтико), Москва - Профессиональные конференции для IT-разработчиков с 1 января 2008 г.","title":"Конференции Олега Бунина (Онтико), Москва - Профессиональные конференции для IT-разработчиков с 1 января 2008 г.","keywords":["Конференции","Управление разработкой","Программирование","DevOps","Карьера в IT-индустрии"],"descriptionHtml":"676 статей от авторов компании Конференции Олега Бунина (Онтико)","description":"676 статей от авторов компании Конференции Олега Бунина (Онтико)"},"aDeskSettings":null,"careerAlias":"ontico","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

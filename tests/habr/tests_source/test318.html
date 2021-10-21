@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Паттерны проектирования в современной JavaScript-разработке / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/ruvds\/blog\/450318\/"},"headline":"Паттерны проектирования в современной JavaScript-разработке","datePublished":"2019-05-08T12:00:02+03:00","dateModified":"2019-05-08T12:00:02+03:00","author":{"@type":"Person","name":"ru_vds"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения &laquo;архитектурным проектированием&raquo; можно назвать процесс кон...","url":"https:\/\/habr.com\/ru\/company\/ruvds\/blog\/450318\/#post-content-body","about":["c_ruvds","h_webdev","h_javascript","f_develop"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a74\/120\/d5b\/a74120d5b954738ab73942c594530a2b.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/50d\/2e1\/8c5\/50d2e18c5888907acb07e86cab34fb27.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/513\/892\/3bf\/5138923bf446b4a737cca97a98d75e92.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/820\/16c\/e5f\/82016ce5faf7c7b5526b8b7767590501.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/4b4\/6c8\/e4e\/4b46c8e4eea800ddf38d68f42676d795.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d3e\/7e5\/1fb\/d3e7e51fbd6d7f239e8629609aa2f661.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d17\/329\/e50\/d17329e50a91025847eaeb93ad94b741.png","https:\/\/habrastorage.org\/files\/1ba\/550\/d25\/1ba550d25e8846ce8805de564da6aa63.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Паттерны проектирования в современной JavaScript-разработке" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Паттерны проектирования в современной JavaScript-разработке" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Паттерны проектирования в современной JavaScript-разработке" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450318/a646d60e762633d5d5e52450ee0f894c/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450318/a646d60e762633d5d5e52450ee0f894c/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450318/a646d60e762633d5d5e52450ee0f894c/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450318/a646d60e762633d5d5e52450ee0f894c/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450318/a646d60e762633d5d5e52450ee0f894c/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450318" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-08T09:00:02.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450318/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/ruvds/blog/450318/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450318/a646d60e762633d5d5e52450ee0f894c/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="ruvds" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://ruvds.com/ru-rub"><img src="//habrastorage.org/getpro/habr/branding/b77/8d5/a41/b778d5a41f83016379c6630262c3294c.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/ruvds/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/f27/ea8/5bd/f27ea85bd62fbd985c308110885af7e0.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">3205.25</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/ruvds/profile/" class="tm-company-card__name">
+        RUVDS.com
+      </a> <div class="tm-company-card__description">VDS/VPS-хостинг. Скидка 10% по коду <b>HABR10</b></div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/ru_vds/" title="ru_vds" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/e36/812/d3d/e36812d3de38eb3d479d7a13228717ef.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/ru_vds/" class="tm-user-info__username">
+      ru_vds
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-08T09:00:02.000Z" title="2019-05-08, 12:00">8  мая  2019 в 12:00</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Паттерны проектирования в современной JavaScript-разработке</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/ruvds/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании RUVDS.com</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/webdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка веб-сайтов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/javascript/" class="tm-article-snippet__hubs-item-link"><span>JavaScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://levelup.gitconnected.com/design-patterns-in-modern-javascript-development-ec84d8be06ca" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Kristian Poslek
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе которого его стремятся сделать качественным, надёжным и хорошо поддающимся поддержке. При этом паттерны (шаблоны) проектирования позволяют оперировать понятиями, представляющими собой подходы к решению распространённых проблем. Эти решения могут варьироваться от абстрактных, концептуальных, до предельно конкретных. Их знание позволяет разработчикам эффективно друг с другом общаться.<br/>
+<br/>
+Если хотя бы два разработчика в команде разбираются в паттернах, разговор о решении проблем, встающих перед командой, становится весьма продуктивным. Если о паттернах знает лишь один член команды, то обычно просто бывает разъяснить то, что он знает, другим членам команды.<br/>
+<br/>
+<a href="https://habr.com/ru/company/ruvds/blog/450318/"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/a74/120/d5b/a74120d5b954738ab73942c594530a2b.jpg" alt="image" data-src="https://habrastorage.org/getpro/habr/post_images/a74/120/d5b/a74120d5b954738ab73942c594530a2b.jpg" data-blurred="true"/></a><br/>
+<br/>
+Цель этой статьи заключается в том, чтобы заинтересовать читателей чем-то вроде формального представления знаний в сфере разработки программного обеспечения, продемонстрировав им идею паттернов проектирования и описав несколько паттернов, которые интересны тем, что они нашли применение в современной JavaScript-Разработке.<br/>
+<a name="habracut"></a><br/>
+<h2><font color="#3AC1EF">Паттерн «синглтон»</font></h2><br/>
+<h3><font color="#3AC1EF">▍Общие сведения</font></h3><br/>
+Паттерн проектирования «синглтон» (singleton), который ещё называют «одиночка», нельзя назвать одним из наиболее широко используемых паттернов, но мы начинаем разговор именно с него, так как его сравнительно легко понять.<br/>
+<br/>
+Этот паттерн произрастает из математической концепции синглтона — одноэлементного множества, то есть множества, содержащего лишь один элемент. Например, множество {null} — это синглтон.<br/>
+<br/>
+В сфере разработки ПО смысл паттерна «синглтон» сводится к тому, что мы ограничиваем число возможных экземпляров некоего класса до одного объекта. При первой попытке создания объекта на основе класса, реализующего этот паттерн, такой объект, действительно, создаётся. Все последующие попытки создать экземпляр класса приводят к возврату объекта, созданного в ходе первой попытки получения экземпляра класса.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/50d/2e1/8c5/50d2e18c5888907acb07e86cab34fb27.png"/></div><br/>
+<i><font color="#999999">Зачем ещё один супергерой, когда у нас есть Бэтмэн?</font></i><br/>
+<br/>
+Выше показан пример класса, реализующего паттерн «синглтон».<br/>
+<br/>
+<h3><font color="#3AC1EF">▍Зачем он нужен?</font></h3><br/>
+Понятно, что этот паттерн позволяет нам ограничиться лишь одним «супергероем» (это, очевидно, Бэтмэн). Но зачем ещё он может понадобиться?<br/>
+<br/>
+Хотя этот паттерн и не лишён собственных проблем (раньше это называли злом, учитывая то, что синглтоны называли <a href="http://misko.hevery.com/2008/08/17/singletons-are-pathological-liars/">патологическими лжецами</a>), он, в некоторых ситуациях, может оказаться очень кстати. Одна из таких ситуаций заключается в инициализации конфигурационных объектов. В типичном приложении имеет смысл держать лишь один экземпляр подобного объекта, если только, в соответствии с особенностями проекта, в нём не используются несколько подобных объектов.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍Где его используют?</font></h3><br/>
+В качестве основного примера использования паттерна «синглтон» в крупных популярных фреймворках можно назвать сервисы Angular. В документации по Angular есть отдельная <a href="https://angular.io/guide/singleton-services">страница</a>, посвящённая разъяснению того, как сделать сервис синглтоном.<br/>
+<br/>
+Оформление сервисов в виде синглтонов несёт в себе глубокий смысл, так как сервисы используются как хранилища состояния, конфигурации, и позволяют организовывать взаимодействие между компонентами. Всё это ведёт к тому, что разработчику нужно, чтобы в его приложении не было бы нескольких экземпляров одного и того же сервиса.<br/>
+<br/>
+Рассмотрим пример. Предположим, у нас имеется простейшее приложение, которое используется для подсчёта количества нажатий на кнопки.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/513/892/3bf/5138923bf446b4a737cca97a98d75e92.png"/></div><br/>
+<i><font color="#999999">Каждый щелчок по любой из кнопок обновляет счётчик</font></i><br/>
+<br/>
+Количество щелчков по кнопкам нужно хранить в одном объекте, который реализует следующие возможности:<br/>
+<br/>
+<ul>
+<li>Он позволяет подсчитывать щелчки по кнопкам.</li>
+<li>Он даёт возможность считывать текущее значение счётчика щелчков.</li>
+</ul><br/>
+Если подобный объект не был бы синглтоном (и с каждой кнопкой был бы связан собственный экземпляр такого объекта), то программа неправильно подсчитывала бы число нажатий на кнопки. Кроме того, при таком подходе нужно решить следующую задачу: «Из какого именно объекта, отвечающего за подсчёт щелчков, будут браться данные, выводимые на экран?».<br/>
+<br/>
+<h2><font color="#3AC1EF">Паттерн «наблюдатель»</font></h2><br/>
+<h3><font color="#3AC1EF">▍Общие сведения</font></h3><br/>
+Паттерн «наблюдатель» (observer) — это шаблон проектирования, в котором объект, называемый «субъектом» (subject) поддерживает список зависимых объектов, называемых наблюдателями (observer), и автоматически уведомляет их при изменении своего состояния, обычно — вызывая один из их методов.<br/>
+<br/>
+Понять этот паттерн совсем несложно в том случае, если найти его аналогию в реальном мире. А именно, речь идёт о подписках на газеты.<br/>
+<br/>
+Предположим, вы обычно покупаете газеты в киоске. Вы идёте туда, спрашиваете, есть ли свежий выпуск вашей любимой газеты. Если того, что вам нужно, в киоске нет, то вы идёте домой, потратив время впустую, а после снова отправляетесь в киоск. Если рассмотреть эту ситуацию в применении к JavaScript, то она была бы похожа на циклический опрос некоей сущности, выполняемый до тех пор, пока от неё не будут получены нужные данные.<br/>
+<br/>
+После того, когда вы, наконец, раздобудете нужную вам газету, вы сможете приступить к тому, к чему стремились всё это время — возьмёте чашечку кофе и развернёте газету. В JavaScript это было бы равносильно вызову коллбэка, который мы собирались вызвать после получения нужного результата.<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/820/16c/e5f/82016ce5faf7c7b5526b8b7767590501.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/820/16c/e5f/82016ce5faf7c7b5526b8b7767590501.jpg" data-blurred="true"/></div><br/>
+<i><font color="#999999">Наконец можно почитать газету</font></i><br/>
+<br/>
+Гораздо разумнее будет поступить так: подписаться на газету и каждый день получать её свежий выпуск. При таком подходе издатель даст вам знать о том, что вышел свежий номер газеты, и доставит его вам. Вам не придётся больше ходить в киоск. Не придётся больше тратить время впустую.<br/>
+<br/>
+Если опять перейти к JavaScript, это означает, что вам больше не придётся ждать в цикле какого-то результата, и, получив его, вызывать некую функцию. Вместо этого вы сообщаете субъекту о том, что заинтересованы в неких событиях (сообщениях), и передаёте ему функцию обратного вызова, которая должна быть вызвана тогда, когда интересующие вас данные будут готовы. Вы, в таком случае, становитесь наблюдателем.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/4b4/6c8/e4e/4b46c8e4eea800ddf38d68f42676d795.png"/></div><br/>
+<i><font color="#999999">Теперь вы никогда не пропустите любимую утреннюю газету</font></i><br/>
+<br/>
+У рассматриваемого паттерна есть одна приятная особенность: вы не обязаны быть единственным наблюдателем. Если вы не сможете достать свою любимую газету — вас это расстроит. Но то же самое произойдёт и с другими людьми, которые не смогут её купить. Именно поэтому на одного субъекта могут подписываться несколько наблюдателей.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍Зачем он нужен?</font></h3><br/>
+Паттерн «наблюдатель» применяется во многих ситуациях, но обычно его следует использовать тогда, когда вы хотите создать между объектами зависимость «один ко многим», и при этом такие объекты не должны быть сильно связанными. Кроме того, в создаваемой системе должна быть возможность оповещать неограниченное количество объектов о неких изменениях.<br/>
+<br/>
+JavaScript-приложения — это отличное место для применения паттерна «наблюдатель», так как здесь всё управляется событиями, и, вместо того, чтобы постоянно обращаться к некоей сущности, узнавая, произошло ли интересующее вас событие, гораздо лучше будет дать ей возможность оповестить вас при возникновении этого события (это похоже на старое высказывание: «Не надо нам звонить. Когда надо, мы сами вам позвоним»).<br/>
+<br/>
+Вполне вероятно, что вы уже пользовались конструкциями, напоминающими паттерн «наблюдатель». Например — это <code>addEventListener</code>. Добавление к элементу прослушивателя событий имеет все признаки использования паттерна «наблюдатель»:<br/>
+<br/>
+<ul>
+<li>Вы можете подписаться на объект.</li>
+<li>Вы можете отписаться от объекта.</li>
+<li>Объект может информировать о событии всех своих подписчиков.</li>
+</ul><br/>
+Знать о существовании паттерна «наблюдатель» полезно в том плане, что это знание позволяет вам реализовать собственный субъект, или гораздо быстрее, чем раньше, разобраться с существующим решением, использующим этот паттерн.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍Где его используют?</font></h3><br/>
+Базовая реализация этого паттерна не должна быть особенно сложной, но существуют отличные библиотеки, реализующие его и используемые во многих проектах. Речь идёт о проекте <a href="http://reactivex.io/">ReactiveX</a>, и о его JavaScript-варианте <a href="https://github.com/ReactiveX/rxjs">RxJS</a>.<br/>
+<br/>
+Библиотека RxJS позволяет не только подписываться на субъекты, но и даёт программисту возможность трансформации данных самыми разными способами, позволяет комбинировать множество подписок, улучшает возможности по управлению асинхронными операциями. Кроме того, этим её возможности не ограничиваются. Если вы когда-нибудь хотели поднять возможности своих программ по обработке и преобразованию данных на более высокий уровень, то вам можно порекомендовать изучить библиотеку RxJS.<br/>
+<br/>
+Помимо паттерна «наблюдатель» проект ReactiveX может гордиться реализацией паттерна «итератор» (iterator), который даёт субъекту возможность сообщать подписчикам о завершении подписки, по сути, позволяя отменять подписки по инициативе субъекта. В этом материале я не собираюсь рассказывать о паттерне «итератор», но могу сказать, что если вы только начинаете изучать паттерны проектирования, изучение этого паттерна и размышления о том, как он компонуется с паттерном «наблюдатель», могут стать хорошими упражнениями.<br/>
+<br/>
+<h2><font color="#3AC1EF">Паттерн «фасад»</font></h2><br/>
+<h3><font color="#3AC1EF">▍Общие сведения</font></h3><br/>
+Паттерн «фасад» (facade) получил своё название из архитектуры. В архитектуре фасад — это, обычно, одна из внешних сторон здания, как правило — передняя сторона. Английский язык позаимствовал слово «facade» из французского. Речь идёт о слове «façade», которое, кроме прочего, переводится как «лицевая сторона здания».<br/>
+<br/>
+Фасад здания в архитектуре — это внешняя часть здания, скрывающая то, что находится внутри. Похожие свойства можно отметить и у паттерна «фасад», так как он направлен на то, чтобы скрыть сложные внутренние механизмы за неким внешним интерфейсом. Его применение позволяет разработчику работать с внешним API, устроенным достаточно просто, и, в то же время, предоставляет возможность менять внутренние механизмы, скрытые за фасадом, не нарушая работоспособность системы.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍Зачем он нужен?</font></h3><br/>
+Паттерн «фасад» можно использовать в огромном количестве ситуаций, среди которых можно особо отметить те из них, когда код пытаются сделать более простым для понимания (то есть — скрывают сложные механизмы за простыми API), и те, когда фрагменты систем стремятся сделать как можно слабее связанными друг с другом.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/d3e/7e5/1fb/d3e7e51fbd6d7f239e8629609aa2f661.png"/></div><br/>
+<i><font color="#999999">Этим объектам нужно что-то из логова дракона</font></i><br/>
+<br/>
+Несложно заметить, что объект-фасад (или слой с несколькими объектами) — это весьма полезная абстракция. Вряд ли кто-нибудь захочет столкнуться с драконом в том случае, если этого можно избежать. Объект-фасад нужен для того, чтобы предоставить другим объектам удобный API, а со всеми драконьими хитростями этот объект будет справляться самостоятельно.<br/>
+<br/>
+Ещё одна полезная особенность паттерна «фасад» заключается в том, что дракона можно как угодно «переделывать», но это никак не скажется на других частях приложения. Предположим, вы хотите заменить дракона на котёнка. У котёнка, как и у дракона, есть когти, но его легче кормить. Поменять дракона на котёнка — это значит — переписать код объекта-фасада без внесения изменений в зависимые объекты.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍Где его используют?</font></h3><br/>
+Паттерн «фасад» часто можно встретить в Angular. Там сервисы используются как средства для упрощения некоей базовой логики. Но этот паттерн применим не только в Angular, ниже вы сможете в этом убедиться.<br/>
+<br/>
+Предположим, нам нужно добавить в приложение систему управления состоянием. Для решения этой задачи можно воспользоваться разными средствами, среди них — Redux, NgRx, Akita, MobX, Apollo, а также — постоянно появляющиеся новые инструменты. Почему бы не испытать их все?<br/>
+Какова основная функциональность, которую должна предоставлять библиотека для управления состоянием? Вероятно, это — следующие возможности:<br/>
+<br/>
+<ul>
+<li>Механизм для оповещения системы управления состоянием о том, что нам нужно изменить состояние.</li>
+<li>Механизм для получения текущего состояния или его фрагмента.</li>
+</ul><br/>
+Выглядит всё это не так уж и плохо.<br/>
+<br/>
+Теперь, вооружившись паттерном «фасад», можно написать фасады для работы с различными частями состояния, предоставляющие удобные API, которыми можно пользоваться в программе. Например, нечто вроде <code>facade.startSpinner()</code>, <code>facade.stopSpinner()</code> и <code>facade.getSpinnerState()</code>. Подобные методы просто понять, на них легко можно сослаться в разговоре о программе.<br/>
+<br/>
+После этого вы можете поработать с объектами, реализующими паттерн «фасад» и написать код, который будет трансформировать ваш код так, чтобы он мог бы работать с Apollo (управление состоянием с помощью GraphQL — горячая тема). Возможно, в ходе испытаний вы обнаружите, что Apollo вам не подходит, или то, что вам неудобно писать модульные тесты в расчёте на эту систему управления состоянием. Нет проблем — напишите новый фасад, рассчитанный на поддержку MobX, и снова испытайте систему.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/d17/329/e50/d17329e50a91025847eaeb93ad94b741.png"/></div><br/>
+<i><font color="#999999">Разные системы управления состоянием приложения, доступ к которым осуществляется через единый фасад, тоже могут быть драконами…</font></i><br/>
+ <br/>
+<h2><font color="#3AC1EF">Итоги</font></h2><br/>
+Вероятно, вы заметили, что говоря о паттернах проектирования, мы не рассматривали примеры кода. Дело в том, что глубокий разбор каждого паттерна тянет, как минимум, на отдельную главу в далеко не самой тонкой книге. Кстати, раз уж мы заговорили о книгах, <a href="http://wiki.c2.com/?DesignPatternsBook">вот</a> и <a href="https://www.goodreads.com/book/show/58128.Head_First_Design_Patterns">вот</a> — интересные издания, на которые можно взглянуть тем, кто хочет углубиться в изучение паттернов.<br/>
+<br/>
+В итоге же хочу сказать, что в деле освоения паттернов ничто не сравнится с поиском в интернете, с чтением и с самостоятельным испытанием различных идей. Если даже окажется так, что паттернами вы никогда пользоваться не будете, вы, разбираясь с ними, узнаете что-то новое, и вырастете в неожиданных для себя областях.<br/>
+<br/>
+<b>Уважаемые читатели!</b> Какими паттернами проектирования вы пользуетесь?<br/>
+<br/>
+<a href="https://ruvds.com/ru-rub/#order"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/files/1ba/550/d25/1ba550d25e8846ce8805de564da6aa63.png"/></a></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BJavaScript%5D" class="tm-tags-list__link">JavaScript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0%5D" class="tm-tags-list__link">разработка</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/ruvds/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании RUVDS.com
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/webdev/" class="tm-hubs-list__link">
+    Разработка веб-сайтов
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/javascript/" class="tm-hubs-list__link">
+    JavaScript
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 44: ↑37 и ↓7</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 44: ↑37 и ↓7" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+30</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">45K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    272
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/ruvds/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/f27/ea8/5bd/f27ea85bd62fbd985c308110885af7e0.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/ruvds/profile/" class="tm-company-snippet__title">RUVDS.com</a> <div class="tm-company-snippet__description">VDS/VPS-хостинг. Скидка 10% по коду <b>HABR10</b></div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/ruvds" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://twitter.com/ru_vds" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/ru_vds" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/ru_vds/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/e36/812/d3d/e36812d3de38eb3d479d7a13228717ef.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 969 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    214.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">136.8</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/ru_vds/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @ru_vds
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/ruvds/blog/450318/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 11 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2015-07-26T21:00:00.000Z" title="2015-07-27, 00:00">27  июля  2015</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://ruvds.com" target="_blank" class="tm-company-basic-info__link">
+      ruvds.com
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    11–30 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2016-03-18T05:43:01.000Z" title="2016-03-18, 08:43">18  марта  2016</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/ruvds/" class="tm-company-basic-info__link">
+      ruvds
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/ruvds/blog/450318/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/ruvds/blog/450318/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450318":{"id":"450318","timePublished":"2019-05-08T09:00:02+00:00","isCorporative":true,"lang":"ru","titleHtml":"Паттерны проектирования в современной JavaScript-разработке","leadData":{"textHtml":"Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе которого его стремятся сделать качественным, надёжным и хорошо поддающимся поддержке. При этом паттерны (шаблоны) проектирования позволяют оперировать понятиями, представляющими собой подходы к решению распространённых проблем. Эти решения могут варьироваться от абстрактных, концептуальных, до предельно конкретных. Их знание позволяет разработчикам эффективно друг с другом общаться.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЕсли хотя бы два разработчика в команде разбираются в паттернах, разговор о решении проблем, встающих перед командой, становится весьма продуктивным. Если о паттернах знает лишь один член команды, то обычно просто бывает разъяснить то, что он знает, другим членам команды.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F450318\u002F\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa74\u002F120\u002Fd5b\u002Fa74120d5b954738ab73942c594530a2b.jpg\" alt=\"image\"\u003E\u003C\u002Fa\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЦель этой статьи заключается в том, чтобы заинтересовать читателей чем-то вроде формального представления знаний в сфере разработки программного обеспечения, продемонстрировав им идею паттернов проектирования и описав несколько паттернов, которые интересны тем, что они нашли применение в современной JavaScript-Разработке.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Kristian Poslek","originalUrl":"https:\u002F\u002Flevelup.gitconnected.com\u002Fdesign-patterns-in-modern-javascript-development-ec84d8be06ca"}}],"author":{"scoreStats":{"score":214.5,"votesCount":969},"rating":136.8,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1220775","alias":"ru_vds","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fe36\u002F812\u002Fd3d\u002Fe36812d3de38eb3d479d7a13228717ef.png","speciality":"Пользователь"},"statistics":{"commentsCount":11,"favoritesCount":272,"readingCount":45032,"score":30,"votesCount":44},"hubs":[{"relatedData":null,"id":"19791","alias":"ruvds","type":"corporative","title":"Блог компании RUVDS.com","titleHtml":"Блог компании RUVDS.com","isProfiled":false},{"relatedData":null,"id":"91","alias":"webdev","type":"collective","title":"Разработка веб-сайтов","titleHtml":"Разработка веб-сайтов","isProfiled":true},{"relatedData":null,"id":"357","alias":"javascript","type":"collective","title":"JavaScript","titleHtml":"JavaScript","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EАвтор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе которого его стремятся сделать качественным, надёжным и хорошо поддающимся поддержке. При этом паттерны (шаблоны) проектирования позволяют оперировать понятиями, представляющими собой подходы к решению распространённых проблем. Эти решения могут варьироваться от абстрактных, концептуальных, до предельно конкретных. Их знание позволяет разработчикам эффективно друг с другом общаться.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли хотя бы два разработчика в команде разбираются в паттернах, разговор о решении проблем, встающих перед командой, становится весьма продуктивным. Если о паттернах знает лишь один член команды, то обычно просто бывает разъяснить то, что он знает, другим членам команды.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F450318\u002F\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa74\u002F120\u002Fd5b\u002Fa74120d5b954738ab73942c594530a2b.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa74\u002F120\u002Fd5b\u002Fa74120d5b954738ab73942c594530a2b.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЦель этой статьи заключается в том, чтобы заинтересовать читателей чем-то вроде формального представления знаний в сфере разработки программного обеспечения, продемонстрировав им идею паттернов проектирования и описав несколько паттернов, которые интересны тем, что они нашли применение в современной JavaScript-Разработке.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EПаттерн «синглтон»\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Общие сведения\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПаттерн проектирования «синглтон» (singleton), который ещё называют «одиночка», нельзя назвать одним из наиболее широко используемых паттернов, но мы начинаем разговор именно с него, так как его сравнительно легко понять.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭтот паттерн произрастает из математической концепции синглтона — одноэлементного множества, то есть множества, содержащего лишь один элемент. Например, множество {null} — это синглтон.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ сфере разработки ПО смысл паттерна «синглтон» сводится к тому, что мы ограничиваем число возможных экземпляров некоего класса до одного объекта. При первой попытке создания объекта на основе класса, реализующего этот паттерн, такой объект, действительно, создаётся. Все последующие попытки создать экземпляр класса приводят к возврату объекта, созданного в ходе первой попытки получения экземпляра класса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F50d\u002F2e1\u002F8c5\u002F50d2e18c5888907acb07e86cab34fb27.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EЗачем ещё один супергерой, когда у нас есть Бэтмэн?\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВыше показан пример класса, реализующего паттерн «синглтон».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Зачем он нужен?\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПонятно, что этот паттерн позволяет нам ограничиться лишь одним «супергероем» (это, очевидно, Бэтмэн). Но зачем ещё он может понадобиться?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nХотя этот паттерн и не лишён собственных проблем (раньше это называли злом, учитывая то, что синглтоны называли \u003Ca href=\"http:\u002F\u002Fmisko.hevery.com\u002F2008\u002F08\u002F17\u002Fsingletons-are-pathological-liars\u002F\"\u003Eпатологическими лжецами\u003C\u002Fa\u003E), он, в некоторых ситуациях, может оказаться очень кстати. Одна из таких ситуаций заключается в инициализации конфигурационных объектов. В типичном приложении имеет смысл держать лишь один экземпляр подобного объекта, если только, в соответствии с особенностями проекта, в нём не используются несколько подобных объектов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Где его используют?\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВ качестве основного примера использования паттерна «синглтон» в крупных популярных фреймворках можно назвать сервисы Angular. В документации по Angular есть отдельная \u003Ca href=\"https:\u002F\u002Fangular.io\u002Fguide\u002Fsingleton-services\"\u003Eстраница\u003C\u002Fa\u003E, посвящённая разъяснению того, как сделать сервис синглтоном.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОформление сервисов в виде синглтонов несёт в себе глубокий смысл, так как сервисы используются как хранилища состояния, конфигурации, и позволяют организовывать взаимодействие между компонентами. Всё это ведёт к тому, что разработчику нужно, чтобы в его приложении не было бы нескольких экземпляров одного и того же сервиса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРассмотрим пример. Предположим, у нас имеется простейшее приложение, которое используется для подсчёта количества нажатий на кнопки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F513\u002F892\u002F3bf\u002F5138923bf446b4a737cca97a98d75e92.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EКаждый щелчок по любой из кнопок обновляет счётчик\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКоличество щелчков по кнопкам нужно хранить в одном объекте, который реализует следующие возможности:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EОн позволяет подсчитывать щелчки по кнопкам.\u003C\u002Fli\u003E\r\n\u003Cli\u003EОн даёт возможность считывать текущее значение счётчика щелчков.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nЕсли подобный объект не был бы синглтоном (и с каждой кнопкой был бы связан собственный экземпляр такого объекта), то программа неправильно подсчитывала бы число нажатий на кнопки. Кроме того, при таком подходе нужно решить следующую задачу: «Из какого именно объекта, отвечающего за подсчёт щелчков, будут браться данные, выводимые на экран?».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EПаттерн «наблюдатель»\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Общие сведения\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПаттерн «наблюдатель» (observer) — это шаблон проектирования, в котором объект, называемый «субъектом» (subject) поддерживает список зависимых объектов, называемых наблюдателями (observer), и автоматически уведомляет их при изменении своего состояния, обычно — вызывая один из их методов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПонять этот паттерн совсем несложно в том случае, если найти его аналогию в реальном мире. А именно, речь идёт о подписках на газеты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПредположим, вы обычно покупаете газеты в киоске. Вы идёте туда, спрашиваете, есть ли свежий выпуск вашей любимой газеты. Если того, что вам нужно, в киоске нет, то вы идёте домой, потратив время впустую, а после снова отправляетесь в киоск. Если рассмотреть эту ситуацию в применении к JavaScript, то она была бы похожа на циклический опрос некоей сущности, выполняемый до тех пор, пока от неё не будут получены нужные данные.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле того, когда вы, наконец, раздобудете нужную вам газету, вы сможете приступить к тому, к чему стремились всё это время — возьмёте чашечку кофе и развернёте газету. В JavaScript это было бы равносильно вызову коллбэка, который мы собирались вызвать после получения нужного результата.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F820\u002F16c\u002Fe5f\u002F82016ce5faf7c7b5526b8b7767590501.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F820\u002F16c\u002Fe5f\u002F82016ce5faf7c7b5526b8b7767590501.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EНаконец можно почитать газету\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nГораздо разумнее будет поступить так: подписаться на газету и каждый день получать её свежий выпуск. При таком подходе издатель даст вам знать о том, что вышел свежий номер газеты, и доставит его вам. Вам не придётся больше ходить в киоск. Не придётся больше тратить время впустую.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли опять перейти к JavaScript, это означает, что вам больше не придётся ждать в цикле какого-то результата, и, получив его, вызывать некую функцию. Вместо этого вы сообщаете субъекту о том, что заинтересованы в неких событиях (сообщениях), и передаёте ему функцию обратного вызова, которая должна быть вызвана тогда, когда интересующие вас данные будут готовы. Вы, в таком случае, становитесь наблюдателем.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F4b4\u002F6c8\u002Fe4e\u002F4b46c8e4eea800ddf38d68f42676d795.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EТеперь вы никогда не пропустите любимую утреннюю газету\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ рассматриваемого паттерна есть одна приятная особенность: вы не обязаны быть единственным наблюдателем. Если вы не сможете достать свою любимую газету — вас это расстроит. Но то же самое произойдёт и с другими людьми, которые не смогут её купить. Именно поэтому на одного субъекта могут подписываться несколько наблюдателей.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Зачем он нужен?\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПаттерн «наблюдатель» применяется во многих ситуациях, но обычно его следует использовать тогда, когда вы хотите создать между объектами зависимость «один ко многим», и при этом такие объекты не должны быть сильно связанными. Кроме того, в создаваемой системе должна быть возможность оповещать неограниченное количество объектов о неких изменениях.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nJavaScript-приложения — это отличное место для применения паттерна «наблюдатель», так как здесь всё управляется событиями, и, вместо того, чтобы постоянно обращаться к некоей сущности, узнавая, произошло ли интересующее вас событие, гораздо лучше будет дать ей возможность оповестить вас при возникновении этого события (это похоже на старое высказывание: «Не надо нам звонить. Когда надо, мы сами вам позвоним»).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВполне вероятно, что вы уже пользовались конструкциями, напоминающими паттерн «наблюдатель». Например — это \u003Ccode\u003EaddEventListener\u003C\u002Fcode\u003E. Добавление к элементу прослушивателя событий имеет все признаки использования паттерна «наблюдатель»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВы можете подписаться на объект.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВы можете отписаться от объекта.\u003C\u002Fli\u003E\r\n\u003Cli\u003EОбъект может информировать о событии всех своих подписчиков.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nЗнать о существовании паттерна «наблюдатель» полезно в том плане, что это знание позволяет вам реализовать собственный субъект, или гораздо быстрее, чем раньше, разобраться с существующим решением, использующим этот паттерн.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Где его используют?\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nБазовая реализация этого паттерна не должна быть особенно сложной, но существуют отличные библиотеки, реализующие его и используемые во многих проектах. Речь идёт о проекте \u003Ca href=\"http:\u002F\u002Freactivex.io\u002F\"\u003EReactiveX\u003C\u002Fa\u003E, и о его JavaScript-варианте \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FReactiveX\u002Frxjs\"\u003ERxJS\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБиблиотека RxJS позволяет не только подписываться на субъекты, но и даёт программисту возможность трансформации данных самыми разными способами, позволяет комбинировать множество подписок, улучшает возможности по управлению асинхронными операциями. Кроме того, этим её возможности не ограничиваются. Если вы когда-нибудь хотели поднять возможности своих программ по обработке и преобразованию данных на более высокий уровень, то вам можно порекомендовать изучить библиотеку RxJS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПомимо паттерна «наблюдатель» проект ReactiveX может гордиться реализацией паттерна «итератор» (iterator), который даёт субъекту возможность сообщать подписчикам о завершении подписки, по сути, позволяя отменять подписки по инициативе субъекта. В этом материале я не собираюсь рассказывать о паттерне «итератор», но могу сказать, что если вы только начинаете изучать паттерны проектирования, изучение этого паттерна и размышления о том, как он компонуется с паттерном «наблюдатель», могут стать хорошими упражнениями.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EПаттерн «фасад»\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Общие сведения\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПаттерн «фасад» (facade) получил своё название из архитектуры. В архитектуре фасад — это, обычно, одна из внешних сторон здания, как правило — передняя сторона. Английский язык позаимствовал слово «facade» из французского. Речь идёт о слове «façade», которое, кроме прочего, переводится как «лицевая сторона здания».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФасад здания в архитектуре — это внешняя часть здания, скрывающая то, что находится внутри. Похожие свойства можно отметить и у паттерна «фасад», так как он направлен на то, чтобы скрыть сложные внутренние механизмы за неким внешним интерфейсом. Его применение позволяет разработчику работать с внешним API, устроенным достаточно просто, и, в то же время, предоставляет возможность менять внутренние механизмы, скрытые за фасадом, не нарушая работоспособность системы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Зачем он нужен?\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПаттерн «фасад» можно использовать в огромном количестве ситуаций, среди которых можно особо отметить те из них, когда код пытаются сделать более простым для понимания (то есть — скрывают сложные механизмы за простыми API), и те, когда фрагменты систем стремятся сделать как можно слабее связанными друг с другом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd3e\u002F7e5\u002F1fb\u002Fd3e7e51fbd6d7f239e8629609aa2f661.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EЭтим объектам нужно что-то из логова дракона\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНесложно заметить, что объект-фасад (или слой с несколькими объектами) — это весьма полезная абстракция. Вряд ли кто-нибудь захочет столкнуться с драконом в том случае, если этого можно избежать. Объект-фасад нужен для того, чтобы предоставить другим объектам удобный API, а со всеми драконьими хитростями этот объект будет справляться самостоятельно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕщё одна полезная особенность паттерна «фасад» заключается в том, что дракона можно как угодно «переделывать», но это никак не скажется на других частях приложения. Предположим, вы хотите заменить дракона на котёнка. У котёнка, как и у дракона, есть когти, но его легче кормить. Поменять дракона на котёнка — это значит — переписать код объекта-фасада без внесения изменений в зависимые объекты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍Где его используют?\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПаттерн «фасад» часто можно встретить в Angular. Там сервисы используются как средства для упрощения некоей базовой логики. Но этот паттерн применим не только в Angular, ниже вы сможете в этом убедиться.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПредположим, нам нужно добавить в приложение систему управления состоянием. Для решения этой задачи можно воспользоваться разными средствами, среди них — Redux, NgRx, Akita, MobX, Apollo, а также — постоянно появляющиеся новые инструменты. Почему бы не испытать их все?\u003Cbr\u002F\u003E\r\nКакова основная функциональность, которую должна предоставлять библиотека для управления состоянием? Вероятно, это — следующие возможности:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EМеханизм для оповещения системы управления состоянием о том, что нам нужно изменить состояние.\u003C\u002Fli\u003E\r\n\u003Cli\u003EМеханизм для получения текущего состояния или его фрагмента.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВыглядит всё это не так уж и плохо.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь, вооружившись паттерном «фасад», можно написать фасады для работы с различными частями состояния, предоставляющие удобные API, которыми можно пользоваться в программе. Например, нечто вроде \u003Ccode\u003Efacade.startSpinner()\u003C\u002Fcode\u003E, \u003Ccode\u003Efacade.stopSpinner()\u003C\u002Fcode\u003E и \u003Ccode\u003Efacade.getSpinnerState()\u003C\u002Fcode\u003E. Подобные методы просто понять, на них легко можно сослаться в разговоре о программе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле этого вы можете поработать с объектами, реализующими паттерн «фасад» и написать код, который будет трансформировать ваш код так, чтобы он мог бы работать с Apollo (управление состоянием с помощью GraphQL — горячая тема). Возможно, в ходе испытаний вы обнаружите, что Apollo вам не подходит, или то, что вам неудобно писать модульные тесты в расчёте на эту систему управления состоянием. Нет проблем — напишите новый фасад, рассчитанный на поддержку MobX, и снова испытайте систему.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd17\u002F329\u002Fe50\u002Fd17329e50a91025847eaeb93ad94b741.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EРазные системы управления состоянием приложения, доступ к которым осуществляется через единый фасад, тоже могут быть драконами…\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EИтоги\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВероятно, вы заметили, что говоря о паттернах проектирования, мы не рассматривали примеры кода. Дело в том, что глубокий разбор каждого паттерна тянет, как минимум, на отдельную главу в далеко не самой тонкой книге. Кстати, раз уж мы заговорили о книгах, \u003Ca href=\"http:\u002F\u002Fwiki.c2.com\u002F?DesignPatternsBook\"\u003Eвот\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fwww.goodreads.com\u002Fbook\u002Fshow\u002F58128.Head_First_Design_Patterns\"\u003Eвот\u003C\u002Fa\u003E — интересные издания, на которые можно взглянуть тем, кто хочет углубиться в изучение паттернов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ итоге же хочу сказать, что в деле освоения паттернов ничто не сравнится с поиском в интернете, с чтением и с самостоятельным испытанием различных идей. Если даже окажется так, что паттернами вы никогда пользоваться не будете, вы, разбираясь с ними, узнаете что-то новое, и вырастете в неожиданных для себя областях.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EУважаемые читатели!\u003C\u002Fb\u003E Какими паттернами проектирования вы пользуетесь?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fruvds.com\u002Fru-rub\u002F#order\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Ffiles\u002F1ba\u002F550\u002Fd25\u002F1ba550d25e8846ce8805de564da6aa63.png\"\u002F\u003E\u003C\u002Fa\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"JavaScript"},{"titleHtml":"разработка"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450318\u002Fa646d60e762633d5d5e52450ee0f894c\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450318\u002Fa646d60e762633d5d5e52450ee0f894c\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fruvds\\\u002Fblog\\\u002F450318\\\u002F\"},\"headline\":\"Паттерны проектирования в современной JavaScript-разработке\",\"datePublished\":\"2019-05-08T12:00:02+03:00\",\"dateModified\":\"2019-05-08T12:00:02+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"ru_vds\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения &laquo;архитектурным проектированием&raquo; можно назвать процесс кон...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fruvds\\\u002Fblog\\\u002F450318\\\u002F#post-content-body\",\"about\":[\"c_ruvds\",\"h_webdev\",\"h_javascript\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa74\\\u002F120\\\u002Fd5b\\\u002Fa74120d5b954738ab73942c594530a2b.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F50d\\\u002F2e1\\\u002F8c5\\\u002F50d2e18c5888907acb07e86cab34fb27.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F513\\\u002F892\\\u002F3bf\\\u002F5138923bf446b4a737cca97a98d75e92.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F820\\\u002F16c\\\u002Fe5f\\\u002F82016ce5faf7c7b5526b8b7767590501.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F4b4\\\u002F6c8\\\u002Fe4e\\\u002F4b46c8e4eea800ddf38d68f42676d795.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd3e\\\u002F7e5\\\u002F1fb\\\u002Fd3e7e51fbd6d7f239e8629609aa2f661.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd17\\\u002F329\\\u002Fe50\\\u002Fd17329e50a91025847eaeb93ad94b741.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Ffiles\\\u002F1ba\\\u002F550\\\u002Fd25\\\u002F1ba550d25e8846ce8805de564da6aa63.png\"]}","metaDescription":"Автор материала, перевод которого мы публикуем, говорит, что в мире разработки программного обеспечения «архитектурным проектированием» можно назвать процесс конструирования приложения, в ходе...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"ruvds":{"alias":"ruvds","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Ff27\u002Fea8\u002F5bd\u002Ff27ea85bd62fbd985c308110885af7e0.png","titleHtml":"RUVDS.com","descriptionHtml":"VDS\u002FVPS-хостинг. Скидка 10% по коду \u003Cb\u003EHABR10\u003C\u002Fb\u003E","relatedData":null,"statistics":{"postsCount":2020,"newsCount":60,"vacanciesCount":0,"employeesCount":57,"careerRating":null,"subscribersCount":36490,"rating":3205.25,"invest":null},"foundationDate":{"year":"2015","month":"07","day":"27"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fruvds.com","staffNumber":"11–30 человек","registrationDate":"2016-03-18T05:43:01+00:00","representativeUser":{"alias":"ruvds","fullname":null},"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fruvds"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fru_vds"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fru_vds"}],"settings":{"analyticsSettings":[{"type":"ym","trackingId":"33905479"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002Fb77\u002F8d5\u002Fa41\u002Fb778d5a41f83016379c6630262c3294c.png","linkUrl":"https:\u002F\u002Fruvds.com\u002Fru-rub","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"RUVDS.com, Москва - VDS\u002FVPS-хостинг. Скидка 10% по коду \u003Cb\u003EHABR10\u003C\u002Fb\u003E с 27 июля 2015 г.","title":"RUVDS.com, Москва - VDS\u002FVPS-хостинг. Скидка 10% по коду HABR10 с 27 июля 2015 г.","keywords":["DIY или Сделай сам","Научно-популярное","Системное администрирование","Разработка веб-сайтов","Читальный зал"],"descriptionHtml":"2 020 статей от авторов компании RUVDS.com","description":"2 020 статей от авторов компании RUVDS.com"},"aDeskSettings":null,"careerAlias":"ruvds","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

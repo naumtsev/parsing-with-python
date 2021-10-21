@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Огромный открытый датасет русской речи / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450760\/"},"headline":"Огромный открытый датасет русской речи","datePublished":"2019-05-06T21:36:18+03:00","dateModified":"2019-05-07T00:08:18+03:00","author":{"@type":"Person","name":"Юрий Бабуров"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе занима...","url":"https:\/\/habr.com\/ru\/post\/450760\/#post-content-body","about":["h_open_source","h_opendata","h_machine_learning","h_sound","f_develop","f_popsci"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/942\/772\/451\/942772451cd966834f98da1416356590.jpg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Огромный открытый датасет русской речи" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Огромный открытый датасет русской речи" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Огромный открытый датасет русской речи" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450760/cf15264ee5209c5fff8a10c0fca2335d/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450760/cf15264ee5209c5fff8a10c0fca2335d/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450760/cf15264ee5209c5fff8a10c0fca2335d/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450760/cf15264ee5209c5fff8a10c0fca2335d/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450760/cf15264ee5209c5fff8a10c0fca2335d/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450760" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T18:36:18.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450760/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450760/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450760/cf15264ee5209c5fff8a10c0fca2335d/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/buriy/" title="buriy" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/9e7/ef8/3ee/9e7ef83ee674866eb41d3f8a5b971384.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/buriy/" class="tm-user-info__username">
+      buriy
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T18:36:18.000Z" title="2019-05-06, 21:36">6  мая  2019 в 21:36</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Огромный открытый датасет русской речи</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/open_source/" class="tm-article-snippet__hubs-item-link"><span>Open source</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/opendata/" class="tm-article-snippet__hubs-item-link"><span>Открытые данные</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/machine_learning/" class="tm-article-snippet__hubs-item-link"><span>Машинное обучение</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sound/" class="tm-article-snippet__hubs-item-link"><span>Звук</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/942/772/451/942772451cd966834f98da1416356590.jpg" alt="image" data-src="https://habrastorage.org/getpro/habr/post_images/942/772/451/942772451cd966834f98da1416356590.jpg" data-blurred="true"/><br/>
+<br/>
+Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили делиться своими наработками.<br/>
+<br/>
+Мы торопимся исправить это годами длящееся недоразумение.<br/>
+<br/>
+Итак, мы предлагаем вашему вниманию набор данных из 4000 часов аннотированной устной речи, собранный из различных интернет-источников.<br/>
+<br/>
+Подробности под катом.<a name="habracut"></a><br/>
+<br/>
+Вот данные по текущей версии 0.3:<br/>
+<div class="scrollable-table"><table>
+<tr>
+<th>Тип данных</th>
+<th>Аннотация</th>
+<th>Качество</th>
+<th>Фразы</th>
+<th>Часы</th>
+<th>GB</th>
+</tr>
+<tr>
+<td>Книги</td>
+<td>alignment</td>
+<td>95% / чистый</td>
+<td>1,1M</td>
+<td>1,511</td>
+<td>166</td>
+</tr>
+<tr>
+<td>Звонки</td>
+<td>ASR</td>
+<td>70% / шумный</td>
+<td>837K</td>
+<td>812</td>
+<td>89</td>
+</tr>
+<tr>
+<td>Генерированные (русские адреса)</td>
+<td>TTS</td>
+<td>100% / 4 голоса</td>
+<td>1,7M</td>
+<td>754</td>
+<td>81</td>
+</tr>
+<tr>
+<td>Речь из видео с YouTube</td>
+<td>субтитры</td>
+<td>95% / шумный</td>
+<td>786K</td>
+<td>724</td>
+<td>78</td>
+</tr>
+<tr>
+<td>Книги</td>
+<td>ASR</td>
+<td>70% / шумный</td>
+<td>124K</td>
+<td>116</td>
+<td>13</td>
+</tr>
+<tr>
+<td>Другие датасеты</td>
+<td>начитывание и alignment</td>
+<td>99% / чистый</td>
+<td>17K</td>
+<td>43</td>
+<td>5</td>
+</tr>
+</table></div><br/>
+А вот вам сразу <a href="https://github.com/snakers4/open_stt/">ссылка на сайт нашего корпуса</a>.<br/>
+<br/>
+<h4>Будем ли мы развивать проект дальше?</h4><br/>
+Наша работа на этом не закончена, мы хотим получить хотя бы 10 тысяч часов аннотированной речи.<br/>
+<br/>
+А дальше мы собираемся делать открытые и коммерческие модели для распознавания речи с использованием этого датасета. И вам предлагаем присоединяться: помогайте нам улучшать датасет, используйте его в своих задачах.<br/>
+<br/>
+<h4>Почему наша цель 10 тысяч часов?</h4><br/>
+Есть различные исследования генерализации нейросетей при распознавании речи, но известно, что хорошая генерализация не получается на наборах данных меньше 1000 часов. Цифра порядка 10 тысяч часов уже считается приемлемой в большинстве случаев, а дальше уже зависит от конкретной задачи.<br/>
+<br/>
+<h4>Что ещё сделать, чтобы улучшить качество распознавания, если данных по-прежнему не хватает?</h4><br/>
+Зачастую, можно приспособить нейросеть к вашим дикторам через начитку дикторами текстов.<br/>
+Также можно приспособить нейросеть к словарю из вашей предметной области (языковая модель).<br/>
+<br/>
+<h4>Как мы делали этот датасет?</h4><br/>
+<ul>
+<li>Нашли каналы с качественными субтитрами в YouTube, скачали аудио и субтитры</li>
+<li>Давали аудио для распознавания другим системам распознавания речи</li>
+<li>Начитывали адреса робо-голосами</li>
+<li>Нашли в интернете аудиокниги и тексты книг, после чего разбили на фрагменты по паузам и сопоставили одно с другим (так называемая задача «alignment»)</li>
+<li>Добавили имеющиеся в интернете маленькие русские датасеты.</li>
+<li>После этого преобразовали файлы в единый формат (16-bit wav, 16 kHz, mono, иерархическое расположение файлов на диске).</li>
+<li>Метаданные сохранили в отдельном файле manifest.csv .</li>
+</ul><br/>
+<h3>Как это использовать:</h3><br/>
+<h4>Файловая БД</h4><br/>
+Расположение файлов определяется их хешами, вот таким образом:<br/>
+<br/>
+<pre><code class="python">target_format = 'wav'
+wavb = wav.tobytes()
+f_hash = hashlib.sha1(wavb).hexdigest()
+store_path = Path(root_folder,
+                  f_hash[0],
+                  f_hash[1:3],
+                  f_hash[3:15]+'.'+target_format)
+</code></pre><br/>
+<h4>Чтение файлов</h4><br/>
+<pre><code class="python">from utils.open_stt_utils import read_manifest
+from scipy.io import wavfile
+from pathlib import Path
+manifest_df = read_manifest('path/to/manifest.csv')
+
+for info in manifest_df.itertuples():
+    sample_rate, sound = wavfile.read(info.wav_path)
+    text = Path(info.text_path).read_text()
+    duration = info.duration
+</code></pre><br/>
+Файлы manifest содержат тройки: имя аудио-файла, имя файла с текстовым описанием, и длительность фразы в секундах.<br/>
+<br/>
+<h4>Фильтрация файлов только определённой длины</h4><br/>
+<pre><code class="python">from utils.open_stt_utils import (plain_merge_manifests,
+                                  check_files,
+                                  save_manifest)
+train_manifests = [
+ 'path/to/manifest1.csv',
+ 'path/to/manifest2.csv',
+]
+train_manifest = plain_merge_manifests(train_manifests,
+                                        MIN_DURATION=0.1,
+                                        MAX_DURATION=100)
+check_files(train_manifest)
+save_manifest(train_manifest,
+             'my_manifest.csv')
+</code></pre><br/>
+<h3>Что почитать или посмотреть на русском языке, чтобы лучше познакомиться с задачей распознавания речи?</h3><br/>
+Недавно в рамках курса <a href="https://dlcourse.ai/">Deep Learning на пальцах</a> мы записали лекцию про задачу распознавания речи (и немного про синтез). Возможно, она будет вам полезной!<br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/JpS0LzEWr-4?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+<h4>Лицензионные вопросы</h4><br/>
+<ul>
+<li>Мы выкладываем датасет под двойной лицензией: для некоммерческих целей мы предлагаем лицензию <a href="https://creativecommons.org/licenses/by-nc/4.0/">cc-by-nc 4.0</a>, для коммерческих целей — использование после договорённости с нами.</li>
+<li>Как обычно в таких случаях, все права на использование данных, входящих в датасет, остаются у их владельцев. Наши права распространяются на сам датасет. Для научных и образовательных целей при этом действуют отдельные правила, смотрите законодательство вашей страны.</li>
+</ul><br/>
+Ещё раз <a href="https://github.com/snakers4/open_stt/">сайт проекта для тех, кто не увидел ссылку выше</a>.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BASR%5D" class="tm-tags-list__link">ASR</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BSTT%5D" class="tm-tags-list__link">STT</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bspeech%20recognition%5D" class="tm-tags-list__link">speech recognition</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bautomatic%20speech%20recognition%5D" class="tm-tags-list__link">automatic speech recognition</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bspeech%20to%20text%5D" class="tm-tags-list__link">speech to text</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bopen%20datasets%5D" class="tm-tags-list__link">open datasets</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdata%5D" class="tm-tags-list__link">data</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bspeech%20corpus%5D" class="tm-tags-list__link">speech corpus</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bannotated%20speech%5D" class="tm-tags-list__link">annotated speech</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/open_source/" class="tm-hubs-list__link">
+    Open source
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/opendata/" class="tm-hubs-list__link">
+    Открытые данные
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/machine_learning/" class="tm-hubs-list__link">
+    Машинное обучение
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/sound/" class="tm-hubs-list__link">
+    Звук
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 101: ↑96 и ↓5</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 101: ↑96 и ↓5" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+91</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">28K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    237
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/buriy/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/9e7/ef8/3ee/9e7ef83ee674866eb41d3f8a5b971384.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 61 голос " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    37.7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Юрий Бабуров</span> <a href="/ru/users/buriy/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @buriy
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Web, AI, Deep Learning, Python</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450760/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 50 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450760/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450760/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450760":{"id":"450760","timePublished":"2019-05-06T18:36:18+00:00","isCorporative":false,"lang":"ru","titleHtml":"Огромный открытый датасет русской речи","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F942\u002F772\u002F451\u002F942772451cd966834f98da1416356590.jpg\" alt=\"image\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nСпециалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили делиться своими наработками.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nМы торопимся исправить это годами длящееся недоразумение.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nИтак, мы предлагаем вашему вниманию набор данных из 4000 часов аннотированной устной речи, собранный из различных интернет-источников.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nПодробности под катом.","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":37.7,"votesCount":61},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"2634","alias":"buriy","fullname":"Юрий Бабуров","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F9e7\u002Fef8\u002F3ee\u002F9e7ef83ee674866eb41d3f8a5b971384.png","speciality":"Web, AI, Deep Learning, Python"},"statistics":{"commentsCount":50,"favoritesCount":237,"readingCount":28216,"score":91,"votesCount":101},"hubs":[{"relatedData":null,"id":"144","alias":"open_source","type":"collective","title":"Open source","titleHtml":"Open source","isProfiled":true},{"relatedData":null,"id":"18081","alias":"opendata","type":"collective","title":"Открытые данные","titleHtml":"Открытые данные","isProfiled":true},{"relatedData":null,"id":"19439","alias":"machine_learning","type":"collective","title":"Машинное обучение","titleHtml":"Машинное обучение","isProfiled":true},{"relatedData":null,"id":"21988","alias":"sound","type":"collective","title":"Звук","titleHtml":"Звук","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F942\u002F772\u002F451\u002F942772451cd966834f98da1416356590.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F942\u002F772\u002F451\u002F942772451cd966834f98da1416356590.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпециалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили делиться своими наработками.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы торопимся исправить это годами длящееся недоразумение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, мы предлагаем вашему вниманию набор данных из 4000 часов аннотированной устной речи, собранный из различных интернет-источников.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПодробности под катом.\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот данные по текущей версии 0.3:\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003EТип данных\u003C\u002Fth\u003E\r\n\u003Cth\u003EАннотация\u003C\u002Fth\u003E\r\n\u003Cth\u003EКачество\u003C\u002Fth\u003E\r\n\u003Cth\u003EФразы\u003C\u002Fth\u003E\r\n\u003Cth\u003EЧасы\u003C\u002Fth\u003E\r\n\u003Cth\u003EGB\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКниги\u003C\u002Ftd\u003E\r\n\u003Ctd\u003Ealignment\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E95% \u002F чистый\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,1M\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,511\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E166\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EЗвонки\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EASR\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E70% \u002F шумный\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E837K\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E812\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E89\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EГенерированные (русские адреса)\u003C\u002Ftd\u003E\r\n\u003Ctd\u003ETTS\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100% \u002F 4 голоса\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,7M\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E754\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E81\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EРечь из видео с YouTube\u003C\u002Ftd\u003E\r\n\u003Ctd\u003Eсубтитры\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E95% \u002F шумный\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E786K\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E724\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E78\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКниги\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EASR\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E70% \u002F шумный\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E124K\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E116\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E13\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EДругие датасеты\u003C\u002Ftd\u003E\r\n\u003Ctd\u003Eначитывание и alignment\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E99% \u002F чистый\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E17K\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E43\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nА вот вам сразу \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fsnakers4\u002Fopen_stt\u002F\"\u003Eссылка на сайт нашего корпуса\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EБудем ли мы развивать проект дальше?\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nНаша работа на этом не закончена, мы хотим получить хотя бы 10 тысяч часов аннотированной речи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА дальше мы собираемся делать открытые и коммерческие модели для распознавания речи с использованием этого датасета. И вам предлагаем присоединяться: помогайте нам улучшать датасет, используйте его в своих задачах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EПочему наша цель 10 тысяч часов?\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nЕсть различные исследования генерализации нейросетей при распознавании речи, но известно, что хорошая генерализация не получается на наборах данных меньше 1000 часов. Цифра порядка 10 тысяч часов уже считается приемлемой в большинстве случаев, а дальше уже зависит от конкретной задачи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЧто ещё сделать, чтобы улучшить качество распознавания, если данных по-прежнему не хватает?\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nЗачастую, можно приспособить нейросеть к вашим дикторам через начитку дикторами текстов.\u003Cbr\u002F\u003E\r\nТакже можно приспособить нейросеть к словарю из вашей предметной области (языковая модель).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EКак мы делали этот датасет?\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EНашли каналы с качественными субтитрами в YouTube, скачали аудио и субтитры\u003C\u002Fli\u003E\r\n\u003Cli\u003EДавали аудио для распознавания другим системам распознавания речи\u003C\u002Fli\u003E\r\n\u003Cli\u003EНачитывали адреса робо-голосами\u003C\u002Fli\u003E\r\n\u003Cli\u003EНашли в интернете аудиокниги и тексты книг, после чего разбили на фрагменты по паузам и сопоставили одно с другим (так называемая задача «alignment»)\u003C\u002Fli\u003E\r\n\u003Cli\u003EДобавили имеющиеся в интернете маленькие русские датасеты.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосле этого преобразовали файлы в единый формат (16-bit wav, 16 kHz, mono, иерархическое расположение файлов на диске).\u003C\u002Fli\u003E\r\n\u003Cli\u003EМетаданные сохранили в отдельном файле manifest.csv .\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EКак это использовать:\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EФайловая БД\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nРасположение файлов определяется их хешами, вот таким образом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Etarget_format = 'wav'\nwavb = wav.tobytes()\nf_hash = hashlib.sha1(wavb).hexdigest()\nstore_path = Path(root_folder,\n                  f_hash[0],\n                  f_hash[1:3],\n                  f_hash[3:15]+'.'+target_format)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЧтение файлов\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Efrom utils.open_stt_utils import read_manifest\nfrom scipy.io import wavfile\nfrom pathlib import Path\nmanifest_df = read_manifest('path\u002Fto\u002Fmanifest.csv')\n\nfor info in manifest_df.itertuples():\n    sample_rate, sound = wavfile.read(info.wav_path)\n    text = Path(info.text_path).read_text()\n    duration = info.duration\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nФайлы manifest содержат тройки: имя аудио-файла, имя файла с текстовым описанием, и длительность фразы в секундах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EФильтрация файлов только определённой длины\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Efrom utils.open_stt_utils import (plain_merge_manifests,\n                                  check_files,\n                                  save_manifest)\ntrain_manifests = [\n 'path\u002Fto\u002Fmanifest1.csv',\n 'path\u002Fto\u002Fmanifest2.csv',\n]\ntrain_manifest = plain_merge_manifests(train_manifests,\n                                        MIN_DURATION=0.1,\n                                        MAX_DURATION=100)\ncheck_files(train_manifest)\nsave_manifest(train_manifest,\n             'my_manifest.csv')\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EЧто почитать или посмотреть на русском языке, чтобы лучше познакомиться с задачей распознавания речи?\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nНедавно в рамках курса \u003Ca href=\"https:\u002F\u002Fdlcourse.ai\u002F\"\u003EDeep Learning на пальцах\u003C\u002Fa\u003E мы записали лекцию про задачу распознавания речи (и немного про синтез). Возможно, она будет вам полезной!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FJpS0LzEWr-4?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЛицензионные вопросы\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EМы выкладываем датасет под двойной лицензией: для некоммерческих целей мы предлагаем лицензию \u003Ca href=\"https:\u002F\u002Fcreativecommons.org\u002Flicenses\u002Fby-nc\u002F4.0\u002F\"\u003Ecc-by-nc 4.0\u003C\u002Fa\u003E, для коммерческих целей — использование после договорённости с нами.\u003C\u002Fli\u003E\r\n\u003Cli\u003EКак обычно в таких случаях, все права на использование данных, входящих в датасет, остаются у их владельцев. Наши права распространяются на сам датасет. Для научных и образовательных целей при этом действуют отдельные правила, смотрите законодательство вашей страны.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nЕщё раз \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fsnakers4\u002Fopen_stt\u002F\"\u003Eсайт проекта для тех, кто не увидел ссылку выше\u003C\u002Fa\u003E.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"ASR"},{"titleHtml":"STT"},{"titleHtml":"speech recognition"},{"titleHtml":"automatic speech recognition"},{"titleHtml":"speech to text"},{"titleHtml":"open datasets"},{"titleHtml":"data"},{"titleHtml":"speech corpus"},{"titleHtml":"annotated speech"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450760\u002Fcf15264ee5209c5fff8a10c0fca2335d\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450760\u002Fcf15264ee5209c5fff8a10c0fca2335d\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450760\\\u002F\"},\"headline\":\"Огромный открытый датасет русской речи\",\"datePublished\":\"2019-05-06T21:36:18+03:00\",\"dateModified\":\"2019-05-07T00:08:18+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Юрий Бабуров\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе занима...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450760\\\u002F#post-content-body\",\"about\":[\"h_open_source\",\"h_opendata\",\"h_machine_learning\",\"h_sound\",\"f_develop\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F942\\\u002F772\\\u002F451\\\u002F942772451cd966834f98da1416356590.jpg\"]}","metaDescription":"Специалистам по распознаванию речи давно не хватало большого открытого корпуса устной русской речи, поэтому только крупные компании могли позволить себе заниматься этой задачей, но они не спешили...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"open_source,opendata,machine_learning,sound"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

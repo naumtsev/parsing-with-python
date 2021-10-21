@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Руководство по Docker Compose для начинающих / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/ruvds\/blog\/450312\/"},"headline":"Руководство по Docker Compose для начинающих","datePublished":"2019-05-02T13:18:56+03:00","dateModified":"2019-05-02T13:23:13+03:00","author":{"@type":"Person","name":"ru_vds"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, что...","url":"https:\/\/habr.com\/ru\/company\/ruvds\/blog\/450312\/#post-content-body","about":["c_ruvds","h_webdev","h_virtualization","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b4c\/71f\/be9\/b4c71fbe9634709b3e33a72eabca59af.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/859\/489\/407\/85948940715022ca196b8ad6f1e810d0.png","https:\/\/habrastorage.org\/files\/1ba\/550\/d25\/1ba550d25e8846ce8805de564da6aa63.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Руководство по Docker Compose для начинающих" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Руководство по Docker Compose для начинающих" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Руководство по Docker Compose для начинающих" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450312/1440b5d5b39591732be2a601aa9c5962/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450312/1440b5d5b39591732be2a601aa9c5962/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450312/1440b5d5b39591732be2a601aa9c5962/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450312/1440b5d5b39591732be2a601aa9c5962/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450312/1440b5d5b39591732be2a601aa9c5962/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450312" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-02T10:18:56.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450312/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/ruvds/blog/450312/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450312/1440b5d5b39591732be2a601aa9c5962/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="ruvds" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://ruvds.com/ru-rub"><img src="//habrastorage.org/getpro/habr/branding/b77/8d5/a41/b778d5a41f83016379c6630262c3294c.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/ruvds/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/f27/ea8/5bd/f27ea85bd62fbd985c308110885af7e0.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">3205.25</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/ruvds/profile/" class="tm-company-card__name">
+        RUVDS.com
+      </a> <div class="tm-company-card__description">VDS/VPS-хостинг. Скидка 10% по коду <b>HABR10</b></div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/ru_vds/" title="ru_vds" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/e36/812/d3d/e36812d3de38eb3d479d7a13228717ef.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/ru_vds/" class="tm-user-info__username">
+      ru_vds
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-02T10:18:56.000Z" title="2019-05-02, 13:18">2  мая  2019 в 13:18</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Руководство по Docker Compose для начинающих</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/ruvds/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании RUVDS.com</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/webdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка веб-сайтов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/virtualization/" class="tm-article-snippet__hubs-item-link"><span>Виртуализация</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://medium.freecodecamp.org/a-beginners-guide-to-docker-how-to-create-a-client-server-side-with-docker-compose-12c8cf0ae0aa" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Gaël Thomas
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное приложение с использованием Docker. Предполагается, что читатель этого материала знаком с основами Docker. Если это не так — можете взглянуть на <a href="https://habr.com/ru/company/ruvds/blog/441574/">эту</a> серию материалов, на <a href="https://habr.com/ru/company/ruvds/blog/438982/">эту</a> публикацию, где основы Docker рассмотрены вместе с основами Kubernetes, и на <a href="https://medium.freecodecamp.org/a-beginners-guide-to-docker-how-to-create-your-first-docker-application-cc03de9b639f">эту</a> статью для начинающих.<br/>
+<br/>
+<a href="https://habr.com/ru/company/ruvds/blog/450312/"><img src="/img/image-loader.svg" alt="image" data-src="https://habrastorage.org/getpro/habr/post_images/b4c/71f/be9/b4c71fbe9634709b3e33a72eabca59af.png"/></a><br/>
+<a name="habracut"></a><br/>
+<h2><font color="#3AC1EF">Что такое Docker Compose?</font></h2><br/>
+Docker Compose — это инструментальное средство, входящее в состав Docker. Оно предназначено для решения задач, связанных с развёртыванием проектов.<br/>
+<br/>
+Изучая основы Docker, вы могли столкнуться с созданием простейших приложений, работающих автономно, не зависящих, например, от внешних источников данных или от неких сервисов. На практике же подобные приложения — редкость. Реальные проекты обычно включают в себя целый набор совместно работающих приложений.<br/>
+<br/>
+Как узнать, нужно ли вам, при развёртывании некоего проекта, воспользоваться Docker Compose? На самом деле — очень просто. Если для обеспечения функционирования этого проекта используется несколько сервисов, то Docker Compose может вам пригодиться. Например, в ситуации, когда создают веб-сайт, которому, для выполнения аутентификации пользователей, нужно подключиться к базе данных. Подобный проект может состоять из двух сервисов — того, что обеспечивает работу сайта, и того, который отвечает за поддержку базы данных.<br/>
+<br/>
+Технология Docker Compose, если описывать её упрощённо, позволяет, с помощью одной команды, запускать множество сервисов.<br/>
+<br/>
+<h2><font color="#3AC1EF">Разница между Docker и Docker Compose</font></h2><br/>
+Docker применяется для управления отдельными контейнерами (сервисами), из которых состоит приложение.<br/>
+<br/>
+Docker Compose используется для одновременного управления несколькими контейнерами, входящими в состав приложения. Этот инструмент предлагает те же возможности, что и Docker, но позволяет работать с более сложными приложениями.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/859/489/407/85948940715022ca196b8ad6f1e810d0.png"/></div><br/>
+<i><font color="#999999">Docker (отдельный контейнер) и Docker Compose (несколько контейнеров)</font></i><br/>
+ <br/>
+<h2><font color="#3AC1EF">Типичный сценарий использования Docker Compose</font></h2><br/>
+Docker Compose — это, в умелых руках, весьма мощный инструмент, позволяющий очень быстро развёртывать приложения, отличающиеся сложной архитектурой. Сейчас мы рассмотрим пример практического использования Docker Compose, разбор которого позволит вам оценить те преимущества, которые даст вам использование Docker Compose.<br/>
+<br/>
+Представьте себе, что вы являетесь разработчиком некоего веб-проекта. В этот проект входит два веб-сайта. Первый позволяет людям, занимающимся бизнесом, создавать, всего в несколько щелчков мышью, интернет-магазины. Второй нацелен на поддержку клиентов. Эти два сайта взаимодействуют с одной и той же базой данных.<br/>
+<br/>
+Ваш проект становится всё популярнее, и оказывается, что мощности сервера, на котором он работает, уже недостаточно. В результате вы решаете перевести весь проект на другую машину.<br/>
+<br/>
+К сожалению, нечто вроде Docker Compose вы не использовали. Поэтому вам придётся переносить и перенастраивать сервисы по одному, надеясь на то, что вы, в процессе этой работы, ничего не забудете.<br/>
+<br/>
+Если же вы используете Docker Compose, то перенос вашего проекта на новый сервер — это вопрос, который решается выполнением нескольких команд. Для того чтобы завершить перенос проекта на новое место, вам нужно лишь выполнить кое-какие настройки и загрузить на новый сервер резервную копию базы данных.<br/>
+<br/>
+<h2><font color="#3AC1EF">Разработка клиент-серверного приложения с использованием Docker Compose</font></h2><br/>
+Теперь, когда вы знаете о том, для чего мы собираемся использовать Docker Compose, пришло время создать ваше первое клиент-серверное приложение с использованием этого инструмента. А именно, речь идёт о разработке небольшого веб-сайта (сервера) на Python, который умеет выдавать файл с фрагментом текста. Этот файл у сервера запрашивает программа (клиент), тоже написанная на Python. После получения файла с сервера программа выводит текст, хранящийся в нём, на экран.<br/>
+<br/>
+Обратите внимание на то, что мы рассчитываем на то, что вы владеете основами Docker, и на то, что у вас уже установлена платформа Docker.<br/>
+<br/>
+Приступим к работе над проектом.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍1. Создание проекта</font></h3><br/>
+Для того чтобы построить ваше первое клиент-серверное приложение, предлагаю начать с создания папки проекта. Она должна содержать следующие файлы и папки:<br/>
+<br/>
+<ul>
+<li>Файл <code>docker-compose.yml</code>. Это файл Docker Compose, который будет содержать инструкции, необходимые для запуска и настройки сервисов.</li>
+<li>Папка <code>server</code>. Она будет содержать файлы, необходимые для обеспечения работы сервера.</li>
+<li>Папка <code>client</code>. Здесь будут находиться файлы клиентского приложения.</li>
+</ul><br/>
+В результате содержимое главной папки вашего проекта должно выглядеть так:<br/>
+<br/>
+<pre><code class="plaintext">.
+├── client/
+├── docker-compose.yml
+└── server/
+2 directories, 1 file</code></pre><br/>
+<h3><font color="#3AC1EF">▍2. Создание сервера</font></h3><br/>
+Тут мы, в процессе создания сервера, затронем некоторые базовые вещи, касающиеся Docker.<br/>
+<br/>
+<h4>2a. Создание файлов</h4><br/>
+Перейдите в папку <code>server</code> и создайте в ней следующие файлы:<br/>
+<br/>
+<ul>
+<li>Файл <code>server.py</code>. В нём будет находиться код сервера.</li>
+<li>Файл <code>index.html</code>. В этом файле будет находиться фрагмент текста, который должно вывести клиентское приложение.</li>
+<li>Файл <code>Dockerfile</code>. Это — файл Docker, который будет содержать инструкции, необходимые для создания окружения сервера.</li>
+</ul><br/>
+Вот как должно выглядеть содержимое вашей папки <code>server/</code>:<br/>
+<br/>
+<pre><code class="plaintext">.
+├── Dockerfile
+├── index.html
+└── server.py
+0 directories, 3 files</code></pre><br/>
+<h4>2b. Редактирование Python-файла.</h4><br/>
+Добавим в файл <code>server.py</code> следующий код:<br/>
+<br/>
+<pre><code class="python">#!/usr/bin/env python3
+
+# Импорт системных библиотек python.
+# Эти библиотеки будут использоваться для создания веб-сервера.
+# Вам не нужно устанавливать что-то особенное, эти библиотеки устанавливаются вместе с Python.
+
+import http.server
+import socketserver
+
+# Эта переменная нужна для обработки запросов клиента к серверу.
+
+handler = http.server.SimpleHTTPRequestHandler
+
+# Тут мы указываем, что сервер мы хотим запустить на порте 1234. 
+# Постарайтесь запомнить эти сведения, так как они нам очень пригодятся в дальнейшем, при работе с docker-compose.
+
+with socketserver.TCPServer(("", 1234), handler) as httpd:
+
+    # Благодаря этой команде сервер будет выполняться постоянно, ожидая запросов от клиента.
+
+   httpd.serve_forever()</code></pre><br/>
+Этот код позволяет создать простой веб-сервер. Он будет отдавать клиентам файл <code>index.html</code>, содержимое которого позже будет выводиться на веб-странице.<br/>
+<br/>
+<h4>2c. Редактирование HTML-файла</h4><br/>
+В файл <code>index.html</code> добавим следующий текст:<br/>
+<br/>
+<pre><code class="plaintext">Docker-Compose is magic!</code></pre><br/>
+Этот текст будет передаваться клиенту.<br/>
+<br/>
+<h4>2d. Редактирование файла Dockerfile</h4><br/>
+Сейчас мы создадим простой файл <code>Dockerfile</code>, который будет отвечать за организацию среды выполнения для Python-сервера. В качестве основы создаваемого образа воспользуемся <a href="https://hub.docker.com/_/python">официальным образом</a>, предназначенным для выполнения программ, написанных на Python. Вот содержимое Dockerfile:<br/>
+<br/>
+<pre><code class="python"># На всякий случай напоминаю, что Dockerfile всегда должен начинаться с импорта базового образа.
+# Для этого используется ключевое слово 'FROM'.
+# Здесь нам нужно импортировать образ python (с DockerHub).
+# В результате мы, в качестве имени образа, указываем 'python', а в качестве версии - 'latest'.
+
+FROM python:latest
+
+# Для того чтобы запустить в контейнере код, написанный на Python, нам нужно импортировать файлы 'server.py' и 'index.html'.
+# Для того чтобы это сделать, мы используем ключевое слово 'ADD'.
+# Первый параметр, 'server.py', представляет собой имя файла, хранящегося на компьютере.
+# Второй параметр, '/server/', это путь, по которому нужно разместить указанный файл в образе.
+# Здесь мы помещаем файл в папку образа '/server/'.
+
+ADD server.py /server/
+ADD index.html /server/
+
+# Здесь мы воспользуемся командой 'WORKDIR', возможно, новой для вас.
+# Она позволяет изменить рабочую директорию образа.
+# В качестве такой директории, в которой будут выполняться все команды, мы устанавливаем '/server/'.
+
+WORKDIR /server/</code></pre><br/>
+Теперь займёмся работой над клиентом.<br/>
+<br/>
+<h3><font color="#3AC1EF">▍3. Создание клиента</font></h3><br/>
+Создавая клиентскую часть нашего проекта, мы попутно вспомним некоторые основы Docker.<br/>
+<br/>
+<h4>3a. Создание файлов</h4><br/>
+Перейдите в папку вашего проекта <code>client</code> и создайте в ней следующие файлы:<br/>
+<br/>
+<ul>
+<li>Файл <code>client.py</code>. Тут будет находиться код клиента.</li>
+<li>Файл <code>Dockerfile</code>. Этот файл играет ту же роль, что и аналогичный файл в папке сервера. А именно, он содержит инструкцию, описывающую создание среды для выполнения клиентского кода.</li>
+</ul><br/>
+В результате ваша папка <code>client/</code> на данном этапе работы должна выглядеть так:<br/>
+<br/>
+<pre><code class="plaintext">.
+├── client.py
+└── Dockerfile
+0 directories, 2 files</code></pre><br/>
+<h4>3b. Редактирование Python-файла</h4><br/>
+Добавим в файл <code>client.py</code> следующий код:<br/>
+<br/>
+<pre><code class="python">#!/usr/bin/env python3
+
+# Импортируем системную библиотеку Python.
+# Она используется для загрузки файла 'index.html' с сервера.
+# Ничего особенного устанавливать не нужно, эта библиотека устанавливается вместе с Python.
+
+import urllib.request
+
+# Эта переменная содержит запрос к 'http://localhost:1234/'.
+# Возможно, сейчас вы задаётесь вопросом о том, что такое 'http://localhost:1234'.
+# localhost указывает на то, что программа работает с локальным сервером.
+# 1234 - это номер порта, который вам предлагалось запомнить при настройке серверного кода.
+
+fp = urllib.request.urlopen("http://localhost:1234/")
+
+# 'encodedContent' соответствует закодированному ответу сервера ('index.html').
+# 'decodedContent' соответствует раскодированному ответу сервера (тут будет то, что мы хотим вывести на экран).
+
+encodedContent = fp.read()
+decodedContent = encodedContent.decode("utf8")
+
+# Выводим содержимое файла, полученного с сервера ('index.html').
+
+print(decodedContent)
+
+# Закрываем соединение с сервером.
+
+fp.close()</code></pre><br/>
+Благодаря этому коду клиентское приложение может загрузить данные с сервера и вывести их на экран.<br/>
+<br/>
+<h4>3c. Редактирование файла Dockerfile</h4><br/>
+Как и в случае с сервером, мы создаём для клиента простой <code>Dockerfile</code>, ответственный за формирование среды, в которой будет работать клиентское Python-приложение. Вот код клиентского <code>Dockerfile</code>:<br/>
+<br/>
+<pre><code class="python"># То же самое, что и в серверном Dockerfile.
+
+FROM python:latest
+
+# Импортируем 'client.py' в папку '/client/'.
+
+ADD client.py /client/
+
+# Устанавливаем в качестве рабочей директории '/client/'.
+
+WORKDIR /client/</code></pre><br/>
+<h3><font color="#3AC1EF">▍4. Docker Compose</font></h3><br/>
+Как вы могли заметить, мы создали два разных проекта: сервер и клиент. У каждого из них имеется собственный файл <code>Dockerfile</code>. До сих пор всё происходящее не выходит за рамки основ работы с Docker. Теперь же мы приступаем к работе с Docker Compose. Для этого обратимся к файлу <code>docker-compose.yml</code>, расположенному в корневой папке проекта.<br/>
+<br/>
+Обратите внимание на то, что тут мы не стремимся рассмотреть абсолютно все команды, которые можно использовать в <code>docker-compose.yml</code>. Наша главная цель — разобрать практический пример, дающий вам базовые знания по Docker Compose.<br/>
+<br/>
+Вот код, который нужно поместить в файл <code>docker-compose.yml</code>:<br/>
+<br/>
+<pre><code class="python"># Файл docker-compose должен начинаться с тега версии.
+# Мы используем "3" так как это - самая свежая версия на момент написания этого кода.
+
+version: "3"
+
+# Следует учитывать, что docker-composes работает с сервисами.
+# 1 сервис = 1 контейнер.
+# Сервисом может быть клиент, сервер, сервер баз данных...
+# Раздел, в котором будут описаны сервисы, начинается с 'services'.
+
+services:
+
+  # Как уже было сказано, мы собираемся создать клиентское и серверное приложения.
+  # Это означает, что нам нужно два сервиса.
+  # Первый сервис (контейнер): сервер.
+  # Назвать его можно так, как нужно разработчику.
+  # Понятное название сервиса помогает определить его роль.
+  # Здесь мы, для именования соответствующего сервиса, используем ключевое слово 'server'.
+
+  server:
+ 
+    # Ключевое слово "build" позволяет задать
+    # путь к файлу Dockerfile, который нужно использовать для создания образа,
+    # который позволит запустить сервис.
+    # Здесь 'server/' соответствует пути к папке сервера,
+    # которая содержит соответствующий Dockerfile.
+
+    build: server/
+
+    # Команда, которую нужно запустить после создания образа.
+    # Следующая команда означает запуск "python ./server.py".
+
+    command: python ./server.py
+
+    # Вспомните о том, что в качестве порта в 'server/server.py' указан порт 1234.
+    # Если мы хотим обратиться к серверу с нашего компьютера (находясь за пределами контейнера),
+    # мы должны организовать перенаправление этого порта на порт компьютера.
+    # Сделать это нам поможет ключевое слово 'ports'.
+    # При его использовании применяется следующая конструкция: [порт компьютера]:[порт контейнера]
+    # В нашем случае нужно использовать порт компьютера 1234 и организовать его связь с портом
+    # 1234 контейнера (так как именно на этот порт сервер 
+    # ожидает поступления запросов).
+
+    ports:
+      - 1234:1234
+
+  # Второй сервис (контейнер): клиент.
+  # Этот сервис назван 'client'.
+
+  client:
+    # Здесь 'client/ соответствует пути к папке, которая содержит
+    # файл Dockerfile для клиентской части системы.
+
+    build: client/
+
+    # Команда, которую нужно запустить после создания образа.
+    # Следующая команда означает запуск "python ./client.py".
+ 
+    command: python ./client.py
+
+    # Ключевое слово 'network_mode' используется для описания типа сети.
+    # Тут мы указываем то, что контейнер может обращаться к 'localhost' компьютера.
+
+    network_mode: host
+
+    # Ключевое слово 'depends_on' позволяет указывать, должен ли сервис,
+    # прежде чем запуститься, ждать, когда будут готовы к работе другие сервисы.
+    # Нам нужно, чтобы сервис 'client' дождался бы готовности к работе сервиса 'server'.
+ 
+    depends_on:
+      - server</code></pre><br/>
+<h3><font color="#3AC1EF">▍5. Сборка проекта</font></h3><br/>
+После того, как в <code>docker-compose.yml</code> внесены все необходимые инструкции, проект нужно собрать. Этот шаг нашей работы напоминает использование команды <code>docker build</code>, но соответствующая команда имеет отношение к нескольким сервисам:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose build</code></pre><br/>
+<h3><font color="#3AC1EF">▍6. Запуск проекта</font></h3><br/>
+Теперь, когда проект собран, пришло время его запустить. Этот шаг нашей работы соответствует шагу, на котором, при работе с отдельными контейнерами, выполняется команда <code>docker run</code>:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose up</code></pre><br/>
+После выполнения этой команды в терминале должен появиться текст, загруженный клиентом с сервера: <code>Docker-Compose is magic!</code>.<br/>
+<br/>
+Как уже было сказано, сервер использует порт компьютера <code>1234</code> для обслуживания запросов клиента. Поэтому, если перейти в браузере по адресу <a href="http://localhost:1234/">http://localhost:1234/</a>, в нём будет отображена страница с текстом <code>Docker-Compose is magic!</code>.<br/>
+<br/>
+<h2><font color="#3AC1EF">Полезные команды</font></h2><br/>
+Рассмотрим некоторые команды, которые могут вам пригодиться при работе с Docker Compose.<br/>
+<br/>
+Эта команда позволяет останавливать и удалять контейнеры и другие ресурсы, созданные командой <code>docker-compose up</code>:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose down</code></pre><br/>
+Эта команда выводит журналы сервисов:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose logs -f [service name]</code></pre><br/>
+Например, в нашем проекте её можно использовать в таком виде: <code>$ docker-compose logs -f [service name]</code>.<br/>
+<br/>
+С помощью такой команды можно вывести список контейнеров:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose ps</code></pre><br/>
+Данная команда позволяет выполнить команду в выполняющемся контейнере:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose exec [service name] [command]</code></pre><br/>
+Например, она может выглядеть так: <code>docker-compose exec server ls</code>.<br/>
+<br/>
+Такая команда позволяет вывести список образов:<br/>
+<br/>
+<pre><code class="plaintext">$ docker-compose images</code></pre><br/>
+<h2><font color="#3AC1EF">Итоги</font></h2><br/>
+Мы рассмотрели основы работы с технологией Docker Compose, знание которых позволит вам пользоваться этой технологией и, при желании, приступить к её более глубокому изучению. <a href="https://github.com/gael-thomas/Client-Server-Docker-Compose-example">Вот</a> репозиторий с кодом проекта, который мы здесь рассматривали.<br/>
+<br/>
+<b>Уважаемые читатели!</b> Пользуетесь ли вы Docker Compose в своих проектах?<br/>
+<br/>
+<a href="https://ruvds.com/ru-rub/#order"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/files/1ba/550/d25/1ba550d25e8846ce8805de564da6aa63.png"/></a></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BDocker%5D" class="tm-tags-list__link">Docker</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BDocker%20Compose%5D" class="tm-tags-list__link">Docker Compose</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0%5D" class="tm-tags-list__link">разработка</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/ruvds/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании RUVDS.com
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/webdev/" class="tm-hubs-list__link">
+    Разработка веб-сайтов
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/virtualization/" class="tm-hubs-list__link">
+    Виртуализация
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 40: ↑37 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 40: ↑37 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+34</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">270K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    544
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/ruvds/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/f27/ea8/5bd/f27ea85bd62fbd985c308110885af7e0.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/ruvds/profile/" class="tm-company-snippet__title">RUVDS.com</a> <div class="tm-company-snippet__description">VDS/VPS-хостинг. Скидка 10% по коду <b>HABR10</b></div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/ruvds" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://twitter.com/ru_vds" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/ru_vds" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/ru_vds/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/e36/812/d3d/e36812d3de38eb3d479d7a13228717ef.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 969 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    214.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">136.8</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/ru_vds/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @ru_vds
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/ruvds/blog/450312/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 11 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2015-07-26T21:00:00.000Z" title="2015-07-27, 00:00">27  июля  2015</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://ruvds.com" target="_blank" class="tm-company-basic-info__link">
+      ruvds.com
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    11–30 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2016-03-18T05:43:01.000Z" title="2016-03-18, 08:43">18  марта  2016</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/ruvds/" class="tm-company-basic-info__link">
+      ruvds
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/ruvds/blog/450312/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/ruvds/blog/450312/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450312":{"id":"450312","timePublished":"2019-05-02T10:18:56+00:00","isCorporative":true,"lang":"ru","titleHtml":"Руководство по Docker Compose для начинающих","leadData":{"textHtml":"Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное приложение с использованием Docker. Предполагается, что читатель этого материала знаком с основами Docker. Если это не так — можете взглянуть на \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F441574\u002F\"\u003Eэту\u003C\u002Fa\u003E серию материалов, на \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F438982\u002F\"\u003Eэту\u003C\u002Fa\u003E публикацию, где основы Docker рассмотрены вместе с основами Kubernetes, и на \u003Ca href=\"https:\u002F\u002Fmedium.freecodecamp.org\u002Fa-beginners-guide-to-docker-how-to-create-your-first-docker-application-cc03de9b639f\"\u003Eэту\u003C\u002Fa\u003E статью для начинающих.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F450312\u002F\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb4c\u002F71f\u002Fbe9\u002Fb4c71fbe9634709b3e33a72eabca59af.png\" alt=\"image\"\u003E\u003C\u002Fa\u003E\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Gaël Thomas","originalUrl":"https:\u002F\u002Fmedium.freecodecamp.org\u002Fa-beginners-guide-to-docker-how-to-create-a-client-server-side-with-docker-compose-12c8cf0ae0aa"}},{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":214.5,"votesCount":969},"rating":136.8,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1220775","alias":"ru_vds","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fe36\u002F812\u002Fd3d\u002Fe36812d3de38eb3d479d7a13228717ef.png","speciality":"Пользователь"},"statistics":{"commentsCount":11,"favoritesCount":544,"readingCount":270464,"score":34,"votesCount":40},"hubs":[{"relatedData":null,"id":"19791","alias":"ruvds","type":"corporative","title":"Блог компании RUVDS.com","titleHtml":"Блог компании RUVDS.com","isProfiled":false},{"relatedData":null,"id":"91","alias":"webdev","type":"collective","title":"Разработка веб-сайтов","titleHtml":"Разработка веб-сайтов","isProfiled":true},{"relatedData":null,"id":"7312","alias":"virtualization","type":"collective","title":"Виртуализация","titleHtml":"Виртуализация","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EАвтор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное приложение с использованием Docker. Предполагается, что читатель этого материала знаком с основами Docker. Если это не так — можете взглянуть на \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F441574\u002F\"\u003Eэту\u003C\u002Fa\u003E серию материалов, на \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F438982\u002F\"\u003Eэту\u003C\u002Fa\u003E публикацию, где основы Docker рассмотрены вместе с основами Kubernetes, и на \u003Ca href=\"https:\u002F\u002Fmedium.freecodecamp.org\u002Fa-beginners-guide-to-docker-how-to-create-your-first-docker-application-cc03de9b639f\"\u003Eэту\u003C\u002Fa\u003E статью для начинающих.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fruvds\u002Fblog\u002F450312\u002F\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb4c\u002F71f\u002Fbe9\u002Fb4c71fbe9634709b3e33a72eabca59af.png\"\u002F\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EЧто такое Docker Compose?\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nDocker Compose — это инструментальное средство, входящее в состав Docker. Оно предназначено для решения задач, связанных с развёртыванием проектов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИзучая основы Docker, вы могли столкнуться с созданием простейших приложений, работающих автономно, не зависящих, например, от внешних источников данных или от неких сервисов. На практике же подобные приложения — редкость. Реальные проекты обычно включают в себя целый набор совместно работающих приложений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак узнать, нужно ли вам, при развёртывании некоего проекта, воспользоваться Docker Compose? На самом деле — очень просто. Если для обеспечения функционирования этого проекта используется несколько сервисов, то Docker Compose может вам пригодиться. Например, в ситуации, когда создают веб-сайт, которому, для выполнения аутентификации пользователей, нужно подключиться к базе данных. Подобный проект может состоять из двух сервисов — того, что обеспечивает работу сайта, и того, который отвечает за поддержку базы данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТехнология Docker Compose, если описывать её упрощённо, позволяет, с помощью одной команды, запускать множество сервисов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EРазница между Docker и Docker Compose\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nDocker применяется для управления отдельными контейнерами (сервисами), из которых состоит приложение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nDocker Compose используется для одновременного управления несколькими контейнерами, входящими в состав приложения. Этот инструмент предлагает те же возможности, что и Docker, но позволяет работать с более сложными приложениями.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F859\u002F489\u002F407\u002F85948940715022ca196b8ad6f1e810d0.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cfont color=\"#999999\"\u003EDocker (отдельный контейнер) и Docker Compose (несколько контейнеров)\u003C\u002Ffont\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EТипичный сценарий использования Docker Compose\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nDocker Compose — это, в умелых руках, весьма мощный инструмент, позволяющий очень быстро развёртывать приложения, отличающиеся сложной архитектурой. Сейчас мы рассмотрим пример практического использования Docker Compose, разбор которого позволит вам оценить те преимущества, которые даст вам использование Docker Compose.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПредставьте себе, что вы являетесь разработчиком некоего веб-проекта. В этот проект входит два веб-сайта. Первый позволяет людям, занимающимся бизнесом, создавать, всего в несколько щелчков мышью, интернет-магазины. Второй нацелен на поддержку клиентов. Эти два сайта взаимодействуют с одной и той же базой данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВаш проект становится всё популярнее, и оказывается, что мощности сервера, на котором он работает, уже недостаточно. В результате вы решаете перевести весь проект на другую машину.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК сожалению, нечто вроде Docker Compose вы не использовали. Поэтому вам придётся переносить и перенастраивать сервисы по одному, надеясь на то, что вы, в процессе этой работы, ничего не забудете.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли же вы используете Docker Compose, то перенос вашего проекта на новый сервер — это вопрос, который решается выполнением нескольких команд. Для того чтобы завершить перенос проекта на новое место, вам нужно лишь выполнить кое-какие настройки и загрузить на новый сервер резервную копию базы данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EРазработка клиент-серверного приложения с использованием Docker Compose\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nТеперь, когда вы знаете о том, для чего мы собираемся использовать Docker Compose, пришло время создать ваше первое клиент-серверное приложение с использованием этого инструмента. А именно, речь идёт о разработке небольшого веб-сайта (сервера) на Python, который умеет выдавать файл с фрагментом текста. Этот файл у сервера запрашивает программа (клиент), тоже написанная на Python. После получения файла с сервера программа выводит текст, хранящийся в нём, на экран.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбратите внимание на то, что мы рассчитываем на то, что вы владеете основами Docker, и на то, что у вас уже установлена платформа Docker.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПриступим к работе над проектом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍1. Создание проекта\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДля того чтобы построить ваше первое клиент-серверное приложение, предлагаю начать с создания папки проекта. Она должна содержать следующие файлы и папки:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EФайл \u003Ccode\u003Edocker-compose.yml\u003C\u002Fcode\u003E. Это файл Docker Compose, который будет содержать инструкции, необходимые для запуска и настройки сервисов.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПапка \u003Ccode\u003Eserver\u003C\u002Fcode\u003E. Она будет содержать файлы, необходимые для обеспечения работы сервера.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПапка \u003Ccode\u003Eclient\u003C\u002Fcode\u003E. Здесь будут находиться файлы клиентского приложения.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВ результате содержимое главной папки вашего проекта должно выглядеть так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E.\n├── client\u002F\n├── docker-compose.yml\n└── server\u002F\n2 directories, 1 file\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍2. Создание сервера\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nТут мы, в процессе создания сервера, затронем некоторые базовые вещи, касающиеся Docker.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E2a. Создание файлов\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nПерейдите в папку \u003Ccode\u003Eserver\u003C\u002Fcode\u003E и создайте в ней следующие файлы:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EФайл \u003Ccode\u003Eserver.py\u003C\u002Fcode\u003E. В нём будет находиться код сервера.\u003C\u002Fli\u003E\r\n\u003Cli\u003EФайл \u003Ccode\u003Eindex.html\u003C\u002Fcode\u003E. В этом файле будет находиться фрагмент текста, который должно вывести клиентское приложение.\u003C\u002Fli\u003E\r\n\u003Cli\u003EФайл \u003Ccode\u003EDockerfile\u003C\u002Fcode\u003E. Это — файл Docker, который будет содержать инструкции, необходимые для создания окружения сервера.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВот как должно выглядеть содержимое вашей папки \u003Ccode\u003Eserver\u002F\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E.\n├── Dockerfile\n├── index.html\n└── server.py\n0 directories, 3 files\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E2b. Редактирование Python-файла.\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДобавим в файл \u003Ccode\u003Eserver.py\u003C\u002Fcode\u003E следующий код:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003E#!\u002Fusr\u002Fbin\u002Fenv python3\n\n# Импорт системных библиотек python.\n# Эти библиотеки будут использоваться для создания веб-сервера.\n# Вам не нужно устанавливать что-то особенное, эти библиотеки устанавливаются вместе с Python.\n\nimport http.server\nimport socketserver\n\n# Эта переменная нужна для обработки запросов клиента к серверу.\n\nhandler = http.server.SimpleHTTPRequestHandler\n\n# Тут мы указываем, что сервер мы хотим запустить на порте 1234. \n# Постарайтесь запомнить эти сведения, так как они нам очень пригодятся в дальнейшем, при работе с docker-compose.\n\nwith socketserver.TCPServer((\"\", 1234), handler) as httpd:\n\n    # Благодаря этой команде сервер будет выполняться постоянно, ожидая запросов от клиента.\n\n   httpd.serve_forever()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭтот код позволяет создать простой веб-сервер. Он будет отдавать клиентам файл \u003Ccode\u003Eindex.html\u003C\u002Fcode\u003E, содержимое которого позже будет выводиться на веб-странице.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E2c. Редактирование HTML-файла\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nВ файл \u003Ccode\u003Eindex.html\u003C\u002Fcode\u003E добавим следующий текст:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003EDocker-Compose is magic!\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭтот текст будет передаваться клиенту.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E2d. Редактирование файла Dockerfile\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nСейчас мы создадим простой файл \u003Ccode\u003EDockerfile\u003C\u002Fcode\u003E, который будет отвечать за организацию среды выполнения для Python-сервера. В качестве основы создаваемого образа воспользуемся \u003Ca href=\"https:\u002F\u002Fhub.docker.com\u002F_\u002Fpython\"\u003Eофициальным образом\u003C\u002Fa\u003E, предназначенным для выполнения программ, написанных на Python. Вот содержимое Dockerfile:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003E# На всякий случай напоминаю, что Dockerfile всегда должен начинаться с импорта базового образа.\n# Для этого используется ключевое слово 'FROM'.\n# Здесь нам нужно импортировать образ python (с DockerHub).\n# В результате мы, в качестве имени образа, указываем 'python', а в качестве версии - 'latest'.\n\nFROM python:latest\n\n# Для того чтобы запустить в контейнере код, написанный на Python, нам нужно импортировать файлы 'server.py' и 'index.html'.\n# Для того чтобы это сделать, мы используем ключевое слово 'ADD'.\n# Первый параметр, 'server.py', представляет собой имя файла, хранящегося на компьютере.\n# Второй параметр, '\u002Fserver\u002F', это путь, по которому нужно разместить указанный файл в образе.\n# Здесь мы помещаем файл в папку образа '\u002Fserver\u002F'.\n\nADD server.py \u002Fserver\u002F\nADD index.html \u002Fserver\u002F\n\n# Здесь мы воспользуемся командой 'WORKDIR', возможно, новой для вас.\n# Она позволяет изменить рабочую директорию образа.\n# В качестве такой директории, в которой будут выполняться все команды, мы устанавливаем '\u002Fserver\u002F'.\n\nWORKDIR \u002Fserver\u002F\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь займёмся работой над клиентом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍3. Создание клиента\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nСоздавая клиентскую часть нашего проекта, мы попутно вспомним некоторые основы Docker.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E3a. Создание файлов\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nПерейдите в папку вашего проекта \u003Ccode\u003Eclient\u003C\u002Fcode\u003E и создайте в ней следующие файлы:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EФайл \u003Ccode\u003Eclient.py\u003C\u002Fcode\u003E. Тут будет находиться код клиента.\u003C\u002Fli\u003E\r\n\u003Cli\u003EФайл \u003Ccode\u003EDockerfile\u003C\u002Fcode\u003E. Этот файл играет ту же роль, что и аналогичный файл в папке сервера. А именно, он содержит инструкцию, описывающую создание среды для выполнения клиентского кода.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВ результате ваша папка \u003Ccode\u003Eclient\u002F\u003C\u002Fcode\u003E на данном этапе работы должна выглядеть так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E.\n├── client.py\n└── Dockerfile\n0 directories, 2 files\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E3b. Редактирование Python-файла\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДобавим в файл \u003Ccode\u003Eclient.py\u003C\u002Fcode\u003E следующий код:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003E#!\u002Fusr\u002Fbin\u002Fenv python3\n\n# Импортируем системную библиотеку Python.\n# Она используется для загрузки файла 'index.html' с сервера.\n# Ничего особенного устанавливать не нужно, эта библиотека устанавливается вместе с Python.\n\nimport urllib.request\n\n# Эта переменная содержит запрос к 'http:\u002F\u002Flocalhost:1234\u002F'.\n# Возможно, сейчас вы задаётесь вопросом о том, что такое 'http:\u002F\u002Flocalhost:1234'.\n# localhost указывает на то, что программа работает с локальным сервером.\n# 1234 - это номер порта, который вам предлагалось запомнить при настройке серверного кода.\n\nfp = urllib.request.urlopen(\"http:\u002F\u002Flocalhost:1234\u002F\")\n\n# 'encodedContent' соответствует закодированному ответу сервера ('index.html').\n# 'decodedContent' соответствует раскодированному ответу сервера (тут будет то, что мы хотим вывести на экран).\n\nencodedContent = fp.read()\ndecodedContent = encodedContent.decode(\"utf8\")\n\n# Выводим содержимое файла, полученного с сервера ('index.html').\n\nprint(decodedContent)\n\n# Закрываем соединение с сервером.\n\nfp.close()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nБлагодаря этому коду клиентское приложение может загрузить данные с сервера и вывести их на экран.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E3c. Редактирование файла Dockerfile\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nКак и в случае с сервером, мы создаём для клиента простой \u003Ccode\u003EDockerfile\u003C\u002Fcode\u003E, ответственный за формирование среды, в которой будет работать клиентское Python-приложение. Вот код клиентского \u003Ccode\u003EDockerfile\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003E# То же самое, что и в серверном Dockerfile.\n\nFROM python:latest\n\n# Импортируем 'client.py' в папку '\u002Fclient\u002F'.\n\nADD client.py \u002Fclient\u002F\n\n# Устанавливаем в качестве рабочей директории '\u002Fclient\u002F'.\n\nWORKDIR \u002Fclient\u002F\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍4. Docker Compose\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nКак вы могли заметить, мы создали два разных проекта: сервер и клиент. У каждого из них имеется собственный файл \u003Ccode\u003EDockerfile\u003C\u002Fcode\u003E. До сих пор всё происходящее не выходит за рамки основ работы с Docker. Теперь же мы приступаем к работе с Docker Compose. Для этого обратимся к файлу \u003Ccode\u003Edocker-compose.yml\u003C\u002Fcode\u003E, расположенному в корневой папке проекта.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбратите внимание на то, что тут мы не стремимся рассмотреть абсолютно все команды, которые можно использовать в \u003Ccode\u003Edocker-compose.yml\u003C\u002Fcode\u003E. Наша главная цель — разобрать практический пример, дающий вам базовые знания по Docker Compose.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот код, который нужно поместить в файл \u003Ccode\u003Edocker-compose.yml\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003E# Файл docker-compose должен начинаться с тега версии.\n# Мы используем \"3\" так как это - самая свежая версия на момент написания этого кода.\n\nversion: \"3\"\n\n# Следует учитывать, что docker-composes работает с сервисами.\n# 1 сервис = 1 контейнер.\n# Сервисом может быть клиент, сервер, сервер баз данных...\n# Раздел, в котором будут описаны сервисы, начинается с 'services'.\n\nservices:\n\n  # Как уже было сказано, мы собираемся создать клиентское и серверное приложения.\n  # Это означает, что нам нужно два сервиса.\n  # Первый сервис (контейнер): сервер.\n  # Назвать его можно так, как нужно разработчику.\n  # Понятное название сервиса помогает определить его роль.\n  # Здесь мы, для именования соответствующего сервиса, используем ключевое слово 'server'.\n\n  server:\n \n    # Ключевое слово \"build\" позволяет задать\n    # путь к файлу Dockerfile, который нужно использовать для создания образа,\n    # который позволит запустить сервис.\n    # Здесь 'server\u002F' соответствует пути к папке сервера,\n    # которая содержит соответствующий Dockerfile.\n\n    build: server\u002F\n\n    # Команда, которую нужно запустить после создания образа.\n    # Следующая команда означает запуск \"python .\u002Fserver.py\".\n\n    command: python .\u002Fserver.py\n\n    # Вспомните о том, что в качестве порта в 'server\u002Fserver.py' указан порт 1234.\n    # Если мы хотим обратиться к серверу с нашего компьютера (находясь за пределами контейнера),\n    # мы должны организовать перенаправление этого порта на порт компьютера.\n    # Сделать это нам поможет ключевое слово 'ports'.\n    # При его использовании применяется следующая конструкция: [порт компьютера]:[порт контейнера]\n    # В нашем случае нужно использовать порт компьютера 1234 и организовать его связь с портом\n    # 1234 контейнера (так как именно на этот порт сервер \n    # ожидает поступления запросов).\n\n    ports:\n      - 1234:1234\n\n  # Второй сервис (контейнер): клиент.\n  # Этот сервис назван 'client'.\n\n  client:\n    # Здесь 'client\u002F соответствует пути к папке, которая содержит\n    # файл Dockerfile для клиентской части системы.\n\n    build: client\u002F\n\n    # Команда, которую нужно запустить после создания образа.\n    # Следующая команда означает запуск \"python .\u002Fclient.py\".\n \n    command: python .\u002Fclient.py\n\n    # Ключевое слово 'network_mode' используется для описания типа сети.\n    # Тут мы указываем то, что контейнер может обращаться к 'localhost' компьютера.\n\n    network_mode: host\n\n    # Ключевое слово 'depends_on' позволяет указывать, должен ли сервис,\n    # прежде чем запуститься, ждать, когда будут готовы к работе другие сервисы.\n    # Нам нужно, чтобы сервис 'client' дождался бы готовности к работе сервиса 'server'.\n \n    depends_on:\n      - server\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍5. Сборка проекта\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПосле того, как в \u003Ccode\u003Edocker-compose.yml\u003C\u002Fcode\u003E внесены все необходимые инструкции, проект нужно собрать. Этот шаг нашей работы напоминает использование команды \u003Ccode\u003Edocker build\u003C\u002Fcode\u003E, но соответствующая команда имеет отношение к нескольким сервисам:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose build\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E\u003Cfont color=\"#3AC1EF\"\u003E▍6. Запуск проекта\u003C\u002Ffont\u003E\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nТеперь, когда проект собран, пришло время его запустить. Этот шаг нашей работы соответствует шагу, на котором, при работе с отдельными контейнерами, выполняется команда \u003Ccode\u003Edocker run\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose up\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПосле выполнения этой команды в терминале должен появиться текст, загруженный клиентом с сервера: \u003Ccode\u003EDocker-Compose is magic!\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак уже было сказано, сервер использует порт компьютера \u003Ccode\u003E1234\u003C\u002Fcode\u003E для обслуживания запросов клиента. Поэтому, если перейти в браузере по адресу \u003Ca href=\"http:\u002F\u002Flocalhost:1234\u002F\"\u003Ehttp:\u002F\u002Flocalhost:1234\u002F\u003C\u002Fa\u003E, в нём будет отображена страница с текстом \u003Ccode\u003EDocker-Compose is magic!\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EПолезные команды\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nРассмотрим некоторые команды, которые могут вам пригодиться при работе с Docker Compose.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта команда позволяет останавливать и удалять контейнеры и другие ресурсы, созданные командой \u003Ccode\u003Edocker-compose up\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose down\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭта команда выводит журналы сервисов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose logs -f [service name]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНапример, в нашем проекте её можно использовать в таком виде: \u003Ccode\u003E$ docker-compose logs -f [service name]\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС помощью такой команды можно вывести список контейнеров:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose ps\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДанная команда позволяет выполнить команду в выполняющемся контейнере:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose exec [service name] [command]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНапример, она может выглядеть так: \u003Ccode\u003Edocker-compose exec server ls\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакая команда позволяет вывести список образов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E$ docker-compose images\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E\u003Cfont color=\"#3AC1EF\"\u003EИтоги\u003C\u002Ffont\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nМы рассмотрели основы работы с технологией Docker Compose, знание которых позволит вам пользоваться этой технологией и, при желании, приступить к её более глубокому изучению. \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fgael-thomas\u002FClient-Server-Docker-Compose-example\"\u003EВот\u003C\u002Fa\u003E репозиторий с кодом проекта, который мы здесь рассматривали.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EУважаемые читатели!\u003C\u002Fb\u003E Пользуетесь ли вы Docker Compose в своих проектах?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fruvds.com\u002Fru-rub\u002F#order\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Ffiles\u002F1ba\u002F550\u002Fd25\u002F1ba550d25e8846ce8805de564da6aa63.png\"\u002F\u003E\u003C\u002Fa\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"Docker"},{"titleHtml":"Docker Compose"},{"titleHtml":"разработка"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450312\u002F1440b5d5b39591732be2a601aa9c5962\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450312\u002F1440b5d5b39591732be2a601aa9c5962\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fruvds\\\u002Fblog\\\u002F450312\\\u002F\"},\"headline\":\"Руководство по Docker Compose для начинающих\",\"datePublished\":\"2019-05-02T13:18:56+03:00\",\"dateModified\":\"2019-05-02T13:23:13+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"ru_vds\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, что...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fruvds\\\u002Fblog\\\u002F450312\\\u002F#post-content-body\",\"about\":[\"c_ruvds\",\"h_webdev\",\"h_virtualization\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb4c\\\u002F71f\\\u002Fbe9\\\u002Fb4c71fbe9634709b3e33a72eabca59af.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F859\\\u002F489\\\u002F407\\\u002F85948940715022ca196b8ad6f1e810d0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Ffiles\\\u002F1ba\\\u002F550\\\u002Fd25\\\u002F1ba550d25e8846ce8805de564da6aa63.png\"]}","metaDescription":"Автор статьи, перевод которой мы сегодня публикуем, говорит, что она предназначена для тех разработчиков, которые хотят изучить Docker Compose и идут к тому, чтобы создать своё первое клиент-серверное...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"ruvds":{"alias":"ruvds","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Ff27\u002Fea8\u002F5bd\u002Ff27ea85bd62fbd985c308110885af7e0.png","titleHtml":"RUVDS.com","descriptionHtml":"VDS\u002FVPS-хостинг. Скидка 10% по коду \u003Cb\u003EHABR10\u003C\u002Fb\u003E","relatedData":null,"statistics":{"postsCount":2020,"newsCount":60,"vacanciesCount":0,"employeesCount":57,"careerRating":null,"subscribersCount":36490,"rating":3205.25,"invest":null},"foundationDate":{"year":"2015","month":"07","day":"27"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fruvds.com","staffNumber":"11–30 человек","registrationDate":"2016-03-18T05:43:01+00:00","representativeUser":{"alias":"ruvds","fullname":null},"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fruvds"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fru_vds"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fru_vds"}],"settings":{"analyticsSettings":[{"type":"ym","trackingId":"33905479"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002Fb77\u002F8d5\u002Fa41\u002Fb778d5a41f83016379c6630262c3294c.png","linkUrl":"https:\u002F\u002Fruvds.com\u002Fru-rub","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"RUVDS.com, Москва - VDS\u002FVPS-хостинг. Скидка 10% по коду \u003Cb\u003EHABR10\u003C\u002Fb\u003E с 27 июля 2015 г.","title":"RUVDS.com, Москва - VDS\u002FVPS-хостинг. Скидка 10% по коду HABR10 с 27 июля 2015 г.","keywords":["DIY или Сделай сам","Научно-популярное","Системное администрирование","Разработка веб-сайтов","Читальный зал"],"descriptionHtml":"2 020 статей от авторов компании RUVDS.com","description":"2 020 статей от авторов компании RUVDS.com"},"aDeskSettings":null,"careerAlias":"ruvds","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Индексаторы в C# под капотом: индексируем лучше Доу-Джонса / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450428\/"},"headline":"Индексаторы в C# под капотом: индексируем лучше Доу-Джонса","datePublished":"2019-05-13T10:01:34+03:00","dateModified":"2019-05-13T17:32:33+03:00","author":{"@type":"Person","name":"Pavel Romash"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и харак...","url":"https:\/\/habr.com\/ru\/post\/450428\/#post-content-body","about":["h_hi","h_net","h_assembler","h_csharp","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/22\/aw\/ng\/22awng79cibgcbel1r2v0ahwzc8.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Индексаторы в C# под капотом: индексируем лучше Доу-Джонса" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Индексаторы в C# под капотом: индексируем лучше Доу-Джонса" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Индексаторы в C# под капотом: индексируем лучше Доу-Джонса" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450428/6ef74d99a7b5fef0f692aa5f440a92ff/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450428/6ef74d99a7b5fef0f692aa5f440a92ff/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450428/6ef74d99a7b5fef0f692aa5f440a92ff/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450428/6ef74d99a7b5fef0f692aa5f440a92ff/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450428/6ef74d99a7b5fef0f692aa5f440a92ff/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450428" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-13T07:01:34.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450428/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450428/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450428/6ef74d99a7b5fef0f692aa5f440a92ff/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/ZloyChert/" title="ZloyChert" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/634/3a1/b7a/6343a1b7ab3cfe207ba9b16e19cc81a2.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/ZloyChert/" class="tm-user-info__username">
+      ZloyChert
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-13T07:01:34.000Z" title="2019-05-13, 10:01">13  мая  2019 в 10:01</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Индексаторы в C# под капотом: индексируем лучше Доу-Джонса</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/hi/" class="tm-article-snippet__hubs-item-link"><span>Высокая производительность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/net/" class="tm-article-snippet__hubs-item-link"><span>.NET</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/assembler/" class="tm-article-snippet__hubs-item-link"><span>Assembler</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/csharp/" class="tm-article-snippet__hubs-item-link"><span>C#</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее скорости. Также я предложу несколько очевидных выводов. Но что именно использовать в конкретно вашей ситуации решать вам — стоит ли жертвовать удобством ради скорости или наоборот.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" alt="image" data-src="https://habrastorage.org/webt/22/aw/ng/22awng79cibgcbel1r2v0ahwzc8.png" data-width="100%"/></div><a name="habracut"></a><br/>
+<h3>Метрики</h3><br/>
+Код языка ассемблера приведен для 64 битных систем. В качестве метрик для каждой инструкции были выбраны: количество слитых микро-операций, общее количество микро-операций, задержка, пропускная способность и, разумеется, количество инструкций. Приводить какие-то цифры в целом для индексатора я не стал, т.к. ситуация может меняться в зависимости от способов работы с индексируемым типом и по-разному влиять на кеш.<br/>
+<br/>
+Ниже приведена краткая сводка по терминологии, без копания вглубь, просто концептуальные понятия. Я ставил целью описать все как можно проще, для общего понимания.<br/>
+<br/>
+<b>Микро-операция (uop)</b> — некая операция из которых состоит каждая инструкция. Концепция микро-операций используется для таких оптимизаций, как слияние, кеширование и переупорядочивание. Так, например, инструкция MOV состоит из 1 микро-операции, в то время как инструкция XCHG над двумя регистрами состоит из 3 микро-операций (используется подход через «временную переменную», то есть внутренний регистр, спасибо <i>leotsarev</i> за апдейт), инструкция XCHG над регистром и памятью состоит из 8 микро-операций. <br/>
+<br/>
+<b>Слитые микро-операции (fused uops)</b> — как уже было упомянуто выше, слияние микро-операций — одна из оптимизаций. Заключается она в замене двух микро-операций одной более сложной.<br/>
+<br/>
+<b>Задержка (latency)</b> — число тактов, после которого данные, используемые в этой инструкции станут доступны для использования другой инструкцией.<br/>
+<br/>
+<b>Пропускная способность (Reciprocal throughput)</b> — число тактов, требуемое для выполнения одной инструкции, при условии, что выполняется последовательность одинаковых инструкций и они оперируют независимыми данными.<br/>
+<br/>
+Опираясь на эти показатели можно оценить производительность того или иного набора инструкций. Прошу обратить внимание, что мы можем лишь «оценить», реальная производительность зависит от множества факторов, таких как попадание или промах кеша, зависимость по данным и т.п.<br/>
+<br/>
+Данные показатели приведены для процессора Intel архитектуры Skylake-X. Это соответствует моему процессору Intel Core i7-6700.<br/>
+<br/>
+Также стоит помнить, что fastcall для 64 битных систем обеспечивает передачу не 2, а 4 параметров в регистрах (rcx, rdx, r8, r9).<br/>
+<br/>
+<h3>Индексаторы в цифрах</h3><br/>
+<h4>1. Индексатор массива</h4><br/>
+Рассматривать будем на примере методов следующего вида:<br/>
+<br/>
+<pre><code class="cs">public int IndexerArray(int index, int[] array)
+{
+    return array[index];
+}
+</code></pre><br/>
+Рассмотрим код языка ассемблера для этого фрагмента.<br/>
+<br/>
+<pre><code class="plaintext">1. cmp     edx,dword ptr [r8+8]
+2. jae     00007ff9`07288c78
+3. movsxd  rax,edx
+4. mov     eax,dword ptr [r8+rax*4+10h]
+</code></pre><br/>
+В первой строке проверяется, не выходит ли индекс за границы массива. Во второй строке кидается исключение, если выходит. Далее мы высчитываем позицию элемента в массиве. Первые поля в массиве являются служебной информацией, так что нам необходимо их пропустить (дополнительные 10h = 16 байт). <br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Информация по инструкциям:</b><div class="spoiler_text"><div class="scrollable-table"><table>
+<tr>
+<th>№</th>
+<th>Fused uops</th>
+<th>Total uops</th>
+<th>Latency</th>
+<th>Reciprocal throughput</th>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+</table></div><br/>
+</div></div><br/>
+<br/>
+<h4>2. Любимый всеми List&lt;></h4><br/>
+Код болванки:<br/>
+<pre><code class="cs">public int IndexerList(int index, List&lt;int> list)
+{
+    return list[index];
+}
+</code></pre><br/>
+<br/>
+Код языка ассемблера:<br/>
+<br/>
+<pre><code class="plaintext">1. cmp     edx,dword ptr [r8+10h]
+2. jae     M00_L00 
+3. mov     rax,qword ptr [r8+8]
+4. cmp     edx,dword ptr [rax+8]
+5. jae     00007ff9`07268f56
+6. movsxd  rdx,edx
+7. mov     eax,dword ptr [rax+rdx*4+10h]
+ret
+M00_L00 call System.ThrowHelper.ThrowArgumentOutOfRange_IndexException()
+</code></pre><br/>
+Здесь инструкций явно больше. Отчетливо видно, что индексатор листа оборачивает индексатор массива. Интересный момент — проверка на выход за границы массива здесь осуществляется дважды. Итак, первая инструкция проверяет, выходит ли индекс за границы листа. Если выходит, то мы прыгаем (инструкция 2) на вполне очевидный вызов, кидающий исключение в случае выхода за границы массива. В этой проверке границ используется внутреннее поле листа, которое является вторым по порядку (смещение в 10h (16) байт от начала типа, 8 на указатель на таблицу методов и 8 на ссылку на внутренний массив — первое поле). В третей строке мы помещаем в регистр rax адрес внутреннего массива — первое поле (по аналогии смещение в 8 байт — указатель на таблицу методов). Далее следует уже знакомый участок — обращение по индексу для массива (строки 4 — 7). Здесь же для проверки границ используется внутреннее поле массива.<br/>
+Я старался убирать вещи, не относящиеся непосредственно к индексации, но тут стоит оставить ret чтобы не казалось, что в конце каждого обращения к элементу листа будет исключение :D<br/>
+<br/>
+Кстати, чтобы не мучить вас домыслами, прошу ознакомиться с реализацией листа <a href="https://github.com/dotnet/corefx/blob/4d6cde1be300d1fb8b3aec2356d18f1f3d071913/src/Common/src/CoreLib/System/Collections/Generic/List.cs#L146">по ссылке</a>. Приведение типа к беззнаковому инту используется для уменьшения числа сравнений. <br/>
+<br/>
+В итоге получаем 7 инструкций для успешного обращения по индексу, что на 3 больше чем в массиве.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Информация по инструкциям:</b><div class="spoiler_text"><div class="scrollable-table"><table>
+<tr>
+<th>№</th>
+<th>Fused uops</th>
+<th>Total uops</th>
+<th>Latency</th>
+<th>Reciprocal throughput</th>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>6</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>7</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+</table></div><br/>
+</div></div><br/>
+<h4>Новинка — Span&lt;></h4><br/>
+Болванка:<br/>
+<br/>
+<pre><code class="cs">public int IndexerSpan(int index, Span&lt;int> span)
+{
+   return span[index];
+}
+</code></pre><br/>
+И на языке ассемблера: <br/>
+<br/>
+<pre><code class="plaintext">1. cmp     edx,dword ptr [r8+8]
+2. jae     00007ff9`07278f69
+3. mov     rax,qword ptr [r8]
+4. movsxd  rdx,edx
+5. mov     eax,dword ptr [rax+rdx*4]
+</code></pre><br/>
+При анонсе спанов нам обещали, что сделаны они по уму, с поддержкой рантайма. И не соврали, что сказать. По факту от классического массива отличается только одной инструкцией, дополнительным шагом обращения по адресу. Судя по этому коду внутри спана прячется адрес участка памяти, где располагаются элементы, который мы и получаем в строке 3. Это может быть адрес на определенное место какого-либо массива, строки или же фрагмент памяти на стеке.<br/>
+<a href="https://github.com/dotnet/corefx/blob/09e2417cd0505df4558535651efb1bbcffdf0c59/src/Common/src/CoreLib/System/Span.Fast.cs#L142">По ссылке</a> можно ознакомиться с реализацией индексатора спана ради интереса. Можно заметить, что там приведено 2 разные реализации, зависящие от переменной среды. PROJECTN — кодовое имя первой версии .NET Native для UWP. Поэтому нас больше интересует вторая версия индексатора. Она помечена <a href="https://github.com/dotnet/corefx/blob/b86783ef9525f22b0576278939264897464f9bbd/src/Common/src/CoreLib/System/Runtime/CompilerServices/IntrinsicAttribute.cs"><i>[Intrinsic]</i></a>. Более того, если посмотреть на статический класс <a href="https://github.com/dotnet/corefx/blob/b86783ef9525f22b0576278939264897464f9bbd/src/Common/src/CoreLib/Internal/Runtime/CompilerServices/Unsafe.cs">Unsafe</a>, используемый в реализации этого индексатора, можно найти информацию о том, что реализации большинства методов в этом файле представлены как <i>Intrinsic</i>.<br/>
+<br/>
+Вызовы методов или ссылки на поля, помеченные атрибутом <i>[Intrinsic]</i> имеют поддержку со стороны рантайма. <br/>
+<br/>
+В <b>CoreCLR</b>, тела таких методов заменяются EE (Execution engine) на небезопасный код (unsafe). Если нужно больше деталей, то можно начать копать с метода <a href="https://github.com/dotnet/coreclr/blob/master/src/vm/jitinterface.cpp#L7112">getILIntrinsicImplementationForUnsafe</a>.<br/>
+<br/>
+Информацию о том, как это работает в <b>CoreRT</b> (который меня мало интересует), <br/>
+можно начать искать в <a href="https://github.com/dotnet/corert/blob/635cf21aca11265ded9d78d216424bd609c052f5/src/Common/src/TypeSystem/IL/Stubs/UnsafeIntrinsics.cs">Internal.IL.Stubs.UnsafeIntrinsics</a>.<br/>
+<br/>
+С учетом такой поддержки со стороны райнтайма, чтобы понять, что конкретно будет происходить за кулисами, имеет смысл смотреть на инструкции языка ассемблера, что мы и сделали.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Информация по инструкциям:</b><div class="spoiler_text"><div class="scrollable-table"><table>
+<tr>
+<th>№</th>
+<th>Fused uops</th>
+<th>Total uops</th>
+<th>Latency</th>
+<th>Reciprocal throughput</th>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+</table></div><br/>
+</div></div><br/>
+Все индексаторы имеют сильную зависимость по данным: инструкции используют результаты предыдущих. Никаких необычных результатов здесь нет, да и не должно было быть. Но теперь понятен оверхед, который появляется в том или ином случае. Немного очевидных выводов. Если алгоритм подразумевает очень частые обращения по индексам, то есть смысл подумать о замене листа на массив. Если же обращение идет не очень часто, то, возможно, будет удобней использовать лист, который предоставляет очень удобное апи и имеет не такой большой оверхед (напоминаю, что следует следить за расширениями внутреннего массива).<br/>
+<br/>
+Теперь попробуем посмотреть на разные способы, с помощью которых мы можем задать двумерный массив: массив массивов (jagged array) и многомерный массив (multidimensional array).<br/>
+<br/>
+<h4>4. Многомерный массив (multidimensional array)</h4><br/>
+Код на шарпе:<br/>
+<br/>
+<pre><code class="cs">public int IndexerDimensionalArray(int index1, int index2, int[,] demensionalArray)
+{
+    return demensionalArray[index1, index2];
+}
+</code></pre><br/>
+Язык ассемблера:<br/>
+<br/>
+<pre><code class="plaintext">1. mov     eax,edx
+2. sub     eax,dword ptr [r9+18h]
+3. cmp     eax,dword ptr [r9+10h]
+4. jae     00007ff9`00098fe6
+5. mov     edx,r8d
+6. sub     edx,dword ptr [r9+1Ch]
+7. cmp     edx,dword ptr [r9+14h]
+8. jae     00007ff9`00098fe6
+9. mov     ecx,dword ptr [r9+14h]
+10. imul    rcx,rax
+11. mov     rax,rdx
+12. add     rax,rcx
+13. mov     eax,dword ptr [r9+rax*4+20h]
+</code></pre><br/>
+Все в принципе понятно — 2 проверки на границы массива, дальше высчитывание индекса и обращение. Хранится этот массив в памяти одним фрагментом.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Информация по инструкциям:</b><div class="spoiler_text"><div class="scrollable-table"><table>
+<tr>
+<th>№</th>
+<th>Fused uops</th>
+<th>Total uops</th>
+<th>Latency</th>
+<th>Reciprocal throughput</th>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0-1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td> </td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1</td>
+<td>1</td>
+<td>0-1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>6</td>
+<td>1</td>
+<td>2</td>
+<td> </td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>7</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>8</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>9</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1</td>
+<td>1</td>
+<td>3</td>
+<td>1</td>
+</tr>
+<tr>
+<td>11</td>
+<td>1</td>
+<td>1</td>
+<td>0-1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>12</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>13</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+</table></div><br/>
+</div></div><br/>
+<br/>
+<h4>5. Массив массивов (jagged array)</h4><br/>
+<pre><code class="cs">public int IndexerJaggedArray(int index, int index2, int[][] jaggedArray)
+{
+    return jaggedArray[index][index2];
+}
+</code></pre><br/>
+Ассемблер:<br/>
+<br/>
+<pre><code class="plaintext">1. cmp     edx,dword ptr [r9+8]
+2. jae     00007ff9`00098f95
+3. movsxd  rax,edx
+4. mov     rax,qword ptr [r9+rax*8+10h]
+5. cmp     r8d,dword ptr [rax+8]
+6. jae     00007ff9`00098f95
+7. movsxd  rdx,r8d
+8. mov     eax,dword ptr [rax+rdx*4+10h]
+</code></pre><br/>
+И самое интересное — мы имеем меньше инструкций, чем при специально сделанном для многомерности типа.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Информация по инструкциям:</b><div class="spoiler_text"><div class="scrollable-table"><table>
+<tr>
+<th>№</th>
+<th>Fused uops</th>
+<th>Total uops</th>
+<th>Latency</th>
+<th>Reciprocal throughput</th>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>4</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>6</td>
+<td>1</td>
+<td>1</td>
+<td> </td>
+<td>1-2</td>
+</tr>
+<tr>
+<td>7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>8</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>0.5</td>
+</tr>
+</table></div><br/>
+</div></div><br/>
+Но по поводу 2 последних примеров советую не спешить с выводами. За счет того, что двумерный массив является цельным типом, который инициализируется за 1 раз, память под весь массив выделится одним большим фрагментом. Это обеспечит лучшую работу кеша, который может в корне поменять ситуацию. В массиве массивов же память под каждый массив будет выделяться отдельно, поэтому велика вероятность, что массивы будут разнесены по памяти и вписаны в наиболее подходящие для них места.<br/>
+<br/>
+Однако, возможно, для кого-то такое поведение будет более приемлемо. Возможно, в некоторых ситуациях известно, что время жизни этого экземпляра будет недолгим. И дабы не попасть в кучу больших объектов (которая для сборщика мусора является своего рода вторым поколением), где есть вероятность остаться на длительное время, гораздо большее, чем хотелось бы. Или после некоторого времени мы захотим работать только с определенными строками, а все остальное может быть очищено. Плюс планируется работать с типом обращаясь к рандомным непоследовательным элементам, когда кеш не сможет работать нормально.<br/>
+<br/>
+Также при использовании массива массивов больше вероятность не спровоцировать сборщик мусора на компактинг (compacting), а обойтись свипом (sweep). Напоминалка: при фрагментации памяти, общий объем свободного места может быть достаточен для нового объекта, но непрерывного свободного участка нужного объема нет. В таком случае выполняется компактинг — перемещение объектов с целью дефрагментации. Если же мы в состоянии подобрать непрерывный участок свободной памяти для нового объекта, мы можем просто вписать объект в это свободное место. Это называется свипом.<br/>
+<br/>
+Надеюсь данная информация поможет вам сделать правильные выводы и обосновать свое мнение в дискуссии по поводу, что использовать.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B.net%5D" class="tm-tags-list__link">.net</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bc%23%5D" class="tm-tags-list__link">c#</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bassembly%5D" class="tm-tags-list__link">assembly</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bbenchmark%5D" class="tm-tags-list__link">benchmark</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C%5D" class="tm-tags-list__link">производительность</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%D0%B0%D1%82%D0%BE%D1%80%5D" class="tm-tags-list__link">индексатор</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/hi/" class="tm-hubs-list__link">
+    Высокая производительность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/net/" class="tm-hubs-list__link">
+    .NET
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/assembler/" class="tm-hubs-list__link">
+    Assembler
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/csharp/" class="tm-hubs-list__link">
+    C#
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 33: ↑32 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 33: ↑32 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+31</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">11K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    56
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/ZloyChert/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/634/3a1/b7a/6343a1b7ab3cfe207ba9b16e19cc81a2.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 49 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    41
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Pavel Romash</span> <a href="/ru/users/ZloyChert/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @ZloyChert
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">C# & .NET Monk</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450428/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 5 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450428/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450428/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450428":{"id":"450428","timePublished":"2019-05-13T07:01:34+00:00","isCorporative":false,"lang":"ru","titleHtml":"Индексаторы в C# под капотом: индексируем лучше Доу-Джонса","leadData":{"textHtml":"Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее скорости. Также я предложу несколько очевидных выводов. Но что именно использовать в конкретно вашей ситуации решать вам — стоит ли жертвовать удобством ради скорости или наоборот.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F22\u002Faw\u002Fng\u002F22awng79cibgcbel1r2v0ahwzc8.png\" alt=\"image\" width=\"100%\"\u003E\u003C\u002Fdiv\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":41,"votesCount":49},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1434102","alias":"ZloyChert","fullname":"Pavel Romash","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F634\u002F3a1\u002Fb7a\u002F6343a1b7ab3cfe207ba9b16e19cc81a2.jpg","speciality":"C# & .NET Monk"},"statistics":{"commentsCount":5,"favoritesCount":56,"readingCount":10951,"score":31,"votesCount":33},"hubs":[{"relatedData":null,"id":"4","alias":"hi","type":"collective","title":"Высокая производительность","titleHtml":"Высокая производительность","isProfiled":true},{"relatedData":null,"id":"546","alias":"net","type":"collective","title":".NET","titleHtml":".NET","isProfiled":true},{"relatedData":null,"id":"595","alias":"assembler","type":"collective","title":"Assembler","titleHtml":"Assembler","isProfiled":true},{"relatedData":null,"id":"17718","alias":"csharp","type":"collective","title":"C#","titleHtml":"C#","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EДоброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее скорости. Также я предложу несколько очевидных выводов. Но что именно использовать в конкретно вашей ситуации решать вам — стоит ли жертвовать удобством ради скорости или наоборот.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F22\u002Faw\u002Fng\u002F22awng79cibgcbel1r2v0ahwzc8.png\" data-width=\"100%\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EМетрики\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nКод языка ассемблера приведен для 64 битных систем. В качестве метрик для каждой инструкции были выбраны: количество слитых микро-операций, общее количество микро-операций, задержка, пропускная способность и, разумеется, количество инструкций. Приводить какие-то цифры в целом для индексатора я не стал, т.к. ситуация может меняться в зависимости от способов работы с индексируемым типом и по-разному влиять на кеш.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНиже приведена краткая сводка по терминологии, без копания вглубь, просто концептуальные понятия. Я ставил целью описать все как можно проще, для общего понимания.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМикро-операция (uop)\u003C\u002Fb\u003E — некая операция из которых состоит каждая инструкция. Концепция микро-операций используется для таких оптимизаций, как слияние, кеширование и переупорядочивание. Так, например, инструкция MOV состоит из 1 микро-операции, в то время как инструкция XCHG над двумя регистрами состоит из 3 микро-операций (используется подход через «временную переменную», то есть внутренний регистр, спасибо \u003Ci\u003Eleotsarev\u003C\u002Fi\u003E за апдейт), инструкция XCHG над регистром и памятью состоит из 8 микро-операций. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EСлитые микро-операции (fused uops)\u003C\u002Fb\u003E — как уже было упомянуто выше, слияние микро-операций — одна из оптимизаций. Заключается она в замене двух микро-операций одной более сложной.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЗадержка (latency)\u003C\u002Fb\u003E — число тактов, после которого данные, используемые в этой инструкции станут доступны для использования другой инструкцией.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПропускная способность (Reciprocal throughput)\u003C\u002Fb\u003E — число тактов, требуемое для выполнения одной инструкции, при условии, что выполняется последовательность одинаковых инструкций и они оперируют независимыми данными.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОпираясь на эти показатели можно оценить производительность того или иного набора инструкций. Прошу обратить внимание, что мы можем лишь «оценить», реальная производительность зависит от множества факторов, таких как попадание или промах кеша, зависимость по данным и т.п.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДанные показатели приведены для процессора Intel архитектуры Skylake-X. Это соответствует моему процессору Intel Core i7-6700.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакже стоит помнить, что fastcall для 64 битных систем обеспечивает передачу не 2, а 4 параметров в регистрах (rcx, rdx, r8, r9).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EИндексаторы в цифрах\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E1. Индексатор массива\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nРассматривать будем на примере методов следующего вида:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic int IndexerArray(int index, int[] array)\n{\n    return array[index];\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nРассмотрим код языка ассемблера для этого фрагмента.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E1. cmp     edx,dword ptr [r8+8]\n2. jae     00007ff9`07288c78\n3. movsxd  rax,edx\n4. mov     eax,dword ptr [r8+rax*4+10h]\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ первой строке проверяется, не выходит ли индекс за границы массива. Во второй строке кидается исключение, если выходит. Далее мы высчитываем позицию элемента в массиве. Первые поля в массиве являются служебной информацией, так что нам необходимо их пропустить (дополнительные 10h = 16 байт). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EИнформация по инструкциям:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E№\u003C\u002Fth\u003E\r\n\u003Cth\u003EFused uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ETotal uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ELatency\u003C\u002Fth\u003E\r\n\u003Cth\u003EReciprocal throughput\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E2. Любимый всеми List&lt;\u003E\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nКод болванки:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic int IndexerList(int index, List&lt;int\u003E list)\n{\n    return list[index];\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКод языка ассемблера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E1. cmp     edx,dword ptr [r8+10h]\n2. jae     M00_L00 \n3. mov     rax,qword ptr [r8+8]\n4. cmp     edx,dword ptr [rax+8]\n5. jae     00007ff9`07268f56\n6. movsxd  rdx,edx\n7. mov     eax,dword ptr [rax+rdx*4+10h]\nret\nM00_L00 call System.ThrowHelper.ThrowArgumentOutOfRange_IndexException()\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь инструкций явно больше. Отчетливо видно, что индексатор листа оборачивает индексатор массива. Интересный момент — проверка на выход за границы массива здесь осуществляется дважды. Итак, первая инструкция проверяет, выходит ли индекс за границы листа. Если выходит, то мы прыгаем (инструкция 2) на вполне очевидный вызов, кидающий исключение в случае выхода за границы массива. В этой проверке границ используется внутреннее поле листа, которое является вторым по порядку (смещение в 10h (16) байт от начала типа, 8 на указатель на таблицу методов и 8 на ссылку на внутренний массив — первое поле). В третей строке мы помещаем в регистр rax адрес внутреннего массива — первое поле (по аналогии смещение в 8 байт — указатель на таблицу методов). Далее следует уже знакомый участок — обращение по индексу для массива (строки 4 — 7). Здесь же для проверки границ используется внутреннее поле массива.\u003Cbr\u002F\u003E\r\nЯ старался убирать вещи, не относящиеся непосредственно к индексации, но тут стоит оставить ret чтобы не казалось, что в конце каждого обращения к элементу листа будет исключение :D\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКстати, чтобы не мучить вас домыслами, прошу ознакомиться с реализацией листа \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdotnet\u002Fcorefx\u002Fblob\u002F4d6cde1be300d1fb8b3aec2356d18f1f3d071913\u002Fsrc\u002FCommon\u002Fsrc\u002FCoreLib\u002FSystem\u002FCollections\u002FGeneric\u002FList.cs#L146\"\u003Eпо ссылке\u003C\u002Fa\u003E. Приведение типа к беззнаковому инту используется для уменьшения числа сравнений. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ итоге получаем 7 инструкций для успешного обращения по индексу, что на 3 больше чем в массиве.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EИнформация по инструкциям:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E№\u003C\u002Fth\u003E\r\n\u003Cth\u003EFused uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ETotal uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ELatency\u003C\u002Fth\u003E\r\n\u003Cth\u003EReciprocal throughput\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E5\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E6\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E7\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EНовинка — Span&lt;\u003E\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nБолванка:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic int IndexerSpan(int index, Span&lt;int\u003E span)\n{\n   return span[index];\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИ на языке ассемблера: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E1. cmp     edx,dword ptr [r8+8]\n2. jae     00007ff9`07278f69\n3. mov     rax,qword ptr [r8]\n4. movsxd  rdx,edx\n5. mov     eax,dword ptr [rax+rdx*4]\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПри анонсе спанов нам обещали, что сделаны они по уму, с поддержкой рантайма. И не соврали, что сказать. По факту от классического массива отличается только одной инструкцией, дополнительным шагом обращения по адресу. Судя по этому коду внутри спана прячется адрес участка памяти, где располагаются элементы, который мы и получаем в строке 3. Это может быть адрес на определенное место какого-либо массива, строки или же фрагмент памяти на стеке.\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdotnet\u002Fcorefx\u002Fblob\u002F09e2417cd0505df4558535651efb1bbcffdf0c59\u002Fsrc\u002FCommon\u002Fsrc\u002FCoreLib\u002FSystem\u002FSpan.Fast.cs#L142\"\u003EПо ссылке\u003C\u002Fa\u003E можно ознакомиться с реализацией индексатора спана ради интереса. Можно заметить, что там приведено 2 разные реализации, зависящие от переменной среды. PROJECTN — кодовое имя первой версии .NET Native для UWP. Поэтому нас больше интересует вторая версия индексатора. Она помечена \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdotnet\u002Fcorefx\u002Fblob\u002Fb86783ef9525f22b0576278939264897464f9bbd\u002Fsrc\u002FCommon\u002Fsrc\u002FCoreLib\u002FSystem\u002FRuntime\u002FCompilerServices\u002FIntrinsicAttribute.cs\"\u003E\u003Ci\u003E[Intrinsic]\u003C\u002Fi\u003E\u003C\u002Fa\u003E. Более того, если посмотреть на статический класс \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdotnet\u002Fcorefx\u002Fblob\u002Fb86783ef9525f22b0576278939264897464f9bbd\u002Fsrc\u002FCommon\u002Fsrc\u002FCoreLib\u002FInternal\u002FRuntime\u002FCompilerServices\u002FUnsafe.cs\"\u003EUnsafe\u003C\u002Fa\u003E, используемый в реализации этого индексатора, можно найти информацию о том, что реализации большинства методов в этом файле представлены как \u003Ci\u003EIntrinsic\u003C\u002Fi\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВызовы методов или ссылки на поля, помеченные атрибутом \u003Ci\u003E[Intrinsic]\u003C\u002Fi\u003E имеют поддержку со стороны рантайма. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ \u003Cb\u003ECoreCLR\u003C\u002Fb\u003E, тела таких методов заменяются EE (Execution engine) на небезопасный код (unsafe). Если нужно больше деталей, то можно начать копать с метода \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdotnet\u002Fcoreclr\u002Fblob\u002Fmaster\u002Fsrc\u002Fvm\u002Fjitinterface.cpp#L7112\"\u003EgetILIntrinsicImplementationForUnsafe\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнформацию о том, как это работает в \u003Cb\u003ECoreRT\u003C\u002Fb\u003E (который меня мало интересует), \u003Cbr\u002F\u003E\r\nможно начать искать в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdotnet\u002Fcorert\u002Fblob\u002F635cf21aca11265ded9d78d216424bd609c052f5\u002Fsrc\u002FCommon\u002Fsrc\u002FTypeSystem\u002FIL\u002FStubs\u002FUnsafeIntrinsics.cs\"\u003EInternal.IL.Stubs.UnsafeIntrinsics\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС учетом такой поддержки со стороны райнтайма, чтобы понять, что конкретно будет происходить за кулисами, имеет смысл смотреть на инструкции языка ассемблера, что мы и сделали.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EИнформация по инструкциям:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E№\u003C\u002Fth\u003E\r\n\u003Cth\u003EFused uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ETotal uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ELatency\u003C\u002Fth\u003E\r\n\u003Cth\u003EReciprocal throughput\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E5\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВсе индексаторы имеют сильную зависимость по данным: инструкции используют результаты предыдущих. Никаких необычных результатов здесь нет, да и не должно было быть. Но теперь понятен оверхед, который появляется в том или ином случае. Немного очевидных выводов. Если алгоритм подразумевает очень частые обращения по индексам, то есть смысл подумать о замене листа на массив. Если же обращение идет не очень часто, то, возможно, будет удобней использовать лист, который предоставляет очень удобное апи и имеет не такой большой оверхед (напоминаю, что следует следить за расширениями внутреннего массива).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь попробуем посмотреть на разные способы, с помощью которых мы можем задать двумерный массив: массив массивов (jagged array) и многомерный массив (multidimensional array).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E4. Многомерный массив (multidimensional array)\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nКод на шарпе:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic int IndexerDimensionalArray(int index1, int index2, int[,] demensionalArray)\n{\n    return demensionalArray[index1, index2];\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЯзык ассемблера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E1. mov     eax,edx\n2. sub     eax,dword ptr [r9+18h]\n3. cmp     eax,dword ptr [r9+10h]\n4. jae     00007ff9`00098fe6\n5. mov     edx,r8d\n6. sub     edx,dword ptr [r9+1Ch]\n7. cmp     edx,dword ptr [r9+14h]\n8. jae     00007ff9`00098fe6\n9. mov     ecx,dword ptr [r9+14h]\n10. imul    rcx,rax\n11. mov     rax,rdx\n12. add     rax,rcx\n13. mov     eax,dword ptr [r9+rax*4+20h]\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВсе в принципе понятно — 2 проверки на границы массива, дальше высчитывание индекса и обращение. Хранится этот массив в памяти одним фрагментом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EИнформация по инструкциям:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E№\u003C\u002Fth\u003E\r\n\u003Cth\u003EFused uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ETotal uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ELatency\u003C\u002Fth\u003E\r\n\u003Cth\u003EReciprocal throughput\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0-1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E5\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0-1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E6\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E7\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E8\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E9\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E10\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E11\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0-1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E12\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E13\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E5. Массив массивов (jagged array)\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic int IndexerJaggedArray(int index, int index2, int[][] jaggedArray)\n{\n    return jaggedArray[index][index2];\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nАссемблер:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E1. cmp     edx,dword ptr [r9+8]\n2. jae     00007ff9`00098f95\n3. movsxd  rax,edx\n4. mov     rax,qword ptr [r9+rax*8+10h]\n5. cmp     r8d,dword ptr [rax+8]\n6. jae     00007ff9`00098f95\n7. movsxd  rdx,r8d\n8. mov     eax,dword ptr [rax+rdx*4+10h]\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИ самое интересное — мы имеем меньше инструкций, чем при специально сделанном для многомерности типа.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EИнформация по инструкциям:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E№\u003C\u002Fth\u003E\r\n\u003Cth\u003EFused uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ETotal uops\u003C\u002Fth\u003E\r\n\u003Cth\u003ELatency\u003C\u002Fth\u003E\r\n\u003Cth\u003EReciprocal throughput\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E3\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E5\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E6\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E \u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1-2\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E7\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.25\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E8\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0.5\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНо по поводу 2 последних примеров советую не спешить с выводами. За счет того, что двумерный массив является цельным типом, который инициализируется за 1 раз, память под весь массив выделится одним большим фрагментом. Это обеспечит лучшую работу кеша, который может в корне поменять ситуацию. В массиве массивов же память под каждый массив будет выделяться отдельно, поэтому велика вероятность, что массивы будут разнесены по памяти и вписаны в наиболее подходящие для них места.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОднако, возможно, для кого-то такое поведение будет более приемлемо. Возможно, в некоторых ситуациях известно, что время жизни этого экземпляра будет недолгим. И дабы не попасть в кучу больших объектов (которая для сборщика мусора является своего рода вторым поколением), где есть вероятность остаться на длительное время, гораздо большее, чем хотелось бы. Или после некоторого времени мы захотим работать только с определенными строками, а все остальное может быть очищено. Плюс планируется работать с типом обращаясь к рандомным непоследовательным элементам, когда кеш не сможет работать нормально.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакже при использовании массива массивов больше вероятность не спровоцировать сборщик мусора на компактинг (compacting), а обойтись свипом (sweep). Напоминалка: при фрагментации памяти, общий объем свободного места может быть достаточен для нового объекта, но непрерывного свободного участка нужного объема нет. В таком случае выполняется компактинг — перемещение объектов с целью дефрагментации. Если же мы в состоянии подобрать непрерывный участок свободной памяти для нового объекта, мы можем просто вписать объект в это свободное место. Это называется свипом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНадеюсь данная информация поможет вам сделать правильные выводы и обосновать свое мнение в дискуссии по поводу, что использовать.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":".net"},{"titleHtml":"c#"},{"titleHtml":"assembly"},{"titleHtml":"benchmark"},{"titleHtml":"производительность"},{"titleHtml":"индексатор"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450428\u002F6ef74d99a7b5fef0f692aa5f440a92ff\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450428\u002F6ef74d99a7b5fef0f692aa5f440a92ff\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450428\\\u002F\"},\"headline\":\"Индексаторы в C# под капотом: индексируем лучше Доу-Джонса\",\"datePublished\":\"2019-05-13T10:01:34+03:00\",\"dateModified\":\"2019-05-13T17:32:33+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Pavel Romash\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и харак...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450428\\\u002F#post-content-body\",\"about\":[\"h_hi\",\"h_net\",\"h_assembler\",\"h_csharp\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F22\\\u002Faw\\\u002Fng\\\u002F22awng79cibgcbel1r2v0ahwzc8.png\"]}","metaDescription":"Доброго времени суток. В данной статье я предлагаю ознакомиться с индексаторами в различных типах. Посмотрим код языка ассемблера для данных индексаторов и характеристики каждой инструкций по ее...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"hi,net,assembler,csharp"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>3D игра на three.js, nw.js / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450926\/"},"headline":"3D игра на three.js, nw.js","datePublished":"2019-05-07T23:13:34+03:00","dateModified":"2019-05-08T10:39:01+03:00","author":{"@type":"Person","name":"Юрий"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На это...","url":"https:\/\/habr.com\/ru\/post\/450926\/#post-content-body","about":["h_gamedev","h_canvas","h_webgl","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/1c\/tj\/vi\/1ctjvijgbjodkdjhwszw4atwgvm.jpeg","https:\/\/habrastorage.org\/webt\/ge\/xw\/da\/gexwday-od32dav2p4gb48p1nme.jpeg","https:\/\/habrastorage.org\/webt\/0i\/_k\/se\/0i_ksepjxwtge9qffnonerlnkes.jpeg","https:\/\/habrastorage.org\/webt\/jb\/zo\/y1\/jbzoy1gm1aomyfdgyp7udkziole.jpeg","https:\/\/habrastorage.org\/webt\/fz\/fm\/ql\/fzfmqlr4yfw3_tkm79xjwlb_ccw.jpeg","https:\/\/habrastorage.org\/webt\/lw\/7u\/m_\/lw7um_phbrcpp-yx78ec5ihw9jy.jpeg","https:\/\/habrastorage.org\/webt\/fd\/4c\/1-\/fd4c1-dofkcz8fsysds0pbi_-eo.jpeg","https:\/\/habrastorage.org\/webt\/kg\/fa\/be\/kgfabepvwgn_zxwfctnyh2rce7g.jpeg","https:\/\/habrastorage.org\/webt\/mr\/-g\/sr\/mr-gsrw4vfm6qjobtc5a36p432s.jpeg","https:\/\/habrastorage.org\/webt\/hk\/_2\/ed\/hk_2ed5imb6en8ffx6vtfx_7t-o.jpeg","https:\/\/habrastorage.org\/webt\/jp\/ev\/qq\/jpevqq5deupdq0zkm7naffok4fa.jpeg","https:\/\/habrastorage.org\/webt\/sf\/xd\/nn\/sfxdnnsvu3fpp9ukkzsius2vqsm.jpeg","https:\/\/habrastorage.org\/webt\/kw\/cf\/wm\/kwcfwmtwbwugbnnsb3gol4bshkk.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="3D игра на three.js, nw.js" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="3D игра на three.js, nw.js" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="3D игра на three.js, nw.js" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450926/71427691f4ca35d2fcf86cfb288e1877/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450926/71427691f4ca35d2fcf86cfb288e1877/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450926/71427691f4ca35d2fcf86cfb288e1877/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450926/71427691f4ca35d2fcf86cfb288e1877/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450926/71427691f4ca35d2fcf86cfb288e1877/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450926" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T20:13:34.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450926/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450926/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450926/71427691f4ca35d2fcf86cfb288e1877/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Kempston/" title="Kempston" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/f0c/f5b/a2c/f0cf5ba2c20f6fd565d0abb69cda5dec.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Kempston/" class="tm-user-info__username">
+      Kempston
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T20:13:34.000Z" title="2019-05-07, 23:13">7  мая  2019 в 23:13</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>3D игра на three.js, nw.js</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/gamedev/" class="tm-article-snippet__hubs-item-link"><span>Разработка игр</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/canvas/" class="tm-article-snippet__hubs-item-link"><span>Canvas</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/webgl/" class="tm-article-snippet__hubs-item-link"><span>WebGL</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также и в виде приложения под Windows (7-8-10) и разместить в различных магазинах. Конечно, в дальнейшем можно сделать сборки и под MacOS и Linux.<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/1c/tj/vi/1ctjvijgbjodkdjhwszw4atwgvm.jpeg" data-src="https://habrastorage.org/webt/1c/tj/vi/1ctjvijgbjodkdjhwszw4atwgvm.jpeg" data-blurred="true"/></div><br/>
+Код игры написан полностью на чистом javascript. Для отображения 3D графики в качестве связующего звена между скриптом и WebGL используется библиотека three.js. Однако, так было и в старой, браузерной версии. Самым главным в этом проекте для меня стал повод параллельно с игрой дописать собственную библиотеку, призванную дополнить three.js средствами удобной работы с объектами сцены, их анимацией и многими другими возможностями. Я тогда забросил ее на длительное время. Пришла пора к ней вернуться.<br/>
+<a name="habracut"></a><br/>
+<br/>
+Моя библиотека содержит удобные средства для добавления и удаления объектов со сцены, изменения свойств отдельных частей объектов (мешей), независимую от фреймрейта анимацию движения 3D объектов, шейдер небосвода с текстурой звездного неба в ночное время и многое другое. Расскажу о некоторых из них. Касательно небосвода, я реализовал его создание одной функцией, которая принимает ряд входных параметров, инициализирует шейдер, загружает текстуру облаков (если они нужны) и начинает обновлять небосвод с заданной итерацией.<br/>
+<br/>
+Впрочем, там все немного сложнее — для периодически, но редко вызываемых функций на самом деле работает еще одна конструкция, использующая setInterval(), в которую можно накидать событий вообще с разными интервалами, а она все это сведет к общему знаменателю и будет отрабатывать в нужное время нужные события по списку. Туда же можно кинуть и интервал обновления неба. А вот движение игровых 3D объектов для большей плавности уже реализовано через requestAnimationFrame()… <br/>
+<br/>
+Итак, раз уж мы заговорили о небе, то начнем с него.<br/>
+<br/>
+<h3>Небо</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/ge/xw/da/gexwday-od32dav2p4gb48p1nme.jpeg" data-src="https://habrastorage.org/webt/ge/xw/da/gexwday-od32dav2p4gb48p1nme.jpeg" data-blurred="true"/></div><br/>
+Добавление небосвода на сцену происходит следующим образом.<br/>
+<br/>
+Для начала необходимо добавить на сцену стандартный свет three.js с его максимальными (исходными) значениями яркости. Вся сцена с ее объектами, светом и прочими атрибутами, чтобы не захламлять глобальное пространство, будет храниться в пространстве имен apscene.<br/>
+<br/>
+<pre><code class="javascript">//Заполняющий свет (AmbLight) основной сцены
+apscene.AmbLight=new THREE.AmbientLight(0xFFFFFF);
+apscene.scene.add(apscene.AmbLight);
+
+//Заполняющий свет (AmbLightBk) фоновой сцены (она используется для отображения задников и неба)
+apscene.AmbLightBk=new THREE.AmbientLight(0xFFFFFF); apscene.sceneb.add(apscene.AmbLightBk);
+
+//Туман (цвет, интенсивность) основной сцены
+var SFog=new THREE.FogExp2(0xaaaaaa, 0.0007);
+apscene.scene.fog=SFog;
+
+//Туман (цвет, интенсивность) фоновой сцены
+var SFogBk=new THREE.FogExp2(0xa2a2aC, 0.0006);
+apscene.sceneb.fog=SFogBk;
+
+//Свечение атмосферы
+apscene.hemiLight=new THREE.HemisphereLight(0xFFFFFF, 0x999999, 1);
+apscene.scene.add(apscene.hemiLight);
+
+//Прямой солнечный свет основной и фоновой сцены задается так. У него много параметров и дополнительных свойств. Все это можно найти в документации по three.js и настроить так, как вам нужно, в том числе параметры теней, отбрасываемых объектами, освещенными этим светом...
+apscene.dirLight=new THREE.DirectionalLight(...)
+apscene.dirLightBk=new THREE.DirectionalLight(...)</code></pre><br/>
+После этого можно уже запускать анимацию небосвода с шейдерами, текстурами (блэкджеком и… ну, ладно) посредством одной моей функции:<br/>
+<br/>
+<pre><code class="javascript">m3d.graph.skydom.initWorld(
+
+	//Этот параметр используется, в случае, если надо сохранить резервную копию исходных значений освещения
+	{saveStart:false},
+	
+	{
+
+	//ltamb (light ambient, можно задать произвольное имя) - изменение заполняющего освещения всех объектов сцены
+	ltamb:{a1:-2, a2:8,  k1:0.2, k2:0.75,  obj:[
+		{obj:apscene.AmbLight.color, key:['r','g','b']}
+	]},
+	//a1 и a2 - это крайние значения высоты солнца (altitude, которая будет приходить из шейдера неба), в диапазоне которых любой параметр, заданный в obj, изменяется в своем диапазоне (k1..k2), где коэффициенты k1 и k2 - крайние значения изменяемого параметра в долях от исходного
+	//То есть, здесь под именем ltamb задано: при восходе солнца от -2 до 8 (этот параметр приходит из шейдера), свечение объектов сцены (apscene.AmbLight.color), задаваемое интенсивностью компонентов r, g и b, будет изменяться от 0.2 до 0.75 от его исходного значения (заданного выше, в инициализации света сцены, то есть от 0xFFFFFF).
+	//key - это список имен ключей, используемых для доступа к данному параметру в three.js
+
+	//Далее задаем изменение заполняющего освещения объектов фоновой сцены (apscene.AmbLightBk.color). При движении солнца (изменении его altitude) от -4 до 12 заполняющее освещение фоновой сцены будет плавно изменяться в диапазоне 0.3 ... 0.99 от его исходного значения. Ниже -4 оно, естественно, останется на уровне 0.3 от исходного, а выше 12 оно будет 0.99 от исходного
+	ltambb:{a1:-4, a2:12,  k1:0.3, k2:0.99,  obj:[
+		{obj:apscene.AmbLightBk.color, key:['r','g','b']}
+	]},
+				
+	//Интенсивность прямого солнечного света будет меняться так:
+	ltdir:{a1:-2, a2:8,  k1:0.0, k2:1,  obj:[
+		{obj:apscene.dirLight, key:['intensity']},
+		{obj:apscene.dirLightBk, key:['intensity']}
+	]},
+	//Интенсивность прямого солнечного света для фоновой сцены (apscene.dirLightBk) изменяется так же, как и для основной, поэтому мы просто задали его вторым параметром.
+	//Опять же, интенсивность данного вида света в three.js задается одним ключом - inensity (то есть, apscene.dirLight.intensity). То есть, надо смотреть, какими ключами и что задается в three.js и прописывать их здесь.
+
+	//Изменяющееся свечение атмосферы. На мой взгляд, его лучше всего уменьшить (до 0.15 от исходного) при просадке солнца с 12 до 8 (и, наоборот, увеличить восходе от 8 до 12), соответственно:
+	lthem:{a1:8, a2:12,  k1:0.15, k2:0.3,  obj:[
+		{obj:apscene.hemiLight, key:['intensity']}
+	]},
+	//Атмосферное свечение на фоновой сцене в данной игре не используется. Его видимость вполне реализуется шейдером небесной сферы.
+
+	//Далее задаем изменение цвета (яркости) тумана основной сцены:
+	ltambfog:{a1:-2, a2:8,  k1:0.4, k2:1,  obj:[
+		{obj:apscene.scene.fog.color, key:['r','g','b']}
+	]},
+
+	//И фоновой сцены:
+	ltambbfog:{a1:-2, a2:12,  k1:0.25, k2:1,  obj:[
+		{obj:apscene.sceneb.fog.color, key:['r','g','b']}
+	]},
+	
+	//Задаем изменение плотности тумана основной сцены. Пусть вечером, ночью и рано утром туман будет становиться менее плотным, чем днем.
+	ltambfogd:{a1:8, a2:12,  k1:0.2, k2:0.35,  obj:[
+		{obj:apscene.scene.fog, key:['density']}
+	]},
+
+	//Фоновой сцены
+	ltambbfogd:{a1:6, a2:12,  k1:0.2, k2:0.28,  obj:[
+		{obj:apscene.sceneb.fog, key:['density']}
+	]},
+
+	//Дополнительно можно изменять, в зависимости от времени суток (а точнее, от высоты солнца), яркость некоторых объектов, чтобы они не светились ночью, в данном случае, плоскостей-«задников» с изображением лесов и воды, которые у меня имеют имена skyplane1..6:
+	planeAmb:{a1:-5, a2:12,  k1:0.5, k2:1.0,  obj:[
+		{obj:apscene.user.skyplane1.material.color, key:['r','g','b']},
+		{obj:apscene.user.skyplane2.material.color, key:['r','g','b']},
+		{obj:apscene.user.skyplane3.material.color, key:['r','g','b']},
+		{obj:apscene.user.skyplane4.material.color, key:['r','g','b']},
+		{obj:apscene.user.skyplane5.material.color, key:['r','g','b']},
+		{obj:apscene.user.skyplane6.material.color, key:['r','g','b']}
+	]}
+
+	//Вообще, в зависимости от высоты солнца, можно менять в игре все, что угодно.
+
+};</code></pre><br/>
+В результате на сцене появится динамический небосвод с плавной сменой высоты солнца и, соответственно, сменой времени суток.<br/>
+<br/>
+Совсем не обязательно использовать на сцене все виды освещения. И не обязательно менять все параметры в зависимости от времени суток. Но, играя их яркостью, все же, можно создать довольно реалистичную картину смены дня и ночи. Именовать параметры можно как угодно, главное — соблюдать внутри них ключи объектов как они заданы в three.js.<br/>
+<br/>
+Как это выглядит, можно посмотреть на видео из демо сцены:<br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/PoAPy3ByPRU?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+Это другая игра. Просто в ней горизонт не захламлен различными объектами и поэтому работа данного скрипта видна нагляднее всего. Но в игре, о которой идет повествование, используется ровно тот же подход. Высокая скорость течения времени здесь задана только с целью демонстрации, а так время течет, само собой, медленнее, при том же шаге итерации обновления небосвода. В этой демке, кстати, задействован шейдер воды, тоже с изменяемыми параметрами, в зависимости от высоты солнца… Но я его еще не доработал.<br/>
+<br/>
+<h3>Производительность</h3><br/>
+Все это весьма мало требовательно к железу. Работая в браузере Chrome, оно загружает Xeon E5440 под LGA775 (и с 4 гигами оперативки) на 20%, а ядро видеокарты GT730 — на 45%. Но это чисто из-за анимации воды. Если же говорить об игре, где нет воды, но есть город, вот об этой:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/0i/_k/se/0i_ksepjxwtge9qffnonerlnkes.jpeg" data-src="https://habrastorage.org/webt/0i/_k/se/0i_ksepjxwtge9qffnonerlnkes.jpeg" data-blurred="true"/></div><br/>
+то в момент движения автомобиля по городу — проц 45%, видеокарта 50%. В принципе, с некоторой просадкой fps (на вид примерно до 30 кадров в секунду) это сносно работает даже на Pentium4 3GHz (1Gb RAM) и на планшете на Intel Atom 1.3GHz (2Gb RAM).<br/>
+<br/>
+Все это железо крайне слабое и другие подобные игры на WebGL и на HTML5, даже некоторые 2D, на нем у меня тормозят безбожно, вплоть до того, что в них становится невозможно играть. Как говорится, напиши игры сам, как тебе надо, и играй.<br/>
+<br/>
+<h3>Сцена</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/jb/zo/y1/jbzoy1gm1aomyfdgyp7udkziole.jpeg" data-src="https://habrastorage.org/webt/jb/zo/y1/jbzoy1gm1aomyfdgyp7udkziole.jpeg" data-blurred="true"/></div><br/>
+3D сцена в three.js представляет собой объект scene и массив его children — это, собственно, все 3D модели, загруженные в сцену. Чтобы не прописывать вызов загрузчика для каждой моделей, я решил, что вся сцена игры будет задаваться в виде некой конфигурации, одним большим ассоциативным массивом locd:{} (типа — location data), в котором будут содержаться все настройки — света, путей предзагружаемых текстур и изображений для интерфейса, путей ко всем моделям, которые должны загрузиться на сцену, и другое. В общем, это полная конфигурация сцены. Она задается один раз в js-файле игры и скармливается моему загрузчику сцены.<br/>
+<br/>
+И в этом объекте locd:{}, в частности, содержатся пути к отдельным 3D моделям, которые необходимо загрузить. Нулевым элементом идет общий путь, а затем — относительные пути для каждого объекта, типа:<br/>
+<pre><code class="javascript">['path/myObj', scale, y, x,z, r*Math.PI, 1, '', '', '', 1, ['','','',''], 'scene']</code></pre><br/>
+Подразумевается, что все модели экспортированы из 3D редактора в формат json, то есть, имеют пути типа path/myObj.json. Далее следует масштаб (поскольку в редакторе можно сохранить с неподходящим для данной игры масштабом), положение объекта по высоте (y), по осям (x) и (z), затем идет угол поворота ® модели по (y), ряд опциональных параметров и имя сцены, куда грузить модель — на основную сцену (scene) или на фоновую (sceneb).<br/>
+<br/>
+Да, надо было реализовать это не в виде простого, а в виде ассоциативного массива. Так непонятен порядок следования параметров и без документации, или хотя бы без вида функции, которая принимает эти параметры, не разберешься. Думаю, в будущем переделаю эти строки в ассоциативные массивы. А пока это выглядит так:<br/>
+<pre><code class="javascript">landobj: [ 
+	['gamePath/'],
+	[
+		['landscape/ground', 9.455, 0, 0,0, 0*Math.PI, 1, '', '', '', 1, ['','','',''], 'scene'],
+		['landscape/plants', 9.455, 0, 0,0, 0*Math.PI,1, '', '', '', 1, ['','','',''], 'scene'],
+		['landscape/buildings/house01', 2, 0, -420,420, -0.75*Math.PI, 1, '', '', '', 1, ['','','',''], 'scene'],
+		...
+	]
+],</code></pre><br/>
+Эти модели загружаются на сцену и размещаются в заданных здесь координатах в пространстве. В принципе, все модели могут загружаться как единый объект, то есть, экспортироваться из редактора как целая игровая сцена и загружаться в координаты (0;0;0). Тогда будет только одна строка: landscape/ground — у меня ground.json — это и есть основная часть игрового мира. Но в этом случае будет затруднительно манипулировать отдельными объектами сцены, так как нужно будет предварительно посмотреть в консоли браузера и запомнить какой из children этого огромного ground чем является. И далее обращаться к ним по номерам. Поэтому перемещаемые игровые модели лучше загружать отдельными объектами. Тогда к ним можно будет обращаться по именам из ассоциативного массива, который будет специально для этого автоматически создан.<br/>
+<br/>
+Полностью конфигурация игры может выглядеть, например, так:<br/>
+<pre><code class="javascript">locd:{
+	//имена
+	name: 'SeaBattle',
+	type: 'game',
+	menulabel: '',
+	
+	//координаты начальной позиции игрока
+	x:-420, y:70, z:-420,
+	rot: -0.5,
+
+	//дистанция захвата интерактивных объектов
+	intsdistance: 200,
+	
+	//свет
+	ambLtColor: 0xFFFFFF,
+	ambLtColorBk: 0xFFFFFF,
+	lightD: [0xDDDDDD,0.3,1000, 200000,0.3,-0.0003, -190,200000,-140,0,0,0, 200,-200,200,-200],
+	lightDBk: [0xFFFFFF,0.3,10000, 40000,0.3,-0.0035, -190,1200,-140,0,0,0, 50000,-50000,50000,-50000],
+	lightH: [0xFFFFFF,0x999999,1, 0,500,0],
+	
+	//контейнер для активных точечных источников света
+	lightsP: [], 
+	//конфигурация каждого точечного источника света
+	lightsPDynamicAr: [
+		[0xffffff, 4, [0, -2000, 0], [50, 1.5] ] //[[distance], [decay]]
+	],
+	//координаты всех возможных появлений на сцене точечных источников света (x,y,z)
+	userPointLights: [
+		[0, -2000, 0]
+	],
+	
+	//направленные источники света
+	lightsS: [
+		[0xffffbb, 1.0, [0, 250, 180], [0, 0, 180], 0.5, 600,600,600,  -0.0005]
+	],
+	
+	//настройки теней
+	shadowMapCullFace:0,
+	shadowsMode: 'all', //all,list,flag
+	
+	//предзагружаемые изображения
+	imagePaths: [
+		'game/img/',
+		'interface.png', 'interface2.png'
+	],
+	
+	//предзагружаемые 3D модели
+	landobj: [ 
+		['game/models/'],
+		[
+			['landscape/land',1, 0, 0,0, 0.0*Math.PI,1,'','','',1,['','','',''],'scene'],
+			['landscape/sbp',1, 0, 0,180, 1.0*Math.PI,1,'','','',1,['','','',''],'scene'],
+			['landscape/sbu',1, 0, 0,1120, 1.0*Math.PI,1,'','','',1,['','','',''],'scene']
+		]
+	],
+	
+	//догружаемые модели после загрузки основных и отображения сцены
+	staffobj: [
+		['game/models2/'],
+		[
+		]
+	],
+	
+	//интерактивные модели
+	progobj: [
+		[
+		]
+	]
+
+},</code></pre><br/>
+Да, все эти подмассивы лучше переделать в ассоциативные массивы, а то непонятен порядок следования параметров в них…<br/>
+<br/>
+<h3>3D модели</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/fz/fm/ql/fzfmqlr4yfw3_tkm79xjwlb_ccw.jpeg" data-src="https://habrastorage.org/webt/fz/fm/ql/fzfmqlr4yfw3_tkm79xjwlb_ccw.jpeg" data-blurred="true"/></div><br/>
+Еще из интересного. Загрузка моделей. Моя библиотека принимает 3D модели с текстурами и автоматически задает некоторые параметры их отдельным элементам (мешам), в зависимости от имен. Дело в том, что, если для модели, например, задано отбрасывать тень, то ее будет отбрасывать каждый меш, входящий в ее состав. Не всегда нужно, чтобы вся модель полностью отбрасывала тень или приобретала еще какие-либо свойства, сильно влияющие на производительность. Поэтому, если включить некий флаг сигнализирующий о том, что необходимо рассматривать каждый меш в отдельности, то при загрузке можно установить, какой меш будет обладать тем или иным свойством, а какой нет. Ну, например, совершенно нет необходимости в том, чтобы тень отбрасывала плоская горизонтальная крыша дома или множество каких-нибудь мелких несущественных деталей модели на фоне крупной. Все равно этих теней игроку будет не видно, а мощность видеопроцессора на их обработку будет задействована.<br/>
+<br/>
+Для этого в графическом редакторе (Блендере, Максе и т.д.) можно сразу задать имена мешей (в поле name объекта) по определенному правилу. Там должен быть символ подчеркивания ( _ ). В левой части должны идти условные управляющие символы, например: d — doubleside (меш двусторонний, в противном случае — односторонний), c (cast shadow) — отбрасывает тень, r (receive shadow) — принимает тени. То есть, например, имя меша трубы в составе дома может быть таким — cr_tube. Используются и многие другие буквы. Например, «l» — это коллайдер, то есть, стена дома, имея имя crl_wall01, не даст игроку пройти сквозь себя, а также будет отбрасывать и принимать тень. Делать коллайдерами, например крышу или ручку двери и тем самым ухудшать производительность нет никакой необходимости. Как вы уже поняли, моя библиотека при загрузке модели парсит имена мешей и придает им соответствующие свойства на сцене. Но для этого надо перед экспортом модели из 3D редактора грамотно именовать все меши. Это существенно сэкономит производительность.<br/>
+<br/>
+Все управляющие флаги для мешей внутри объекта:<br/>
+<blockquote>col_… — коллайдер (collider). Такой меш будет выведен просто как прозрачный, невидимый коллайдер. В редакторе он может выглядеть как угодно, важна только его форма. Например, это может быть параллелепипед вокруг всей модели, если нужно, чтобы игроку нельзя было пройти сквозь эту модель (здание, большой камень и т.д.).<br/>
+<br/>
+l_… — коллайдер-объект (collidable object). Придание любому мешу свойства коллайдера.<br/>
+<br/>
+i_… — пересечения (intersections). Меш будет добавлен в список intersections, что можно использовать, например, для клика на нем, то есть для придания интерактивности в игре.<br/>
+<br/>
+j_… тоже пересечения (intersections). То же, что выше, только более новая версия — с улучшенным алгоритмом поиска пересечений в игре и меньшим потреблением ресурсов.<br/>
+<br/>
+e_… — пересечения для дверей домов (entrance/exit). Исключает отработку пересечений по другим мешам объекта. Используется, если у домов нужно в какой-то момент сделать интерактивными только двери, исключив все остальные интерактивные элементы. При фантазии можно придумать этому и массу других применений.<br/>
+<br/>
+c_… — отбрасывать тени (cast shadows). Меш отбрасывает тень.<br/>
+<br/>
+r_… — принимать тени (receive shadows). Меш принимает тени от всех других мешей, которые их отбрасывают.<br/>
+<br/>
+d_… — двусторонний (double sided). Видимый с обеих сторон, текстура накладывается с обеих сторон.<br/>
+<br/>
+t_… — прозрачный (transparent), если для всего объекта задано значение alphatest в three.js.<br/>
+<br/>
+u_… — прозрачный (transparent), с фиксированной плотностью (0.4), если для всего объекта не задано alphatest в three.js.<br/>
+<br/>
+g_… — стекло (glass). Устанавливается фиксированная прозрачность (0.2).<br/>
+<br/>
+h_… — невидимый (hidden). Для частей объекта (мешей) которые должны быть скрыты при добавлении объекта на сцену. Заносится в список скрытых.<br/>
+<br/>
+v_… видимый (visible). Все объекты, кроме помеченных «h», и так видимы, но с флагом «v» они заносятся в отдельный список видимых для дальнейшего скрытия или других манипуляций.</blockquote><br/>
+В итоге, имя меша вполне может быть каким-нибудь таким: crltj_box1 (отбрасывает, принимает тень, коллайдер, прозрачный, интерактивный). А другой меш в составе той же модели: cr_box2 (только отбрасывает и принимает тени), Естественно, управляющие символы можно задавать в любом порядке. Таким образом, уже из редактора можно управлять будущим отображением частей объекта в игре, а точнее, некоторыми их свойствами, экономя, при этом, вычислительную мощность.<br/>
+<br/>
+<h3>Суть игры</h3><br/>
+Смысл, собственно, той игры, о которой повествование, заключается в том, чтобы передвигаться по периметру квадратного поля и покупать предприятия. Поле выполнено в виде 3D улиц. Экономическая модель игры существенно отличается от оных ей подобных. В моей игре, когда кто-то открывает предприятие, ваша ожидаемая прибыль падает. И наоборот, когда что-то открываете вы, то — возрастает. Все расчеты по прибыли и убыткам производятся в Налоговой инспекции на поле Старт. Также можно брать кредит в банке, торговать ценными бумагами и проворачивать ряд других дел. Я улучшил поведение ИИ по сравнению со старой версией. Переделал почти все 3D модели и текстуры игры и оптимизировал производительность. Сделал больше настроек и много чего еще.<br/>
+<br/>
+<h3>Анимация</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/lw/7u/m_/lw7um_phbrcpp-yx78ec5ihw9jy.jpeg" data-src="https://habrastorage.org/webt/lw/7u/m_/lw7um_phbrcpp-yx78ec5ihw9jy.jpeg" data-blurred="true"/></div><br/>
+Для анимации движения объектов игры используется простейший движок, который с заданной частотой кадров (она ограничена 60-ю) изменяет любые числовые параметры за заданный интервал времени, выдавая, при этом, в обработчик промежуточные значения. А в обработчике происходит, например, отображение модели.<br/>
+<br/>
+К примеру. Нам нужно переместить в пространстве объект obj из позиции (10;10;50) в точку (100;300;60). Задаем 3 параметра путем указания их начальных и конечных значений. Координата x у нас будет изменяться от 10 до 100, y — от 10 до 300 и z — от 50 до 60. И все это должно произойти, скажем, за 4 секунды.<br/>
+<pre><code class="javascript">m3d.lib.anim.add(
+	'moveobj', 1, 4000, 'and', {userpar1:111, obj:my3DObject},
+	[
+		{lim1:10, lim2:100,  sstart:10, sfin:100, t:0},
+		{lim1:10, lim2:300,  sstart:10, sfin:300, t:0},
+		{lim1:50, lim2:60,  sstart:50, sfin:60, t:0}
+	], 
+	function(){ myPeriodicFun(this); },
+	function(){ myFinishFun(this); }
+);
+
+m3d.lib.anim.play();</code></pre><br/>
+Первая строка из 5 параметров: moveobj — имя анимации (любое), 1- номер потока (можно анимировать объекты параллельно в неограниченном количестве потоков), 4000 — время анимации 4 секунды, and — пока неиспользуемый параметр, который в будущем будет отвечать за логику перехода между анимациями внутри одного потока, userpar — любой ассоциативный массив, который будет передаваться в обработчик как параметр, например, с предрасчитанным радиусом, синусами, косинусами и вообще любыми предрассчитанными для данной анимации величинами, чтобы их не вычислять во время каждой итерации. Или со ссылкой на 3D объект, который, собственно, и будем анимировать.<br/>
+<br/>
+Далее идет массив с изменяемыми параметрами. Мы уславливаемся, что первый параметр — это изменение координаты x, второй — y, третий — z. Прописываем для каждого в lim1 и lim2, от какой и до какой величины он будет изменяться. В sstart и sfin указываем те же значения. Здесь можно указать старт, например, с какой-либо другой величины, тогда параметр будет «прокручиваться» по кругу с нее и до нее же, минуя lim2 и начав новый «оборот» с lim1. Ну, например, это надо, если у нас анимация зациклена между какими-то величинами (lim1 и lim2), но стартовать нам ее надо не с начала (то есть, не с lim1), а с какого-то промежуточного значения.<br/>
+<br/>
+t:0 как раз задает то, что анимация по данному параметру выполняется 1 раз, согласно общему времени (4000), как бы, растягиваясь на него. Если мы зададим другое число, меньше основного времени, то данный параметр будет зациклен и будет повторяться вплоть до истечения времени основной анимации (4000). Это удобно, например, для задания вращения объекту, когда угол должен многократно пересекать рубеж 360 градусов и сбрасываться на 0.<br/>
+<br/>
+Далее идут 2 коллбека — тот, который будет выполняться с каждой итерацией и тот, что выполнится один раз по завершении всей анимации (точка выхода).<br/>
+<br/>
+Первый коллбек myPeriodicFun(this), например, может быт таким:<br/>
+<pre><code class="javascript">myPeriodicFun:function(self) {
+	var state=self.par[0].state, state_old=self.par[0].state_old;
+	var state2=self.par[1].state, state_old2=self.par[1].state_old;
+	var state3=self.par[2].state, state_old3=self.par[2].state_old;
+	if ((state!=state_old)||(state2!=state_old2)||(state3!=state_old3)) {
+		var obj=self.userpar.obj;
+		obj.position.x=state;
+		obj.position.y=state2;
+		obj.position.z=state3;
+		ap.cameraFollowObj(obj);
+	};
+},</code></pre><br/>
+То есть, при каждой итерации движения в эту функцию кидается параметр (self), содержащий рассчитанные промежуточные значения по всем заданным параметрам анимации: self.par[0].state, self.par[1].state, self.par[2].state. Это и есть наши x,y и z в текущий момент времени. Например, при длительности анимации 4 секунды, через 2 секунды x будет равен (100-10)/2 = 45. И так для всех координат. Соответственно, в myPeriodicFun просто отображаем наш объект в этих координатах. Если браузер начнет лагать или просто будет медленно работать на данном железе, не страшно: общее время анимации не изменится, упадет только фреймрейт и картинка превратится в слайд-шоу.<br/>
+<br/>
+Для чего проверять f ((state!=state_old)..., то есть, не равно ли новое вычисленное значение старому (в state_old запоминается вычисленное в предыдущей итерации), ну, например, для того, чтобы, если какой-то параметр изменился менее, чем на единицу, то не перерисовывать весь объект и не тратить на это мощь системы. А движок анимации выдает в state и state_old целые числа, которые, скажем, можно интерпретировать как шаг, равный пикселю. А если объект относительно предыдущего положения не сместился даже на 1 пиксель, то и нет необходимости его перерисовывать, поскольку его положение на экране не меняется.<br/>
+<br/>
+В общем, под анимацией понимается простое изменение любого количества параметров за определенное время с выдачей их промежуточных значений в коллбек-функцию. Например можно добавить еще 4-й параметр, который будет отвечать за угол вращения объекта. А можно вообще в одну анимацию запихнуть параметры множества объектов, если они движутся как-то единообразно. Можно ставить анимации в разные потоки, тогда они будут обрабатываться параллельно. Можно добавлять (m3d.lib.anim.add()) в один поток целую последовательность анимаций, и они выполнятся друг за другом. Причем, в каждом потоке будет своя независимая последовательность. Главное, чтобы хватило мощности системы и все не превратилось в слайд-шоу.<br/>
+<br/>
+P.S. Потоки здесь реализуются просто последовательным перебором при каждой итерации всех параллельных анимаций и вычислением для каждой из них промежуточных значений всех их параметров. Т.е., никакой реальной многопоточности в javascript нет.<br/>
+<br/>
+Этот же «движок» можно использовать и для анимации элементов интерфейса, задав им изменение 2-х координат на плоскости экрана и отображая эти элементы в коллбэк-функциях по получаемым промежуточным значениям. Что, собственно, и сделано в моей игре.<br/>
+<br/>
+<h3>Динамические тени</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/fd/4c/1-/fd4c1-dofkcz8fsysds0pbi_-eo.jpeg" data-src="https://habrastorage.org/webt/fd/4c/1-/fd4c1-dofkcz8fsysds0pbi_-eo.jpeg" data-blurred="true"/></div><br/>
+Отображение теней на всей сцене оказалось настолько расточительным занятием, что при их включении fps падал в несколько раз. Это никуда не годится. Будем отображать тени от объектов в неком небольшом квадрате вокруг игрока. Скажу сразу, что такой прием существенно повышает фреймрейт.<br/>
+<br/>
+Тут ничего сложного. Тени three.js отбрасываются внутри некой камеры теней, заданной параллелепипедом (shadowCameraLeft, shadowCameraRight, shadowCameraTop, shadowCameraBottom). Ее можно растянуть на всю сцену, а можно сделать так, чтобы она следовала за основной камерой и тени бы отбрасывались только вокруг нее. Единственное, чем я дополнил эту систему — это шагом, через который тени будут обновляться. Совершенно незачем делать это обновление при каждом подергивании игрока, так как это нагружает систему вычислениями. Пусть он преодолеет некоторое минимальное расстояние по любой из трех осей, чтобы тени обновились.<br/>
+<br/>
+В моей библиотеке при инициализации 3D мира создается объект contr, который в любой момент времени содержит координаты камеры. Также там можно задать пользовательский параметр contr.cameraForShadowStep, который содержит шаг позиции камеры, при котором меняется положение камеры теней.<br/>
+<br/>
+Если, скажем, параллелепипед камеры теней имеет размеры 700x700x700, то contr.cameraForShadowStep можно задать равным, например, 20. И при сдвиге игрока на 20 по любой из осей, исходная позиция вновь запомнится и обновятся тени вокруг игрока. Масштаб 3D мира может быть любым, в зависимости от того, в каком масштабе создавались все модели в 3D редакторе. И вполне вероятно, что вместо 700x700x700 и 20, нужно будет использовать 7000x7000x7000 и 200. Но сути это ни коем образом не меняет.<br/>
+<br/>
+К слову, при движении солнца по небосводу тени обновляются независимо от этой системы, так как там должно меняться направление теней. То есть, будут обновляться даже в том случае, если игрок стоит без движения. Там тупо вызывается функция обновления теней по периоду обновления неба.<br/>
+<br/>
+<h3>Система точечных источников света</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/kg/fa/be/kgfabepvwgn_zxwfctnyh2rce7g.jpeg" data-src="https://habrastorage.org/webt/kg/fa/be/kgfabepvwgn_zxwfctnyh2rce7g.jpeg" data-blurred="true"/></div><br/>
+Наличие более десятка точечных источников света на сцене так же сильно бьет по fps, как и динамические тени. И даже делает невозможной игру на стареньком «Пеньке». Причем, неважно, находятся ли эти источники в поле видимости игрока (дальность прорисовки мира может задаваться) или же на значительном удалении. Если они тупо присутствуют на сцене, то все работает медленно. Поэтому я предусмотрел в меню настроек игры, которое можно вызвать до загрузки 3D мира, варианты количества таких источников (2, 4 или 8) под названием «Свет фонарей».<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/mr/-g/sr/mr-gsrw4vfm6qjobtc5a36p432s.jpeg" data-src="https://habrastorage.org/webt/mr/-g/sr/mr-gsrw4vfm6qjobtc5a36p432s.jpeg" data-blurred="true"/></div><br/>
+Таким образом, в ночное время включить все расставленные на сцене фонари одновременно не получится. Выше, в описании схемы инициализации мира я привел массивы userPointLights и lightsPDynamicAr. В userPointLights задаются массивом координаты всех ламп фонарей на сцене. А lightsPDynamicAr содержит настройки света для всех 8 экземпляров. В зависимости от настройки количества фонарей, библиотека будет брать первые из них и добавлять на сцену в поле видимости игрока.<br/>
+<br/>
+Фактически во время движения игрока происходит поиск 2-8 ближайших к игроку фонарей по массиву координат фонарей userPointLights. И точечные источники света перемещаются под них. Иначе говоря, 2-8 ламп освещения следуют за игроком, окружая его. Причем, это тоже делается не при каждом кадре fps, а с задаваемым шагом. Совершенно незачем запускать функцию поиска 60 раз в секунду, тем более, если игрок не движется — тогда и пусть себе горят уже найденные вокруг него фонари.<br/>
+<br/>
+Вот так это выглядит в движении (Xeon E5440, GeForce GT730):<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/IPuJrH8EJ_E?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+<br/>
+<h3>Сборка дистрибутива</h3><br/>
+Поскольку я не использую никакую навороченную среду разработки (кроме продвинутого блокнота), то я написал bat-файл, в котором вызывается Google Closure Compiler для обфускации кода каждого *.js файла. А далее там же вызывается nwjc.exe из комплекта nw.js — для компиляции js в бинарники (*.bin). приведу пример для одного из файлов:<br/>
+<blockquote>java -jar D:\webservers\Closure\compiler.jar --js D:\webservers\proj\m3d\www\game\bus\bus.js --js_output_file D:\webservers\proj\nwProjects\bus\game\bus\bus.js<br/>
+<br/>
+cd D:\«Program Files»\Web2Exe\down\nwjs-sdk-v0.35.5-win-ia32<br/>
+<br/>
+D:\«Program Files»\Web2Exe\down\nwjs-sdk-v0.35.5-win-ia32\nwjc.exe D:\webservers\proj\nwProjects\bus\game\bus\bus.js D:\webservers\proj\nwProjects\bus\game\bus\bus.bin<br/>
+<br/>
+del D:\webservers\proj\nwProjects\bus\game\bus\bus.js</blockquote><br/>
+Далее я использую простенькую утилиту Web2Executable для создания exe файла со сборкой под Windows. Версию nw.js я выбрал 0.35.5, несмотря на то, что доступны и более новые. Какого-то эффекта я от них не заметил, кроме увеличения размера сборки.<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/hk/_2/ed/hk_2ed5imb6en8ffx6vtfx_7t-o.jpeg" data-src="https://habrastorage.org/webt/hk/_2/ed/hk_2ed5imb6en8ffx6vtfx_7t-o.jpeg" data-blurred="true"/></div><br/>
+Утилита способна сама закачивать выбранную версию nw.js в указанную папку. На выходе получается сборка. В исполняемом файле объемом 35 мегабайт содержится, собственно, сама игра. Все остальное — node-webkit. В папке locales содержатся файлы, очевидно, с какими-то ресурсами на разных языках. Я их поудалял и оставил только относящиеся к английскому. К слову, это ничуть не помешало запускать и русскоязычную версию игры (в игре язык переключается между русским и английским). Для чего все эти файлы тогда, я не знаю. Но без английского ничего не запускается.<br/>
+<br/>
+Вся сборка в итоге заняла 167 Мб.<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/jp/ev/qq/jpevqq5deupdq0zkm7naffok4fa.jpeg" data-src="https://habrastorage.org/webt/jp/ev/qq/jpevqq5deupdq0zkm7naffok4fa.jpeg" data-blurred="true"/></div><br/>
+Затем я упаковал все в один исполняемый файл-дистрибутив при помощи одной из бесплатных утилит, предназначенных для этой цели, и на выходе получил файл Businessman3DSetup.exe объемом 70,2 Мб.<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/sf/xd/nn/sfxdnnsvu3fpp9ukkzsius2vqsm.jpeg" data-src="https://habrastorage.org/webt/sf/xd/nn/sfxdnnsvu3fpp9ukkzsius2vqsm.jpeg" data-blurred="true"/></div><br/>
+<br/>
+<h3>Публикация</h3><br/>
+Я разослал сборку в разные магазины приложений. В большинстве из них еще идет процесс модерации моей игры. На данный момент ее пока опубликовал только itch. Предупреждаю сразу, игра платная, цена — $3. Покупок пока нет, но я пока еще и не занимался ее продвижением. GOG в публикации отказал, ссылаясь на то, что игра довольно простая и нишевая. Я, в принципе, согласен. Epic Store, думаю, сделает то же.<br/>
+<br/>
+Опубликованная версия игры — однопользовательская, с ботами в количестве от 1 до 5. Язык — русский и английский. Я намерен допилить сетевую версию. Но пока в раздумье — выпустить ее в виде такого же приложения или в форме браузерной веб-версии, доступной сразу и в Windows, и в Linux, и в iOs и в MacOs, и вообще везде, где браузер поддерживает WebGL. Ведь, по сути, webkit — браузер и игра прекрасно работает в нем, в Firefox, в Edge и даже в IE11 под Windows, правда, в последнем — весьма медленно.<br/>
+<br/>
+<h3>Выводы</h3><br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/kw/cf/wm/kwcfwmtwbwugbnnsb3gol4bshkk.jpeg" data-src="https://habrastorage.org/webt/kw/cf/wm/kwcfwmtwbwugbnnsb3gol4bshkk.jpeg" data-blurred="true"/></div><br/>
+Наверно я пока не готов выложить свой движок для всеобщего использования, поскольку он еще не закончен. Я собираюсь сначала написать на нем еще одну игру, как раз, ту, из демо-ролика, про корабли, потому что на той игре можно «обкатать» работу с шейдером воды. Кроме того, я планирую реализовать там простейший физический движок. Да и нужно еще допилить все остальные возможности, исправить все недочеты. И лучше это сделать на двух играх, чем на одной, поскольку возможны какие-то нюансы. А пока мой движок, на мой взгляд, все еще слишком сильно заточен под одну игру.<br/>
+<br/>
+Кроме того, я вообще не уверен в том, что все это кому-нибудь нужно. Если посмотреть трезво, то никто не пишет игры на чистом javascript. Но мне это нравится, потому что игры получаются довольно легкими и быстрыми для браузера. Они быстро загружаются, не требуют много оперативной памяти и довольно шустро работают, по сравнению с конкурентами на html5, даже если сравнивать с 2D. Думаю, я на всех этих своих наработках выпущу еще не одну браузерную (и не только) игру.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BJavaScript%5D" class="tm-tags-list__link">JavaScript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bthree.js%5D" class="tm-tags-list__link">three.js</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnw.js%5D" class="tm-tags-list__link">nw.js</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bweb-%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">web-программирование</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%B3%D1%80%D1%8B%5D" class="tm-tags-list__link">игры</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/gamedev/" class="tm-hubs-list__link">
+    Разработка игр
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/canvas/" class="tm-hubs-list__link">
+    Canvas
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/webgl/" class="tm-hubs-list__link">
+    WebGL
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 17: ↑16 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 17: ↑16 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+15</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">11K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    68
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Kempston/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/f0c/f5b/a2c/f0cf5ba2c20f6fd565d0abb69cda5dec.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 98 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    88
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Юрий</span> <a href="/ru/users/Kempston/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Kempston
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450926/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 20 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450926/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450926/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450926":{"id":"450926","timePublished":"2019-05-07T20:13:34+00:00","isCorporative":false,"lang":"ru","titleHtml":"3D игра на three.js, nw.js","leadData":{"textHtml":"Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также и в виде приложения под Windows (7-8-10) и разместить в различных магазинах. Конечно, в дальнейшем можно сделать сборки и под MacOS и Linux.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1c\u002Ftj\u002Fvi\u002F1ctjvijgbjodkdjhwszw4atwgvm.jpeg\" \u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nКод игры написан полностью на чистом javascript. Для отображения 3D графики в качестве связующего звена между скриптом и WebGL используется библиотека three.js. Однако, так было и в старой, браузерной версии. Самым главным в этом проекте для меня стал повод параллельно с игрой дописать собственную библиотеку, призванную дополнить three.js средствами удобной работы с объектами сцены, их анимацией и многими другими возможностями. Я тогда забросил ее на длительное время. Пришла пора к ней вернуться.\u003Cbr\u002F\u003E\r\n","imageUrl":null,"buttonTextHtml":null,"image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":88,"votesCount":98},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410014801294402","paymentPayPalMe":null,"paymentWebmoney":null},"id":"1077238","alias":"Kempston","fullname":"Юрий","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Ff0c\u002Ff5b\u002Fa2c\u002Ff0cf5ba2c20f6fd565d0abb69cda5dec.jpg","speciality":"Пользователь"},"statistics":{"commentsCount":20,"favoritesCount":68,"readingCount":11398,"score":15,"votesCount":17},"hubs":[{"relatedData":null,"id":"7773","alias":"gamedev","type":"collective","title":"Разработка игр","titleHtml":"Разработка игр","isProfiled":true},{"relatedData":null,"id":"17187","alias":"canvas","type":"collective","title":"Canvas","titleHtml":"Canvas","isProfiled":true},{"relatedData":null,"id":"18768","alias":"webgl","type":"collective","title":"WebGL","titleHtml":"WebGL","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EЯ решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также и в виде приложения под Windows (7-8-10) и разместить в различных магазинах. Конечно, в дальнейшем можно сделать сборки и под MacOS и Linux.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F1c\u002Ftj\u002Fvi\u002F1ctjvijgbjodkdjhwszw4atwgvm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1c\u002Ftj\u002Fvi\u002F1ctjvijgbjodkdjhwszw4atwgvm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nКод игры написан полностью на чистом javascript. Для отображения 3D графики в качестве связующего звена между скриптом и WebGL используется библиотека three.js. Однако, так было и в старой, браузерной версии. Самым главным в этом проекте для меня стал повод параллельно с игрой дописать собственную библиотеку, призванную дополнить three.js средствами удобной работы с объектами сцены, их анимацией и многими другими возможностями. Я тогда забросил ее на длительное время. Пришла пора к ней вернуться.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМоя библиотека содержит удобные средства для добавления и удаления объектов со сцены, изменения свойств отдельных частей объектов (мешей), независимую от фреймрейта анимацию движения 3D объектов, шейдер небосвода с текстурой звездного неба в ночное время и многое другое. Расскажу о некоторых из них. Касательно небосвода, я реализовал его создание одной функцией, которая принимает ряд входных параметров, инициализирует шейдер, загружает текстуру облаков (если они нужны) и начинает обновлять небосвод с заданной итерацией.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВпрочем, там все немного сложнее — для периодически, но редко вызываемых функций на самом деле работает еще одна конструкция, использующая setInterval(), в которую можно накидать событий вообще с разными интервалами, а она все это сведет к общему знаменателю и будет отрабатывать в нужное время нужные события по списку. Туда же можно кинуть и интервал обновления неба. А вот движение игровых 3D объектов для большей плавности уже реализовано через requestAnimationFrame()… \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, раз уж мы заговорили о небе, то начнем с него.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EНебо\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fge\u002Fxw\u002Fda\u002Fgexwday-od32dav2p4gb48p1nme.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fge\u002Fxw\u002Fda\u002Fgexwday-od32dav2p4gb48p1nme.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДобавление небосвода на сцену происходит следующим образом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля начала необходимо добавить на сцену стандартный свет three.js с его максимальными (исходными) значениями яркости. Вся сцена с ее объектами, светом и прочими атрибутами, чтобы не захламлять глобальное пространство, будет храниться в пространстве имен apscene.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u002F\u002FЗаполняющий свет (AmbLight) основной сцены\napscene.AmbLight=new THREE.AmbientLight(0xFFFFFF);\napscene.scene.add(apscene.AmbLight);\n\n\u002F\u002FЗаполняющий свет (AmbLightBk) фоновой сцены (она используется для отображения задников и неба)\napscene.AmbLightBk=new THREE.AmbientLight(0xFFFFFF); apscene.sceneb.add(apscene.AmbLightBk);\n\n\u002F\u002FТуман (цвет, интенсивность) основной сцены\nvar SFog=new THREE.FogExp2(0xaaaaaa, 0.0007);\napscene.scene.fog=SFog;\n\n\u002F\u002FТуман (цвет, интенсивность) фоновой сцены\nvar SFogBk=new THREE.FogExp2(0xa2a2aC, 0.0006);\napscene.sceneb.fog=SFogBk;\n\n\u002F\u002FСвечение атмосферы\napscene.hemiLight=new THREE.HemisphereLight(0xFFFFFF, 0x999999, 1);\napscene.scene.add(apscene.hemiLight);\n\n\u002F\u002FПрямой солнечный свет основной и фоновой сцены задается так. У него много параметров и дополнительных свойств. Все это можно найти в документации по three.js и настроить так, как вам нужно, в том числе параметры теней, отбрасываемых объектами, освещенными этим светом...\napscene.dirLight=new THREE.DirectionalLight(...)\napscene.dirLightBk=new THREE.DirectionalLight(...)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПосле этого можно уже запускать анимацию небосвода с шейдерами, текстурами (блэкджеком и… ну, ладно) посредством одной моей функции:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Em3d.graph.skydom.initWorld(\n\n\t\u002F\u002FЭтот параметр используется, в случае, если надо сохранить резервную копию исходных значений освещения\n\t{saveStart:false},\n\t\n\t{\n\n\t\u002F\u002Fltamb (light ambient, можно задать произвольное имя) - изменение заполняющего освещения всех объектов сцены\n\tltamb:{a1:-2, a2:8,  k1:0.2, k2:0.75,  obj:[\n\t\t{obj:apscene.AmbLight.color, key:['r','g','b']}\n\t]},\n\t\u002F\u002Fa1 и a2 - это крайние значения высоты солнца (altitude, которая будет приходить из шейдера неба), в диапазоне которых любой параметр, заданный в obj, изменяется в своем диапазоне (k1..k2), где коэффициенты k1 и k2 - крайние значения изменяемого параметра в долях от исходного\n\t\u002F\u002FТо есть, здесь под именем ltamb задано: при восходе солнца от -2 до 8 (этот параметр приходит из шейдера), свечение объектов сцены (apscene.AmbLight.color), задаваемое интенсивностью компонентов r, g и b, будет изменяться от 0.2 до 0.75 от его исходного значения (заданного выше, в инициализации света сцены, то есть от 0xFFFFFF).\n\t\u002F\u002Fkey - это список имен ключей, используемых для доступа к данному параметру в three.js\n\n\t\u002F\u002FДалее задаем изменение заполняющего освещения объектов фоновой сцены (apscene.AmbLightBk.color). При движении солнца (изменении его altitude) от -4 до 12 заполняющее освещение фоновой сцены будет плавно изменяться в диапазоне 0.3 ... 0.99 от его исходного значения. Ниже -4 оно, естественно, останется на уровне 0.3 от исходного, а выше 12 оно будет 0.99 от исходного\n\tltambb:{a1:-4, a2:12,  k1:0.3, k2:0.99,  obj:[\n\t\t{obj:apscene.AmbLightBk.color, key:['r','g','b']}\n\t]},\n\t\t\t\t\n\t\u002F\u002FИнтенсивность прямого солнечного света будет меняться так:\n\tltdir:{a1:-2, a2:8,  k1:0.0, k2:1,  obj:[\n\t\t{obj:apscene.dirLight, key:['intensity']},\n\t\t{obj:apscene.dirLightBk, key:['intensity']}\n\t]},\n\t\u002F\u002FИнтенсивность прямого солнечного света для фоновой сцены (apscene.dirLightBk) изменяется так же, как и для основной, поэтому мы просто задали его вторым параметром.\n\t\u002F\u002FОпять же, интенсивность данного вида света в three.js задается одним ключом - inensity (то есть, apscene.dirLight.intensity). То есть, надо смотреть, какими ключами и что задается в three.js и прописывать их здесь.\n\n\t\u002F\u002FИзменяющееся свечение атмосферы. На мой взгляд, его лучше всего уменьшить (до 0.15 от исходного) при просадке солнца с 12 до 8 (и, наоборот, увеличить восходе от 8 до 12), соответственно:\n\tlthem:{a1:8, a2:12,  k1:0.15, k2:0.3,  obj:[\n\t\t{obj:apscene.hemiLight, key:['intensity']}\n\t]},\n\t\u002F\u002FАтмосферное свечение на фоновой сцене в данной игре не используется. Его видимость вполне реализуется шейдером небесной сферы.\n\n\t\u002F\u002FДалее задаем изменение цвета (яркости) тумана основной сцены:\n\tltambfog:{a1:-2, a2:8,  k1:0.4, k2:1,  obj:[\n\t\t{obj:apscene.scene.fog.color, key:['r','g','b']}\n\t]},\n\n\t\u002F\u002FИ фоновой сцены:\n\tltambbfog:{a1:-2, a2:12,  k1:0.25, k2:1,  obj:[\n\t\t{obj:apscene.sceneb.fog.color, key:['r','g','b']}\n\t]},\n\t\n\t\u002F\u002FЗадаем изменение плотности тумана основной сцены. Пусть вечером, ночью и рано утром туман будет становиться менее плотным, чем днем.\n\tltambfogd:{a1:8, a2:12,  k1:0.2, k2:0.35,  obj:[\n\t\t{obj:apscene.scene.fog, key:['density']}\n\t]},\n\n\t\u002F\u002FФоновой сцены\n\tltambbfogd:{a1:6, a2:12,  k1:0.2, k2:0.28,  obj:[\n\t\t{obj:apscene.sceneb.fog, key:['density']}\n\t]},\n\n\t\u002F\u002FДополнительно можно изменять, в зависимости от времени суток (а точнее, от высоты солнца), яркость некоторых объектов, чтобы они не светились ночью, в данном случае, плоскостей-«задников» с изображением лесов и воды, которые у меня имеют имена skyplane1..6:\n\tplaneAmb:{a1:-5, a2:12,  k1:0.5, k2:1.0,  obj:[\n\t\t{obj:apscene.user.skyplane1.material.color, key:['r','g','b']},\n\t\t{obj:apscene.user.skyplane2.material.color, key:['r','g','b']},\n\t\t{obj:apscene.user.skyplane3.material.color, key:['r','g','b']},\n\t\t{obj:apscene.user.skyplane4.material.color, key:['r','g','b']},\n\t\t{obj:apscene.user.skyplane5.material.color, key:['r','g','b']},\n\t\t{obj:apscene.user.skyplane6.material.color, key:['r','g','b']}\n\t]}\n\n\t\u002F\u002FВообще, в зависимости от высоты солнца, можно менять в игре все, что угодно.\n\n};\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ результате на сцене появится динамический небосвод с плавной сменой высоты солнца и, соответственно, сменой времени суток.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСовсем не обязательно использовать на сцене все виды освещения. И не обязательно менять все параметры в зависимости от времени суток. Но, играя их яркостью, все же, можно создать довольно реалистичную картину смены дня и ночи. Именовать параметры можно как угодно, главное — соблюдать внутри них ключи объектов как они заданы в three.js.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак это выглядит, можно посмотреть на видео из демо сцены:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FPoAPy3ByPRU?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЭто другая игра. Просто в ней горизонт не захламлен различными объектами и поэтому работа данного скрипта видна нагляднее всего. Но в игре, о которой идет повествование, используется ровно тот же подход. Высокая скорость течения времени здесь задана только с целью демонстрации, а так время течет, само собой, медленнее, при том же шаге итерации обновления небосвода. В этой демке, кстати, задействован шейдер воды, тоже с изменяемыми параметрами, в зависимости от высоты солнца… Но я его еще не доработал.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПроизводительность\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВсе это весьма мало требовательно к железу. Работая в браузере Chrome, оно загружает Xeon E5440 под LGA775 (и с 4 гигами оперативки) на 20%, а ядро видеокарты GT730 — на 45%. Но это чисто из-за анимации воды. Если же говорить об игре, где нет воды, но есть город, вот об этой:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F0i\u002F_k\u002Fse\u002F0i_ksepjxwtge9qffnonerlnkes.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F0i\u002F_k\u002Fse\u002F0i_ksepjxwtge9qffnonerlnkes.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nто в момент движения автомобиля по городу — проц 45%, видеокарта 50%. В принципе, с некоторой просадкой fps (на вид примерно до 30 кадров в секунду) это сносно работает даже на Pentium4 3GHz (1Gb RAM) и на планшете на Intel Atom 1.3GHz (2Gb RAM).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВсе это железо крайне слабое и другие подобные игры на WebGL и на HTML5, даже некоторые 2D, на нем у меня тормозят безбожно, вплоть до того, что в них становится невозможно играть. Как говорится, напиши игры сам, как тебе надо, и играй.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EСцена\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fjb\u002Fzo\u002Fy1\u002Fjbzoy1gm1aomyfdgyp7udkziole.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjb\u002Fzo\u002Fy1\u002Fjbzoy1gm1aomyfdgyp7udkziole.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n3D сцена в three.js представляет собой объект scene и массив его children — это, собственно, все 3D модели, загруженные в сцену. Чтобы не прописывать вызов загрузчика для каждой моделей, я решил, что вся сцена игры будет задаваться в виде некой конфигурации, одним большим ассоциативным массивом locd:{} (типа — location data), в котором будут содержаться все настройки — света, путей предзагружаемых текстур и изображений для интерфейса, путей ко всем моделям, которые должны загрузиться на сцену, и другое. В общем, это полная конфигурация сцены. Она задается один раз в js-файле игры и скармливается моему загрузчику сцены.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ в этом объекте locd:{}, в частности, содержатся пути к отдельным 3D моделям, которые необходимо загрузить. Нулевым элементом идет общий путь, а затем — относительные пути для каждого объекта, типа:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E['path\u002FmyObj', scale, y, x,z, r*Math.PI, 1, '', '', '', 1, ['','','',''], 'scene']\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПодразумевается, что все модели экспортированы из 3D редактора в формат json, то есть, имеют пути типа path\u002FmyObj.json. Далее следует масштаб (поскольку в редакторе можно сохранить с неподходящим для данной игры масштабом), положение объекта по высоте (y), по осям (x) и (z), затем идет угол поворота ® модели по (y), ряд опциональных параметров и имя сцены, куда грузить модель — на основную сцену (scene) или на фоновую (sceneb).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДа, надо было реализовать это не в виде простого, а в виде ассоциативного массива. Так непонятен порядок следования параметров и без документации, или хотя бы без вида функции, которая принимает эти параметры, не разберешься. Думаю, в будущем переделаю эти строки в ассоциативные массивы. А пока это выглядит так:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Elandobj: [ \n\t['gamePath\u002F'],\n\t[\n\t\t['landscape\u002Fground', 9.455, 0, 0,0, 0*Math.PI, 1, '', '', '', 1, ['','','',''], 'scene'],\n\t\t['landscape\u002Fplants', 9.455, 0, 0,0, 0*Math.PI,1, '', '', '', 1, ['','','',''], 'scene'],\n\t\t['landscape\u002Fbuildings\u002Fhouse01', 2, 0, -420,420, -0.75*Math.PI, 1, '', '', '', 1, ['','','',''], 'scene'],\n\t\t...\n\t]\n],\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭти модели загружаются на сцену и размещаются в заданных здесь координатах в пространстве. В принципе, все модели могут загружаться как единый объект, то есть, экспортироваться из редактора как целая игровая сцена и загружаться в координаты (0;0;0). Тогда будет только одна строка: landscape\u002Fground — у меня ground.json — это и есть основная часть игрового мира. Но в этом случае будет затруднительно манипулировать отдельными объектами сцены, так как нужно будет предварительно посмотреть в консоли браузера и запомнить какой из children этого огромного ground чем является. И далее обращаться к ним по номерам. Поэтому перемещаемые игровые модели лучше загружать отдельными объектами. Тогда к ним можно будет обращаться по именам из ассоциативного массива, который будет специально для этого автоматически создан.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПолностью конфигурация игры может выглядеть, например, так:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Elocd:{\n\t\u002F\u002Fимена\n\tname: 'SeaBattle',\n\ttype: 'game',\n\tmenulabel: '',\n\t\n\t\u002F\u002Fкоординаты начальной позиции игрока\n\tx:-420, y:70, z:-420,\n\trot: -0.5,\n\n\t\u002F\u002Fдистанция захвата интерактивных объектов\n\tintsdistance: 200,\n\t\n\t\u002F\u002Fсвет\n\tambLtColor: 0xFFFFFF,\n\tambLtColorBk: 0xFFFFFF,\n\tlightD: [0xDDDDDD,0.3,1000, 200000,0.3,-0.0003, -190,200000,-140,0,0,0, 200,-200,200,-200],\n\tlightDBk: [0xFFFFFF,0.3,10000, 40000,0.3,-0.0035, -190,1200,-140,0,0,0, 50000,-50000,50000,-50000],\n\tlightH: [0xFFFFFF,0x999999,1, 0,500,0],\n\t\n\t\u002F\u002Fконтейнер для активных точечных источников света\n\tlightsP: [], \n\t\u002F\u002Fконфигурация каждого точечного источника света\n\tlightsPDynamicAr: [\n\t\t[0xffffff, 4, [0, -2000, 0], [50, 1.5] ] \u002F\u002F[[distance], [decay]]\n\t],\n\t\u002F\u002Fкоординаты всех возможных появлений на сцене точечных источников света (x,y,z)\n\tuserPointLights: [\n\t\t[0, -2000, 0]\n\t],\n\t\n\t\u002F\u002Fнаправленные источники света\n\tlightsS: [\n\t\t[0xffffbb, 1.0, [0, 250, 180], [0, 0, 180], 0.5, 600,600,600,  -0.0005]\n\t],\n\t\n\t\u002F\u002Fнастройки теней\n\tshadowMapCullFace:0,\n\tshadowsMode: 'all', \u002F\u002Fall,list,flag\n\t\n\t\u002F\u002Fпредзагружаемые изображения\n\timagePaths: [\n\t\t'game\u002Fimg\u002F',\n\t\t'interface.png', 'interface2.png'\n\t],\n\t\n\t\u002F\u002Fпредзагружаемые 3D модели\n\tlandobj: [ \n\t\t['game\u002Fmodels\u002F'],\n\t\t[\n\t\t\t['landscape\u002Fland',1, 0, 0,0, 0.0*Math.PI,1,'','','',1,['','','',''],'scene'],\n\t\t\t['landscape\u002Fsbp',1, 0, 0,180, 1.0*Math.PI,1,'','','',1,['','','',''],'scene'],\n\t\t\t['landscape\u002Fsbu',1, 0, 0,1120, 1.0*Math.PI,1,'','','',1,['','','',''],'scene']\n\t\t]\n\t],\n\t\n\t\u002F\u002Fдогружаемые модели после загрузки основных и отображения сцены\n\tstaffobj: [\n\t\t['game\u002Fmodels2\u002F'],\n\t\t[\n\t\t]\n\t],\n\t\n\t\u002F\u002Fинтерактивные модели\n\tprogobj: [\n\t\t[\n\t\t]\n\t]\n\n},\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДа, все эти подмассивы лучше переделать в ассоциативные массивы, а то непонятен порядок следования параметров в них…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E3D модели\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffz\u002Ffm\u002Fql\u002Ffzfmqlr4yfw3_tkm79xjwlb_ccw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffz\u002Ffm\u002Fql\u002Ffzfmqlr4yfw3_tkm79xjwlb_ccw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЕще из интересного. Загрузка моделей. Моя библиотека принимает 3D модели с текстурами и автоматически задает некоторые параметры их отдельным элементам (мешам), в зависимости от имен. Дело в том, что, если для модели, например, задано отбрасывать тень, то ее будет отбрасывать каждый меш, входящий в ее состав. Не всегда нужно, чтобы вся модель полностью отбрасывала тень или приобретала еще какие-либо свойства, сильно влияющие на производительность. Поэтому, если включить некий флаг сигнализирующий о том, что необходимо рассматривать каждый меш в отдельности, то при загрузке можно установить, какой меш будет обладать тем или иным свойством, а какой нет. Ну, например, совершенно нет необходимости в том, чтобы тень отбрасывала плоская горизонтальная крыша дома или множество каких-нибудь мелких несущественных деталей модели на фоне крупной. Все равно этих теней игроку будет не видно, а мощность видеопроцессора на их обработку будет задействована.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля этого в графическом редакторе (Блендере, Максе и т.д.) можно сразу задать имена мешей (в поле name объекта) по определенному правилу. Там должен быть символ подчеркивания ( _ ). В левой части должны идти условные управляющие символы, например: d — doubleside (меш двусторонний, в противном случае — односторонний), c (cast shadow) — отбрасывает тень, r (receive shadow) — принимает тени. То есть, например, имя меша трубы в составе дома может быть таким — cr_tube. Используются и многие другие буквы. Например, «l» — это коллайдер, то есть, стена дома, имея имя crl_wall01, не даст игроку пройти сквозь себя, а также будет отбрасывать и принимать тень. Делать коллайдерами, например крышу или ручку двери и тем самым ухудшать производительность нет никакой необходимости. Как вы уже поняли, моя библиотека при загрузке модели парсит имена мешей и придает им соответствующие свойства на сцене. Но для этого надо перед экспортом модели из 3D редактора грамотно именовать все меши. Это существенно сэкономит производительность.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВсе управляющие флаги для мешей внутри объекта:\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003Ecol_… — коллайдер (collider). Такой меш будет выведен просто как прозрачный, невидимый коллайдер. В редакторе он может выглядеть как угодно, важна только его форма. Например, это может быть параллелепипед вокруг всей модели, если нужно, чтобы игроку нельзя было пройти сквозь эту модель (здание, большой камень и т.д.).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nl_… — коллайдер-объект (collidable object). Придание любому мешу свойства коллайдера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\ni_… — пересечения (intersections). Меш будет добавлен в список intersections, что можно использовать, например, для клика на нем, то есть для придания интерактивности в игре.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nj_… тоже пересечения (intersections). То же, что выше, только более новая версия — с улучшенным алгоритмом поиска пересечений в игре и меньшим потреблением ресурсов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\ne_… — пересечения для дверей домов (entrance\u002Fexit). Исключает отработку пересечений по другим мешам объекта. Используется, если у домов нужно в какой-то момент сделать интерактивными только двери, исключив все остальные интерактивные элементы. При фантазии можно придумать этому и массу других применений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nc_… — отбрасывать тени (cast shadows). Меш отбрасывает тень.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nr_… — принимать тени (receive shadows). Меш принимает тени от всех других мешей, которые их отбрасывают.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nd_… — двусторонний (double sided). Видимый с обеих сторон, текстура накладывается с обеих сторон.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nt_… — прозрачный (transparent), если для всего объекта задано значение alphatest в three.js.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nu_… — прозрачный (transparent), с фиксированной плотностью (0.4), если для всего объекта не задано alphatest в three.js.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\ng_… — стекло (glass). Устанавливается фиксированная прозрачность (0.2).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nh_… — невидимый (hidden). Для частей объекта (мешей) которые должны быть скрыты при добавлении объекта на сцену. Заносится в список скрытых.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nv_… видимый (visible). Все объекты, кроме помеченных «h», и так видимы, но с флагом «v» они заносятся в отдельный список видимых для дальнейшего скрытия или других манипуляций.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nВ итоге, имя меша вполне может быть каким-нибудь таким: crltj_box1 (отбрасывает, принимает тень, коллайдер, прозрачный, интерактивный). А другой меш в составе той же модели: cr_box2 (только отбрасывает и принимает тени), Естественно, управляющие символы можно задавать в любом порядке. Таким образом, уже из редактора можно управлять будущим отображением частей объекта в игре, а точнее, некоторыми их свойствами, экономя, при этом, вычислительную мощность.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EСуть игры\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nСмысл, собственно, той игры, о которой повествование, заключается в том, чтобы передвигаться по периметру квадратного поля и покупать предприятия. Поле выполнено в виде 3D улиц. Экономическая модель игры существенно отличается от оных ей подобных. В моей игре, когда кто-то открывает предприятие, ваша ожидаемая прибыль падает. И наоборот, когда что-то открываете вы, то — возрастает. Все расчеты по прибыли и убыткам производятся в Налоговой инспекции на поле Старт. Также можно брать кредит в банке, торговать ценными бумагами и проворачивать ряд других дел. Я улучшил поведение ИИ по сравнению со старой версией. Переделал почти все 3D модели и текстуры игры и оптимизировал производительность. Сделал больше настроек и много чего еще.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EАнимация\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Flw\u002F7u\u002Fm_\u002Flw7um_phbrcpp-yx78ec5ihw9jy.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flw\u002F7u\u002Fm_\u002Flw7um_phbrcpp-yx78ec5ihw9jy.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДля анимации движения объектов игры используется простейший движок, который с заданной частотой кадров (она ограничена 60-ю) изменяет любые числовые параметры за заданный интервал времени, выдавая, при этом, в обработчик промежуточные значения. А в обработчике происходит, например, отображение модели.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК примеру. Нам нужно переместить в пространстве объект obj из позиции (10;10;50) в точку (100;300;60). Задаем 3 параметра путем указания их начальных и конечных значений. Координата x у нас будет изменяться от 10 до 100, y — от 10 до 300 и z — от 50 до 60. И все это должно произойти, скажем, за 4 секунды.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Em3d.lib.anim.add(\n\t'moveobj', 1, 4000, 'and', {userpar1:111, obj:my3DObject},\n\t[\n\t\t{lim1:10, lim2:100,  sstart:10, sfin:100, t:0},\n\t\t{lim1:10, lim2:300,  sstart:10, sfin:300, t:0},\n\t\t{lim1:50, lim2:60,  sstart:50, sfin:60, t:0}\n\t], \n\tfunction(){ myPeriodicFun(this); },\n\tfunction(){ myFinishFun(this); }\n);\n\nm3d.lib.anim.play();\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПервая строка из 5 параметров: moveobj — имя анимации (любое), 1- номер потока (можно анимировать объекты параллельно в неограниченном количестве потоков), 4000 — время анимации 4 секунды, and — пока неиспользуемый параметр, который в будущем будет отвечать за логику перехода между анимациями внутри одного потока, userpar — любой ассоциативный массив, который будет передаваться в обработчик как параметр, например, с предрасчитанным радиусом, синусами, косинусами и вообще любыми предрассчитанными для данной анимации величинами, чтобы их не вычислять во время каждой итерации. Или со ссылкой на 3D объект, который, собственно, и будем анимировать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее идет массив с изменяемыми параметрами. Мы уславливаемся, что первый параметр — это изменение координаты x, второй — y, третий — z. Прописываем для каждого в lim1 и lim2, от какой и до какой величины он будет изменяться. В sstart и sfin указываем те же значения. Здесь можно указать старт, например, с какой-либо другой величины, тогда параметр будет «прокручиваться» по кругу с нее и до нее же, минуя lim2 и начав новый «оборот» с lim1. Ну, например, это надо, если у нас анимация зациклена между какими-то величинами (lim1 и lim2), но стартовать нам ее надо не с начала (то есть, не с lim1), а с какого-то промежуточного значения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nt:0 как раз задает то, что анимация по данному параметру выполняется 1 раз, согласно общему времени (4000), как бы, растягиваясь на него. Если мы зададим другое число, меньше основного времени, то данный параметр будет зациклен и будет повторяться вплоть до истечения времени основной анимации (4000). Это удобно, например, для задания вращения объекту, когда угол должен многократно пересекать рубеж 360 градусов и сбрасываться на 0.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее идут 2 коллбека — тот, который будет выполняться с каждой итерацией и тот, что выполнится один раз по завершении всей анимации (точка выхода).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервый коллбек myPeriodicFun(this), например, может быт таким:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003EmyPeriodicFun:function(self) {\n\tvar state=self.par[0].state, state_old=self.par[0].state_old;\n\tvar state2=self.par[1].state, state_old2=self.par[1].state_old;\n\tvar state3=self.par[2].state, state_old3=self.par[2].state_old;\n\tif ((state!=state_old)||(state2!=state_old2)||(state3!=state_old3)) {\n\t\tvar obj=self.userpar.obj;\n\t\tobj.position.x=state;\n\t\tobj.position.y=state2;\n\t\tobj.position.z=state3;\n\t\tap.cameraFollowObj(obj);\n\t};\n},\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТо есть, при каждой итерации движения в эту функцию кидается параметр (self), содержащий рассчитанные промежуточные значения по всем заданным параметрам анимации: self.par[0].state, self.par[1].state, self.par[2].state. Это и есть наши x,y и z в текущий момент времени. Например, при длительности анимации 4 секунды, через 2 секунды x будет равен (100-10)\u002F2 = 45. И так для всех координат. Соответственно, в myPeriodicFun просто отображаем наш объект в этих координатах. Если браузер начнет лагать или просто будет медленно работать на данном железе, не страшно: общее время анимации не изменится, упадет только фреймрейт и картинка превратится в слайд-шоу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля чего проверять f ((state!=state_old)..., то есть, не равно ли новое вычисленное значение старому (в state_old запоминается вычисленное в предыдущей итерации), ну, например, для того, чтобы, если какой-то параметр изменился менее, чем на единицу, то не перерисовывать весь объект и не тратить на это мощь системы. А движок анимации выдает в state и state_old целые числа, которые, скажем, можно интерпретировать как шаг, равный пикселю. А если объект относительно предыдущего положения не сместился даже на 1 пиксель, то и нет необходимости его перерисовывать, поскольку его положение на экране не меняется.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ общем, под анимацией понимается простое изменение любого количества параметров за определенное время с выдачей их промежуточных значений в коллбек-функцию. Например можно добавить еще 4-й параметр, который будет отвечать за угол вращения объекта. А можно вообще в одну анимацию запихнуть параметры множества объектов, если они движутся как-то единообразно. Можно ставить анимации в разные потоки, тогда они будут обрабатываться параллельно. Можно добавлять (m3d.lib.anim.add()) в один поток целую последовательность анимаций, и они выполнятся друг за другом. Причем, в каждом потоке будет своя независимая последовательность. Главное, чтобы хватило мощности системы и все не превратилось в слайд-шоу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nP.S. Потоки здесь реализуются просто последовательным перебором при каждой итерации всех параллельных анимаций и вычислением для каждой из них промежуточных значений всех их параметров. Т.е., никакой реальной многопоточности в javascript нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭтот же «движок» можно использовать и для анимации элементов интерфейса, задав им изменение 2-х координат на плоскости экрана и отображая эти элементы в коллбэк-функциях по получаемым промежуточным значениям. Что, собственно, и сделано в моей игре.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EДинамические тени\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffd\u002F4c\u002F1-\u002Ffd4c1-dofkcz8fsysds0pbi_-eo.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffd\u002F4c\u002F1-\u002Ffd4c1-dofkcz8fsysds0pbi_-eo.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nОтображение теней на всей сцене оказалось настолько расточительным занятием, что при их включении fps падал в несколько раз. Это никуда не годится. Будем отображать тени от объектов в неком небольшом квадрате вокруг игрока. Скажу сразу, что такой прием существенно повышает фреймрейт.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТут ничего сложного. Тени three.js отбрасываются внутри некой камеры теней, заданной параллелепипедом (shadowCameraLeft, shadowCameraRight, shadowCameraTop, shadowCameraBottom). Ее можно растянуть на всю сцену, а можно сделать так, чтобы она следовала за основной камерой и тени бы отбрасывались только вокруг нее. Единственное, чем я дополнил эту систему — это шагом, через который тени будут обновляться. Совершенно незачем делать это обновление при каждом подергивании игрока, так как это нагружает систему вычислениями. Пусть он преодолеет некоторое минимальное расстояние по любой из трех осей, чтобы тени обновились.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ моей библиотеке при инициализации 3D мира создается объект contr, который в любой момент времени содержит координаты камеры. Также там можно задать пользовательский параметр contr.cameraForShadowStep, который содержит шаг позиции камеры, при котором меняется положение камеры теней.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли, скажем, параллелепипед камеры теней имеет размеры 700x700x700, то contr.cameraForShadowStep можно задать равным, например, 20. И при сдвиге игрока на 20 по любой из осей, исходная позиция вновь запомнится и обновятся тени вокруг игрока. Масштаб 3D мира может быть любым, в зависимости от того, в каком масштабе создавались все модели в 3D редакторе. И вполне вероятно, что вместо 700x700x700 и 20, нужно будет использовать 7000x7000x7000 и 200. Но сути это ни коем образом не меняет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК слову, при движении солнца по небосводу тени обновляются независимо от этой системы, так как там должно меняться направление теней. То есть, будут обновляться даже в том случае, если игрок стоит без движения. Там тупо вызывается функция обновления теней по периоду обновления неба.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EСистема точечных источников света\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fkg\u002Ffa\u002Fbe\u002Fkgfabepvwgn_zxwfctnyh2rce7g.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkg\u002Ffa\u002Fbe\u002Fkgfabepvwgn_zxwfctnyh2rce7g.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНаличие более десятка точечных источников света на сцене так же сильно бьет по fps, как и динамические тени. И даже делает невозможной игру на стареньком «Пеньке». Причем, неважно, находятся ли эти источники в поле видимости игрока (дальность прорисовки мира может задаваться) или же на значительном удалении. Если они тупо присутствуют на сцене, то все работает медленно. Поэтому я предусмотрел в меню настроек игры, которое можно вызвать до загрузки 3D мира, варианты количества таких источников (2, 4 или 8) под названием «Свет фонарей».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmr\u002F-g\u002Fsr\u002Fmr-gsrw4vfm6qjobtc5a36p432s.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmr\u002F-g\u002Fsr\u002Fmr-gsrw4vfm6qjobtc5a36p432s.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nТаким образом, в ночное время включить все расставленные на сцене фонари одновременно не получится. Выше, в описании схемы инициализации мира я привел массивы userPointLights и lightsPDynamicAr. В userPointLights задаются массивом координаты всех ламп фонарей на сцене. А lightsPDynamicAr содержит настройки света для всех 8 экземпляров. В зависимости от настройки количества фонарей, библиотека будет брать первые из них и добавлять на сцену в поле видимости игрока.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФактически во время движения игрока происходит поиск 2-8 ближайших к игроку фонарей по массиву координат фонарей userPointLights. И точечные источники света перемещаются под них. Иначе говоря, 2-8 ламп освещения следуют за игроком, окружая его. Причем, это тоже делается не при каждом кадре fps, а с задаваемым шагом. Совершенно незачем запускать функцию поиска 60 раз в секунду, тем более, если игрок не движется — тогда и пусть себе горят уже найденные вокруг него фонари.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот так это выглядит в движении (Xeon E5440, GeForce GT730):\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FIPuJrH8EJ_E?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EСборка дистрибутива\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПоскольку я не использую никакую навороченную среду разработки (кроме продвинутого блокнота), то я написал bat-файл, в котором вызывается Google Closure Compiler для обфускации кода каждого *.js файла. А далее там же вызывается nwjc.exe из комплекта nw.js — для компиляции js в бинарники (*.bin). приведу пример для одного из файлов:\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003Ejava -jar D:\\webservers\\Closure\\compiler.jar --js D:\\webservers\\proj\\m3d\\www\\game\\bus\\bus.js --js_output_file D:\\webservers\\proj\\nwProjects\\bus\\game\\bus\\bus.js\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\ncd D:\\«Program Files»\\Web2Exe\\down\\nwjs-sdk-v0.35.5-win-ia32\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nD:\\«Program Files»\\Web2Exe\\down\\nwjs-sdk-v0.35.5-win-ia32\\nwjc.exe D:\\webservers\\proj\\nwProjects\\bus\\game\\bus\\bus.js D:\\webservers\\proj\\nwProjects\\bus\\game\\bus\\bus.bin\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\ndel D:\\webservers\\proj\\nwProjects\\bus\\game\\bus\\bus.js\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nДалее я использую простенькую утилиту Web2Executable для создания exe файла со сборкой под Windows. Версию nw.js я выбрал 0.35.5, несмотря на то, что доступны и более новые. Какого-то эффекта я от них не заметил, кроме увеличения размера сборки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fhk\u002F_2\u002Fed\u002Fhk_2ed5imb6en8ffx6vtfx_7t-o.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fhk\u002F_2\u002Fed\u002Fhk_2ed5imb6en8ffx6vtfx_7t-o.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nУтилита способна сама закачивать выбранную версию nw.js в указанную папку. На выходе получается сборка. В исполняемом файле объемом 35 мегабайт содержится, собственно, сама игра. Все остальное — node-webkit. В папке locales содержатся файлы, очевидно, с какими-то ресурсами на разных языках. Я их поудалял и оставил только относящиеся к английскому. К слову, это ничуть не помешало запускать и русскоязычную версию игры (в игре язык переключается между русским и английским). Для чего все эти файлы тогда, я не знаю. Но без английского ничего не запускается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВся сборка в итоге заняла 167 Мб.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fjp\u002Fev\u002Fqq\u002Fjpevqq5deupdq0zkm7naffok4fa.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjp\u002Fev\u002Fqq\u002Fjpevqq5deupdq0zkm7naffok4fa.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЗатем я упаковал все в один исполняемый файл-дистрибутив при помощи одной из бесплатных утилит, предназначенных для этой цели, и на выходе получил файл Businessman3DSetup.exe объемом 70,2 Мб.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fsf\u002Fxd\u002Fnn\u002Fsfxdnnsvu3fpp9ukkzsius2vqsm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fsf\u002Fxd\u002Fnn\u002Fsfxdnnsvu3fpp9ukkzsius2vqsm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПубликация\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЯ разослал сборку в разные магазины приложений. В большинстве из них еще идет процесс модерации моей игры. На данный момент ее пока опубликовал только itch. Предупреждаю сразу, игра платная, цена — $3. Покупок пока нет, но я пока еще и не занимался ее продвижением. GOG в публикации отказал, ссылаясь на то, что игра довольно простая и нишевая. Я, в принципе, согласен. Epic Store, думаю, сделает то же.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОпубликованная версия игры — однопользовательская, с ботами в количестве от 1 до 5. Язык — русский и английский. Я намерен допилить сетевую версию. Но пока в раздумье — выпустить ее в виде такого же приложения или в форме браузерной веб-версии, доступной сразу и в Windows, и в Linux, и в iOs и в MacOs, и вообще везде, где браузер поддерживает WebGL. Ведь, по сути, webkit — браузер и игра прекрасно работает в нем, в Firefox, в Edge и даже в IE11 под Windows, правда, в последнем — весьма медленно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EВыводы\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fkw\u002Fcf\u002Fwm\u002Fkwcfwmtwbwugbnnsb3gol4bshkk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkw\u002Fcf\u002Fwm\u002Fkwcfwmtwbwugbnnsb3gol4bshkk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНаверно я пока не готов выложить свой движок для всеобщего использования, поскольку он еще не закончен. Я собираюсь сначала написать на нем еще одну игру, как раз, ту, из демо-ролика, про корабли, потому что на той игре можно «обкатать» работу с шейдером воды. Кроме того, я планирую реализовать там простейший физический движок. Да и нужно еще допилить все остальные возможности, исправить все недочеты. И лучше это сделать на двух играх, чем на одной, поскольку возможны какие-то нюансы. А пока мой движок, на мой взгляд, все еще слишком сильно заточен под одну игру.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКроме того, я вообще не уверен в том, что все это кому-нибудь нужно. Если посмотреть трезво, то никто не пишет игры на чистом javascript. Но мне это нравится, потому что игры получаются довольно легкими и быстрыми для браузера. Они быстро загружаются, не требуют много оперативной памяти и довольно шустро работают, по сравнению с конкурентами на html5, даже если сравнивать с 2D. Думаю, я на всех этих своих наработках выпущу еще не одну браузерную (и не только) игру.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"JavaScript"},{"titleHtml":"three.js"},{"titleHtml":"nw.js"},{"titleHtml":"web-программирование"},{"titleHtml":"игры"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450926\u002F71427691f4ca35d2fcf86cfb288e1877\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450926\u002F71427691f4ca35d2fcf86cfb288e1877\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450926\\\u002F\"},\"headline\":\"3D игра на three.js, nw.js\",\"datePublished\":\"2019-05-07T23:13:34+03:00\",\"dateModified\":\"2019-05-08T10:39:01+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Юрий\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На это...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450926\\\u002F#post-content-body\",\"about\":[\"h_gamedev\",\"h_canvas\",\"h_webgl\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1c\\\u002Ftj\\\u002Fvi\\\u002F1ctjvijgbjodkdjhwszw4atwgvm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fge\\\u002Fxw\\\u002Fda\\\u002Fgexwday-od32dav2p4gb48p1nme.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F0i\\\u002F_k\\\u002Fse\\\u002F0i_ksepjxwtge9qffnonerlnkes.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjb\\\u002Fzo\\\u002Fy1\\\u002Fjbzoy1gm1aomyfdgyp7udkziole.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffz\\\u002Ffm\\\u002Fql\\\u002Ffzfmqlr4yfw3_tkm79xjwlb_ccw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flw\\\u002F7u\\\u002Fm_\\\u002Flw7um_phbrcpp-yx78ec5ihw9jy.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffd\\\u002F4c\\\u002F1-\\\u002Ffd4c1-dofkcz8fsysds0pbi_-eo.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkg\\\u002Ffa\\\u002Fbe\\\u002Fkgfabepvwgn_zxwfctnyh2rce7g.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmr\\\u002F-g\\\u002Fsr\\\u002Fmr-gsrw4vfm6qjobtc5a36p432s.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fhk\\\u002F_2\\\u002Fed\\\u002Fhk_2ed5imb6en8ffx6vtfx_7t-o.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjp\\\u002Fev\\\u002Fqq\\\u002Fjpevqq5deupdq0zkm7naffok4fa.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fsf\\\u002Fxd\\\u002Fnn\\\u002Fsfxdnnsvu3fpp9ukkzsius2vqsm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkw\\\u002Fcf\\\u002Fwm\\\u002Fkwcfwmtwbwugbnnsb3gol4bshkk.jpeg\"]}","metaDescription":"Я решил выпустить новую версию своей старой браузерной игры, которая на протяжении пары лет пользовалась успехом в качестве приложения в социальных сетях. На этот раз я задался целью оформить ее также...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"gamedev,canvas,webgl"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

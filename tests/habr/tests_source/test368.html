@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Получаем абсолютные курсы из парных кросс-курсов валют / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450368\/"},"headline":"Получаем абсолютные курсы из парных кросс-курсов валют","datePublished":"2019-05-03T19:53:43+03:00","dateModified":"2019-05-04T01:18:39+03:00","author":{"@type":"Person","name":"Алексей Енин"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Проект: &ldquo;Абсолютный курс валют&rdquo; Введение О проекте Проект &ldquo;Абсолютный курс валют&rdquo; занимается анализом парных валютных курсов, выделением из них абсолютных валют...","url":"https:\/\/habr.com\/ru\/post\/450368\/#post-content-body","about":["h_data_mining","h_maths","h_finance","f_develop","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/vn\/rd\/f5\/vnrdf5pyefybms4mhguvp_e5ch4.png","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/972\/aaa\/097\/972aaa097a74e3bac6458a55a74b2705.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/df9\/946\/1d4\/df99461d4fc1fe40ede5061070419e3f.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/32d\/664\/fc1\/32d664fc136eea6f877a34b55f73aea1.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/2e0\/3f7\/6ad\/2e03f76ade41471fab182c3af580f11d.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/f18\/636\/743\/f18636743fc56bd36496a7c763c37a39.svg","https:\/\/habrastorage.org\/webt\/2z\/jb\/im\/2zjbimb_r2yfa5xzill2bwjsj2s.png","https:\/\/habrastorage.org\/webt\/_b\/4x\/yv\/_b4xyvk7iyswxhjgihriavgcpnk.png","https:\/\/habrastorage.org\/webt\/xs\/w0\/tl\/xsw0tlf34ffvoajysn3ihlkuoii.png","https:\/\/habrastorage.org\/webt\/gh\/69\/gm\/gh69gm8huurm0z7db4h1hqz4bb4.png","https:\/\/habrastorage.org\/webt\/2l\/ae\/q6\/2laeq6tuux4l6hxjjnbo-owtkt0.png","https:\/\/habrastorage.org\/webt\/0v\/wr\/ss\/0vwrss-ftqxdx4b84dritdt6f8y.png","https:\/\/habrastorage.org\/webt\/fp\/aa\/yq\/fpaayqurcgr3nendxrskmx-uzhe.png","https:\/\/habrastorage.org\/webt\/8z\/u1\/ls\/8zu1lsyutjzpsvtzfclvwwgjtpq.png","https:\/\/habrastorage.org\/webt\/yg\/rs\/aj\/ygrsajv-mvvhhpmcxjfwxibqliw.png","https:\/\/habrastorage.org\/webt\/kb\/wl\/dv\/kbwldv4ddayqus0kqzc4qcnd1jg.png","https:\/\/habrastorage.org\/webt\/lq\/te\/po\/lqtepok5dw4kzvl1toloj6oq-rc.png","https:\/\/habrastorage.org\/webt\/2k\/dn\/zw\/2kdnzwald8s16a7lkbubznjlxis.png","https:\/\/habrastorage.org\/webt\/fl\/6n\/0x\/fl6n0xpjcq0s7z6ykuvb4cdtti4.png","https:\/\/habrastorage.org\/webt\/q-\/v1\/fl\/q-v1flcpkx6imxqvreysxwjou0c.png","https:\/\/habrastorage.org\/webt\/wn\/hs\/72\/wnhs72rotmomeq6y-i7rmsk-ag0.png","https:\/\/habrastorage.org\/webt\/r1\/v-\/bs\/r1v-bs8mw2tklb5jzgq-aogwp6o.png","https:\/\/habrastorage.org\/webt\/gl\/fb\/93\/glfb93nbhbvzogoe0j639qc_uw8.png","https:\/\/habrastorage.org\/webt\/fj\/su\/iv\/fjsuivnltl7_gv2vqyweye9yauc.png","https:\/\/habrastorage.org\/webt\/gk\/qm\/ik\/gkqmiknfqea9-atmm-zgyp4otns.png","https:\/\/habrastorage.org\/webt\/j4\/p7\/ou\/j4p7oux-7g4vtrrjovw5mpqopgg.png","https:\/\/habrastorage.org\/webt\/qy\/jn\/cj\/qyjncj4f-w199vzi4zq7qr47oja.png","https:\/\/habrastorage.org\/webt\/sc\/hf\/tt\/schftt_dcbqaswwbv0qcpnsoa2i.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Получаем абсолютные курсы из парных кросс-курсов валют" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Получаем абсолютные курсы из парных кросс-курсов валют" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Получаем абсолютные курсы из парных кросс-курсов валют" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Проект: “Абсолютный курс валют”
+Введение
+О проекте
+Проект “Абсолютный курс валют” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. 
+В..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Проект: “Абсолютный курс валют”
+Введение
+О проекте
+Проект “Абсолютный курс валют” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. 
+В..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Проект: “Абсолютный курс валют”
+Введение
+О проекте
+Проект “Абсолютный курс валют” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. 
+В..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Проект: “Абсолютный курс валют”
+Введение
+О проекте
+Проект “Абсолютный курс валют” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. 
+В..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Проект: “Абсолютный курс валют”
+Введение
+О проекте
+Проект “Абсолютный курс валют” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. 
+В..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450368/2fecdeb28a8fb74e99daf6e13edbf1a7/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450368/2fecdeb28a8fb74e99daf6e13edbf1a7/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450368/2fecdeb28a8fb74e99daf6e13edbf1a7/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450368/2fecdeb28a8fb74e99daf6e13edbf1a7/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450368/2fecdeb28a8fb74e99daf6e13edbf1a7/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450368" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-03T16:53:43.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450368/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450368/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450368/2fecdeb28a8fb74e99daf6e13edbf1a7/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/eavprog/" title="eavprog" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_blue"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/eavprog/" class="tm-user-info__username">
+      eavprog
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-03T16:53:43.000Z" title="2019-05-03, 19:53">3  мая  2019 в 19:53</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Получаем абсолютные курсы из парных кросс-курсов валют</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/data_mining/" class="tm-article-snippet__hubs-item-link"><span>Data Mining</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/maths/" class="tm-article-snippet__hubs-item-link"><span>Математика</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/finance/" class="tm-article-snippet__hubs-item-link"><span>Финансы в IT</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/vn/rd/f5/vnrdf5pyefybms4mhguvp_e5ch4.png" data-width="500"/></div><br/>
+<p><em>Проект: “Абсолютный курс валют”</em></p><br/>
+<h2 id="vvedenie">Введение</h2><br/>
+<h3 id="o-proekte">О проекте</h3><br/>
+<p>Проект “<a href="https://www.abscur.ru/">Абсолютный курс валют</a>” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. </p><br/>
+<p>В рамках проекта получена методика преобразования от парных курсов к абсолютным валютным курсам. Для этого определена абсолютная валюта ABS. Курсы всех имеющихся валют выражаются в отношении к ABS.</p><br/>
+<p>В проекте исследуются свойства абсолютных курсов. Исследуются различные применения абсолютных курсов валют.</p><a name="habracut"></a><br/>
+<h3 id="zachem-eto">Зачем это...?</h3><br/>
+<p>На сегодняшний день уже вышли несколько статей по применению метода абсолютных валютных курсов. Привожу две последние.</p><br/>
+<p>В статье “<a href="https://docs.google.com/document/d/1ri4kZ4Ysn7aMOdUmofzE820eis8AHF48ONDES2SnWcM/edit?usp=sharing">Исследование связанности мировых валют через корреляцию абсолютных курсов</a>” описывается одно из применений технологии абсолютных валютных курсов. Дается формальный метод вычисления связи между различными валютами.</p><br/>
+<p>В статье “<a href="https://docs.google.com/document/d/1IAL9UhrwtnO25ms3EBuQ4pAWmjIb4vSK1Oo6tw4efIw/edit?usp=sharing">Портфельный метод Марковица применительно к валютному рынку</a>” дается описывается недоступная ранее технология оптимизации валютного портфеля.</p><br/>
+<p>На этих двух применениях исследования не останавливаются. Проверяются другие применения технологии. Если у читателей есть свои видения о прочих возможных применениях их можно писать в обсуждениях к статье. Ссылки на места обсуждений приводятся.</p><br/>
+<h3 id="metodika-polucheniya-absolyutnyh-kursov">Методика получения абсолютных курсов</h3><br/>
+<p>Детальное описание технологии приводится в статье “<a href="https://drive.google.com/file/d/0B57trm8LmQPjbWQyMS1xOWZPeVJhaGp3Tk5sX2RRMW1yMW1J/view">От валютных пар к абсолютным курсам валют</a>”.</p><br/>
+<p>В основе метода лежит разбор представления парных курсов. Парный валютный курс — это отношение ценности одной валюты к ценности другой. А если ввести некоторую универсальную абсолютную валюту ABS, то имеет место быть следующее преобразование.</p><br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/972/aaa/097/972aaa097a74e3bac6458a55a74b2705.svg" alt="$EUR/USD=\frac{EUR}{USD}=\frac{EUR/ABS}{USD/ABS}$" data-tex="display"/></p><br/>
+<p>Парный валютный курс есть отношение двух абсолютных курсов. </p><br/>
+<p>Для того чтобы получить абсолютные курсы нужно сначала прологарифмировать это уравнение.</p><br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/df9/946/1d4/df99461d4fc1fe40ede5061070419e3f.svg" alt="$ln(EUR/USD)=ln(\frac{EUR/ABS}{USD/ABS})=ln(EUR/ABS)-ln(USD/ABS)$" data-tex="display"/></p><br/>
+<p>Соответственно можно видеть, что логарифмы парных курсов линейно связаны с логарифмами абсолютных курсов валют. И значит можно поискать между ними простое линейное преобразование. Логарифмы абсолютных курсов можно умножать на матрицу прямого преобразования и получать логарифмы парных курсов.</p><br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/32d/664/fc1/32d664fc136eea6f877a34b55f73aea1.svg" alt="$ln(X_{abs})\times M_{pr}=ln(X_{par})$" data-tex="display"/></p><br/>
+<p>И стоит ожидать что существует <a href="http://stu.scask.ru/book_tc.php?id=19">обратное линейное преобразование</a> для перехода от парных курсов к абсолютным.</p><br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/2e0/3f7/6ad/2e03f76ade41471fab182c3af580f11d.svg" alt="$ln(X_{par}) \times M_{obr}=ln(X_{obr})$" data-tex="display"/></p><br/>
+<p>Соответственно вся методика получения абсолютных курсов записывается следующим образом.</p><br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/f18/636/743/f18636743fc56bd36496a7c763c37a39.svg" alt="$X_{abs}=e^{ln(X_{par}) \times M_{obr}}$" data-tex="display"/></p><br/>
+<p>Нужно просто логарифмировать парные курсы, умножать их на <a href="https://ru.wikipedia.org/wiki/%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">обратную матрицу</a> и применять экспоненту.</p><br/>
+<h3 id="o-probleme">О проблеме</h3><br/>
+<p>Выше было описано как получать абсолютные курсы из парных. Это делается при помощи линейного преобразования логарифмированных парных курсов и возврата через экспоненту.<br/>
+Прямое линейное преобразование от абсолютных курсов к парным производится при помощи прямой матрицы. Получить ее весьма просто. Она состоит из нулей, единиц и минус единиц (“0” — нет связи пары и валюты, “+1” — валюта в числителе пары, “-1” — валюта в знаменателе пары). Ниже можно будет ее увидеть.</p><br/>
+<p>Наибольшую проблему представляет получение <a href="https://ru.wikipedia.org/wiki/%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">обратной матрицы</a> (точнее необходимо использовать <a href="https://ru.wikipedia.org/wiki/%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">псевдообратное преобразование</a>). С ее помощью можно перейти от парных курсов к абсолютным. Но получение этой матрицы нетривиально вследствии <a href="https://ru.wikipedia.org/wiki/%D0%92%D1%8B%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">вырожденности матрицы</a> прямого преобразования. </p><br/>
+<p>В предыдущей статье дается описание одного метода получения такой матрицы. В статье “<a href="https://drive.google.com/open?id=1OEFXtAB-YBNoiVMkDk24wtsg9B_e7Dg5BnMaOTRbA1g">Детали перехода от парных (относительных) валютных курсов к абсолютным. Работа над ошибками</a>” раскрывается метод получения абсолютных курсов. В эксперименте мы воспользовались приемом перехода к линейно-независимым компонентам. Таким образом удалось избавится от вырожденности в псевдообратном преобразовании.</p><br/>
+<h3 id="metod-nastoyaschego-eksperimenta">Метод настоящего эксперимента</h3><br/>
+<p>В этой работе предлагается другой метод ухода от вырожденности в матрице прямого преобразования. В настоящее время используются парные курсы которые предоставляет <a href="http://export.rbc.ru/">РБЦ</a>. Там 88 пар валют для экспорта. Для них существует следующая матрица прямого преобразования.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/2z/jb/im/2zjbimb_r2yfa5xzill2bwjsj2s.png"/><br/>
+<p>Белое в ней нули, синее -1 и красное это единицы. Но она вырожденная. Т.е. от нее не получится обратная матрица.</p><br/>
+<p>При проведении предыдущего эксперимента удалось заметить что диагонально подобная матрица имеет обратное преобразование. Соответственно было сделано предложение перейти к <a href="https://fortrader.org/birzhevoj-slovar/birzhevie-termini/kross-kurs.html">кросс-курсам</a> и <a href="https://ru.wikipedia.org/wiki/%D0%9D%D0%B5%D0%B2%D1%8B%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">невырожденной матрице</a> преобразования. </p><br/>
+<p>Весь расчет проводился в системе <a href="https://ru.wikipedia.org/wiki/Mathematica">Wolfram Mathematica</a>. Система позволяет <a href="https://reference.wolfram.com/language/ref/FinancialData.html">получать кросс-курсы прямо внутри системы</a>.</p><br/>
+<h2 id="detali-eksperimenta-malyy-primer">Детали эксперимента (малый пример)</h2><br/>
+<p>Всего имеются 45 валют. Для наглядности сначала рассмотрим случай с малым количеством валют и валютных пар. Расчет доступен по <a href="https://www.wolframcloud.com/objects/eavprog/Published/diagCross.nb">ссылке</a> в облаке <a href="http://www.wolfram.com/cloud/">Wolfram Cloud</a>.</p><br/>
+<h3 id="spisok-valyut-i-valyutnyh-par">Список валют и валютных пар</h3><br/>
+<p>Были отобраны следующие 10 валют: AUD, CAD, HKD, JPY, SEK, USD, CHF, EUR, CNY, CZK. Из них определили 9 валютных пар: AUD/CAD, CAD/HKD, HKD/JPY, JPY/SEK, SEK/USD, USD/CHF, CHF/EUR, EUR/CNY, CNY/CZK.</p><br/>
+<h3 id="matrica-pryamogo-preobrazovaniya">Матрица прямого преобразования</h3><br/>
+<p>Матрица прямого преобразования имеет следующий вид.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/_b/4x/yv/_b4xyvk7iyswxhjgihriavgcpnk.png"/><br/>
+<p>Расцвеченный вариант выглядит так.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/xs/w0/tl/xsw0tlf34ffvoajysn3ihlkuoii.png"/><br/>
+<p>Размер матрицы — 10х9. <a href="https://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D0%BD%D0%B3_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B">Ранг</a> матрицы — 9. Матрица невырожденная. Можно свободно искать обратную к ней.</p><br/>
+<h3 id="matrica-obratnogo-preobrazovaniya-ot-parnyh-kursov-k-absolyutnym">Матрица обратного преобразования от парных курсов к абсолютным</h3><br/>
+<p>В результате применения <a href="https://ru.wikipedia.org/wiki/%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">метода псевдообратного преобразования</a> получаем обратную матрицу.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gh/69/gm/gh69gm8huurm0z7db4h1hqz4bb4.png"/><br/>
+<p>В расцвеченном виде так.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/2l/ae/q6/2laeq6tuux4l6hxjjnbo-owtkt0.png"/><br/>
+<p>Размер обратной матрицы — 9х10.</p><br/>
+<h3 id="proverka-obratnoy-matricy">Проверка обратной матрицы</h3><br/>
+<p>Прежде чем двигаться дальше проверяем полученную матрицу. Для этого обратную матрицу умножим на прямую. Результат видим следующий.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/0v/wr/ss/0vwrss-ftqxdx4b84dritdt6f8y.png"/><br/>
+<p>И в расцвеченном виде.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fp/aa/yq/fpaayqurcgr3nendxrskmx-uzhe.png"/><br/>
+<p>Действительно получили <a href="https://ru.wikipedia.org/wiki/%D0%94%D0%B8%D0%B0%D0%B3%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0">единичную диагональную матрицу</a>. Значит обратная верна.</p><br/>
+<p>В <a href="https://drive.google.com/open?id=1OEFXtAB-YBNoiVMkDk24wtsg9B_e7Dg5BnMaOTRbA1g">предыдущем эксперименте</a> проводили проверку метода получения абсолютных курсов. Для этого из полученных абсолютных курсов восстанавливали парные курсы через матрицу прямого преобразования. Дальше сравнивали восстановленные парные курсы с исходными и смотрели ошибку. В нашем случае ошибка при такой проверке будет в пределах машинной точности.</p><br/>
+<h3 id="proverka-na-realnyh-kursah">Проверка на реальных курсах</h3><br/>
+<p>Теперь посмотрим результаты на реальных данных. Возьмем реальные котировки парных валютных кросс-курсов и рассчитаем для них абсолютные курсы.</p><br/>
+<p>Были взяты ежедневные кросс-курсы за 30 дней с 28.03.2019 по 27.04.2019. </p><br/>
+<h3 id="kursy-valyutnyh-par">Курсы валютных пар</h3><br/>
+<p>Вот матрица парных валютных курсов. Это столбцы парных валютных курсов для следующих пар AUD/CAD, CAD/HKD, HKD/JPY, JPY/SEK, SEK/USD, USD/CHF, CHF/EUR, EUR/CNY, CNY/CZK.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/8z/u1/ls/8zu1lsyutjzpsvtzfclvwwgjtpq.png"/><br/>
+<p>Вот график курса для одной из валютных пар.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/yg/rs/aj/ygrsajv-mvvhhpmcxjfwxibqliw.png"/><br/>
+<p>Средние значения для парных курсов получились следующими.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/kb/wl/dv/kbwldv4ddayqus0kqzc4qcnd1jg.png"/><br/>
+<p>Теперь попробуем оценить вариативность данных. Для этого используем <a href="https://ru.wikipedia.org/wiki/%D0%A1%D1%80%D0%B5%D0%B4%D0%BD%D0%B5%D0%BA%D0%B2%D0%B0%D0%B4%D1%80%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D0%BE%D1%82%D0%BA%D0%BB%D0%BE%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5">стандартное отклонение</a>. Но для стандартизации разделим его на среднее значение. Результаты отобразим на диаграмме.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/lq/te/po/lqtepok5dw4kzvl1toloj6oq-rc.png"/><br/>
+<p>Как можно видеть стандартные отклонения для каждой валютной пары находятся в пределах 0, 2% — 0, 9% от средних значений парных курсов.</p><br/>
+<h3 id="absolyutnye-kursy">Абсолютные курсы</h3><br/>
+<p>Теперь вычисляем для парных абсолютные курсы (методика описана в разделе Методика получения абсолютных курсов). После вычислений получаем следующие ряды данных.<br/>
+Это столбцы абсолютных курсов для следующих валют AUD, CAD, HKD, JPY, SEK, USD, CHF, EUR, CNY, CZK.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/2k/dn/zw/2kdnzwald8s16a7lkbubznjlxis.png"/><br/>
+<p>Приведем график абсолютного курса одной из валют.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fl/6n/0x/fl6n0xpjcq0s7z6ykuvb4cdtti4.png"/><br/>
+<p>Средние значения для абсолютных курсов следующие.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/q-/v1/fl/q-v1flcpkx6imxqvreysxwjou0c.png"/><br/>
+<p>Оценим вариативность абсолютных валютных курсов. </p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/wn/hs/72/wnhs72rotmomeq6y-i7rmsk-ag0.png"/><br/>
+<p>Стандартные отклонения для абсолютных курсов каждой валюты находятся в пределах 0, 2% — 0, 7% от средних значений абсолютных курсов. И это согласуется с данными для валютных пар.</p><br/>
+<h2 id="rezultaty-na-vseh-valyutah">Результаты на всех валютах</h2><br/>
+<p>Теперь рассмотрим результаты на всех имеющихся валютах. Исходник расчета доступен по <a href="https://www.wolframcloud.com/objects/eavprog/Published/diagCrossAll.nb">ссылке</a>.</p><br/>
+<h3 id="spisok-valyut-i-valyutnyh-par-1">Список валют и валютных пар</h3><br/>
+<p>Полный перечень содержит следующие 45 валют: AUD, CAD, HKD, JPY, SEK, USD, CHF, EUR, CNY, CZK, GBP, ILS, NOK, NZD, RUB, SGD, ZAR, AED, ARS, BRL, CLP, COP, DKK, EGP, HUF, IDR, INR, ISK, KRW, KWD, KZT, MXN, MYR, PEN, PHP, PKR, PLN, QAR, RON, SAR, THB, TRY, TWD, UAH, VND. Для них выбраны следующие 44 валютные пары: AUD/CAD, CAD/HKD, HKD/JPY, JPY/SEK, SEK/USD, USD/CHF, CHF/EUR, EUR/CNY, CNY/CZK, CZK/GBP, GBP/ILS, ILS/NOK, NOK/NZD, NZD/RUB, RUB/SGD, SGD/ZAR, ZAR/AED, AED/ARS, ARS/BRL, BRL/CLP, CLP/COP, COP/DKK, DKK/EGP, EGP/HUF, HUF/IDR, IDR/INR, INR/ISK, ISK/KRW, KRW/KWD, KWD/KZT, KZT/MXN, MXN/MYR, MYR/PEN, PEN/PHP, PHP/PKR, PKR/PLN, PLN/QAR, QAR/RON, RON/SAR, SAR/THB, THB/TRY, TRY/TWD, TWD/UAH, UAH/VND.</p><br/>
+<h3 id="matrica-pryamogo-preobrazovaniya-1">Матрица прямого преобразования</h3><br/>
+<p>Получили матрицу прямого преобразования размером 45 на 44. Ранг у нее равен 44.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/r1/v-/bs/r1v-bs8mw2tklb5jzgq-aogwp6o.png"/><br/>
+<h3 id="matrica-obratnogo-preobrazovaniya">Матрица обратного преобразования</h3><br/>
+<p>Обратная матрица получилась в результате применения обратно псевдопреобразования. Размер матрицы 44 на 45. </p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gl/fb/93/glfb93nbhbvzogoe0j639qc_uw8.png"/><br/>
+<h3 id="proverka-obratnoy-matricy-1">Проверка обратной матрицы</h3><br/>
+<p>После умножения обратной матрицы на прямую получили единичную матрицу.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fj/su/iv/fjsuivnltl7_gv2vqyweye9yauc.png"/><br/>
+<h3 id="proverka-na-realnyh-kursah-1">Проверка на реальных курсах</h3><br/>
+<p>Подгрузили 44 парных валютных кросс-курса. Пример одного приводим на следующем графике.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gk/qm/ik/gkqmiknfqea9-atmm-zgyp4otns.png"/><br/>
+<p>Вот данные о средних значениях курсов для каждой валютной пары.</p><br/>
+<p>AUD/CAD 0.951638<br/>
+CAD/HKD 5.8662<br/>
+HKD/JPY 14.2202<br/>
+JPY/SEK 0.0834375<br/>
+SEK/USD 0.107433<br/>
+USD/CHF 1.00544<br/>
+CHF/EUR 0.885125<br/>
+EUR/CNY 7.54636<br/>
+CNY/CZK 3.40522<br/>
+CZK/GBP 0.0335481<br/>
+GBP/ILS 4.69022<br/>
+ILS/NOK 2.38106<br/>
+NOK/NZD 0.173451<br/>
+NZD/RUB 43.5338<br/>
+RUB/SGD 0.0209621<br/>
+SGD/ZAR 10.4641<br/>
+ZAR/AED 0.259015<br/>
+AED/ARS 11.7136<br/>
+ARS/BRL 0.0907021<br/>
+BRL/CLP 171.256<br/>
+CLP/COP 4.72058<br/>
+COP/DKK 0.00210715<br/>
+DKK/EGP 2.60095<br/>
+EGP/HUF 16.5291<br/>
+HUF/IDR 49.5307<br/>
+IDR/INR 0.00490364<br/>
+INR/ISK 1.73912<br/>
+ISK/KRW 9.44975<br/>
+KRW/KWD 0.000266945<br/>
+KWD/KZT 1248.05<br/>
+KZT/MXN 0.050062<br/>
+MXN/MYR 0.216251<br/>
+MYR/PEN 0.803967<br/>
+PEN/PHP 15.7631<br/>
+PHP/PKR 2.71475<br/>
+PKR/PLN 0.0269842<br/>
+PLN/QAR 0.954411<br/>
+QAR/RON 1.16298<br/>
+RON/SAR 0.885697<br/>
+SAR/THB 8.48908<br/>
+THB/TRY 0.179564<br/>
+TRY/TWD 5.39876<br/>
+TWD/UAH 0.871089<br/>
+UAH/VND 863.675</p><br/>
+<p>Для каждой валютной пары смотрим вариативность как и в эксперименте выше.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/j4/p7/ou/j4p7oux-7g4vtrrjovw5mpqopgg.png"/><br/>
+<p>Стандартное отклонение для всех валютных пар находится в пределах от 0,2% до 2,5% от среднего значения.</p><br/>
+<p>После пересчета получаем абсолютные курсы. Вот график абсолютного курса одной из валют.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/qy/jn/cj/qyjncj4f-w199vzi4zq7qr47oja.png"/><br/>
+<p>Средние значения абсолютных курсов получилось следующими.</p><br/>
+<p>AUD 12.4626<br/>
+CAD 13.096<br/>
+HKD 2.23247<br/>
+JPY 0.156996<br/>
+SEK 1.88165<br/>
+USD 17.5149<br/>
+CHF 17.4213<br/>
+EUR 19.6824<br/>
+CNY 2.60821<br/>
+CZK 0.765955<br/>
+GBP 22.832<br/>
+ILS 4.86814<br/>
+NOK 2.04455<br/>
+NZD 11.7884<br/>
+RUB 0.270822<br/>
+SGD 12.9197<br/>
+ZAR 1.23485<br/>
+AED 4.76765<br/>
+ARS 0.407218<br/>
+BRL 4.49018<br/>
+CLP 0.0262207<br/>
+COP 0.0055548<br/>
+DKK 2.63619<br/>
+EGP 1.01359<br/>
+HUF 0.0613224<br/>
+IDR 0.00123809<br/>
+INR 0.25249<br/>
+ISK 0.145194<br/>
+KRW 0.0153652<br/>
+KWD 57.5605<br/>
+KZT 0.0461203<br/>
+MXN 0.921362<br/>
+MYR 4.26106<br/>
+PEN 5.30007<br/>
+PHP 0.336241<br/>
+PKR 0.123862<br/>
+PLN 4.59025<br/>
+QAR 4.8096<br/>
+RON 4.1356<br/>
+SAR 4.66938<br/>
+THB 0.550046<br/>
+TRY 3.06473<br/>
+TWD 0.567676<br/>
+UAH 0.651731<br/>
+VND 0.000754602</p><br/>
+<p>Вариативность абсолютных курсов можно оценить по диаграмме.</p><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/sc/hf/tt/schftt_dcbqaswwbv0qcpnsoa2i.png"/><br/>
+<p>Стандартное отклонение всех абсолютных курсов находится в пределах от 0,2% до 2,5% от среднего значения. Что согласуется с данными валютных пар.</p><br/>
+<h2 id="vyvody">Выводы</h2><br/>
+<p>Эксперимент с получением абсолютных курсов из парных кросс-курсов удался. Получен новый метод расчета абсолютных курсов. Метод работает и легко применим. Для дальнейших исследований достаточно легко получать абсолютные курсы.</p><br/>
+<p>Точность метода ограничена лишь точностью выдаваемых кросс-курсов.</p><br/>
+<p>К сожалению открытых источников кросс-курсов обнаружить в сети не получается. И соответственно не получится этот метод применить на сайте. Но при первичном сравнении абсолютных курсов с сайта и полученных в настоящем эксперименте различия были выявлены лишь в четвертом знаке после запятой. Детальное сравнение проведем в следующих работах.</p><br/>
+<p>Последнюю версию настоящей статьи в PDF формате можно скачать по <a href="https://docs.google.com/document/export?format=pdf&amp;id=14fY-e2OaMUb7Z7eHqoLAOF8f7ryY5WhoPM4cZoiBkK8&amp;token=AC4w5Vjutc01DlWt6KjHChucfuyR8eb0Yw%3A1556814642088&amp;includes_info_params=true">ссылке</a>.</p><br/>
+<p>Енин А.В.<br/>
+Оренбург.<br/>
+02.05.2019</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%90%D0%B1%D1%81%D0%BE%D0%BB%D1%8E%D1%82%D0%BD%D1%8B%D0%B9%20%D0%BA%D1%83%D1%80%D1%81%20%D0%B2%D0%B0%D0%BB%D1%8E%D1%82%5D" class="tm-tags-list__link">Абсолютный курс валют</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%9C%D0%B0%D1%82%D0%B5%D0%BC%D0%B0%D1%82%D0%B8%D0%BA%D0%B0%5D" class="tm-tags-list__link">Математика</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%5D" class="tm-tags-list__link">Финансы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%92%D0%B0%D0%BB%D1%8E%D1%82%D1%8B%5D" class="tm-tags-list__link">Валюты</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bwolfram%20mathematica%5D" class="tm-tags-list__link">wolfram mathematica</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bwolfram%20cloud%5D" class="tm-tags-list__link">wolfram cloud</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/data_mining/" class="tm-hubs-list__link">
+    Data Mining
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/maths/" class="tm-hubs-list__link">
+    Математика
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/finance/" class="tm-hubs-list__link">
+    Финансы в IT
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 12: ↑10 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 12: ↑10 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+8</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">5.1K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    46
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/eavprog/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_blue"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 40 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_negative">
+    -10
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Алексей Енин</span> <a href="/ru/users/eavprog/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @eavprog
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Разработчик</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450368/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 46 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450368/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450368/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450368":{"id":"450368","timePublished":"2019-05-03T16:53:43+00:00","isCorporative":false,"lang":"ru","titleHtml":"Получаем абсолютные курсы из парных кросс-курсов валют","leadData":{"textHtml":"\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvn\u002Frd\u002Ff5\u002Fvnrdf5pyefybms4mhguvp_e5ch4.png\" width=\"500\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\n\u003Cp\u003E\u003Cem\u003EПроект: “Абсолютный курс валют”\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Ch2 id=\"vvedenie\"\u003EВведение\u003C\u002Fh2\u003E\u003Cbr\u003E\r\n\u003Ch3 id=\"o-proekte\"\u003EО проекте\u003C\u002Fh3\u003E\u003Cbr\u003E\r\n\u003Cp\u003EПроект “\u003Ca href=\"https:\u002F\u002Fwww.abscur.ru\u002F\"\u003EАбсолютный курс валют\u003C\u002Fa\u003E” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. \u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВ рамках проекта получена методика преобразования от парных курсов к абсолютным валютным курсам. Для этого определена абсолютная валюта ABS. Курсы всех имеющихся валют выражаются в отношении к ABS.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВ проекте исследуются свойства абсолютных курсов. Исследуются различные применения абсолютных курсов валют.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":-10,"votesCount":40},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"266719","alias":"eavprog","fullname":"Алексей Енин","avatarUrl":null,"speciality":"Разработчик"},"statistics":{"commentsCount":46,"favoritesCount":46,"readingCount":5106,"score":8,"votesCount":12},"hubs":[{"relatedData":null,"id":"7152","alias":"data_mining","type":"collective","title":"Data Mining","titleHtml":"Data Mining","isProfiled":true},{"relatedData":null,"id":"17812","alias":"maths","type":"collective","title":"Математика","titleHtml":"Математика","isProfiled":true},{"relatedData":null,"id":"21928","alias":"finance","type":"collective","title":"Финансы в IT","titleHtml":"Финансы в IT","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvn\u002Frd\u002Ff5\u002Fvnrdf5pyefybms4mhguvp_e5ch4.png\" data-width=\"500\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cem\u003EПроект: “Абсолютный курс валют”\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"vvedenie\"\u003EВведение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"o-proekte\"\u003EО проекте\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПроект “\u003Ca href=\"https:\u002F\u002Fwww.abscur.ru\u002F\"\u003EАбсолютный курс валют\u003C\u002Fa\u003E” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ рамках проекта получена методика преобразования от парных курсов к абсолютным валютным курсам. Для этого определена абсолютная валюта ABS. Курсы всех имеющихся валют выражаются в отношении к ABS.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ проекте исследуются свойства абсолютных курсов. Исследуются различные применения абсолютных курсов валют.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"zachem-eto\"\u003EЗачем это...?\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа сегодняшний день уже вышли несколько статей по применению метода абсолютных валютных курсов. Привожу две последние.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ статье “\u003Ca href=\"https:\u002F\u002Fdocs.google.com\u002Fdocument\u002Fd\u002F1ri4kZ4Ysn7aMOdUmofzE820eis8AHF48ONDES2SnWcM\u002Fedit?usp=sharing\"\u003EИсследование связанности мировых валют через корреляцию абсолютных курсов\u003C\u002Fa\u003E” описывается одно из применений технологии абсолютных валютных курсов. Дается формальный метод вычисления связи между различными валютами.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ статье “\u003Ca href=\"https:\u002F\u002Fdocs.google.com\u002Fdocument\u002Fd\u002F1IAL9UhrwtnO25ms3EBuQ4pAWmjIb4vSK1Oo6tw4efIw\u002Fedit?usp=sharing\"\u003EПортфельный метод Марковица применительно к валютному рынку\u003C\u002Fa\u003E” дается описывается недоступная ранее технология оптимизации валютного портфеля.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа этих двух применениях исследования не останавливаются. Проверяются другие применения технологии. Если у читателей есть свои видения о прочих возможных применениях их можно писать в обсуждениях к статье. Ссылки на места обсуждений приводятся.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"metodika-polucheniya-absolyutnyh-kursov\"\u003EМетодика получения абсолютных курсов\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДетальное описание технологии приводится в статье “\u003Ca href=\"https:\u002F\u002Fdrive.google.com\u002Ffile\u002Fd\u002F0B57trm8LmQPjbWQyMS1xOWZPeVJhaGp3Tk5sX2RRMW1yMW1J\u002Fview\"\u003EОт валютных пар к абсолютным курсам валют\u003C\u002Fa\u003E”.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ основе метода лежит разбор представления парных курсов. Парный валютный курс — это отношение ценности одной валюты к ценности другой. А если ввести некоторую универсальную абсолютную валюту ABS, то имеет место быть следующее преобразование.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F972\u002Faaa\u002F097\u002F972aaa097a74e3bac6458a55a74b2705.svg\" alt=\"$EUR\u002FUSD=\\frac{EUR}{USD}=\\frac{EUR\u002FABS}{USD\u002FABS}$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПарный валютный курс есть отношение двух абсолютных курсов. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля того чтобы получить абсолютные курсы нужно сначала прологарифмировать это уравнение.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fdf9\u002F946\u002F1d4\u002Fdf99461d4fc1fe40ede5061070419e3f.svg\" alt=\"$ln(EUR\u002FUSD)=ln(\\frac{EUR\u002FABS}{USD\u002FABS})=ln(EUR\u002FABS)-ln(USD\u002FABS)$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСоответственно можно видеть, что логарифмы парных курсов линейно связаны с логарифмами абсолютных курсов валют. И значит можно поискать между ними простое линейное преобразование. Логарифмы абсолютных курсов можно умножать на матрицу прямого преобразования и получать логарифмы парных курсов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F32d\u002F664\u002Ffc1\u002F32d664fc136eea6f877a34b55f73aea1.svg\" alt=\"$ln(X_{abs})\\times M_{pr}=ln(X_{par})$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ стоит ожидать что существует \u003Ca href=\"http:\u002F\u002Fstu.scask.ru\u002Fbook_tc.php?id=19\"\u003Eобратное линейное преобразование\u003C\u002Fa\u003E для перехода от парных курсов к абсолютным.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F2e0\u002F3f7\u002F6ad\u002F2e03f76ade41471fab182c3af580f11d.svg\" alt=\"$ln(X_{par}) \\times M_{obr}=ln(X_{obr})$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСоответственно вся методика получения абсолютных курсов записывается следующим образом.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Ff18\u002F636\u002F743\u002Ff18636743fc56bd36496a7c763c37a39.svg\" alt=\"$X_{abs}=e^{ln(X_{par}) \\times M_{obr}}$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНужно просто логарифмировать парные курсы, умножать их на \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eобратную матрицу\u003C\u002Fa\u003E и применять экспоненту.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"o-probleme\"\u003EО проблеме\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВыше было описано как получать абсолютные курсы из парных. Это делается при помощи линейного преобразования логарифмированных парных курсов и возврата через экспоненту.\u003Cbr\u002F\u003E\r\nПрямое линейное преобразование от абсолютных курсов к парным производится при помощи прямой матрицы. Получить ее весьма просто. Она состоит из нулей, единиц и минус единиц (“0” — нет связи пары и валюты, “+1” — валюта в числителе пары, “-1” — валюта в знаменателе пары). Ниже можно будет ее увидеть.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНаибольшую проблему представляет получение \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eобратной матрицы\u003C\u002Fa\u003E (точнее необходимо использовать \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eпсевдообратное преобразование\u003C\u002Fa\u003E). С ее помощью можно перейти от парных курсов к абсолютным. Но получение этой матрицы нетривиально вследствии \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%92%D1%8B%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eвырожденности матрицы\u003C\u002Fa\u003E прямого преобразования. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ предыдущей статье дается описание одного метода получения такой матрицы. В статье “\u003Ca href=\"https:\u002F\u002Fdrive.google.com\u002Fopen?id=1OEFXtAB-YBNoiVMkDk24wtsg9B_e7Dg5BnMaOTRbA1g\"\u003EДетали перехода от парных (относительных) валютных курсов к абсолютным. Работа над ошибками\u003C\u002Fa\u003E” раскрывается метод получения абсолютных курсов. В эксперименте мы воспользовались приемом перехода к линейно-независимым компонентам. Таким образом удалось избавится от вырожденности в псевдообратном преобразовании.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"metod-nastoyaschego-eksperimenta\"\u003EМетод настоящего эксперимента\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этой работе предлагается другой метод ухода от вырожденности в матрице прямого преобразования. В настоящее время используются парные курсы которые предоставляет \u003Ca href=\"http:\u002F\u002Fexport.rbc.ru\u002F\"\u003EРБЦ\u003C\u002Fa\u003E. Там 88 пар валют для экспорта. Для них существует следующая матрица прямого преобразования.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F2z\u002Fjb\u002Fim\u002F2zjbimb_r2yfa5xzill2bwjsj2s.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EБелое в ней нули, синее -1 и красное это единицы. Но она вырожденная. Т.е. от нее не получится обратная матрица.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПри проведении предыдущего эксперимента удалось заметить что диагонально подобная матрица имеет обратное преобразование. Соответственно было сделано предложение перейти к \u003Ca href=\"https:\u002F\u002Ffortrader.org\u002Fbirzhevoj-slovar\u002Fbirzhevie-termini\u002Fkross-kurs.html\"\u003Eкросс-курсам\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%9D%D0%B5%D0%B2%D1%8B%D1%80%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eневырожденной матрице\u003C\u002Fa\u003E преобразования. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВесь расчет проводился в системе \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002FMathematica\"\u003EWolfram Mathematica\u003C\u002Fa\u003E. Система позволяет \u003Ca href=\"https:\u002F\u002Freference.wolfram.com\u002Flanguage\u002Fref\u002FFinancialData.html\"\u003Eполучать кросс-курсы прямо внутри системы\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"detali-eksperimenta-malyy-primer\"\u003EДетали эксперимента (малый пример)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВсего имеются 45 валют. Для наглядности сначала рассмотрим случай с малым количеством валют и валютных пар. Расчет доступен по \u003Ca href=\"https:\u002F\u002Fwww.wolframcloud.com\u002Fobjects\u002Feavprog\u002FPublished\u002FdiagCross.nb\"\u003Eссылке\u003C\u002Fa\u003E в облаке \u003Ca href=\"http:\u002F\u002Fwww.wolfram.com\u002Fcloud\u002F\"\u003EWolfram Cloud\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"spisok-valyut-i-valyutnyh-par\"\u003EСписок валют и валютных пар\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EБыли отобраны следующие 10 валют: AUD, CAD, HKD, JPY, SEK, USD, CHF, EUR, CNY, CZK. Из них определили 9 валютных пар: AUD\u002FCAD, CAD\u002FHKD, HKD\u002FJPY, JPY\u002FSEK, SEK\u002FUSD, USD\u002FCHF, CHF\u002FEUR, EUR\u002FCNY, CNY\u002FCZK.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"matrica-pryamogo-preobrazovaniya\"\u003EМатрица прямого преобразования\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМатрица прямого преобразования имеет следующий вид.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_b\u002F4x\u002Fyv\u002F_b4xyvk7iyswxhjgihriavgcpnk.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРасцвеченный вариант выглядит так.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fxs\u002Fw0\u002Ftl\u002Fxsw0tlf34ffvoajysn3ihlkuoii.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРазмер матрицы — 10х9. \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%A0%D0%B0%D0%BD%D0%B3_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B\"\u003EРанг\u003C\u002Fa\u003E матрицы — 9. Матрица невырожденная. Можно свободно искать обратную к ней.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"matrica-obratnogo-preobrazovaniya-ot-parnyh-kursov-k-absolyutnym\"\u003EМатрица обратного преобразования от парных курсов к абсолютным\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ результате применения \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eметода псевдообратного преобразования\u003C\u002Fa\u003E получаем обратную матрицу.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgh\u002F69\u002Fgm\u002Fgh69gm8huurm0z7db4h1hqz4bb4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ расцвеченном виде так.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F2l\u002Fae\u002Fq6\u002F2laeq6tuux4l6hxjjnbo-owtkt0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРазмер обратной матрицы — 9х10.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"proverka-obratnoy-matricy\"\u003EПроверка обратной матрицы\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПрежде чем двигаться дальше проверяем полученную матрицу. Для этого обратную матрицу умножим на прямую. Результат видим следующий.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F0v\u002Fwr\u002Fss\u002F0vwrss-ftqxdx4b84dritdt6f8y.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ в расцвеченном виде.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffp\u002Faa\u002Fyq\u002Ffpaayqurcgr3nendxrskmx-uzhe.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДействительно получили \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%94%D0%B8%D0%B0%D0%B3%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0\"\u003Eединичную диагональную матрицу\u003C\u002Fa\u003E. Значит обратная верна.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ \u003Ca href=\"https:\u002F\u002Fdrive.google.com\u002Fopen?id=1OEFXtAB-YBNoiVMkDk24wtsg9B_e7Dg5BnMaOTRbA1g\"\u003Eпредыдущем эксперименте\u003C\u002Fa\u003E проводили проверку метода получения абсолютных курсов. Для этого из полученных абсолютных курсов восстанавливали парные курсы через матрицу прямого преобразования. Дальше сравнивали восстановленные парные курсы с исходными и смотрели ошибку. В нашем случае ошибка при такой проверке будет в пределах машинной точности.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"proverka-na-realnyh-kursah\"\u003EПроверка на реальных курсах\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь посмотрим результаты на реальных данных. Возьмем реальные котировки парных валютных кросс-курсов и рассчитаем для них абсолютные курсы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EБыли взяты ежедневные кросс-курсы за 30 дней с 28.03.2019 по 27.04.2019. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"kursy-valyutnyh-par\"\u003EКурсы валютных пар\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВот матрица парных валютных курсов. Это столбцы парных валютных курсов для следующих пар AUD\u002FCAD, CAD\u002FHKD, HKD\u002FJPY, JPY\u002FSEK, SEK\u002FUSD, USD\u002FCHF, CHF\u002FEUR, EUR\u002FCNY, CNY\u002FCZK.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8z\u002Fu1\u002Fls\u002F8zu1lsyutjzpsvtzfclvwwgjtpq.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВот график курса для одной из валютных пар.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyg\u002Frs\u002Faj\u002Fygrsajv-mvvhhpmcxjfwxibqliw.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСредние значения для парных курсов получились следующими.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkb\u002Fwl\u002Fdv\u002Fkbwldv4ddayqus0kqzc4qcnd1jg.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь попробуем оценить вариативность данных. Для этого используем \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%A1%D1%80%D0%B5%D0%B4%D0%BD%D0%B5%D0%BA%D0%B2%D0%B0%D0%B4%D1%80%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D0%BE%D1%82%D0%BA%D0%BB%D0%BE%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5\"\u003Eстандартное отклонение\u003C\u002Fa\u003E. Но для стандартизации разделим его на среднее значение. Результаты отобразим на диаграмме.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flq\u002Fte\u002Fpo\u002Flqtepok5dw4kzvl1toloj6oq-rc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКак можно видеть стандартные отклонения для каждой валютной пары находятся в пределах 0, 2% — 0, 9% от средних значений парных курсов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"absolyutnye-kursy\"\u003EАбсолютные курсы\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь вычисляем для парных абсолютные курсы (методика описана в разделе Методика получения абсолютных курсов). После вычислений получаем следующие ряды данных.\u003Cbr\u002F\u003E\r\nЭто столбцы абсолютных курсов для следующих валют AUD, CAD, HKD, JPY, SEK, USD, CHF, EUR, CNY, CZK.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F2k\u002Fdn\u002Fzw\u002F2kdnzwald8s16a7lkbubznjlxis.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПриведем график абсолютного курса одной из валют.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffl\u002F6n\u002F0x\u002Ffl6n0xpjcq0s7z6ykuvb4cdtti4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСредние значения для абсолютных курсов следующие.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fq-\u002Fv1\u002Ffl\u002Fq-v1flcpkx6imxqvreysxwjou0c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОценим вариативность абсолютных валютных курсов. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fwn\u002Fhs\u002F72\u002Fwnhs72rotmomeq6y-i7rmsk-ag0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСтандартные отклонения для абсолютных курсов каждой валюты находятся в пределах 0, 2% — 0, 7% от средних значений абсолютных курсов. И это согласуется с данными для валютных пар.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"rezultaty-na-vseh-valyutah\"\u003EРезультаты на всех валютах\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь рассмотрим результаты на всех имеющихся валютах. Исходник расчета доступен по \u003Ca href=\"https:\u002F\u002Fwww.wolframcloud.com\u002Fobjects\u002Feavprog\u002FPublished\u002FdiagCrossAll.nb\"\u003Eссылке\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"spisok-valyut-i-valyutnyh-par-1\"\u003EСписок валют и валютных пар\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолный перечень содержит следующие 45 валют: AUD, CAD, HKD, JPY, SEK, USD, CHF, EUR, CNY, CZK, GBP, ILS, NOK, NZD, RUB, SGD, ZAR, AED, ARS, BRL, CLP, COP, DKK, EGP, HUF, IDR, INR, ISK, KRW, KWD, KZT, MXN, MYR, PEN, PHP, PKR, PLN, QAR, RON, SAR, THB, TRY, TWD, UAH, VND. Для них выбраны следующие 44 валютные пары: AUD\u002FCAD, CAD\u002FHKD, HKD\u002FJPY, JPY\u002FSEK, SEK\u002FUSD, USD\u002FCHF, CHF\u002FEUR, EUR\u002FCNY, CNY\u002FCZK, CZK\u002FGBP, GBP\u002FILS, ILS\u002FNOK, NOK\u002FNZD, NZD\u002FRUB, RUB\u002FSGD, SGD\u002FZAR, ZAR\u002FAED, AED\u002FARS, ARS\u002FBRL, BRL\u002FCLP, CLP\u002FCOP, COP\u002FDKK, DKK\u002FEGP, EGP\u002FHUF, HUF\u002FIDR, IDR\u002FINR, INR\u002FISK, ISK\u002FKRW, KRW\u002FKWD, KWD\u002FKZT, KZT\u002FMXN, MXN\u002FMYR, MYR\u002FPEN, PEN\u002FPHP, PHP\u002FPKR, PKR\u002FPLN, PLN\u002FQAR, QAR\u002FRON, RON\u002FSAR, SAR\u002FTHB, THB\u002FTRY, TRY\u002FTWD, TWD\u002FUAH, UAH\u002FVND.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"matrica-pryamogo-preobrazovaniya-1\"\u003EМатрица прямого преобразования\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолучили матрицу прямого преобразования размером 45 на 44. Ранг у нее равен 44.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fr1\u002Fv-\u002Fbs\u002Fr1v-bs8mw2tklb5jzgq-aogwp6o.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"matrica-obratnogo-preobrazovaniya\"\u003EМатрица обратного преобразования\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбратная матрица получилась в результате применения обратно псевдопреобразования. Размер матрицы 44 на 45. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgl\u002Ffb\u002F93\u002Fglfb93nbhbvzogoe0j639qc_uw8.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"proverka-obratnoy-matricy-1\"\u003EПроверка обратной матрицы\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле умножения обратной матрицы на прямую получили единичную матрицу.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffj\u002Fsu\u002Fiv\u002Ffjsuivnltl7_gv2vqyweye9yauc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"proverka-na-realnyh-kursah-1\"\u003EПроверка на реальных курсах\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПодгрузили 44 парных валютных кросс-курса. Пример одного приводим на следующем графике.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgk\u002Fqm\u002Fik\u002Fgkqmiknfqea9-atmm-zgyp4otns.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВот данные о средних значениях курсов для каждой валютной пары.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAUD\u002FCAD 0.951638\u003Cbr\u002F\u003E\r\nCAD\u002FHKD 5.8662\u003Cbr\u002F\u003E\r\nHKD\u002FJPY 14.2202\u003Cbr\u002F\u003E\r\nJPY\u002FSEK 0.0834375\u003Cbr\u002F\u003E\r\nSEK\u002FUSD 0.107433\u003Cbr\u002F\u003E\r\nUSD\u002FCHF 1.00544\u003Cbr\u002F\u003E\r\nCHF\u002FEUR 0.885125\u003Cbr\u002F\u003E\r\nEUR\u002FCNY 7.54636\u003Cbr\u002F\u003E\r\nCNY\u002FCZK 3.40522\u003Cbr\u002F\u003E\r\nCZK\u002FGBP 0.0335481\u003Cbr\u002F\u003E\r\nGBP\u002FILS 4.69022\u003Cbr\u002F\u003E\r\nILS\u002FNOK 2.38106\u003Cbr\u002F\u003E\r\nNOK\u002FNZD 0.173451\u003Cbr\u002F\u003E\r\nNZD\u002FRUB 43.5338\u003Cbr\u002F\u003E\r\nRUB\u002FSGD 0.0209621\u003Cbr\u002F\u003E\r\nSGD\u002FZAR 10.4641\u003Cbr\u002F\u003E\r\nZAR\u002FAED 0.259015\u003Cbr\u002F\u003E\r\nAED\u002FARS 11.7136\u003Cbr\u002F\u003E\r\nARS\u002FBRL 0.0907021\u003Cbr\u002F\u003E\r\nBRL\u002FCLP 171.256\u003Cbr\u002F\u003E\r\nCLP\u002FCOP 4.72058\u003Cbr\u002F\u003E\r\nCOP\u002FDKK 0.00210715\u003Cbr\u002F\u003E\r\nDKK\u002FEGP 2.60095\u003Cbr\u002F\u003E\r\nEGP\u002FHUF 16.5291\u003Cbr\u002F\u003E\r\nHUF\u002FIDR 49.5307\u003Cbr\u002F\u003E\r\nIDR\u002FINR 0.00490364\u003Cbr\u002F\u003E\r\nINR\u002FISK 1.73912\u003Cbr\u002F\u003E\r\nISK\u002FKRW 9.44975\u003Cbr\u002F\u003E\r\nKRW\u002FKWD 0.000266945\u003Cbr\u002F\u003E\r\nKWD\u002FKZT 1248.05\u003Cbr\u002F\u003E\r\nKZT\u002FMXN 0.050062\u003Cbr\u002F\u003E\r\nMXN\u002FMYR 0.216251\u003Cbr\u002F\u003E\r\nMYR\u002FPEN 0.803967\u003Cbr\u002F\u003E\r\nPEN\u002FPHP 15.7631\u003Cbr\u002F\u003E\r\nPHP\u002FPKR 2.71475\u003Cbr\u002F\u003E\r\nPKR\u002FPLN 0.0269842\u003Cbr\u002F\u003E\r\nPLN\u002FQAR 0.954411\u003Cbr\u002F\u003E\r\nQAR\u002FRON 1.16298\u003Cbr\u002F\u003E\r\nRON\u002FSAR 0.885697\u003Cbr\u002F\u003E\r\nSAR\u002FTHB 8.48908\u003Cbr\u002F\u003E\r\nTHB\u002FTRY 0.179564\u003Cbr\u002F\u003E\r\nTRY\u002FTWD 5.39876\u003Cbr\u002F\u003E\r\nTWD\u002FUAH 0.871089\u003Cbr\u002F\u003E\r\nUAH\u002FVND 863.675\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля каждой валютной пары смотрим вариативность как и в эксперименте выше.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fj4\u002Fp7\u002Fou\u002Fj4p7oux-7g4vtrrjovw5mpqopgg.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСтандартное отклонение для всех валютных пар находится в пределах от 0,2% до 2,5% от среднего значения.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле пересчета получаем абсолютные курсы. Вот график абсолютного курса одной из валют.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqy\u002Fjn\u002Fcj\u002Fqyjncj4f-w199vzi4zq7qr47oja.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСредние значения абсолютных курсов получилось следующими.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAUD 12.4626\u003Cbr\u002F\u003E\r\nCAD 13.096\u003Cbr\u002F\u003E\r\nHKD 2.23247\u003Cbr\u002F\u003E\r\nJPY 0.156996\u003Cbr\u002F\u003E\r\nSEK 1.88165\u003Cbr\u002F\u003E\r\nUSD 17.5149\u003Cbr\u002F\u003E\r\nCHF 17.4213\u003Cbr\u002F\u003E\r\nEUR 19.6824\u003Cbr\u002F\u003E\r\nCNY 2.60821\u003Cbr\u002F\u003E\r\nCZK 0.765955\u003Cbr\u002F\u003E\r\nGBP 22.832\u003Cbr\u002F\u003E\r\nILS 4.86814\u003Cbr\u002F\u003E\r\nNOK 2.04455\u003Cbr\u002F\u003E\r\nNZD 11.7884\u003Cbr\u002F\u003E\r\nRUB 0.270822\u003Cbr\u002F\u003E\r\nSGD 12.9197\u003Cbr\u002F\u003E\r\nZAR 1.23485\u003Cbr\u002F\u003E\r\nAED 4.76765\u003Cbr\u002F\u003E\r\nARS 0.407218\u003Cbr\u002F\u003E\r\nBRL 4.49018\u003Cbr\u002F\u003E\r\nCLP 0.0262207\u003Cbr\u002F\u003E\r\nCOP 0.0055548\u003Cbr\u002F\u003E\r\nDKK 2.63619\u003Cbr\u002F\u003E\r\nEGP 1.01359\u003Cbr\u002F\u003E\r\nHUF 0.0613224\u003Cbr\u002F\u003E\r\nIDR 0.00123809\u003Cbr\u002F\u003E\r\nINR 0.25249\u003Cbr\u002F\u003E\r\nISK 0.145194\u003Cbr\u002F\u003E\r\nKRW 0.0153652\u003Cbr\u002F\u003E\r\nKWD 57.5605\u003Cbr\u002F\u003E\r\nKZT 0.0461203\u003Cbr\u002F\u003E\r\nMXN 0.921362\u003Cbr\u002F\u003E\r\nMYR 4.26106\u003Cbr\u002F\u003E\r\nPEN 5.30007\u003Cbr\u002F\u003E\r\nPHP 0.336241\u003Cbr\u002F\u003E\r\nPKR 0.123862\u003Cbr\u002F\u003E\r\nPLN 4.59025\u003Cbr\u002F\u003E\r\nQAR 4.8096\u003Cbr\u002F\u003E\r\nRON 4.1356\u003Cbr\u002F\u003E\r\nSAR 4.66938\u003Cbr\u002F\u003E\r\nTHB 0.550046\u003Cbr\u002F\u003E\r\nTRY 3.06473\u003Cbr\u002F\u003E\r\nTWD 0.567676\u003Cbr\u002F\u003E\r\nUAH 0.651731\u003Cbr\u002F\u003E\r\nVND 0.000754602\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВариативность абсолютных курсов можно оценить по диаграмме.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fsc\u002Fhf\u002Ftt\u002Fschftt_dcbqaswwbv0qcpnsoa2i.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСтандартное отклонение всех абсолютных курсов находится в пределах от 0,2% до 2,5% от среднего значения. Что согласуется с данными валютных пар.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"vyvody\"\u003EВыводы\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭксперимент с получением абсолютных курсов из парных кросс-курсов удался. Получен новый метод расчета абсолютных курсов. Метод работает и легко применим. Для дальнейших исследований достаточно легко получать абсолютные курсы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТочность метода ограничена лишь точностью выдаваемых кросс-курсов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EК сожалению открытых источников кросс-курсов обнаружить в сети не получается. И соответственно не получится этот метод применить на сайте. Но при первичном сравнении абсолютных курсов с сайта и полученных в настоящем эксперименте различия были выявлены лишь в четвертом знаке после запятой. Детальное сравнение проведем в следующих работах.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПоследнюю версию настоящей статьи в PDF формате можно скачать по \u003Ca href=\"https:\u002F\u002Fdocs.google.com\u002Fdocument\u002Fexport?format=pdf&amp;id=14fY-e2OaMUb7Z7eHqoLAOF8f7ryY5WhoPM4cZoiBkK8&amp;token=AC4w5Vjutc01DlWt6KjHChucfuyR8eb0Yw%3A1556814642088&amp;includes_info_params=true\"\u003Eссылке\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕнин А.В.\u003Cbr\u002F\u003E\r\nОренбург.\u003Cbr\u002F\u003E\r\n02.05.2019\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"Абсолютный курс валют"},{"titleHtml":"Математика"},{"titleHtml":"Финансы"},{"titleHtml":"Валюты"},{"titleHtml":"wolfram mathematica"},{"titleHtml":"wolfram cloud"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450368\u002F2fecdeb28a8fb74e99daf6e13edbf1a7\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450368\u002F2fecdeb28a8fb74e99daf6e13edbf1a7\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450368\\\u002F\"},\"headline\":\"Получаем абсолютные курсы из парных кросс-курсов валют\",\"datePublished\":\"2019-05-03T19:53:43+03:00\",\"dateModified\":\"2019-05-04T01:18:39+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Алексей Енин\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Проект: &ldquo;Абсолютный курс валют&rdquo; Введение О проекте Проект &ldquo;Абсолютный курс валют&rdquo; занимается анализом парных валютных курсов, выделением из них абсолютных валют...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450368\\\u002F#post-content-body\",\"about\":[\"h_data_mining\",\"h_maths\",\"h_finance\",\"f_develop\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fvn\\\u002Frd\\\u002Ff5\\\u002Fvnrdf5pyefybms4mhguvp_e5ch4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F972\\\u002Faaa\\\u002F097\\\u002F972aaa097a74e3bac6458a55a74b2705.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fdf9\\\u002F946\\\u002F1d4\\\u002Fdf99461d4fc1fe40ede5061070419e3f.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F32d\\\u002F664\\\u002Ffc1\\\u002F32d664fc136eea6f877a34b55f73aea1.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F2e0\\\u002F3f7\\\u002F6ad\\\u002F2e03f76ade41471fab182c3af580f11d.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Ff18\\\u002F636\\\u002F743\\\u002Ff18636743fc56bd36496a7c763c37a39.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F2z\\\u002Fjb\\\u002Fim\\\u002F2zjbimb_r2yfa5xzill2bwjsj2s.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_b\\\u002F4x\\\u002Fyv\\\u002F_b4xyvk7iyswxhjgihriavgcpnk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fxs\\\u002Fw0\\\u002Ftl\\\u002Fxsw0tlf34ffvoajysn3ihlkuoii.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgh\\\u002F69\\\u002Fgm\\\u002Fgh69gm8huurm0z7db4h1hqz4bb4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F2l\\\u002Fae\\\u002Fq6\\\u002F2laeq6tuux4l6hxjjnbo-owtkt0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F0v\\\u002Fwr\\\u002Fss\\\u002F0vwrss-ftqxdx4b84dritdt6f8y.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffp\\\u002Faa\\\u002Fyq\\\u002Ffpaayqurcgr3nendxrskmx-uzhe.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8z\\\u002Fu1\\\u002Fls\\\u002F8zu1lsyutjzpsvtzfclvwwgjtpq.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyg\\\u002Frs\\\u002Faj\\\u002Fygrsajv-mvvhhpmcxjfwxibqliw.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkb\\\u002Fwl\\\u002Fdv\\\u002Fkbwldv4ddayqus0kqzc4qcnd1jg.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flq\\\u002Fte\\\u002Fpo\\\u002Flqtepok5dw4kzvl1toloj6oq-rc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F2k\\\u002Fdn\\\u002Fzw\\\u002F2kdnzwald8s16a7lkbubznjlxis.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffl\\\u002F6n\\\u002F0x\\\u002Ffl6n0xpjcq0s7z6ykuvb4cdtti4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fq-\\\u002Fv1\\\u002Ffl\\\u002Fq-v1flcpkx6imxqvreysxwjou0c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fwn\\\u002Fhs\\\u002F72\\\u002Fwnhs72rotmomeq6y-i7rmsk-ag0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fr1\\\u002Fv-\\\u002Fbs\\\u002Fr1v-bs8mw2tklb5jzgq-aogwp6o.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgl\\\u002Ffb\\\u002F93\\\u002Fglfb93nbhbvzogoe0j639qc_uw8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffj\\\u002Fsu\\\u002Fiv\\\u002Ffjsuivnltl7_gv2vqyweye9yauc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgk\\\u002Fqm\\\u002Fik\\\u002Fgkqmiknfqea9-atmm-zgyp4otns.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fj4\\\u002Fp7\\\u002Fou\\\u002Fj4p7oux-7g4vtrrjovw5mpqopgg.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqy\\\u002Fjn\\\u002Fcj\\\u002Fqyjncj4f-w199vzi4zq7qr47oja.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fsc\\\u002Fhf\\\u002Ftt\\\u002Fschftt_dcbqaswwbv0qcpnsoa2i.png\"]}","metaDescription":"Проект: “Абсолютный курс валют”\r\nВведение\r\nО проекте\r\nПроект “Абсолютный курс валют” занимается анализом парных валютных курсов, выделением из них абсолютных валютных курсов и их анализом. \r\nВ...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"data_mining,maths,finance"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

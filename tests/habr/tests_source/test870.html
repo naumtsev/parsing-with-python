@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как Netflix использует Питон / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450870\/"},"headline":"Как Netflix использует Питон","datePublished":"2019-05-07T20:53:01+03:00","dateModified":"2019-05-08T18:57:28+03:00","author":{"@type":"Person","name":"Анатолий Ализар"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном ц...","url":"https:\/\/habr.com\/ru\/post\/450870\/#post-content-body","about":["h_hi","h_open_source","h_python","h_machine_learning","f_develop"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/082\/1b1\/5bd\/0821b15bd96a296f6dd1ee62341bdf53.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как Netflix использует Питон" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как Netflix использует Питон" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как Netflix использует Питон" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450870/4115a000eea5ff9bdf46858837470151/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450870/4115a000eea5ff9bdf46858837470151/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450870/4115a000eea5ff9bdf46858837470151/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450870/4115a000eea5ff9bdf46858837470151/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450870/4115a000eea5ff9bdf46858837470151/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450870" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T17:53:01.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450870/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450870/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450870/4115a000eea5ff9bdf46858837470151/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450870/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/m1rko/" title="m1rko" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/4ec/bd0/85d/4ecbd085d692835a931d03174ff19539.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/m1rko/" class="tm-user-info__username">
+      m1rko
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T17:53:01.000Z" title="2019-05-07, 20:53">7  мая  2019 в 20:53</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как Netflix использует Питон</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/hi/" class="tm-article-snippet__hubs-item-link"><span>Высокая производительность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/open_source/" class="tm-article-snippet__hubs-item-link"><span>Open source</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/python/" class="tm-article-snippet__hubs-item-link"><span>Python</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/machine_learning/" class="tm-article-snippet__hubs-item-link"><span>Машинное обучение</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://medium.com/netflix-techblog/python-at-netflix-bba45dae649e" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Питонисты Netflix
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/082/1b1/5bd/0821b15bd96a296f6dd1ee62341bdf53.png"/><br/>
+<br/>
+Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие сериалы финансировать, и заканчивая работой CDN для отгрузки видео 148 миллионам пользователей. Мы вносим свой вклад во многие пакеты Python с открытым исходным кодом, некоторые из которых упомянуты ниже. Если что-то вас интересует, посмотрите наш <a href="https://jobs.netflix.com/search?q=python">сайт вакансий</a> или ищите нас на PyCon.<br/>
+<a name="habracut"></a><br/>
+<h1>Open Connect</h1><br/>
+<a href="https://openconnect.netflix.com/en/">Open Connect</a> — это сеть доставки контента Netflix (CDN). Простой, хотя и неточный, способ представить инфраструктуру Netflix, такой: всё, что происходит перед нажатием кнопки Play на пульте дистанционного управления (например, вход в систему, определение тарифного плана, система рекомендаций, выбор фильмов) работает в Amazon Web Services (AWS), а всё, что происходит потом (т. е. потоковое видео), работает через Open Connect. Контент размещается на сети серверов Open Connect CDN как можно ближе к конечному пользователю, чтобы улучшить качество просмотра для клиентов и снизить затраты Netflix и наших партнёров, интернет-провайдеров.<br/>
+<br/>
+Для проектирования, разработки и эксплуатации CDN необходимы различные программные системы, и многие из них написаны на Python. Сетевые устройства в основе CDN, в основном, управляются питоновскими приложениями. Такие приложения отслеживают состояние сетевого оборудования: какие используются устройства, какие модели, с какими аппаратными компонентами, где они расположены. Конфигурация этих устройств контролируется несколькими другими системами, включая «источник истины», приложения для конфигурирования устройств и резервного копирования. Взаимодействие устройств для сбора данных о работоспособности и других операционных данных — это ещё одно питоновское приложение. Python уже давно является популярным языком программирования в сети, потому что это интуитивный язык, который позволяет быстро решать сетевые проблемы. Разработано много полезных библиотек, которые делают язык ещё более подходящим для изучения и использования.<br/>
+<br/>
+<h1>Demand Engineering</h1><br/>
+<a href="https://www.linkedin.com/pulse/what-demand-engineering-aaron-blohowiak/">Demand Engineering</a> отвечает за <a href="https://opensource.com/article/18/4/how-netflix-does-failovers-7-minutes-flat">отработку региональных сбоев</a>, распределение трафика, операции с пропускной способностью и эффективность серверов в облаке Netflix. Мы с гордостью можем сказать, что наши инструменты построены в основном на Python. Служба по отработке отказов использует numpy и scipy для численного анализа, boto3 для внесения изменений в инфраструктуру AWS, rq для запуска асинхронных рабочих нагрузок, и всё это обёрнуто в тонкий слой Flask API. Возможность уйти при отказе в оболочку <a href="https://bpython-interpreter.org/">bpython</a> и импровизировать не раз спасала положение.<br/>
+<br/>
+Мы активно используем Jupyter Notebooks и <a href="https://nteract.io/">nteract</a> для анализа операционных данных и прототипирования <a href="https://github.com/nteract/nteract/tree/master/packages/data-explorer">инструментов визуализации</a>, чтобы обнаруживать регрессии ёмкости.<br/>
+<br/>
+<h1>CORE</h1><br/>
+Команда CORE применяет Python для анализа статистики и выдачи предупреждений. Мы опираемся на многие статистические и математические библиотеки (numpy, scipy, ruptures, pandas), чтобы автоматизировать анализ 1000 связанных сигналов, когда системы оповещения указывают на проблемы. Мы разработали систему корреляции временных рядов, используемую как внутри команды, так и за её пределами, а также распределённую рабочую систему для распараллеливания большого объёма аналитической работы для получения быстрых результатов.<br/>
+<br/>
+Мы также обычно используем Python для задач автоматизации, исследования и фильтрации данных и как удобный инструмент для визуализации.<br/>
+<br/>
+<h1>Мониторинг, оповещение и автоматическое восстановление</h1><br/>
+Команда Insight Engineering отвечает за разработку и эксплуатацию инструментов оперативного распознавания проблем, оповещения, диагностики и автоматического исправления. С ростом популярности Python команда теперь поддерживает клиенты Python для большинства своих сервисов. Одним из примеров является клиентская библиотека <a href="https://github.com/Netflix/spectator-py">Spectator</a> для кода, который записывает метрики размерных временных серий. Мы создаём библиотеки Python для взаимодействия с другими службами на платформе Netflix. В дополнение к библиотекам, продукты <a href="https://medium.com/netflix-techblog/introducing-winston-event-driven-diagnostic-and-remediation-platform-46ce39aa81cc">Winston</a> и <a href="https://medium.com/netflix-techblog/introducing-bolt-on-instance-diagnostic-and-remediation-platform-176651b55505">Bolt</a> построены с использованием питоновских фреймворков (Gunicorn + Flask + Flask-RESTPlus).<br/>
+<br/>
+<h1>Информационная безопасность</h1><br/>
+Команда информационной безопасности использует Python для ряда важных задач, в том числе автоматизации безопасности, классификации рисков, идентификации и автоматического исправления уязвимостей. Мы публиковали исходники ряда успешных продуктов, включая <a href="https://github.com/Netflix/security_monkey">Security Monkey</a> (наш самый активный проект с открытым исходным кодом). Python применяется для защиты наших SSH-ресурсов с помощью <a href="https://github.com/Netflix/bless">Bless</a>. Команда безопасности инфраструктуры использует Python для настройки разрешений IAM с помощью <a href="https://github.com/Netflix/repokid">Repokid</a>. Питоновские скрипты помогают генерировать TLS-сертификаты в <a href="https://github.com/Netflix/lemur">Lemur</a>.<br/>
+<br/>
+Некоторые из наших последних проектов включают Prism: пакетный фреймворк, помогающий инженерам безопасности анализировать состояние инфраструктуры, выявлять факторы риска и уязвимости в исходном коде. В настоящее время мы предоставляем библиотеки Python и Ruby для Prism. Инструмент для форензики (компьютерной экспертизы) <a href="https://medium.com/netflix-techblog/netflix-sirt-releases-diffy-a-differencing-engine-for-digital-forensics-in-the-cloud-37b71abd2698">Diffy</a> полностью написан на Python. Мы также используем Python для обнаружения конфиденциальных данных с помощью Lanius.<br/>
+<br/>
+<h1>Алгоритмы персонализации</h1><br/>
+Мы широко применяем Python в <a href="https://www.slideshare.net/FaisalZakariaSiddiqi/ml-infra-for-netflix-recommendations-ai-nextcon-talk">инфраструктуре машинного обучения для персонализации</a>. Здесь обучаются некоторые модели, которые обеспечивают ключевые аспекты функциональности Netflix: от <a href="https://research.netflix.com/research-area/recommendations">алгоритмов рекомендаций</a> до <a href="https://medium.com/netflix-techblog/python-at-netflix-bba45dae649e">выбора обложек</a> и <a href="https://medium.com/netflix-techblog/engineering-to-scale-paid-media-campaigns-84ba018fb3fa">маркетинговых алгоритмов</a>. Например, некоторые алгоритмы используют TensorFlow, Keras и PyTorch для обучения глубоких нейросетей, XGBoost и LightGBM для обучения деревьев решений с градиентным бустингом или более широкий питоновский научный стек (например, библиотеки numpy, scipy, sklearn, библиотек matplotlib, pandas, cvxpy). Поскольку мы постоянно пробуем новые подходы, то для многих экспериментов используем блокноты Jupyter. Мы также разработали ряд библиотек более высокого уровня для интеграции блокнотов с остальной частью нашей <a href="https://www.slideshare.net/FaisalZakariaSiddiqi/ml-infra-for-netflix-recommendations-ai-nextcon-talk">экосистемы</a> (например, доступа к данным, регистрации фактов и извлечения признаков, оценки моделей и публикации).<br/>
+<br/>
+<h1>Инфраструктура машинного обучения</h1><br/>
+Кроме персонализации, Netflix применяет машинное обучение в сотнях других задач по всей компании. Многие из этих приложений работают на Metaflow, платформе Python, которая позволяет легко выполнять ML-проекты и вести их со стадии прототипа до продакшна.<br/>
+<br/>
+Metaflow раздвигает границы Python: мы используем хорошо распараллеленный и оптимизированный код Python для извлечения данных на скорости 10 Гбит/с, обработки сотен миллионов точек данных в памяти и организации вычислений на десятках тысяч ядер CPU.<br/>
+<br/>
+<h1>Блокноты</h1><br/>
+Мы в Netflix заядлые пользователи блокнотов Jupyter, и мы уже писали о <a href="https://medium.com/netflix-techblog/notebook-innovation-591ee3221233">причинах и характере этих вложений</a>.<br/>
+<br/>
+Но Python играет огромную роль в том, как предоставляются эти услуги. Это основной язык для разработки, отладки, исследования и прототипирования различных взаимодействий с экосистемой Jupyter. Мы используем Python для создания пользовательских расширений для сервера Jupyter, что позволяет управлять такими задачами, как ведение журнала, архивирование, публикация и клонирование блокнотов от имени пользователей. Мы предоставляем нашим пользователям множество вариантов на Python через различные ядра Jupyter и управляем развёртыванием этих спецификаций ядра тоже с помощью Python.<br/>
+<br/>
+<h1>Оркестровка</h1><br/>
+Команда оркестровки больших данных отвечает за предоставление всех услуг и инструментов для планирования и выполнения конвейеров ETL и Adhoc.<br/>
+<br/>
+Многие компоненты оркестровки написаны на Python. Начиная с планировщика, который использует <a href="https://jupyter.org/">блокноты Jupyter</a> и <a href="https://papermill.readthedocs.io/en/latest/">papermill</a> для шаблонных типов заданий (Spark, Presto...). Это даёт пользователям стандартизированный и простой способ выразить работу, которая должна быть выполнена. <a href="https://medium.com/netflix-techblog/scheduling-notebooks-348e6c14cfd6">Здесь</a> вы можете более подробно почитать об этом. Мы использовали блокноты как настоящие списки операций в продакшне («ранбуки») в ситуациях, когда требуется вмешательство человека, например, перезапустить всё, что упало за последний час.<br/>
+<br/>
+Для внутреннего применения мы построили платформу, управляемую событиями, которая полностью написана на Python. В неё поступают потоки событий из ряда систем, которые объединяются в единый инструмент. Это позволяет определить условия фильтрации событий, реагирования на них или маршрутизации. В результате мы смогли выделить микросервисы и обеспечить прозрачность во всём, что происходит на платформе данных.<br/>
+<br/>
+Наша команда также разработала клиент <a href="https://github.com/Netflix/pygenie">pygenie</a>, который взаимодействует с федеративной службой выполнения заданий <a href="https://netflix.github.io/genie/">Genie</a>. Внутри у нас есть дополнительные расширения этой библиотеки, применяющие бизнес-соглашения и интегрированные с платформой Netflix. Эти библиотеки — основной способ программного взаимодействия пользователей с платформой больших данных.<br/>
+<br/>
+Наконец, наша команда внесла свой вклад в проекты с открытым исходным кодом <a href="https://papermill.readthedocs.io/en/latest/">papermill</a> и <a href="https://nteract-scrapbook.readthedocs.io/en/latest/">scrapbook</a>: мы добавили код как для наших собственных, так и для внешних случаев использования. Наши усилия хорошо приняты в сообществе open source, чему мы очень рады.<br/>
+<br/>
+<h1>Экспериментальная платформа</h1><br/>
+Команда научных вычислений создаёт платформу для экспериментов: AB-тестов и других. Учёные и инженеры могут экспериментировать с инновациями по трём направлениям: данные, статистика и визуализация.<br/>
+<br/>
+Наш репозиторий метрик — это платформа Python на основе <a href="https://pypika.readthedocs.io/en/latest/">PyPika</a>, позволяющая писать многоразовые параметризованные SQL-запросы. Это точка входа для любого нового анализа.<br/>
+<br/>
+Библиотека причинных моделей Causal Models основана на Python и R: здесь учёные получают возможность исследовать новые модели причинных следствий. Она использует PyArrow и RPy2, так что статистика легко рассчитывается на любом языке.<br/>
+<br/>
+Библиотека визуализаций основана на <a href="https://plot.ly/">Plotly</a>. Поскольку Plotly является общепринятой спецификацией для визуализаций, есть множество инструментов для вывода, который направляется в наши платформы.<br/>
+<br/>
+<h1>Партнёрская экосистема</h1><br/>
+Группа, которая занимается партнёрской экосистемой, применяет Python для тестирования приложений Netflix на устройствах. Python формирует ядро новой инфраструктуры непрерывной интеграции, включая управление нашими серверами оркестровки, управление Spinnaker, запросы тестовых наборов и фильтрацию, а также планирование тестовых запусков на устройствах и контейнерах. Дополнительный анализ после запуска выполняется в Python с помощью TensorFlow, чтобы определить, какие тесты, скорее всего, вызовут проблемы на каких устройствах.<br/>
+<br/>
+<h1>Видеокодирование и разработка медийного облака</h1><br/>
+Наша команда заботится о кодировании (и перекодировании) каталога Netflix, а также использует машинное обучение для анализа этого каталога.<br/>
+<br/>
+Мы используем Python примерно в 50 проектах, таких как <a href="https://github.com/Netflix/vmaf/blob/master/resource/doc/references.md">vmaf</a> и <a href="https://medium.com/netflix-techblog/mezzfs-mounting-object-storage-in-netflixs-media-processing-platform-cda01c446ba">mezzfs</a>, создаём решения для компьютерного зрения, используя платформу map-reduce под названием <a href="https://medium.com/netflix-techblog/simplifying-media-innovation-at-netflix-with-archer-3f8cbb0e2bcb">Archer</a>, и используем Python для многих внутренних проектов.<br/>
+<br/>
+Мы также открыли несколько инструментов для облегчения разработки/распространения проектов Python, таких как <a href="https://pypi.org/project/setupmeta/">setupmeta</a> и <a href="https://pypi.org/project/pickley/">pickley</a>.<br/>
+<br/>
+<h1>Анимация Netflix и NVFX</h1><br/>
+Python — отраслевой стандарт для всех основных приложений, которые мы используем для создания анимированного и VFX-контента, поэтому само собой разумеется, что мы интенсивно его используем. Все наши интеграции с Maya и Nuke сделаны на Python, и основная часть наших инструментов Shotgun тоже. Мы только начали налаживать инструменты в облаке и собираемся развернуть там многие кастомные Python AMI/контейнеры.<br/>
+<br/>
+<h1>Машинное обучение в контенте, наука и аналитика</h1><br/>
+Команда машинного обучения в контенте широко использует Python для разработки моделей машинного обучения, которые являются ядром прогнозирования размера аудитории, просмотров и других метрик для всего контента.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BNetflix%5D" class="tm-tags-list__link">Netflix</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BFlask%5D" class="tm-tags-list__link">Flask</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BJupyter%20Notebooks%5D" class="tm-tags-list__link">Jupyter Notebooks</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnumpy%5D" class="tm-tags-list__link">numpy</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bscipy%5D" class="tm-tags-list__link">scipy</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bruptures%5D" class="tm-tags-list__link">ruptures</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpandas%5D" class="tm-tags-list__link">pandas</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BSpectator%5D" class="tm-tags-list__link">Spectator</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BWinston%5D" class="tm-tags-list__link">Winston</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BBolt%5D" class="tm-tags-list__link">Bolt</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BSecurity%20Monkey%5D" class="tm-tags-list__link">Security Monkey</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BBless%5D" class="tm-tags-list__link">Bless</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BRepokid%5D" class="tm-tags-list__link">Repokid</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BLemur%5D" class="tm-tags-list__link">Lemur</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BPrism%5D" class="tm-tags-list__link">Prism</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BTensorFlow%5D" class="tm-tags-list__link">TensorFlow</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B0%D1%88%D0%B8%D0%BD%D0%BD%D0%BE%D0%B5%20%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">машинное обучение</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BMetaflow%5D" class="tm-tags-list__link">Metaflow</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/hi/" class="tm-hubs-list__link">
+    Высокая производительность
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/open_source/" class="tm-hubs-list__link">
+    Open source
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/python/" class="tm-hubs-list__link">
+    Python
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/machine_learning/" class="tm-hubs-list__link">
+    Машинное обучение
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 26: ↑25 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 26: ↑25 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+24</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">18K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    138
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/m1rko/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/4ec/bd0/85d/4ecbd085d692835a931d03174ff19539.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 1502 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    1230.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Анатолий Ализар</span> <a href="/ru/users/m1rko/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @m1rko
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">автор, переводчик, редактор</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450870/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 1 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450870/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450870/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450870":{"id":"450870","timePublished":"2019-05-07T17:53:01+00:00","isCorporative":false,"lang":"ru","titleHtml":"Как Netflix использует Питон","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F082\u002F1b1\u002F5bd\u002F0821b15bd96a296f6dd1ee62341bdf53.png\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nПоскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие сериалы финансировать, и заканчивая работой CDN для отгрузки видео 148 миллионам пользователей. Мы вносим свой вклад во многие пакеты Python с открытым исходным кодом, некоторые из которых упомянуты ниже. Если что-то вас интересует, посмотрите наш \u003Ca href=\"https:\u002F\u002Fjobs.netflix.com\u002Fsearch?q=python\"\u003Eсайт вакансий\u003C\u002Fa\u003E или ищите нас на PyCon.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Питонисты Netflix","originalUrl":"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fpython-at-netflix-bba45dae649e"}}],"author":{"scoreStats":{"score":1230.5,"votesCount":1502},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1371978","alias":"m1rko","fullname":"Анатолий Ализар","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F4ec\u002Fbd0\u002F85d\u002F4ecbd085d692835a931d03174ff19539.png","speciality":"автор, переводчик, редактор"},"statistics":{"commentsCount":1,"favoritesCount":138,"readingCount":18291,"score":24,"votesCount":26},"hubs":[{"relatedData":null,"id":"4","alias":"hi","type":"collective","title":"Высокая производительность","titleHtml":"Высокая производительность","isProfiled":true},{"relatedData":null,"id":"144","alias":"open_source","type":"collective","title":"Open source","titleHtml":"Open source","isProfiled":true},{"relatedData":null,"id":"340","alias":"python","type":"collective","title":"Python","titleHtml":"Python","isProfiled":true},{"relatedData":null,"id":"19439","alias":"machine_learning","type":"collective","title":"Машинное обучение","titleHtml":"Машинное обучение","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F082\u002F1b1\u002F5bd\u002F0821b15bd96a296f6dd1ee62341bdf53.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие сериалы финансировать, и заканчивая работой CDN для отгрузки видео 148 миллионам пользователей. Мы вносим свой вклад во многие пакеты Python с открытым исходным кодом, некоторые из которых упомянуты ниже. Если что-то вас интересует, посмотрите наш \u003Ca href=\"https:\u002F\u002Fjobs.netflix.com\u002Fsearch?q=python\"\u003Eсайт вакансий\u003C\u002Fa\u003E или ищите нас на PyCon.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EOpen Connect\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fopenconnect.netflix.com\u002Fen\u002F\"\u003EOpen Connect\u003C\u002Fa\u003E — это сеть доставки контента Netflix (CDN). Простой, хотя и неточный, способ представить инфраструктуру Netflix, такой: всё, что происходит перед нажатием кнопки Play на пульте дистанционного управления (например, вход в систему, определение тарифного плана, система рекомендаций, выбор фильмов) работает в Amazon Web Services (AWS), а всё, что происходит потом (т. е. потоковое видео), работает через Open Connect. Контент размещается на сети серверов Open Connect CDN как можно ближе к конечному пользователю, чтобы улучшить качество просмотра для клиентов и снизить затраты Netflix и наших партнёров, интернет-провайдеров.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля проектирования, разработки и эксплуатации CDN необходимы различные программные системы, и многие из них написаны на Python. Сетевые устройства в основе CDN, в основном, управляются питоновскими приложениями. Такие приложения отслеживают состояние сетевого оборудования: какие используются устройства, какие модели, с какими аппаратными компонентами, где они расположены. Конфигурация этих устройств контролируется несколькими другими системами, включая «источник истины», приложения для конфигурирования устройств и резервного копирования. Взаимодействие устройств для сбора данных о работоспособности и других операционных данных — это ещё одно питоновское приложение. Python уже давно является популярным языком программирования в сети, потому что это интуитивный язык, который позволяет быстро решать сетевые проблемы. Разработано много полезных библиотек, которые делают язык ещё более подходящим для изучения и использования.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EDemand Engineering\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fwww.linkedin.com\u002Fpulse\u002Fwhat-demand-engineering-aaron-blohowiak\u002F\"\u003EDemand Engineering\u003C\u002Fa\u003E отвечает за \u003Ca href=\"https:\u002F\u002Fopensource.com\u002Farticle\u002F18\u002F4\u002Fhow-netflix-does-failovers-7-minutes-flat\"\u003Eотработку региональных сбоев\u003C\u002Fa\u003E, распределение трафика, операции с пропускной способностью и эффективность серверов в облаке Netflix. Мы с гордостью можем сказать, что наши инструменты построены в основном на Python. Служба по отработке отказов использует numpy и scipy для численного анализа, boto3 для внесения изменений в инфраструктуру AWS, rq для запуска асинхронных рабочих нагрузок, и всё это обёрнуто в тонкий слой Flask API. Возможность уйти при отказе в оболочку \u003Ca href=\"https:\u002F\u002Fbpython-interpreter.org\u002F\"\u003Ebpython\u003C\u002Fa\u003E и импровизировать не раз спасала положение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы активно используем Jupyter Notebooks и \u003Ca href=\"https:\u002F\u002Fnteract.io\u002F\"\u003Enteract\u003C\u002Fa\u003E для анализа операционных данных и прототипирования \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fnteract\u002Fnteract\u002Ftree\u002Fmaster\u002Fpackages\u002Fdata-explorer\"\u003Eинструментов визуализации\u003C\u002Fa\u003E, чтобы обнаруживать регрессии ёмкости.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003ECORE\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКоманда CORE применяет Python для анализа статистики и выдачи предупреждений. Мы опираемся на многие статистические и математические библиотеки (numpy, scipy, ruptures, pandas), чтобы автоматизировать анализ 1000 связанных сигналов, когда системы оповещения указывают на проблемы. Мы разработали систему корреляции временных рядов, используемую как внутри команды, так и за её пределами, а также распределённую рабочую систему для распараллеливания большого объёма аналитической работы для получения быстрых результатов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы также обычно используем Python для задач автоматизации, исследования и фильтрации данных и как удобный инструмент для визуализации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EМониторинг, оповещение и автоматическое восстановление\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКоманда Insight Engineering отвечает за разработку и эксплуатацию инструментов оперативного распознавания проблем, оповещения, диагностики и автоматического исправления. С ростом популярности Python команда теперь поддерживает клиенты Python для большинства своих сервисов. Одним из примеров является клиентская библиотека \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Fspectator-py\"\u003ESpectator\u003C\u002Fa\u003E для кода, который записывает метрики размерных временных серий. Мы создаём библиотеки Python для взаимодействия с другими службами на платформе Netflix. В дополнение к библиотекам, продукты \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fintroducing-winston-event-driven-diagnostic-and-remediation-platform-46ce39aa81cc\"\u003EWinston\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fintroducing-bolt-on-instance-diagnostic-and-remediation-platform-176651b55505\"\u003EBolt\u003C\u002Fa\u003E построены с использованием питоновских фреймворков (Gunicorn + Flask + Flask-RESTPlus).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EИнформационная безопасность\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКоманда информационной безопасности использует Python для ряда важных задач, в том числе автоматизации безопасности, классификации рисков, идентификации и автоматического исправления уязвимостей. Мы публиковали исходники ряда успешных продуктов, включая \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Fsecurity_monkey\"\u003ESecurity Monkey\u003C\u002Fa\u003E (наш самый активный проект с открытым исходным кодом). Python применяется для защиты наших SSH-ресурсов с помощью \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Fbless\"\u003EBless\u003C\u002Fa\u003E. Команда безопасности инфраструктуры использует Python для настройки разрешений IAM с помощью \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Frepokid\"\u003ERepokid\u003C\u002Fa\u003E. Питоновские скрипты помогают генерировать TLS-сертификаты в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Flemur\"\u003ELemur\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНекоторые из наших последних проектов включают Prism: пакетный фреймворк, помогающий инженерам безопасности анализировать состояние инфраструктуры, выявлять факторы риска и уязвимости в исходном коде. В настоящее время мы предоставляем библиотеки Python и Ruby для Prism. Инструмент для форензики (компьютерной экспертизы) \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fnetflix-sirt-releases-diffy-a-differencing-engine-for-digital-forensics-in-the-cloud-37b71abd2698\"\u003EDiffy\u003C\u002Fa\u003E полностью написан на Python. Мы также используем Python для обнаружения конфиденциальных данных с помощью Lanius.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EАлгоритмы персонализации\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nМы широко применяем Python в \u003Ca href=\"https:\u002F\u002Fwww.slideshare.net\u002FFaisalZakariaSiddiqi\u002Fml-infra-for-netflix-recommendations-ai-nextcon-talk\"\u003Eинфраструктуре машинного обучения для персонализации\u003C\u002Fa\u003E. Здесь обучаются некоторые модели, которые обеспечивают ключевые аспекты функциональности Netflix: от \u003Ca href=\"https:\u002F\u002Fresearch.netflix.com\u002Fresearch-area\u002Frecommendations\"\u003Eалгоритмов рекомендаций\u003C\u002Fa\u003E до \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fpython-at-netflix-bba45dae649e\"\u003Eвыбора обложек\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fengineering-to-scale-paid-media-campaigns-84ba018fb3fa\"\u003Eмаркетинговых алгоритмов\u003C\u002Fa\u003E. Например, некоторые алгоритмы используют TensorFlow, Keras и PyTorch для обучения глубоких нейросетей, XGBoost и LightGBM для обучения деревьев решений с градиентным бустингом или более широкий питоновский научный стек (например, библиотеки numpy, scipy, sklearn, библиотек matplotlib, pandas, cvxpy). Поскольку мы постоянно пробуем новые подходы, то для многих экспериментов используем блокноты Jupyter. Мы также разработали ряд библиотек более высокого уровня для интеграции блокнотов с остальной частью нашей \u003Ca href=\"https:\u002F\u002Fwww.slideshare.net\u002FFaisalZakariaSiddiqi\u002Fml-infra-for-netflix-recommendations-ai-nextcon-talk\"\u003Eэкосистемы\u003C\u002Fa\u003E (например, доступа к данным, регистрации фактов и извлечения признаков, оценки моделей и публикации).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EИнфраструктура машинного обучения\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКроме персонализации, Netflix применяет машинное обучение в сотнях других задач по всей компании. Многие из этих приложений работают на Metaflow, платформе Python, которая позволяет легко выполнять ML-проекты и вести их со стадии прототипа до продакшна.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nMetaflow раздвигает границы Python: мы используем хорошо распараллеленный и оптимизированный код Python для извлечения данных на скорости 10 Гбит\u002Fс, обработки сотен миллионов точек данных в памяти и организации вычислений на десятках тысяч ядер CPU.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EБлокноты\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nМы в Netflix заядлые пользователи блокнотов Jupyter, и мы уже писали о \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fnotebook-innovation-591ee3221233\"\u003Eпричинах и характере этих вложений\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо Python играет огромную роль в том, как предоставляются эти услуги. Это основной язык для разработки, отладки, исследования и прототипирования различных взаимодействий с экосистемой Jupyter. Мы используем Python для создания пользовательских расширений для сервера Jupyter, что позволяет управлять такими задачами, как ведение журнала, архивирование, публикация и клонирование блокнотов от имени пользователей. Мы предоставляем нашим пользователям множество вариантов на Python через различные ядра Jupyter и управляем развёртыванием этих спецификаций ядра тоже с помощью Python.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EОркестровка\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКоманда оркестровки больших данных отвечает за предоставление всех услуг и инструментов для планирования и выполнения конвейеров ETL и Adhoc.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМногие компоненты оркестровки написаны на Python. Начиная с планировщика, который использует \u003Ca href=\"https:\u002F\u002Fjupyter.org\u002F\"\u003Eблокноты Jupyter\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fpapermill.readthedocs.io\u002Fen\u002Flatest\u002F\"\u003Epapermill\u003C\u002Fa\u003E для шаблонных типов заданий (Spark, Presto...). Это даёт пользователям стандартизированный и простой способ выразить работу, которая должна быть выполнена. \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fscheduling-notebooks-348e6c14cfd6\"\u003EЗдесь\u003C\u002Fa\u003E вы можете более подробно почитать об этом. Мы использовали блокноты как настоящие списки операций в продакшне («ранбуки») в ситуациях, когда требуется вмешательство человека, например, перезапустить всё, что упало за последний час.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля внутреннего применения мы построили платформу, управляемую событиями, которая полностью написана на Python. В неё поступают потоки событий из ряда систем, которые объединяются в единый инструмент. Это позволяет определить условия фильтрации событий, реагирования на них или маршрутизации. В результате мы смогли выделить микросервисы и обеспечить прозрачность во всём, что происходит на платформе данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаша команда также разработала клиент \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Fpygenie\"\u003Epygenie\u003C\u002Fa\u003E, который взаимодействует с федеративной службой выполнения заданий \u003Ca href=\"https:\u002F\u002Fnetflix.github.io\u002Fgenie\u002F\"\u003EGenie\u003C\u002Fa\u003E. Внутри у нас есть дополнительные расширения этой библиотеки, применяющие бизнес-соглашения и интегрированные с платформой Netflix. Эти библиотеки — основной способ программного взаимодействия пользователей с платформой больших данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаконец, наша команда внесла свой вклад в проекты с открытым исходным кодом \u003Ca href=\"https:\u002F\u002Fpapermill.readthedocs.io\u002Fen\u002Flatest\u002F\"\u003Epapermill\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fnteract-scrapbook.readthedocs.io\u002Fen\u002Flatest\u002F\"\u003Escrapbook\u003C\u002Fa\u003E: мы добавили код как для наших собственных, так и для внешних случаев использования. Наши усилия хорошо приняты в сообществе open source, чему мы очень рады.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EЭкспериментальная платформа\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКоманда научных вычислений создаёт платформу для экспериментов: AB-тестов и других. Учёные и инженеры могут экспериментировать с инновациями по трём направлениям: данные, статистика и визуализация.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаш репозиторий метрик — это платформа Python на основе \u003Ca href=\"https:\u002F\u002Fpypika.readthedocs.io\u002Fen\u002Flatest\u002F\"\u003EPyPika\u003C\u002Fa\u003E, позволяющая писать многоразовые параметризованные SQL-запросы. Это точка входа для любого нового анализа.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБиблиотека причинных моделей Causal Models основана на Python и R: здесь учёные получают возможность исследовать новые модели причинных следствий. Она использует PyArrow и RPy2, так что статистика легко рассчитывается на любом языке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБиблиотека визуализаций основана на \u003Ca href=\"https:\u002F\u002Fplot.ly\u002F\"\u003EPlotly\u003C\u002Fa\u003E. Поскольку Plotly является общепринятой спецификацией для визуализаций, есть множество инструментов для вывода, который направляется в наши платформы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EПартнёрская экосистема\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nГруппа, которая занимается партнёрской экосистемой, применяет Python для тестирования приложений Netflix на устройствах. Python формирует ядро новой инфраструктуры непрерывной интеграции, включая управление нашими серверами оркестровки, управление Spinnaker, запросы тестовых наборов и фильтрацию, а также планирование тестовых запусков на устройствах и контейнерах. Дополнительный анализ после запуска выполняется в Python с помощью TensorFlow, чтобы определить, какие тесты, скорее всего, вызовут проблемы на каких устройствах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EВидеокодирование и разработка медийного облака\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНаша команда заботится о кодировании (и перекодировании) каталога Netflix, а также использует машинное обучение для анализа этого каталога.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы используем Python примерно в 50 проектах, таких как \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNetflix\u002Fvmaf\u002Fblob\u002Fmaster\u002Fresource\u002Fdoc\u002Freferences.md\"\u003Evmaf\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fmezzfs-mounting-object-storage-in-netflixs-media-processing-platform-cda01c446ba\"\u003Emezzfs\u003C\u002Fa\u003E, создаём решения для компьютерного зрения, используя платформу map-reduce под названием \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fnetflix-techblog\u002Fsimplifying-media-innovation-at-netflix-with-archer-3f8cbb0e2bcb\"\u003EArcher\u003C\u002Fa\u003E, и используем Python для многих внутренних проектов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы также открыли несколько инструментов для облегчения разработки\u002Fраспространения проектов Python, таких как \u003Ca href=\"https:\u002F\u002Fpypi.org\u002Fproject\u002Fsetupmeta\u002F\"\u003Esetupmeta\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fpypi.org\u002Fproject\u002Fpickley\u002F\"\u003Epickley\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EАнимация Netflix и NVFX\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nPython — отраслевой стандарт для всех основных приложений, которые мы используем для создания анимированного и VFX-контента, поэтому само собой разумеется, что мы интенсивно его используем. Все наши интеграции с Maya и Nuke сделаны на Python, и основная часть наших инструментов Shotgun тоже. Мы только начали налаживать инструменты в облаке и собираемся развернуть там многие кастомные Python AMI\u002Fконтейнеры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EМашинное обучение в контенте, наука и аналитика\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nКоманда машинного обучения в контенте широко использует Python для разработки моделей машинного обучения, которые являются ядром прогнозирования размера аудитории, просмотров и других метрик для всего контента.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"Netflix"},{"titleHtml":"Flask"},{"titleHtml":"Jupyter Notebooks"},{"titleHtml":"numpy"},{"titleHtml":"scipy"},{"titleHtml":"ruptures"},{"titleHtml":"pandas"},{"titleHtml":"Spectator"},{"titleHtml":"Winston"},{"titleHtml":"Bolt"},{"titleHtml":"Security Monkey"},{"titleHtml":"Bless"},{"titleHtml":"Repokid"},{"titleHtml":"Lemur"},{"titleHtml":"Prism"},{"titleHtml":"TensorFlow"},{"titleHtml":"машинное обучение"},{"titleHtml":"Metaflow"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450870\u002F4115a000eea5ff9bdf46858837470151\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450870\u002F4115a000eea5ff9bdf46858837470151\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450870\\\u002F\"},\"headline\":\"Как Netflix использует Питон\",\"datePublished\":\"2019-05-07T20:53:01+03:00\",\"dateModified\":\"2019-05-08T18:57:28+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Анатолий Ализар\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном ц...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450870\\\u002F#post-content-body\",\"about\":[\"h_hi\",\"h_open_source\",\"h_python\",\"h_machine_learning\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F082\\\u002F1b1\\\u002F5bd\\\u002F0821b15bd96a296f6dd1ee62341bdf53.png\"]}","metaDescription":"Поскольку многие из нас готовятся к конференции PyCon, мы хотели немного рассказать, как Python используется в Netflix. Мы применяем Python на всём жизненном цикле: от принятия решения, какие...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"hi,open_source,python,machine_learning"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

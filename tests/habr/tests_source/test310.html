@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450310\/"},"headline":"Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства","datePublished":"2019-05-02T15:35:51+03:00","dateModified":"2019-05-02T18:17:07+03:00","author":{"@type":"Person","name":"Tormoz Edison"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит...","url":"https:\/\/habr.com\/ru\/post\/450310\/#post-content-body","about":["h_reverse-engineering","h_history","h_antikvariat","f_develop","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/23\/ak\/-w\/23ak-weziuwj2tul3zohv_zjyyu.jpeg","https:\/\/habrastorage.org\/webt\/ma\/n8\/32\/man832tcprf_uz3jwlf0wjqaerm.jpeg","https:\/\/habrastorage.org\/webt\/q3\/_d\/qu\/q3_dquewjyizmthijcqas_4u838.jpeg","https:\/\/habrastorage.org\/webt\/7v\/tx\/2m\/7vtx2mrvppn7x52dbs5kqxnpczo.jpeg","https:\/\/habrastorage.org\/webt\/my\/up\/lt\/myupltxbmvuwk53kak4fq62h_xq.jpeg","https:\/\/habrastorage.org\/webt\/fl\/iv\/zd\/flivzd3hwhgego1dssoictoigzm.jpeg","https:\/\/habrastorage.org\/webt\/cd\/4w\/lq\/cd4wlq6hzkzymm94ahkumb41ess.jpeg","https:\/\/habrastorage.org\/webt\/wq\/ky\/kv\/wqkykv4xqujsnmrp5o1qhvv49ew.jpeg","https:\/\/habrastorage.org\/webt\/fy\/al\/f7\/fyalf7_bcfv8qjlasjkyir5dsxc.png","https:\/\/habrastorage.org\/webt\/o4\/pa\/0s\/o4pa0syzk6ksdko1ov788sljbj0.jpeg","https:\/\/habrastorage.org\/webt\/8e\/xb\/mq\/8exbmqvdc5qd4wnf4sgadxlgmkw.jpeg","https:\/\/habrastorage.org\/webt\/fv\/8v\/lt\/fv8vlt9uas1eei5ljykqchcmco0.jpeg","https:\/\/habrastorage.org\/webt\/e7\/uv\/d0\/e7uvd0tqatktdqsvzx3ynvtu7l8.jpeg","https:\/\/habrastorage.org\/webt\/fr\/dl\/mv\/frdlmv_-zpb6aoamhnp1rq81flo.jpeg","https:\/\/habrastorage.org\/webt\/ov\/ys\/dy\/ovysdy69k_ss__1_pdbdud1-qvw.jpeg","https:\/\/habrastorage.org\/webt\/8x\/ek\/kf\/8xekkf5-kojyhecysfxqh-xbdwk.jpeg","https:\/\/habrastorage.org\/webt\/ko\/ta\/4u\/kota4uqclmnzqkbs1vtrbthxrq4.jpeg","https:\/\/habrastorage.org\/webt\/kk\/5s\/kp\/kk5skpbzc-ybyrm_ffy0zx15ktm.jpeg","https:\/\/habrastorage.org\/webt\/u5\/wf\/fs\/u5wffss0o_vaauju7ykq9upbojo.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450310/f80f345f03eeba18ae28b49dfc084cf5/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450310/f80f345f03eeba18ae28b49dfc084cf5/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450310/f80f345f03eeba18ae28b49dfc084cf5/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450310/f80f345f03eeba18ae28b49dfc084cf5/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450310/f80f345f03eeba18ae28b49dfc084cf5/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450310" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-02T12:35:51.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450310/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450310/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450310/f80f345f03eeba18ae28b49dfc084cf5/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/tormozedison/" title="tormozedison" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/b8f/8f3/d80/b8f8f3d8044b7c98ab21a7b543b308ca.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/tormozedison/" class="tm-user-info__username">
+      tormozedison
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-02T12:35:51.000Z" title="2019-05-02, 15:35">2  мая  2019 в 15:35</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/reverse-engineering/" class="tm-article-snippet__hubs-item-link"><span>Реверс-инжиниринг</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/history/" class="tm-article-snippet__hubs-item-link"><span>История IT</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/antikvariat/" class="tm-article-snippet__hubs-item-link"><span>Старое железо</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://hackaday.io/project/25664/logs" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Maarten Janssen
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/23/ak/-w/23ak-weziuwj2tul3zohv_zjyyu.jpeg" data-src="https://habrastorage.org/webt/23/ak/-w/23ak-weziuwj2tul3zohv_zjyyu.jpeg" data-blurred="true"/><br/>
+<br/>
+Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже выяснилось, ПЗУ больше). Для сохранения документов в нём предусмотрен 3,5-дюймовый дисковод. Стать счастливым обладателем этого «комбайна» (там ещё и принтер встроенный) можно было за 799 долларов.<br/>
+<br/>
+Экран оранжевого ЭЛТ-монитора заметно шире обычного. На него помещается не только окно с редактируемым документом, но и расположенное справа от него меню. Там же отображаются подсказки, в том числе о назначении функциональных клавиш. Документ всегда отображается светлыми символами на тёмном фоне, меню — наоборот. В левом нижнем углу накладки на экран нанесено обозначение: DDS — Dual Display Screen...<a name="habracut"></a><br/>
+<br/>
+Редактор довольно простой, даже Comic Sans от него не ждите. Шрифт всего один, доступны стандартные атрибуты: полужирный, курсив, подчёркнутый, верхний и нижний индексы. И стандартные способы выравнивания текста. Ещё есть линейка и символы перевода строки.<br/>
+<br/>
+Принтер печатает на обычных листах А4 при помощи термопереноса. Если нет специального картриджа — согласно <a href="https://en.wikipedia.org/wiki/VideoWriter">статье в Википедии</a>, можно печатать на термобумаге. Автор очень удивился, что устройство всё ещё печатает после стольких лет, проведённых на жарком чердаке.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ma/n8/32/man832tcprf_uz3jwlf0wjqaerm.jpeg" data-src="https://habrastorage.org/webt/ma/n8/32/man832tcprf_uz3jwlf0wjqaerm.jpeg" data-blurred="true"/><br/>
+<br/>
+Клавиатура малогабаритная, но печатать на ней удобно. Специальные клавиши на ней позволяют переключать атрибуты шрифта, отменять действия и проверять правописание, если есть дискета со словарём. Клавиатура подключается разъёмом RJ14 — суть та же, что у RJ11 и RJ45.<br/>
+<br/>
+Документы хранятся на 3,5-дюймовых дискетах. Машина при включении сразу ищет дискету, а если не может «понять», что там, предлагает её отформатировать. Скорее всего, формат несовместим с применяемым на PC. А сколько килобайт там помещается, 360 или 720?<br/>
+<br/>
+А теперь пора поднять верхнюю крышку и посмотреть, что под ней. Первым делом просто рассмотрим платы, пока не углубляясь в их устройство. Сначала разрядим кинескоп. Берём отвёртку, заранее соединённую с общим проводом при помощи «крокодила», и, держа её за изолирующую ручку, подсовываем жало под присоску. Хотя на самом кинескопе написано: дуговым разрядом не разряжать, подключить высокоомный вольтметр между анодом и шасси. И, типа, всё разрядится постепенно. Возможно, ТДКС «нежный».<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/q3/_d/qu/q3_dquewjyizmthijcqas_4u838.jpeg" data-src="https://habrastorage.org/webt/q3/_d/qu/q3_dquewjyizmthijcqas_4u838.jpeg" data-blurred="true"/><br/>
+<br/>
+Чтобы снять БП, надо открутить всего два винта. Сейчас автор снимает этот БП второй раз. Первый был, когда в нём лопнул конденсатор, было много дыма, но автор нашёл такой же, впаял, и всё заработало. Это был не электролитический конденсатор, а вот тот, прямоугольный, сверху в середине. Который теперь красный.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/7v/tx/2m/7vtx2mrvppn7x52dbs5kqxnpczo.jpeg" data-src="https://habrastorage.org/webt/7v/tx/2m/7vtx2mrvppn7x52dbs5kqxnpczo.jpeg" data-blurred="true"/><br/>
+<br/>
+Плата монитора весьма малогабаритна по сравнению с другими аналогичными платами тех лет. Даже платы кинескопа нет — просто панелька (что в монохромных мониторах не такая уж и редкость). На плате имеются несколько органов настройки, а также 10-контактный разъём для подключения к материнской плате. Интересно, что там за цоколёвка? И зачем микросхема 556 — два таймера 555 в одном корпусе? Генераторы «пилы» сразу для кадровой и строчной развёрток?<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/my/up/lt/myupltxbmvuwk53kak4fq62h_xq.jpeg" data-src="https://habrastorage.org/webt/my/up/lt/myupltxbmvuwk53kak4fq62h_xq.jpeg" data-blurred="true"/><br/>
+<br/>
+Плата принтера расположена прямо под собственно принтером. От неё идёт шлейф к материнской плате, а также кабели к двигателям, кнопкам протяжки бумаги, регулятору контраста при печати, печатающей головке, концевикам и датчику бумаги.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/fl/iv/zd/flivzd3hwhgego1dssoictoigzm.jpeg" data-src="https://habrastorage.org/webt/fl/iv/zd/flivzd3hwhgego1dssoictoigzm.jpeg" data-blurred="true"/><br/>
+<br/>
+Материнская плата экранирована со всех сторон. Только для двух микросхем ПЗУ в экране проделано квадратное отверстие:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/cd/4w/lq/cd4wlq6hzkzymm94ahkumb41ess.jpeg" data-src="https://habrastorage.org/webt/cd/4w/lq/cd4wlq6hzkzymm94ahkumb41ess.jpeg" data-blurred="true"/><br/>
+<br/>
+Снимем экран и посмотрим, что интересного на материнской плате.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/wq/ky/kv/wqkykv4xqujsnmrp5o1qhvv49ew.jpeg" data-src="https://habrastorage.org/webt/wq/ky/kv/wqkykv4xqujsnmrp5o1qhvv49ew.jpeg" data-blurred="true"/><br/>
+<br/>
+D8156HC-2 — контроллер ввода-вывода. Предположительно, управляет принтером, так как расположен вблизи разъёма принтера в левом верхнем углу. Микросхема содержит три порта: два 8-битных и один 6-битный, 14-битный таймер и 256 байт статического ОЗУ. Позже посмотрим, для чего нужен каждый из портов, и действительно ли микросхема управляет принтером. Так же она же, скорее всего, «общается» и с клавиатурой. Микросхема использует совмещённую шину адреса и данных. Оказалось, микропроцессор — тоже.<br/>
+<br/>
+HN27C256-20 — ПЗУ на 32 килобайта с шириной шины данных в 8 бит. Таких микросхем две, получается 64 килобайта. Значит, в Википедии неправильно сказано, что ПЗУ всего 16 килобайт. Что же, ПЗУ займёт всё 64-килобайтное адресное пространство Z80? А там ведь ещё и 16 килобайт ОЗУ. Значит, есть какое-то переключение страниц. Тоже посмотрим…<br/>
+<br/>
+NSC800N-3I — микропроцессор. С Z80 он только совместим, а цоколёвка — совсем другая. Слева — просто удивительная совмещённая шина адреса и данных. Нижние 8 бит шины адреса используются также в качестве шины данных. А чтобы отличать адрес от данных, имеется вывод ALE. Единица — значит, на этих нижних восьми битах — часть адреса. А справа — одни сигналы. Тот же ALE, а также Read Enable, Write Enable, выбор между памятью и портами, и так далее. Конечно, с таким микропроцессором работать сложнее, чем с обычным Z80 или его клоном. Работает он, по даташиту, на частоте до 2,5 МГц, значит, частота 5-мегагерцового кварца где-то делится на два. Сравните цоколёвки этого нестандартного процессора и обычного Z80:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fy/al/f7/fyalf7_bcfv8qjlasjkyir5dsxc.png"/><br/>
+<br/>
+HM48416AP-15 — динамическое ОЗУ на 16 килополубайт. Две таких микросхемы образуют ОЗУ на 16 килобайт.<br/>
+<br/>
+WD1770-PH — контроллер дисковода фирмы Western Digital. Минимум внешних компонентов, совместимость с разлиными форматами хранения данных на дискете. В общем, в рекламе не нуждается.<br/>
+<br/>
+NCR 7250 PY — видеоконтроллер? Похоже, он, потому что больше ничего претендующего на эту функцию на плате нет.<br/>
+<br/>
+HM6116-4 — статическое ОЗУ на 2 килобайта. В общем, видеопамять. Видеорежим здесь только текстовый, так что больше и не надо. Хотя… Тут же не 80х25, тут строка шире 80 символов, плюс атрибуты. Ну, значит, помещается.<br/>
+<br/>
+Итак, мы выяснили, что в машине 16 килобайт ОЗУ и 64 килобайта ПЗУ, и где-то должно быть реализовано переключение страниц. Прогуляемся по плате с мультиметром и зарисуем всё, что увидим.<br/>
+<br/>
+Сначала поищем сигналы Chip Select. Начнём с вывода /CE той микросхемы ПЗУ, у которой на наклейке напечатана буква A. Оказывается, он подключён к выходу элемента И. Так, куда там идут его входы? К двум выходам микросхемы 74139, содержащей два дешифратора с двумя входами и четырьмя выходами. Нас из них только один интересует:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/o4/pa/0s/o4pa0syzk6ksdko1ov788sljbj0.jpeg" data-src="https://habrastorage.org/webt/o4/pa/0s/o4pa0syzk6ksdko1ov788sljbj0.jpeg" data-blurred="true"/><br/>
+<br/>
+Сигналы A14 и A15 поступают с микропроцессора на её входы, значит, память делится на четыре блока по 16 килобайт. На вход /E (enable) с микропроцессора поступает сигнал /M (memory select), поэтому микросхема 74139 активна, когда микропроцессор требует доступа к памяти. Получается, распределение адресного пространства такое. ПЗУ «A» выбрано, когда у 74139 единица либо на выходе /Q0, либо на выходе /Q1, ПЗУ «B» выбрано при единице на /Q2, ОЗУ — при единице на /Q3. Но с ОЗУ тоже не всё так просто, дальше разберёмся. Итак, что выбирается при разных сочетаниях сигналов на A14 и A15:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/8e/xb/mq/8exbmqvdc5qd4wnf4sgadxlgmkw.jpeg" data-src="https://habrastorage.org/webt/8e/xb/mq/8exbmqvdc5qd4wnf4sgadxlgmkw.jpeg" data-blurred="true"/><br/>
+<br/>
+Переходим к шине адреса. Как мы уже выяснили, там всё сложнее, чем в системах с обычным Z80. Оказывается, чтобы отделить адрес от данных, здесь применена 8-битная защёлка 74373. Её входы данных подключены к линиям AD0 — AD7, а вход защёлкивания — к линии ALE. Когда на ALE появляется единица, в 74373 записывается нижняя половина адреса. А вход /OE всегда соединён с общим проводом.<br/>
+<br/>
+Далее «шиной адреса» будут считаться выходные линии 74373 в сочетании с верхними линиями собственно шины адреса, где данные не присутствуют никогда. Ну, на рисунке всё показано:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/fv/8v/lt/fv8vlt9uas1eei5ljykqchcmco0.jpeg" data-src="https://habrastorage.org/webt/fv/8v/lt/fv8vlt9uas1eei5ljykqchcmco0.jpeg" data-blurred="true"/><br/>
+<br/>
+Теперь посмотрим, как подключены микросхемы ПЗУ. С подключением ПЗУ «A» ничего необычного не наблюдается. Просто линии A0 — A14 рассмотренной ранее шины «чисто адреса» (после 74373). К ПЗУ «B» подключены только линии A0 — A13. А что с A14? Может, эта линия идёт к общему проводу или плюсу питания, и половина ёмкости не используется? Нет. Она идёт к выводу 39 (PC2) контроллера ввода-вывода A8156. Вот всё и стало понятно с переключением страниц. Половинки ПЗУ «B» можно переключать программно.<br/>
+<br/>
+ОЗУ, как мы выяснили, выполнено на двух микросхемах динамического ОЗУ по 16 килополубайт каждая. Каждый байт ОЗУ хранится сразу в двух микросхемах, один полубайт в первый, другой — во второй.<br/>
+<br/>
+Для выбора адреса необходимо сначала выбрать строку, затем столбец. Для этого применены две микросхемы 74157 — четыре селектора данных с двумя входами и одним выходом. А теперь вернёмся к первой схеме. Кроме выхода /WR, там есть ещё один выход, идущий на вход выбора первой микросхемы 74157. Когда на /Q3 нуль, выбран адрес строки, а когда там единица — адрес столбца:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/e7/uv/d0/e7uvd0tqatktdqsvzx3ynvtu7l8.jpeg" data-src="https://habrastorage.org/webt/e7/uv/d0/e7uvd0tqatktdqsvzx3ynvtu7l8.jpeg" data-blurred="true"/><br/>
+<br/>
+Пройдясь по печатным проводникам, автор выяснил, что лишь шесть из восьми выходов двух микросхем 74157 используются как адреса MA1 — MA6 для микросхем ОЗУ. А линии MA0 и MA7 подключены прямо к линиям A6 и A7 шины адреса. У микросхем 48416 восемь строк и шесть столбцов, поэтому переключать требуется только шесть линий, две других могут быть подключены непосредственно к линиям шины адреса, так как они не влияют на выбор столбца.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/fr/dl/mv/frdlmv_-zpb6aoamhnp1rq81flo.jpeg" data-src="https://habrastorage.org/webt/fr/dl/mv/frdlmv_-zpb6aoamhnp1rq81flo.jpeg" data-blurred="true"/><br/>
+<br/>
+Порядок подключения линий к шине адреса не подчиняется никакой логике. Но всё работает. Может быть, так просто плату проектировать было удобнее?<br/>
+<br/>
+Ещё интересно, как микросхемы 74157 каскадированы: выход 4Y первой идёт на вход выбора второй, а выход 4Y второй — на линию /CAS:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ov/ys/dy/ovysdy69k_ss__1_pdbdud1-qvw.jpeg" data-src="https://habrastorage.org/webt/ov/ys/dy/ovysdy69k_ss__1_pdbdud1-qvw.jpeg" data-blurred="true"/><br/>
+<br/>
+В отличие от ПЗУ, у динамического ОЗУ нет отдельной линии /CE. Как автор понял, эти микросхемы обеспечивают чтение или запись, когда на /CAS нуль. Ну, так оно и есть: нуль на /Q3 — значит, нуль и на /CAS. Адрес строки ОЗУ формируется, когда на линии ALE нуль, и когда микропроцессор не сброшен.<br/>
+<br/>
+С адресным пространством разобрались, перейдём к периферии. Автор ещё прошёлся по плате с мультиметром и получил такую схему:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/8x/ek/kf/8xekkf5-kojyhecysfxqh-xbdwk.jpeg" data-src="https://habrastorage.org/webt/8x/ek/kf/8xekkf5-kojyhecysfxqh-xbdwk.jpeg" data-blurred="true"/><br/>
+<br/>
+В левом верхнем углу показано, откуда берутся сигналы /RD и /WR для видеоконтроллера (VDP). Обратите, что для VDP сигнала chip select не видно. Значит, единственный сигнал, похожий на /CS для видеоконтроллера — это сигнал ALE от микропроцессора. Получается, что видеоконтроллер поступают данные вообще обо всех операциях ввода-вывода. На этом концентрироваться не будем, посмотрим, что там с остальными устройствами ввода-вывода.<br/>
+<br/>
+Остальные адреса ввода-вывода дешифруются второй половиной микросхемы 74139 — той самой, первая половина которой переключает страницы адресного пространства. Этот дешифратор выбирается, когда производится операция ввода вывода, а на A7 нуль. Похоже, линия A7 отвечает за выбор между видеоконтроллером и остальной периферией. A6 и A5 определяют, какое устройство будет выбрано дешифратором:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ko/ta/4u/kota4uqclmnzqkbs1vtrbthxrq4.jpeg" data-src="https://habrastorage.org/webt/ko/ta/4u/kota4uqclmnzqkbs1vtrbthxrq4.jpeg" data-blurred="true"/><br/>
+<br/>
+Может ли A7 и быть линией chip select для видеоконтроллера, причём выбран он тогда, когда там единица? Без даташита на NCR 7250 не определить, но это вполне правдоподобно, если воздействие линии ALE на видеоконтроллер не реализовано как-нибудь совсем уж необычно.<br/>
+<br/>
+Далее автор провёл реверс-инжиниринг подключения сигнальных линий микропроцессора:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/kk/5s/kp/kk5skpbzc-ybyrm_ffy0zx15ktm.jpeg" data-src="https://habrastorage.org/webt/kk/5s/kp/kk5skpbzc-ybyrm_ffy0zx15ktm.jpeg" data-blurred="true"/><br/>
+<br/>
+На этой же схеме показан способ формирования сигнала сброса. Конденсатор при включении заряжается с задержкой, при выключении разряжается быстро. Сигнал сброса /RESET IN инверсный, он поступает на микропроцессор, а тот формирует прямой сигнал RESET OUT для сброса различной периферии.<br/>
+<br/>
+Линия немаскируемых прерываний /NMI работает так же, как на обычном Z80. Когда прерывания разрешены, нуль на этой линии приводит к вызову процедуры обработки прерывания по адресу 0x66. В данном случае сигнал /NMI поступает с выхода таймера IC25. Прерывание происходит при каждом переполнении этого таймера.<br/>
+<br/>
+У микропроцессора NSC800N есть ещё и вход /INTR, при нуле на котором происходит переход на адрес 0x38, но в VideoWRITER этот вход не задействован.<br/>
+<br/>
+Ещё есть три сигнала перезапуска /RSTA, /RSTB и /RSTC, вызывающие переход, соответственно, на адрес 0x3C, 0x34 или 0x2C. Из них здесь задействованы только первые два, и управляются они контроллером дисковода. Сигналом /RSTA контроллер дисковода сообщает микропроцессору о состоянии своего регистра данных, а сигналом /RSTB — о завершении выполнения команды.<br/>
+<br/>
+А теперь ещё об одной линии — S1. Вместе с линией S0 она определяет состояние шины. Таким образом у контроллера дисковода выбирается режим чтения или записи. Но почему линия S1 используется вместо /RD и /WR только контроллером дисковода? Непонятно. Линии S0, S1 и IO/M вполне могут использоваться для выбора между режимами чтения и записи применительно к памяти и периферии, но применение других линий даёт тот же эффект. Может, разработчики перепробовали несколько вариантов и решили остановиться на том способе дешифрации режима чтения-записи, который применён в обычном Z80? В любом случае, согласно даташиту на NSC800N и показанной ниже таблице, сигнал S1 может быть сигналом чтения из периферийных устройств, но только если имеется ещё и сигнал выбора, идущий непосредственно к устройству:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/u5/wf/fs/u5wffss0o_vaauju7ykq9upbojo.jpeg" data-src="https://habrastorage.org/webt/u5/wf/fs/u5wffss0o_vaauju7ykq9upbojo.jpeg" data-blurred="true"/><br/>
+<br/>
+Устройство в работе, видео снял другой автор — Grr_I'm_Here:<br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/BeMbmleApAI?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bphilips%5D" class="tm-tags-list__link">philips</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bvideowriter%5D" class="tm-tags-list__link">videowriter</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B5%D0%B2%D0%B5%D1%80%D1%81-%D0%B8%D0%BD%D0%B6%D0%B8%D0%BD%D0%B8%D1%80%D0%B8%D0%BD%D0%B3%5D" class="tm-tags-list__link">реверс-инжиниринг</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bteardown%5D" class="tm-tags-list__link">teardown</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bz80%5D" class="tm-tags-list__link">z80</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B5%D1%82%D1%80%D0%BE%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B8%D0%BD%D0%B3%5D" class="tm-tags-list__link">ретрокомпьютинг</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdiy%5D" class="tm-tags-list__link">diy</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/reverse-engineering/" class="tm-hubs-list__link">
+    Реверс-инжиниринг
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/history/" class="tm-hubs-list__link">
+    История IT
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/antikvariat/" class="tm-hubs-list__link">
+    Старое железо
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 52: ↑52 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 52: ↑52 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+52</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">9.7K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    17
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/tormozedison/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/b8f/8f3/d80/b8f8f3d8044b7c98ab21a7b543b308ca.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 43 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    20
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0.1</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Tormoz Edison</span> <a href="/ru/users/tormozedison/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @tormozedison
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450310/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 42 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450310/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450310/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450310":{"id":"450310","timePublished":"2019-05-02T12:35:51+00:00","isCorporative":false,"lang":"ru","titleHtml":"Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F23\u002Fak\u002F-w\u002F23ak-weziuwj2tul3zohv_zjyyu.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nУстройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже выяснилось, ПЗУ больше). Для сохранения документов в нём предусмотрен 3,5-дюймовый дисковод. Стать счастливым обладателем этого «комбайна» (там ещё и принтер встроенный) можно было за 799 долларов.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЭкран оранжевого ЭЛТ-монитора заметно шире обычного. На него помещается не только окно с редактируемым документом, но и расположенное справа от него меню. Там же отображаются подсказки, в том числе о назначении функциональных клавиш. Документ всегда отображается светлыми символами на тёмном фоне, меню — наоборот. В левом нижнем углу накладки на экран нанесено обозначение: DDS — Dual Display Screen…","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Maarten Janssen","originalUrl":"https:\u002F\u002Fhackaday.io\u002Fproject\u002F25664\u002Flogs"}}],"author":{"scoreStats":{"score":20,"votesCount":43},"rating":0.1,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410011416623795","paymentPayPalMe":null,"paymentWebmoney":"916587354553"},"id":"961056","alias":"tormozedison","fullname":"Tormoz Edison","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fb8f\u002F8f3\u002Fd80\u002Fb8f8f3d8044b7c98ab21a7b543b308ca.jpg","speciality":"Пользователь"},"statistics":{"commentsCount":42,"favoritesCount":17,"readingCount":9724,"score":52,"votesCount":52},"hubs":[{"relatedData":null,"id":"19011","alias":"reverse-engineering","type":"collective","title":"Реверс-инжиниринг","titleHtml":"Реверс-инжиниринг","isProfiled":true},{"relatedData":null,"id":"21906","alias":"history","type":"collective","title":"История IT","titleHtml":"История IT","isProfiled":false},{"relatedData":null,"id":"21930","alias":"antikvariat","type":"collective","title":"Старое железо","titleHtml":"Старое железо","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F23\u002Fak\u002F-w\u002F23ak-weziuwj2tul3zohv_zjyyu.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F23\u002Fak\u002F-w\u002F23ak-weziuwj2tul3zohv_zjyyu.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУстройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже выяснилось, ПЗУ больше). Для сохранения документов в нём предусмотрен 3,5-дюймовый дисковод. Стать счастливым обладателем этого «комбайна» (там ещё и принтер встроенный) можно было за 799 долларов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭкран оранжевого ЭЛТ-монитора заметно шире обычного. На него помещается не только окно с редактируемым документом, но и расположенное справа от него меню. Там же отображаются подсказки, в том числе о назначении функциональных клавиш. Документ всегда отображается светлыми символами на тёмном фоне, меню — наоборот. В левом нижнем углу накладки на экран нанесено обозначение: DDS — Dual Display Screen...\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРедактор довольно простой, даже Comic Sans от него не ждите. Шрифт всего один, доступны стандартные атрибуты: полужирный, курсив, подчёркнутый, верхний и нижний индексы. И стандартные способы выравнивания текста. Ещё есть линейка и символы перевода строки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПринтер печатает на обычных листах А4 при помощи термопереноса. Если нет специального картриджа — согласно \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FVideoWriter\"\u003Eстатье в Википедии\u003C\u002Fa\u003E, можно печатать на термобумаге. Автор очень удивился, что устройство всё ещё печатает после стольких лет, проведённых на жарком чердаке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fma\u002Fn8\u002F32\u002Fman832tcprf_uz3jwlf0wjqaerm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fma\u002Fn8\u002F32\u002Fman832tcprf_uz3jwlf0wjqaerm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКлавиатура малогабаритная, но печатать на ней удобно. Специальные клавиши на ней позволяют переключать атрибуты шрифта, отменять действия и проверять правописание, если есть дискета со словарём. Клавиатура подключается разъёмом RJ14 — суть та же, что у RJ11 и RJ45.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДокументы хранятся на 3,5-дюймовых дискетах. Машина при включении сразу ищет дискету, а если не может «понять», что там, предлагает её отформатировать. Скорее всего, формат несовместим с применяемым на PC. А сколько килобайт там помещается, 360 или 720?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА теперь пора поднять верхнюю крышку и посмотреть, что под ней. Первым делом просто рассмотрим платы, пока не углубляясь в их устройство. Сначала разрядим кинескоп. Берём отвёртку, заранее соединённую с общим проводом при помощи «крокодила», и, держа её за изолирующую ручку, подсовываем жало под присоску. Хотя на самом кинескопе написано: дуговым разрядом не разряжать, подключить высокоомный вольтметр между анодом и шасси. И, типа, всё разрядится постепенно. Возможно, ТДКС «нежный».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fq3\u002F_d\u002Fqu\u002Fq3_dquewjyizmthijcqas_4u838.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fq3\u002F_d\u002Fqu\u002Fq3_dquewjyizmthijcqas_4u838.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы снять БП, надо открутить всего два винта. Сейчас автор снимает этот БП второй раз. Первый был, когда в нём лопнул конденсатор, было много дыма, но автор нашёл такой же, впаял, и всё заработало. Это был не электролитический конденсатор, а вот тот, прямоугольный, сверху в середине. Который теперь красный.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F7v\u002Ftx\u002F2m\u002F7vtx2mrvppn7x52dbs5kqxnpczo.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F7v\u002Ftx\u002F2m\u002F7vtx2mrvppn7x52dbs5kqxnpczo.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПлата монитора весьма малогабаритна по сравнению с другими аналогичными платами тех лет. Даже платы кинескопа нет — просто панелька (что в монохромных мониторах не такая уж и редкость). На плате имеются несколько органов настройки, а также 10-контактный разъём для подключения к материнской плате. Интересно, что там за цоколёвка? И зачем микросхема 556 — два таймера 555 в одном корпусе? Генераторы «пилы» сразу для кадровой и строчной развёрток?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmy\u002Fup\u002Flt\u002Fmyupltxbmvuwk53kak4fq62h_xq.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmy\u002Fup\u002Flt\u002Fmyupltxbmvuwk53kak4fq62h_xq.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПлата принтера расположена прямо под собственно принтером. От неё идёт шлейф к материнской плате, а также кабели к двигателям, кнопкам протяжки бумаги, регулятору контраста при печати, печатающей головке, концевикам и датчику бумаги.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffl\u002Fiv\u002Fzd\u002Fflivzd3hwhgego1dssoictoigzm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffl\u002Fiv\u002Fzd\u002Fflivzd3hwhgego1dssoictoigzm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМатеринская плата экранирована со всех сторон. Только для двух микросхем ПЗУ в экране проделано квадратное отверстие:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fcd\u002F4w\u002Flq\u002Fcd4wlq6hzkzymm94ahkumb41ess.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcd\u002F4w\u002Flq\u002Fcd4wlq6hzkzymm94ahkumb41ess.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСнимем экран и посмотрим, что интересного на материнской плате.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fwq\u002Fky\u002Fkv\u002Fwqkykv4xqujsnmrp5o1qhvv49ew.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fwq\u002Fky\u002Fkv\u002Fwqkykv4xqujsnmrp5o1qhvv49ew.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nD8156HC-2 — контроллер ввода-вывода. Предположительно, управляет принтером, так как расположен вблизи разъёма принтера в левом верхнем углу. Микросхема содержит три порта: два 8-битных и один 6-битный, 14-битный таймер и 256 байт статического ОЗУ. Позже посмотрим, для чего нужен каждый из портов, и действительно ли микросхема управляет принтером. Так же она же, скорее всего, «общается» и с клавиатурой. Микросхема использует совмещённую шину адреса и данных. Оказалось, микропроцессор — тоже.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nHN27C256-20 — ПЗУ на 32 килобайта с шириной шины данных в 8 бит. Таких микросхем две, получается 64 килобайта. Значит, в Википедии неправильно сказано, что ПЗУ всего 16 килобайт. Что же, ПЗУ займёт всё 64-килобайтное адресное пространство Z80? А там ведь ещё и 16 килобайт ОЗУ. Значит, есть какое-то переключение страниц. Тоже посмотрим…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNSC800N-3I — микропроцессор. С Z80 он только совместим, а цоколёвка — совсем другая. Слева — просто удивительная совмещённая шина адреса и данных. Нижние 8 бит шины адреса используются также в качестве шины данных. А чтобы отличать адрес от данных, имеется вывод ALE. Единица — значит, на этих нижних восьми битах — часть адреса. А справа — одни сигналы. Тот же ALE, а также Read Enable, Write Enable, выбор между памятью и портами, и так далее. Конечно, с таким микропроцессором работать сложнее, чем с обычным Z80 или его клоном. Работает он, по даташиту, на частоте до 2,5 МГц, значит, частота 5-мегагерцового кварца где-то делится на два. Сравните цоколёвки этого нестандартного процессора и обычного Z80:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffy\u002Fal\u002Ff7\u002Ffyalf7_bcfv8qjlasjkyir5dsxc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nHM48416AP-15 — динамическое ОЗУ на 16 килополубайт. Две таких микросхемы образуют ОЗУ на 16 килобайт.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nWD1770-PH — контроллер дисковода фирмы Western Digital. Минимум внешних компонентов, совместимость с разлиными форматами хранения данных на дискете. В общем, в рекламе не нуждается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNCR 7250 PY — видеоконтроллер? Похоже, он, потому что больше ничего претендующего на эту функцию на плате нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nHM6116-4 — статическое ОЗУ на 2 килобайта. В общем, видеопамять. Видеорежим здесь только текстовый, так что больше и не надо. Хотя… Тут же не 80х25, тут строка шире 80 символов, плюс атрибуты. Ну, значит, помещается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, мы выяснили, что в машине 16 килобайт ОЗУ и 64 килобайта ПЗУ, и где-то должно быть реализовано переключение страниц. Прогуляемся по плате с мультиметром и зарисуем всё, что увидим.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСначала поищем сигналы Chip Select. Начнём с вывода \u002FCE той микросхемы ПЗУ, у которой на наклейке напечатана буква A. Оказывается, он подключён к выходу элемента И. Так, куда там идут его входы? К двум выходам микросхемы 74139, содержащей два дешифратора с двумя входами и четырьмя выходами. Нас из них только один интересует:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fo4\u002Fpa\u002F0s\u002Fo4pa0syzk6ksdko1ov788sljbj0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fo4\u002Fpa\u002F0s\u002Fo4pa0syzk6ksdko1ov788sljbj0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСигналы A14 и A15 поступают с микропроцессора на её входы, значит, память делится на четыре блока по 16 килобайт. На вход \u002FE (enable) с микропроцессора поступает сигнал \u002FM (memory select), поэтому микросхема 74139 активна, когда микропроцессор требует доступа к памяти. Получается, распределение адресного пространства такое. ПЗУ «A» выбрано, когда у 74139 единица либо на выходе \u002FQ0, либо на выходе \u002FQ1, ПЗУ «B» выбрано при единице на \u002FQ2, ОЗУ — при единице на \u002FQ3. Но с ОЗУ тоже не всё так просто, дальше разберёмся. Итак, что выбирается при разных сочетаниях сигналов на A14 и A15:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F8e\u002Fxb\u002Fmq\u002F8exbmqvdc5qd4wnf4sgadxlgmkw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8e\u002Fxb\u002Fmq\u002F8exbmqvdc5qd4wnf4sgadxlgmkw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПереходим к шине адреса. Как мы уже выяснили, там всё сложнее, чем в системах с обычным Z80. Оказывается, чтобы отделить адрес от данных, здесь применена 8-битная защёлка 74373. Её входы данных подключены к линиям AD0 — AD7, а вход защёлкивания — к линии ALE. Когда на ALE появляется единица, в 74373 записывается нижняя половина адреса. А вход \u002FOE всегда соединён с общим проводом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее «шиной адреса» будут считаться выходные линии 74373 в сочетании с верхними линиями собственно шины адреса, где данные не присутствуют никогда. Ну, на рисунке всё показано:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffv\u002F8v\u002Flt\u002Ffv8vlt9uas1eei5ljykqchcmco0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffv\u002F8v\u002Flt\u002Ffv8vlt9uas1eei5ljykqchcmco0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь посмотрим, как подключены микросхемы ПЗУ. С подключением ПЗУ «A» ничего необычного не наблюдается. Просто линии A0 — A14 рассмотренной ранее шины «чисто адреса» (после 74373). К ПЗУ «B» подключены только линии A0 — A13. А что с A14? Может, эта линия идёт к общему проводу или плюсу питания, и половина ёмкости не используется? Нет. Она идёт к выводу 39 (PC2) контроллера ввода-вывода A8156. Вот всё и стало понятно с переключением страниц. Половинки ПЗУ «B» можно переключать программно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОЗУ, как мы выяснили, выполнено на двух микросхемах динамического ОЗУ по 16 килополубайт каждая. Каждый байт ОЗУ хранится сразу в двух микросхемах, один полубайт в первый, другой — во второй.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля выбора адреса необходимо сначала выбрать строку, затем столбец. Для этого применены две микросхемы 74157 — четыре селектора данных с двумя входами и одним выходом. А теперь вернёмся к первой схеме. Кроме выхода \u002FWR, там есть ещё один выход, идущий на вход выбора первой микросхемы 74157. Когда на \u002FQ3 нуль, выбран адрес строки, а когда там единица — адрес столбца:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fe7\u002Fuv\u002Fd0\u002Fe7uvd0tqatktdqsvzx3ynvtu7l8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fe7\u002Fuv\u002Fd0\u002Fe7uvd0tqatktdqsvzx3ynvtu7l8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПройдясь по печатным проводникам, автор выяснил, что лишь шесть из восьми выходов двух микросхем 74157 используются как адреса MA1 — MA6 для микросхем ОЗУ. А линии MA0 и MA7 подключены прямо к линиям A6 и A7 шины адреса. У микросхем 48416 восемь строк и шесть столбцов, поэтому переключать требуется только шесть линий, две других могут быть подключены непосредственно к линиям шины адреса, так как они не влияют на выбор столбца.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffr\u002Fdl\u002Fmv\u002Ffrdlmv_-zpb6aoamhnp1rq81flo.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffr\u002Fdl\u002Fmv\u002Ffrdlmv_-zpb6aoamhnp1rq81flo.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПорядок подключения линий к шине адреса не подчиняется никакой логике. Но всё работает. Может быть, так просто плату проектировать было удобнее?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕщё интересно, как микросхемы 74157 каскадированы: выход 4Y первой идёт на вход выбора второй, а выход 4Y второй — на линию \u002FCAS:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fov\u002Fys\u002Fdy\u002Fovysdy69k_ss__1_pdbdud1-qvw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fov\u002Fys\u002Fdy\u002Fovysdy69k_ss__1_pdbdud1-qvw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ отличие от ПЗУ, у динамического ОЗУ нет отдельной линии \u002FCE. Как автор понял, эти микросхемы обеспечивают чтение или запись, когда на \u002FCAS нуль. Ну, так оно и есть: нуль на \u002FQ3 — значит, нуль и на \u002FCAS. Адрес строки ОЗУ формируется, когда на линии ALE нуль, и когда микропроцессор не сброшен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС адресным пространством разобрались, перейдём к периферии. Автор ещё прошёлся по плате с мультиметром и получил такую схему:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F8x\u002Fek\u002Fkf\u002F8xekkf5-kojyhecysfxqh-xbdwk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8x\u002Fek\u002Fkf\u002F8xekkf5-kojyhecysfxqh-xbdwk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ левом верхнем углу показано, откуда берутся сигналы \u002FRD и \u002FWR для видеоконтроллера (VDP). Обратите, что для VDP сигнала chip select не видно. Значит, единственный сигнал, похожий на \u002FCS для видеоконтроллера — это сигнал ALE от микропроцессора. Получается, что видеоконтроллер поступают данные вообще обо всех операциях ввода-вывода. На этом концентрироваться не будем, посмотрим, что там с остальными устройствами ввода-вывода.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОстальные адреса ввода-вывода дешифруются второй половиной микросхемы 74139 — той самой, первая половина которой переключает страницы адресного пространства. Этот дешифратор выбирается, когда производится операция ввода вывода, а на A7 нуль. Похоже, линия A7 отвечает за выбор между видеоконтроллером и остальной периферией. A6 и A5 определяют, какое устройство будет выбрано дешифратором:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fko\u002Fta\u002F4u\u002Fkota4uqclmnzqkbs1vtrbthxrq4.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fko\u002Fta\u002F4u\u002Fkota4uqclmnzqkbs1vtrbthxrq4.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМожет ли A7 и быть линией chip select для видеоконтроллера, причём выбран он тогда, когда там единица? Без даташита на NCR 7250 не определить, но это вполне правдоподобно, если воздействие линии ALE на видеоконтроллер не реализовано как-нибудь совсем уж необычно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее автор провёл реверс-инжиниринг подключения сигнальных линий микропроцессора:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fkk\u002F5s\u002Fkp\u002Fkk5skpbzc-ybyrm_ffy0zx15ktm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fkk\u002F5s\u002Fkp\u002Fkk5skpbzc-ybyrm_ffy0zx15ktm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа этой же схеме показан способ формирования сигнала сброса. Конденсатор при включении заряжается с задержкой, при выключении разряжается быстро. Сигнал сброса \u002FRESET IN инверсный, он поступает на микропроцессор, а тот формирует прямой сигнал RESET OUT для сброса различной периферии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЛиния немаскируемых прерываний \u002FNMI работает так же, как на обычном Z80. Когда прерывания разрешены, нуль на этой линии приводит к вызову процедуры обработки прерывания по адресу 0x66. В данном случае сигнал \u002FNMI поступает с выхода таймера IC25. Прерывание происходит при каждом переполнении этого таймера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ микропроцессора NSC800N есть ещё и вход \u002FINTR, при нуле на котором происходит переход на адрес 0x38, но в VideoWRITER этот вход не задействован.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕщё есть три сигнала перезапуска \u002FRSTA, \u002FRSTB и \u002FRSTC, вызывающие переход, соответственно, на адрес 0x3C, 0x34 или 0x2C. Из них здесь задействованы только первые два, и управляются они контроллером дисковода. Сигналом \u002FRSTA контроллер дисковода сообщает микропроцессору о состоянии своего регистра данных, а сигналом \u002FRSTB — о завершении выполнения команды.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА теперь ещё об одной линии — S1. Вместе с линией S0 она определяет состояние шины. Таким образом у контроллера дисковода выбирается режим чтения или записи. Но почему линия S1 используется вместо \u002FRD и \u002FWR только контроллером дисковода? Непонятно. Линии S0, S1 и IO\u002FM вполне могут использоваться для выбора между режимами чтения и записи применительно к памяти и периферии, но применение других линий даёт тот же эффект. Может, разработчики перепробовали несколько вариантов и решили остановиться на том способе дешифрации режима чтения-записи, который применён в обычном Z80? В любом случае, согласно даташиту на NSC800N и показанной ниже таблице, сигнал S1 может быть сигналом чтения из периферийных устройств, но только если имеется ещё и сигнал выбора, идущий непосредственно к устройству:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fu5\u002Fwf\u002Ffs\u002Fu5wffss0o_vaauju7ykq9upbojo.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fu5\u002Fwf\u002Ffs\u002Fu5wffss0o_vaauju7ykq9upbojo.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУстройство в работе, видео снял другой автор — Grr_I'm_Here:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FBeMbmleApAI?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"philips"},{"titleHtml":"videowriter"},{"titleHtml":"реверс-инжиниринг"},{"titleHtml":"teardown"},{"titleHtml":"z80"},{"titleHtml":"ретрокомпьютинг"},{"titleHtml":"diy"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450310\u002Ff80f345f03eeba18ae28b49dfc084cf5\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450310\u002Ff80f345f03eeba18ae28b49dfc084cf5\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450310\\\u002F\"},\"headline\":\"Как устроен Philips VideoWRITER. Сначала фотки железа, потом немного занудства\",\"datePublished\":\"2019-05-02T15:35:51+03:00\",\"dateModified\":\"2019-05-02T18:17:07+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Tormoz Edison\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450310\\\u002F#post-content-body\",\"about\":[\"h_reverse-engineering\",\"h_history\",\"h_antikvariat\",\"f_develop\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F23\\\u002Fak\\\u002F-w\\\u002F23ak-weziuwj2tul3zohv_zjyyu.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fma\\\u002Fn8\\\u002F32\\\u002Fman832tcprf_uz3jwlf0wjqaerm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fq3\\\u002F_d\\\u002Fqu\\\u002Fq3_dquewjyizmthijcqas_4u838.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F7v\\\u002Ftx\\\u002F2m\\\u002F7vtx2mrvppn7x52dbs5kqxnpczo.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmy\\\u002Fup\\\u002Flt\\\u002Fmyupltxbmvuwk53kak4fq62h_xq.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffl\\\u002Fiv\\\u002Fzd\\\u002Fflivzd3hwhgego1dssoictoigzm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcd\\\u002F4w\\\u002Flq\\\u002Fcd4wlq6hzkzymm94ahkumb41ess.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fwq\\\u002Fky\\\u002Fkv\\\u002Fwqkykv4xqujsnmrp5o1qhvv49ew.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffy\\\u002Fal\\\u002Ff7\\\u002Ffyalf7_bcfv8qjlasjkyir5dsxc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fo4\\\u002Fpa\\\u002F0s\\\u002Fo4pa0syzk6ksdko1ov788sljbj0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8e\\\u002Fxb\\\u002Fmq\\\u002F8exbmqvdc5qd4wnf4sgadxlgmkw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffv\\\u002F8v\\\u002Flt\\\u002Ffv8vlt9uas1eei5ljykqchcmco0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fe7\\\u002Fuv\\\u002Fd0\\\u002Fe7uvd0tqatktdqsvzx3ynvtu7l8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffr\\\u002Fdl\\\u002Fmv\\\u002Ffrdlmv_-zpb6aoamhnp1rq81flo.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fov\\\u002Fys\\\u002Fdy\\\u002Fovysdy69k_ss__1_pdbdud1-qvw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8x\\\u002Fek\\\u002Fkf\\\u002F8xekkf5-kojyhecysfxqh-xbdwk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fko\\\u002Fta\\\u002F4u\\\u002Fkota4uqclmnzqkbs1vtrbthxrq4.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fkk\\\u002F5s\\\u002Fkp\\\u002Fkk5skpbzc-ybyrm_ffy0zx15ktm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fu5\\\u002Fwf\\\u002Ffs\\\u002Fu5wffss0o_vaauju7ykq9upbojo.jpeg\"]}","metaDescription":"Устройство для редактирования и печати текстов VideoWRITER было выпущено компанией Philips в 1985 году. Оно выполнено на Z80-совместимом процессоре и содержит 16 кБ ПЗУ и столько же ОЗУ (как позже...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"reverse-engineering,history,antikvariat"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

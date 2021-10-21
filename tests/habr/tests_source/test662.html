@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Беспростойная миграция RabbitMQ в Kubernetes / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/flant\/blog\/450662\/"},"headline":"Беспростойная миграция RabbitMQ в Kubernetes","datePublished":"2019-05-06T13:35:34+03:00","dateModified":"2019-08-01T12:13:35+03:00","author":{"@type":"Person","name":"mastanggt"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"RabbitMQ &ndash; написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где к...","url":"https:\/\/habr.com\/ru\/company\/flant\/blog\/450662\/#post-content-body","about":["c_flant","h_sys_admin","h_it-infrastructure","h_devops","h_kubernetes","f_develop","f_admin"],"image":["https:\/\/habr.com\/share\/publication\/450662\/35140f8b99e3e52962661908f3696dab\/","https:\/\/habrastorage.org\/webt\/9j\/vy\/0w\/9jvy0wqwfj4agrnnjerepzcv4qw.png","https:\/\/habrastorage.org\/webt\/0t\/nv\/vw\/0tnvvwspr5t-cwbvwzae5p2h9re.png","https:\/\/habrastorage.org\/webt\/fz\/sj\/cc\/fzsjcc5rvcdzqvzrwklrkomoqny.png","https:\/\/habrastorage.org\/webt\/br\/ds\/wx\/brdswxtjfd97eg1jc6yuy0m6w6c.png","https:\/\/habrastorage.org\/webt\/mh\/wu\/py\/mhwupy0059dj_m8xn-guonlq_i0.png","https:\/\/habrastorage.org\/webt\/_2\/_q\/cr\/_2_qcrxnt_1j4hzazxfsagyr9i8.png","https:\/\/habrastorage.org\/webt\/de\/pb\/_o\/depb_oq1aa_rpozeaymiik6acqm.png","https:\/\/habrastorage.org\/webt\/1k\/1z\/cr\/1k1zcrq3-hn-k_k6y10z-ktteqc.png","https:\/\/habrastorage.org\/webt\/32\/rb\/gl\/32rbglvg5f9vnxjaee0ewii0pmo.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Беспростойная миграция RabbitMQ в Kubernetes" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Беспростойная миграция RabbitMQ в Kubernetes" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Беспростойная миграция RabbitMQ в Kubernetes" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450662" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T10:35:34.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450662/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/flant/blog/450662/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="flant" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://flant.ru"><img src="//habrastorage.org/getpro/habr/branding/3d4/c06/8ba/3d4c068ba151a5c21727ee9bb31f95de.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/flant/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/de7/635/363/de763536359ce6e2d2a978f8dded1964.png" width="48" class="tm-entity-image__pic"></div></a> <a href="https://career.habr.com/companies/flant" rel="noopener" target="_blank" class="tm-grade tm-company-card__rating"><div class="tm-rating"><div class="tm-rating__header"><svg height="24" width="24" class="tm-svg-img tm-svg-grade__icon"><title>Оценка компании на Хабр Карьере</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#grade"></use></svg> <div class="tm-rating__counter tm-rating__counter_variant-grade">4.51</div></div> <div class="tm-rating__text tm-rating__text_variant-grade">
+    Оценка
+  </div></div></a> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">294.93</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/flant/profile/" class="tm-company-card__name">
+        Флант
+      </a> <div class="tm-company-card__description">DevOps-as-a-Service, Kubernetes, обслуживание 24×7</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/mastanggt/" title="mastanggt" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/mastanggt/" class="tm-user-info__username">
+      mastanggt
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T10:35:34.000Z" title="2019-05-06, 13:35">6  мая  2019 в 13:35</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Беспростойная миграция RabbitMQ в Kubernetes</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/flant/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Флант</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sys_admin/" class="tm-article-snippet__hubs-item-link"><span>Системное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it-infrastructure/" class="tm-article-snippet__hubs-item-link"><span>IT-инфраструктура</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/devops/" class="tm-article-snippet__hubs-item-link"><span>DevOps</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/kubernetes/" class="tm-article-snippet__hubs-item-link"><span>Kubernetes</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/9j/vy/0w/9jvy0wqwfj4agrnnjerepzcv4qw.png"/><br/>
+<br/>
+RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы на чтение и запись. Имея в production-эксплуатации множество кластеров Kubernetes, мы поддерживаем большое количество инсталляций RabbitMQ и столкнулись с необходимостью миграции данных из одного кластера в другой без простоя.<a name="habracut"></a><br/>
+<br/>
+Данная операция была необходима нам как минимум в двух случаях:<br/>
+<br/>
+<ol>
+<li> Перенос данных из кластера RabbitMQ, находящегося не в Kubernetes, в новый — уже «кубернетезированный» (т.е. функционирующий в pod’ах K8s) — кластер.</li>
+<li> Миграция RabbitMQ в рамках Kubernetes из одного namespace в другой (например, если контуры разграничены пространствами имён, то для переноса инфраструктуры из одного контура в другой).</li>
+</ol><br/>
+Предлагаемый в статье рецепт ориентирован на ситуации (но вовсе не ограничен ими), в которых есть старый кластер RabbitMQ (например, из 3 узлов), находящийся либо уже в K8s, либо на каких-то старых серверах. С ним работает приложение, размещённое в Kubernetes (уже там или в перспективе):<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/0t/nv/vw/0tnvvwspr5t-cwbvwzae5p2h9re.png"/><br/>
+<br/>
+… и перед нами стоит задача его миграции в новый production в Kubernetes.<br/>
+<br/>
+Сначала будет описан общий подход к самой миграции, а уже после этого — технические детали по её реализации.<br/>
+<br/>
+<h2>Алгоритм миграции</h2><br/>
+Первый, предварительный, этап перед какими-либо действиями — проверка, что в старой инсталляции RabbitMQ включён режим высокой доступности (<a href="https://www.rabbitmq.com/ha.html">HA</a>). Причина очевидна — мы ведь не хотим потерять каких-либо данных. Чтобы осуществить эту проверку, можно зайти в админку RabbitMQ и во вкладке Admin → Policies убедиться, что установлено значение <code>ha-mode: all</code>:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/fz/sj/cc/fzsjcc5rvcdzqvzrwklrkomoqny.png"/><br/>
+<br/>
+Следующий шаг — поднимаем новый кластер RabbitMQ в pod’ах Kubernetes (в нашем случае, например, состоящий из 3 узлов, но их число может быть и другим).<br/>
+<br/>
+После этого мы объединяем старый и новый кластеры RabbitMQ, получая единственный кластер (из 6 узлов):<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/br/ds/wx/brdswxtjfd97eg1jc6yuy0m6w6c.png"/><br/>
+<br/>
+Инициируется процесс синхронизации данных между старым и новым кластерами RabbitMQ. После того, как все данные синхронизируются между всеми узлами в кластере, мы можем переключить приложение на использование нового кластера:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/mh/wu/py/mhwupy0059dj_m8xn-guonlq_i0.png"/><br/>
+<br/>
+После этих операций достаточно вывести из кластера RabbitMQ старые узлы, и переезд можно считать завершённым:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/_2/_q/cr/_2_qcrxnt_1j4hzazxfsagyr9i8.png"/><br/>
+<br/>
+Эту схему мы неоднократно применяли у нас в production. Однако для собственного удобства реализовали её в рамках специализированной системы, распространяющей типовые конфигурации RMQ на множествах кластеров Kubernetes <i>(для тех, кому любопытно: речь идёт про <a href="https://github.com/flant/addon-operator">addon-operator</a>, о котором мы <a href="https://habr.com/ru/company/flant/blog/449096/">совсем недавно рассказывали</a>)</i>. Ниже будут представлены отдельно взятые инструкции, которые каждый может применить на своих инсталляциях, чтобы попробовать предлагаемое решение в действии.<br/>
+<br/>
+<h2>Пробуем на практике</h2><br/>
+<h3>Требования</h3><br/>
+Реквизиты очень просты:<br/>
+<br/>
+<ol>
+<li> Кластер Kubernetes (подойдет и minikube);</li>
+<li> Кластер RabbitMQ (может быть и развернут на bare metal, и сделан как обычный кластер в Kubernetes из официального Helm-чарта).</li>
+</ol><br/>
+Для описанного ниже примера я развернул RMQ в Kubernetes и назвал его <code>rmq-old</code>.<br/>
+<br/>
+<h3>Подготовка стенда</h3><br/>
+1. Скачаем Helm-чарт и немного отредактируем его:<br/>
+<br/>
+<pre><code class="bash">helm fetch --untar stable/rabbitmq-ha</code></pre><br/>
+Для удобства задаём пароль, <code>ErlangCookie</code> и делаем политику <code>ha-all</code>, чтобы по умолчанию очереди синхронизировались между всеми узлами кластера RMQ:<br/>
+<br/>
+<pre><code class="plaintext">rabbitmqPassword: guest
+rabbitmqErlangCookie: mae9joopaol7aiVu3eechei2waiGa2we
+definitions:
+policies: |-
+  {
+    "name": "ha-all",
+    "pattern": ".*",
+    "vhost": "/",
+    "definition": {
+      "ha-mode": "all",
+      "ha-sync-mode": "automatic",
+      "ha-sync-batch-size": 81920
+    }
+  }</code></pre><br/>
+2. Устанавливаем чарт:<br/>
+<br/>
+<pre><code class="bash">helm install . --name rmq-old --namespace rmq-old</code></pre><br/>
+3. Заходим в админку RabbitMQ, создаём новую очередь и добавляем несколько сообщений. Они понадобятся для того, чтобы после миграции мы могли удостовериться, что все данные сохранились и мы ничего не потеряли:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/de/pb/_o/depb_oq1aa_rpozeaymiik6acqm.png"/><br/>
+<br/>
+Тестовый стенд готов: у нас есть «старый» RabbitMQ с данными, которые нужно перенести.<br/>
+<br/>
+<h3>Миграция кластера RabbitMQ</h3><br/>
+1. Для начала развернём новый RabbitMQ в <b>другом</b> пространстве имён с <b>такими же</b> <code>ErlangCookie</code> и паролем для пользователя. Для этого проделаем описанные выше операции, изменив конечную команду по установке RMQ на следующую:<br/>
+<br/>
+<pre><code class="bash">helm install . --name rmq-new --namespace rmq-new</code></pre><br/>
+2. Теперь требуется объединить новый кластер со старым. Для этого заходим в каждый из pod’ов <b>нового</b> RabbitMQ и выполняем команды:<br/>
+<br/>
+<pre><code class="bash">export OLD_RMQ=rabbit@rmq-old-rabbitmq-ha-0.rmq-old-rabbitmq-ha-discovery.rmq-old.svc.cluster.local &amp;&amp; \
+  rabbitmqctl stop_app &amp;&amp; \
+  rabbitmqctl join_cluster $OLD_RMQ &amp;&amp; \
+  rabbitmqctl start_app</code></pre><br/>
+В переменной <code>OLD_RMQ</code> находится адрес одного из узлов <b>старого</b> кластера RMQ.<br/>
+<br/>
+Эти команды остановят текущий узел <b>нового</b> кластера RMQ, присоединят его к старому кластеру и снова запустят.<br/>
+<br/>
+3. Кластер RMQ из 6 узлов готов:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/1k/1z/cr/1k1zcrq3-hn-k_k6y10z-ktteqc.png"/><br/>
+<br/>
+Необходимо подождать, пока сообщения синхронизируются между всеми узлами. Нетрудно догадаться, что время синхронизации сообщений зависит от мощностей железа, на котором развёрнут кластер, и от количества сообщений. В описываемом сценарии их всего 10, поэтому данные синхронизировались моментально, но при достаточно больших количестве сообщений синхронизация может длиться часами.<br/>
+<br/>
+Итак, статус синхронизации:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/32/rb/gl/32rbglvg5f9vnxjaee0ewii0pmo.png"/><br/>
+<br/>
+Здесь <code>+5</code> означает, что сообщения уже находятся <b>ещё</b> на 5 узлах (кроме того, что указан в поле <code>Node</code>). Таким образом, синхронизация прошла успешно.<br/>
+<br/>
+4. Остается лишь переключить в приложении адрес RMQ на новый кластер (конкретные действия здесь зависят от используемого вами технологического стека и другой специфики приложения), после чего можно попрощаться со старым.<br/>
+<br/>
+Для последней операции (т.е. уже <b>после</b> переключения приложения на новый кластер) заходим на каждый узел <b>старого</b> кластера и выполняем команды:<br/>
+<br/>
+<pre><code class="bash">rabbitmqctl stop_app
+rabbitmqctl reset</code></pre><br/>
+Кластер «забыл» о старых узлах: можно удалять старый RMQ, на чём переезд будет закончен.<br/>
+<br/>
+<i><b>Примечание</b>: Если вы используете RMQ с сертификатами, то принципиально ничего не меняется — процесс переезда будет осуществляться точно так же.</i><br/>
+<br/>
+<h2>Выводы</h2><br/>
+Описанная схема подходит практически для всех случаев, когда нам нужно перенести RabbitMQ или просто переехать в новый кластер.<br/>
+<br/>
+В нашем случае сложности возникали только один раз, когда к RMQ обращались из множества мест, а у нас не было возможности везде поменять адрес RMQ на новый. Тогда мы запускали новый RMQ в том же пространстве имён с одинаковыми лейблами, чтобы он попадал под уже существующие сервисы и Ingress’ы, а при запуске pod’а руками манипулировали лейблами, удаляя их в начале, чтобы на пустой RMQ не попадали запросы, и добавляя их обратно после синхронизации сообщений.<br/>
+<br/>
+Такую же стратегию мы применяли при обновлении RabbitMQ на новую версию с изменённой конфигурацией — всё работало как часы.<br/>
+<br/>
+<h2>P.S.</h2><br/>
+В качестве логического продолжения этого материала мы готовим статьи про MongoDB (миграция с железного сервера в Kubernetes) и MySQL (один из вариантов «приготовления» этой СУБД внутри Kubernetes). Они будут опубликованы в ближайшие месяцы.<br/>
+<br/>
+<h2>P.P.S.</h2><br/>
+Читайте также в нашем блоге:<br/>
+<br/>
+<ul>
+<li> «<a href="https://habr.com/company/flant/blog/431500/">Базы данных и Kubernetes (обзор и видео доклада)</a>»;</li>
+<li> «<a href="https://habr.com/ru/company/flant/blog/417509/">K8s tips &amp; tricks: Ускоряем bootstrap больших баз данных</a>».</li>
+</ul></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BRabbitMQ%5D" class="tm-tags-list__link">RabbitMQ</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BKubernetes%5D" class="tm-tags-list__link">Kubernetes</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B8%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D0%B8%5D" class="tm-tags-list__link">миграции</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/flant/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Флант
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/sys_admin/" class="tm-hubs-list__link">
+    Системное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/it-infrastructure/" class="tm-hubs-list__link">
+    IT-инфраструктура
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/devops/" class="tm-hubs-list__link">
+    DevOps
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/kubernetes/" class="tm-hubs-list__link">
+    Kubernetes
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 37: ↑34 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 37: ↑34 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+31</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">9.4K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    60
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/flant/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/de7/635/363/de763536359ce6e2d2a978f8dded1964.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/flant/profile/" class="tm-company-snippet__title">Флант</a> <div class="tm-company-snippet__description">DevOps-as-a-Service, Kubernetes, обслуживание 24×7</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://flant.ru/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://twitter.com/flant_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/flant_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://github.com/flant" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Github
+    </a><a href="https://telegram.me/flant_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/mastanggt/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 37 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    37
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/mastanggt/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @mastanggt
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/flant/blog/450662/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 4 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2008-05-12T20:00:00.000Z" title="2008-05-13, 00:00">13  мая  2008</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://flant.ru/" target="_blank" class="tm-company-basic-info__link">
+      flant.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    101–200 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2017-01-25T07:25:09.000Z" title="2017-01-25, 10:25">25  января  2017</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/shurup/" class="tm-company-basic-info__link">
+      Дмитрий Шурупов
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/flant/blog/450662/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/flant/blog/450662/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450662":{"id":"450662","timePublished":"2019-05-06T10:35:34+00:00","isCorporative":true,"lang":"ru","titleHtml":"Беспростойная миграция RabbitMQ в Kubernetes","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9j\u002Fvy\u002F0w\u002F9jvy0wqwfj4agrnnjerepzcv4qw.png\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nRabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы на чтение и запись. Имея в production-эксплуатации множество кластеров Kubernetes, мы поддерживаем большое количество инсталляций RabbitMQ и столкнулись с необходимостью миграции данных из одного кластера в другой без простоя.","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":37,"votesCount":37},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"593355","alias":"mastanggt","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":4,"favoritesCount":60,"readingCount":9395,"score":31,"votesCount":37},"hubs":[{"relatedData":null,"id":"20940","alias":"flant","type":"corporative","title":"Блог компании Флант","titleHtml":"Блог компании Флант","isProfiled":false},{"relatedData":null,"id":"221","alias":"sys_admin","type":"collective","title":"Системное администрирование","titleHtml":"Системное администрирование","isProfiled":true},{"relatedData":null,"id":"6398","alias":"it-infrastructure","type":"collective","title":"IT-инфраструктура","titleHtml":"IT-инфраструктура","isProfiled":true},{"relatedData":null,"id":"20788","alias":"devops","type":"collective","title":"DevOps","titleHtml":"DevOps","isProfiled":true},{"relatedData":null,"id":"22196","alias":"kubernetes","type":"collective","title":"Kubernetes","titleHtml":"Kubernetes","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9j\u002Fvy\u002F0w\u002F9jvy0wqwfj4agrnnjerepzcv4qw.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nRabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы на чтение и запись. Имея в production-эксплуатации множество кластеров Kubernetes, мы поддерживаем большое количество инсталляций RabbitMQ и столкнулись с необходимостью миграции данных из одного кластера в другой без простоя.\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДанная операция была необходима нам как минимум в двух случаях:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E Перенос данных из кластера RabbitMQ, находящегося не в Kubernetes, в новый — уже «кубернетезированный» (т.е. функционирующий в pod’ах K8s) — кластер.\u003C\u002Fli\u003E\r\n\u003Cli\u003E Миграция RabbitMQ в рамках Kubernetes из одного namespace в другой (например, если контуры разграничены пространствами имён, то для переноса инфраструктуры из одного контура в другой).\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nПредлагаемый в статье рецепт ориентирован на ситуации (но вовсе не ограничен ими), в которых есть старый кластер RabbitMQ (например, из 3 узлов), находящийся либо уже в K8s, либо на каких-то старых серверах. С ним работает приложение, размещённое в Kubernetes (уже там или в перспективе):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F0t\u002Fnv\u002Fvw\u002F0tnvvwspr5t-cwbvwzae5p2h9re.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n… и перед нами стоит задача его миграции в новый production в Kubernetes.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСначала будет описан общий подход к самой миграции, а уже после этого — технические детали по её реализации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EАлгоритм миграции\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПервый, предварительный, этап перед какими-либо действиями — проверка, что в старой инсталляции RabbitMQ включён режим высокой доступности (\u003Ca href=\"https:\u002F\u002Fwww.rabbitmq.com\u002Fha.html\"\u003EHA\u003C\u002Fa\u003E). Причина очевидна — мы ведь не хотим потерять каких-либо данных. Чтобы осуществить эту проверку, можно зайти в админку RabbitMQ и во вкладке Admin → Policies убедиться, что установлено значение \u003Ccode\u003Eha-mode: all\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffz\u002Fsj\u002Fcc\u002Ffzsjcc5rvcdzqvzrwklrkomoqny.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСледующий шаг — поднимаем новый кластер RabbitMQ в pod’ах Kubernetes (в нашем случае, например, состоящий из 3 узлов, но их число может быть и другим).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле этого мы объединяем старый и новый кластеры RabbitMQ, получая единственный кластер (из 6 узлов):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fbr\u002Fds\u002Fwx\u002Fbrdswxtjfd97eg1jc6yuy0m6w6c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнициируется процесс синхронизации данных между старым и новым кластерами RabbitMQ. После того, как все данные синхронизируются между всеми узлами в кластере, мы можем переключить приложение на использование нового кластера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmh\u002Fwu\u002Fpy\u002Fmhwupy0059dj_m8xn-guonlq_i0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле этих операций достаточно вывести из кластера RabbitMQ старые узлы, и переезд можно считать завершённым:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_2\u002F_q\u002Fcr\u002F_2_qcrxnt_1j4hzazxfsagyr9i8.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭту схему мы неоднократно применяли у нас в production. Однако для собственного удобства реализовали её в рамках специализированной системы, распространяющей типовые конфигурации RMQ на множествах кластеров Kubernetes \u003Ci\u003E(для тех, кому любопытно: речь идёт про \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fflant\u002Faddon-operator\"\u003Eaddon-operator\u003C\u002Fa\u003E, о котором мы \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fflant\u002Fblog\u002F449096\u002F\"\u003Eсовсем недавно рассказывали\u003C\u002Fa\u003E)\u003C\u002Fi\u003E. Ниже будут представлены отдельно взятые инструкции, которые каждый может применить на своих инсталляциях, чтобы попробовать предлагаемое решение в действии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПробуем на практике\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EТребования\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nРеквизиты очень просты:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E Кластер Kubernetes (подойдет и minikube);\u003C\u002Fli\u003E\r\n\u003Cli\u003E Кластер RabbitMQ (может быть и развернут на bare metal, и сделан как обычный кластер в Kubernetes из официального Helm-чарта).\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nДля описанного ниже примера я развернул RMQ в Kubernetes и назвал его \u003Ccode\u003Ermq-old\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПодготовка стенда\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n1. Скачаем Helm-чарт и немного отредактируем его:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Ehelm fetch --untar stable\u002Frabbitmq-ha\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДля удобства задаём пароль, \u003Ccode\u003EErlangCookie\u003C\u002Fcode\u003E и делаем политику \u003Ccode\u003Eha-all\u003C\u002Fcode\u003E, чтобы по умолчанию очереди синхронизировались между всеми узлами кластера RMQ:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003ErabbitmqPassword: guest\nrabbitmqErlangCookie: mae9joopaol7aiVu3eechei2waiGa2we\ndefinitions:\npolicies: |-\n  {\n    \"name\": \"ha-all\",\n    \"pattern\": \".*\",\n    \"vhost\": \"\u002F\",\n    \"definition\": {\n      \"ha-mode\": \"all\",\n      \"ha-sync-mode\": \"automatic\",\n      \"ha-sync-batch-size\": 81920\n    }\n  }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n2. Устанавливаем чарт:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Ehelm install . --name rmq-old --namespace rmq-old\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n3. Заходим в админку RabbitMQ, создаём новую очередь и добавляем несколько сообщений. Они понадобятся для того, чтобы после миграции мы могли удостовериться, что все данные сохранились и мы ничего не потеряли:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fde\u002Fpb\u002F_o\u002Fdepb_oq1aa_rpozeaymiik6acqm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТестовый стенд готов: у нас есть «старый» RabbitMQ с данными, которые нужно перенести.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EМиграция кластера RabbitMQ\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n1. Для начала развернём новый RabbitMQ в \u003Cb\u003Eдругом\u003C\u002Fb\u003E пространстве имён с \u003Cb\u003Eтакими же\u003C\u002Fb\u003E \u003Ccode\u003EErlangCookie\u003C\u002Fcode\u003E и паролем для пользователя. Для этого проделаем описанные выше операции, изменив конечную команду по установке RMQ на следующую:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Ehelm install . --name rmq-new --namespace rmq-new\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n2. Теперь требуется объединить новый кластер со старым. Для этого заходим в каждый из pod’ов \u003Cb\u003Eнового\u003C\u002Fb\u003E RabbitMQ и выполняем команды:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eexport OLD_RMQ=rabbit@rmq-old-rabbitmq-ha-0.rmq-old-rabbitmq-ha-discovery.rmq-old.svc.cluster.local &amp;&amp; \\\n  rabbitmqctl stop_app &amp;&amp; \\\n  rabbitmqctl join_cluster $OLD_RMQ &amp;&amp; \\\n  rabbitmqctl start_app\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ переменной \u003Ccode\u003EOLD_RMQ\u003C\u002Fcode\u003E находится адрес одного из узлов \u003Cb\u003Eстарого\u003C\u002Fb\u003E кластера RMQ.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭти команды остановят текущий узел \u003Cb\u003Eнового\u003C\u002Fb\u003E кластера RMQ, присоединят его к старому кластеру и снова запустят.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n3. Кластер RMQ из 6 узлов готов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1k\u002F1z\u002Fcr\u002F1k1zcrq3-hn-k_k6y10z-ktteqc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНеобходимо подождать, пока сообщения синхронизируются между всеми узлами. Нетрудно догадаться, что время синхронизации сообщений зависит от мощностей железа, на котором развёрнут кластер, и от количества сообщений. В описываемом сценарии их всего 10, поэтому данные синхронизировались моментально, но при достаточно больших количестве сообщений синхронизация может длиться часами.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, статус синхронизации:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F32\u002Frb\u002Fgl\u002F32rbglvg5f9vnxjaee0ewii0pmo.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗдесь \u003Ccode\u003E+5\u003C\u002Fcode\u003E означает, что сообщения уже находятся \u003Cb\u003Eещё\u003C\u002Fb\u003E на 5 узлах (кроме того, что указан в поле \u003Ccode\u003ENode\u003C\u002Fcode\u003E). Таким образом, синхронизация прошла успешно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n4. Остается лишь переключить в приложении адрес RMQ на новый кластер (конкретные действия здесь зависят от используемого вами технологического стека и другой специфики приложения), после чего можно попрощаться со старым.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля последней операции (т.е. уже \u003Cb\u003Eпосле\u003C\u002Fb\u003E переключения приложения на новый кластер) заходим на каждый узел \u003Cb\u003Eстарого\u003C\u002Fb\u003E кластера и выполняем команды:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Erabbitmqctl stop_app\nrabbitmqctl reset\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКластер «забыл» о старых узлах: можно удалять старый RMQ, на чём переезд будет закончен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EПримечание\u003C\u002Fb\u003E: Если вы используете RMQ с сертификатами, то принципиально ничего не меняется — процесс переезда будет осуществляться точно так же.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EВыводы\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nОписанная схема подходит практически для всех случаев, когда нам нужно перенести RabbitMQ или просто переехать в новый кластер.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ нашем случае сложности возникали только один раз, когда к RMQ обращались из множества мест, а у нас не было возможности везде поменять адрес RMQ на новый. Тогда мы запускали новый RMQ в том же пространстве имён с одинаковыми лейблами, чтобы он попадал под уже существующие сервисы и Ingress’ы, а при запуске pod’а руками манипулировали лейблами, удаляя их в начале, чтобы на пустой RMQ не попадали запросы, и добавляя их обратно после синхронизации сообщений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакую же стратегию мы применяли при обновлении RabbitMQ на новую версию с изменённой конфигурацией — всё работало как часы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EP.S.\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ качестве логического продолжения этого материала мы готовим статьи про MongoDB (миграция с железного сервера в Kubernetes) и MySQL (один из вариантов «приготовления» этой СУБД внутри Kubernetes). Они будут опубликованы в ближайшие месяцы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EP.P.S.\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЧитайте также в нашем блоге:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E «\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fcompany\u002Fflant\u002Fblog\u002F431500\u002F\"\u003EБазы данных и Kubernetes (обзор и видео доклада)\u003C\u002Fa\u003E»;\u003C\u002Fli\u003E\r\n\u003Cli\u003E «\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fflant\u002Fblog\u002F417509\u002F\"\u003EK8s tips &amp; tricks: Ускоряем bootstrap больших баз данных\u003C\u002Fa\u003E».\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"RabbitMQ"},{"titleHtml":"Kubernetes"},{"titleHtml":"миграции"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9j\u002Fvy\u002F0w\u002F9jvy0wqwfj4agrnnjerepzcv4qw.png","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9j\u002Fvy\u002F0w\u002F9jvy0wqwfj4agrnnjerepzcv4qw.png","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fflant\\\u002Fblog\\\u002F450662\\\u002F\"},\"headline\":\"Беспростойная миграция RabbitMQ в Kubernetes\",\"datePublished\":\"2019-05-06T13:35:34+03:00\",\"dateModified\":\"2019-08-01T12:13:35+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"mastanggt\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"RabbitMQ &ndash; написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где к...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fflant\\\u002Fblog\\\u002F450662\\\u002F#post-content-body\",\"about\":[\"c_flant\",\"h_sys_admin\",\"h_it-infrastructure\",\"h_devops\",\"h_kubernetes\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450662\\\u002F35140f8b99e3e52962661908f3696dab\\\u002F\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F9j\\\u002Fvy\\\u002F0w\\\u002F9jvy0wqwfj4agrnnjerepzcv4qw.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F0t\\\u002Fnv\\\u002Fvw\\\u002F0tnvvwspr5t-cwbvwzae5p2h9re.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffz\\\u002Fsj\\\u002Fcc\\\u002Ffzsjcc5rvcdzqvzrwklrkomoqny.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fbr\\\u002Fds\\\u002Fwx\\\u002Fbrdswxtjfd97eg1jc6yuy0m6w6c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmh\\\u002Fwu\\\u002Fpy\\\u002Fmhwupy0059dj_m8xn-guonlq_i0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_2\\\u002F_q\\\u002Fcr\\\u002F_2_qcrxnt_1j4hzazxfsagyr9i8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fde\\\u002Fpb\\\u002F_o\\\u002Fdepb_oq1aa_rpozeaymiik6acqm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1k\\\u002F1z\\\u002Fcr\\\u002F1k1zcrq3-hn-k_k6y10z-ktteqc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F32\\\u002Frb\\\u002Fgl\\\u002F32rbglvg5f9vnxjaee0ewii0pmo.png\"]}","metaDescription":"RabbitMQ – написанный на языке Erlang брокер сообщений, позволяющий организовать отказоустойчивый кластер с полной репликацией данных на несколько узлов, где каждый узел может обслуживать запросы...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"flant":{"alias":"flant","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Fde7\u002F635\u002F363\u002Fde763536359ce6e2d2a978f8dded1964.png","titleHtml":"Флант","descriptionHtml":"DevOps-as-a-Service, Kubernetes, обслуживание 24×7","relatedData":null,"statistics":{"postsCount":407,"newsCount":28,"vacanciesCount":0,"employeesCount":59,"careerRating":4.51,"subscribersCount":27078,"rating":294.93,"invest":null},"foundationDate":{"year":"2008","month":"05","day":"13"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fflant.ru\u002F","staffNumber":"101–200 человек","registrationDate":"2017-01-25T07:25:09+00:00","representativeUser":{"alias":"shurup","fullname":"Дмитрий Шурупов"},"contacts":[{"title":"Сайт","url":"https:\u002F\u002Fflant.ru\u002F"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fflant_ru"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fflant_ru"},{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Fflant"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fflant_ru"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-87911172-2"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F3d4\u002Fc06\u002F8ba\u002F3d4c068ba151a5c21727ee9bb31f95de.png","linkUrl":"https:\u002F\u002Fflant.ru","pixelUrl":null},"status":"active"},"metadata":{"titleHtml":"Флант, Москва - DevOps-as-a-Service, Kubernetes, обслуживание 24×7 с 13 мая 2008 г.","title":"Флант, Москва - DevOps-as-a-Service, Kubernetes, обслуживание 24×7 с 13 мая 2008 г.","keywords":["DevOps","Системное администрирование","Kubernetes","Open source","Администрирование баз данных"],"descriptionHtml":"407 статей от авторов компании Флант","description":"407 статей от авторов компании Флант"},"aDeskSettings":null,"careerAlias":"flant","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

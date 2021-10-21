@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450572\/"},"headline":"Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux","datePublished":"2019-06-05T17:05:26+03:00","dateModified":"2019-06-10T09:53:28+03:00","author":{"@type":"Person","name":"Николай"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом...","url":"https:\/\/habr.com\/ru\/post\/450572\/#post-content-body","about":["h_linux","h_open_source","h_sys_admin","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/q7\/qz\/gi\/q7qzgibifknfegmdk3ffls-fik0.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450572/20762ebe95ece723162f663d0c2a7408/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450572/20762ebe95ece723162f663d0c2a7408/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450572/20762ebe95ece723162f663d0c2a7408/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450572/20762ebe95ece723162f663d0c2a7408/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450572/20762ebe95ece723162f663d0c2a7408/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450572" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-06-05T14:05:26.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450572/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450572/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450572/20762ebe95ece723162f663d0c2a7408/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Osennij_Lis/" title="Osennij_Lis" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/82f/546/96c/82f54696c0ef016decc944e088a4afbf.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Osennij_Lis/" class="tm-user-info__username">
+      Osennij_Lis
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-06-05T14:05:26.000Z" title="2019-06-05, 17:05">5  июня  2019 в 17:05</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/linux/" class="tm-article-snippet__hubs-item-link"><span>Настройка Linux</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/open_source/" class="tm-article-snippet__hubs-item-link"><span>Open source</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sys_admin/" class="tm-article-snippet__hubs-item-link"><span>Системное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/webt/q7/qz/gi/q7qzgibifknfegmdk3ffls-fik0.jpeg" alt="image" data-src="https://habrastorage.org/webt/q7/qz/gi/q7qzgibifknfegmdk3ffls-fik0.jpeg" data-blurred="true"/></div><br/>
+Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил неладное.<br/>
+<br/>
+Однако в процессе прохождения по стадиям принятия неизбежного я втянулся и даже немного начал получать удовольствие от процесса. А в какой-то момент подумал, что такими темпами рано или поздно мне придётся расставаться с решениями по организации службы каталогов от Microsoft и двигаться в сторону чего-то более экзотичного. Поэтому, чтобы заранее подготовиться к неизбежному, и по возможности выловить побольше подводных камней, было решено развернуть тестовый стенд, включающий в себя: <br/>
+<br/>
+<ul>
+<li>DC1 — Windows Server 2012R2</li>
+<li>DC2 — Альт Сервер 8.2</li>
+<li>File Server — Windows Server 2012R2</li>
+<li>PC1 — Windows 7</li>
+<li>PC2 — Альт Рабочая станция 8.2</li>
+</ul><a name="habracut"></a><br/>
+<h4>Задачи стенда:</h4><br/>
+<ol>
+<li>Развернуть домен на базе w2k12r2. Создать минимальный набор групповых политик (аналогично использующимся в рабочей инфраструктуре), включая политику переноса рабочих папок пользователей (Загрузки/Документы/Рабочий стол). В конечном итоге хочется, чтобы при смене пользователем рабочего места с Windows на Linux и обратно он имел комфортный доступ к своим рабочим документам.</li>
+<li>Ввод Samba DC вторым контроллером. Проверка репликации службы каталогов и DNS</li>
+<li>Настройка клиентов Linux на работу с перемещаемыми папками</li>
+</ol><br/>
+<h4>Реализация:</h4><br/>
+<ol>
+<li><b>Установка и ввод нового контроллера</b><br/>
+<br/>
+С установкой MS Windows 2012R2 всё просто и более менее понятно. В интернете есть 1001 мануал по развертыванию домена на Windows как с помощью GUI так и средствами Powershell, поэтому повторять лишний раз не буду, оставлю только <a href="https://docs.microsoft.com/ru-ru/windows-server/identity/ad-ds/deploy/ad-ds-deployment">ссылку</a> на офф. документацию, для любопытствующих и тех кто захочет освежить память.<br/>
+<br/>
+Однако один важный момент в данном пункте всё таки есть. На сегодняшний день Samba не умеет работать со схемами каталога выше 2008R2. <br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Заголовок спойлера</b><div class="spoiler_text"> Вернее разработчиками данная поддержка заявлена в качестве экспериментальной. Но на практике попытка ввода самбы в качестве второго DC в существующий домен Windows со схемой 69 — встретит вас следующей ошибкой<br/>
+<blockquote>DsAddEntry failed with status WERR_ACCESS_DENIED info (8567, 'WERR_DS_INCOMPATIBLE_VERSION')</blockquote><br/>
+ </div></div><br/>
+ Проблема в том, что Windows 2012 и 2012R2 используют инструменты WMI для работы с доменами и лесами, стабильная поддержка которых анонсирована только к версии Samba 4.11, которая должна выйти до конца этого года.<br/>
+ Из этого следует, что единственным вариантом для введения самбы в домен AD, развернутый на 2012R2 сервере, является понижение схемы с 69 до 47. Разумеется на рабочей инфраструктуре без веских причин этого делать не надо, но у нас тут тестовый стенд, так что почему бы собственно и нет.<br/>
+<br/>
+Ставим Альт Сервер 8.2. Во время установки выбираем профиль «Сервер Samba-DC (контроллер AD)». На развернутом сервере производим полное обновление системы, и устанавливаем пакет task-samba-dc, который потянет за собой всё необходимое<br/>
+<br/>
+<pre><code class="bash"># apt-get install task-samba-dc</code></pre><br/>
+<div class="spoiler"><b class="spoiler_title">Если вдруг task-samba-dc, вопреки заверениям документации Альта откажется ставить всё необходимое сам.</b><div class="spoiler_text"><pre><code class="bash"># apt-get install python-module-samba-DC samba-DC-common samba-DC-winbind-clients samba-DC-winbind samba-DC-common-libs libpytalloc-devel</code></pre><br/>
+</div></div><br/>
+Далее переходим к настройке Kerberos и получению тикета. Открываем файл krb5.conf, переходим в раздел [libdefaults], и приводим к следующему виду:<br/>
+<br/>
+<pre><code class="bash"># vim /etc/krb5.conf</code></pre><br/>
+<pre><code class="bash"> dns_lookup_kdc = true
+ dns_lookup_realm = true
+ default_realm = TEST.LOCAL</code></pre><br/>
+Запрашиваем билет<br/>
+<br/>
+<pre><code class="bash"># kinit administrator
+Password for administrator@TEST.LOCAL:</code></pre><br/>
+Проверяем список полученых тикетов Kerberos<br/>
+<br/>
+<pre><code class="bash"># klist
+Ticket cache: KEYRING:persistent:0:0
+Default principal: administrator@TEST.LOCAL
+
+Valid starting       Expires              Service principal
+16.05.2019 11:51:38  16.05.2019 21:51:38  krbtgt/TEST.LOCAL@TEST.LOCAL
+        renew until 23.05.2019 11:51:35</code></pre><br/>
+Теперь удаляем или переименовываем существующий конфиг самбы.<br/>
+<br/>
+<pre><code class="bash"># mv smb.conf smb.conf.bak1</code></pre><br/>
+И наконец вводим в домен AD вторым контроллером:<br/>
+<br/>
+<pre><code class="bash"># samba-tool domain join test.local DC -U"TEST\administrator"</code></pre><br/>
+<div class="spoiler"><b class="spoiler_title">Успешный ввод будет сопровождаться следующим логом</b><div class="spoiler_text"><pre><code class="bash">Finding a writeable DC for domain 'test.local'
+Found DC DC1.TEST.LOCAL
+Password for [TEST\administrator]:
+Reconnecting to naming master e31d7da6-8f56-4420-8473-80f2b3a31338._msdcs.TEST.                           LOCAL
+DNS name of new naming master is DC1.TEST.LOCAL
+workgroup is TEST
+realm is TEST.LOCAL
+Adding CN=DC2,OU=Domain Controllers,DC=TEST,DC=LOCAL
+Adding CN=DC2,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC                           =TEST,DC=LOCAL
+Adding CN=NTDS Settings,CN=DC2,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN                           =Configuration,DC=TEST,DC=LOCAL
+Adding SPNs to CN=DC2,OU=Domain Controllers,DC=TEST,DC=LOCAL
+Setting account password for DC2$
+Enabling account
+Calling bare provision
+Looking up IPv4 addresses
+Looking up IPv6 addresses
+No IPv6 address will be assigned
+Setting up share.ldb
+Setting up secrets.ldb
+Setting up the registry
+Setting up the privileges database
+Setting up idmap db
+Setting up SAM db
+Setting up sam.ldb partitions and settings
+Setting up sam.ldb rootDSE
+Pre-loading the Samba 4 and AD schema
+A Kerberos configuration suitable for Samba AD has been generated at /var/lib/sa                           mba/private/krb5.conf
+Provision OK for domain DN DC=TEST,DC=LOCAL
+Starting replication
+Schema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[402/1426] linked                           _values[0/0]
+Schema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[804/1426] linked                           _values[0/0]
+Schema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[1206/1426] linke                           d_values[0/0]
+Schema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[1608/1426] linke                           d_values[0/0]
+Schema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[1743/1426] linke                           d_values[0/0]
+Analyze and apply schema objects
+Partition[CN=Configuration,DC=TEST,DC=LOCAL] objects[402/2240] linked_values[0/                           24]
+Partition[CN=Configuration,DC=TEST,DC=LOCAL] objects[804/2240] linked_values[0/                           24]
+Partition[CN=Configuration,DC=TEST,DC=LOCAL] objects[1206/2240] linked_values[0                           /24]
+Partition[CN=Configuration,DC=TEST,DC=LOCAL] objects[1608/2240] linked_values[0                           /24]
+Partition[CN=Configuration,DC=TEST,DC=LOCAL] objects[1772/2240] linked_values[2                           4/24]
+Replicating critical objects from the base DN of the domain
+Partition[DC=TEST,DC=LOCAL] objects[109/110] linked_values[26/29]
+Partition[DC=TEST,DC=LOCAL] objects[394/5008] linked_values[29/29]
+Done with always replicated NC (base, config, schema)
+Replicating DC=DomainDnsZones,DC=TEST,DC=LOCAL
+Partition[DC=DomainDnsZones,DC=TEST,DC=LOCAL] objects[42/42] linked_values[0/0]
+Replicating DC=ForestDnsZones,DC=TEST,DC=LOCAL
+Partition[DC=ForestDnsZones,DC=TEST,DC=LOCAL] objects[20/20] linked_values[0/0]
+Exop on[CN=RID Manager$,CN=System,DC=TEST,DC=LOCAL] objects[3] linked_values[0]
+Committing SAM database
+Adding 1 remote DNS records for DC2.TEST.LOCAL
+Adding DNS A record DC2.TEST.LOCAL for IPv4 IP: 192.168.90.201
+Adding DNS CNAME record 6ff1df40-cbb5-41f0-b7b3-53a27dde8edf._msdcs.TEST.LOCAL                            for DC2.TEST.LOCAL
+All other DNS records (like _ldap SRV records) will be created samba_dnsupdate o                           n first startup
+Replicating new DNS records in DC=DomainDnsZones,DC=TEST,DC=LOCAL
+Partition[DC=DomainDnsZones,DC=TEST,DC=LOCAL] objects[1/42] linked_values[0/0]
+Replicating new DNS records in DC=ForestDnsZones,DC=TEST,DC=LOCAL
+Partition[DC=ForestDnsZones,DC=TEST,DC=LOCAL] objects[1/20] linked_values[0/0]
+Sending DsReplicaUpdateRefs for all the replicated partitions
+Setting isSynchronized and dsServiceName
+Setting up secrets database
+Joined domain TEST (SID S-1-5-21-3959064270-1572045903-2556826204) as a DC</code></pre><br/>
+</div></div><br/>
+В оснастке ADUC должна появиться запись о новом DC в домене TEST.LOCAL, а в диспетчере DNS — новая А запись, соответствующая DC2.</li>
+<li><b>Репликация между контроллерами</b><br/>
+<br/>
+Для начала проверим работу службы репликации каталогов (DRS)<br/>
+<br/>
+<pre><code class="bash"># samba-tool drs showrepl</code></pre><br/>
+ <div class="spoiler"><b class="spoiler_title">Все попытки репликации в выводе должны быть успешными. В списке объектов KCC, в течение 15 минут после ввода, должен появится наш DC1 на Windows</b><div class="spoiler_text"> <pre><code class="bash">Default-First-Site-Name\DC2
+	DSA Options: 0x00000001
+	DSA object GUID: 0e9f5bce-ff59-401e-bdbd-fc69df3fc6bf
+	DSA invocationId: 017997b5-d718-41d7-a3f3-e57ab5151b5c
+
+	==== INBOUND NEIGHBORS ====
+
+	DC=ForestDnsZones,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Mon May 27 12:56:31 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Mon May 27 12:56:31 2019 MSK
+
+	DC=DomainDnsZones,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Mon May 27 12:56:32 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Mon May 27 12:56:32 2019 MSK
+
+	CN=Schema,CN=Configuration,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Mon May 27 12:56:32 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Mon May 27 12:56:32 2019 MSK
+
+	DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Mon May 27 12:56:32 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Mon May 27 12:56:32 2019 MSK
+
+	CN=Configuration,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Mon May 27 12:56:33 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Mon May 27 12:56:33 2019 MSK
+
+	==== OUTBOUND NEIGHBORS ====
+
+	DC=ForestDnsZones,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Thu May 23 16:40:03 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Thu May 23 16:40:03 2019 MSK
+
+	DC=DomainDnsZones,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Thu May 23 16:40:03 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Thu May 23 16:40:03 2019 MSK
+
+	CN=Schema,CN=Configuration,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Thu May 23 16:40:08 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Thu May 23 16:40:08 2019 MSK
+
+	DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Thu May 23 16:40:08 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Thu May 23 16:40:08 2019 MSK
+
+	CN=Configuration,DC=test,DC=local
+	        Default-First-Site-Name\DC1 via RPC
+	                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7
+	                Last attempt @ Mon May 27 12:12:17 2019 MSK was successful
+	                0 consecutive failure(s).
+	                Last success @ Mon May 27 12:12:17 2019 MSK
+
+	==== KCC CONNECTION OBJECTS ====
+
+	Connection --
+	        Connection name: 6d2652b3-e723-4af7-a19f-1ee48915753c
+	        Enabled        : TRUE
+	        Server DNS name : DC1.test.local
+	        Server DN name  : CN=NTDS Settings,CN=DC1,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=test,DC=local
+	                TransportType: RPC
+	                options: 0x00000001
+	Warning: No NC replicated for Connection!</code></pre><br/>
+ </div></div><br/>
+ Предупреждение <i>«No NC replicated for Connection!»</i> можно смело игнорировать. Оно появляется из за того, что при регистрации нового DC самба неверно устанавливает некоторые флаги репликации.<br/>
+<br/>
+Так же неплохо будет проверить репликацию LDAP.<br/>
+<br/>
+<pre><code class="bash"># samba-tool ldapcmp ldap://dc1.test.local ldap://dc2.test.local -Uadministrator</code></pre><br/>
+ Указанная выше команда сравнит значения атрибутов объектов всего каталога на DC1 и DC2. <br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример успешной репликации</b><div class="spoiler_text"> <pre><code class="bash">* Comparing [DOMAIN] context...
+
+	* Objects to be compared: 249
+
+	* Result for [DOMAIN]: SUCCESS
+
+	* Comparing [CONFIGURATION] context...
+
+	* Objects to be compared: 1750
+
+	* Result for [CONFIGURATION]: SUCCESS
+
+	* Comparing [SCHEMA] context...
+
+	* Objects to be compared: 1739
+
+	* Result for [SCHEMA]: SUCCESS
+
+	* Comparing [DNSDOMAIN] context...
+
+	* Objects to be compared: 42
+
+	* Result for [DNSDOMAIN]: SUCCESS
+
+	* Comparing [DNSFOREST] context...
+
+	* Objects to be compared: 20
+
+	* Result for [DNSFOREST]: SUCCESS</code></pre></div></div><br/>
+ В ряде случаев атрибуты объектов на разных контроллерах могут отличаться, и вывод команды даст об этом знать. Но далеко не во всех случаях это будет признаком проблемы с репликацией.<br/>
+<br/>
+Следующим этапом необходимо вручную настроить стабильную репликацию каталога SysVol.<br/>
+ Дело в том, что самба пока не поддерживает DFS-R, впрочем как не поддерживала более раннюю FRS. Поэтому для репликации между DC Samba и Windows единственным на сегодняшний день рабочим решением является односторонняя репликация средствами утилиты <i>Robocopy</i> из комплекта <a href="https://www.microsoft.com/en-us/download/details.aspx?id=17657">Windows Server 2003 Resource Kit Tools</a>.<br/>
+<br/>
+Разработчики самбы, во избежание проблем с совместимостью, рекомендуют сначала установить комплект утилит на обычную рабочую станцию, и после этого скопировать Robocopy на контроллер в папку «C:\Program Files (x86)\Windows Resource Kits\Tools\»<br/>
+<br/>
+После установки, в планировщике задач на контроллере с Windows создаём задание на выполнение репликации со следующими параметрами:<br/>
+<br/>
+ — Выполнять для всех пользователей<br/>
+ — Триггер на выполнение Ежедневно каждые 5 минут в течение дня<br/>
+ — В действиях прописываем путь к утилите robocopy, в качестве аргументов указываем:<br/>
+<br/>
+<pre><code class="xml">\\DC1\SYSVOL\test.local\ \\DC2\SYSVOL\test.local\ /mir /sec</code></pre><br/>
+ В конкретном случае копируем содержимое каталога SysVol с DC1 на DC2.<br/>
+</li>
+<li><b>Переносимые папки пользователей с помощью конфигурации pam_mount</b><br/>
+<br/>
+Опытным путём я нащупал два жизнеспособных варианта решения этой задачи с его помощью.<br/>
+<br/>
+<ol>
+<li>Полное монтирование папки с профилем из сети в раздел /home<br/>
+<br/>
+Простой вариант. Отлично отрабатывает, если названия папок Мои документы, Загрузки и Рабочий стол совпадают в обеих операционных системах. Подразумевается, что ПК на Linux уже введён в домен и пользователи логинятся под своими доменными учётными записями, используя в качестве механизма аутентификации и авторизации sssd.<br/>
+<br/>
+<pre><code class="bash"># vim /etc/security/pam_mount.conf.xml</code></pre><br/>
+<pre><code class="xml">&lt;volume uid="100000000-2000000000" fstype="cifs" server="dfs" path="Profile_Users/%(USER)" mountpoint="~" options="sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775"/>
+</code></pre><br/>
+где:<br/>
+<br/>
+<ul>
+<li><b>uid=«100000000-2000000000»</b> — диапазон UID, присваиваемый доменным пользователям от SSSD</li>
+<li><b>server=«dfs»</b> — имя файлового сервера</li>
+<li><b>path=«Profile_Users/%(USER)»</b> — ресурс на файловом сервере, с размещенным профилем пользователя</li>
+<li><b>mountpoint="~"</b> — путь монтирования в домашнюю папку пользователя</li>
+</ul><br/>
+Логин пользователя передается в макропеременную "%(USER)", используемую pam_mount, для подключения нашего сетевого ресурса, в том виде, в котором он введен в дисплейном менеджере. Поэтому важно, чтобы в ДМ логин вводился без явного указания доменного имени. <br/>
+<br/>
+В sssd.conf это решается комментированием, либо выставлением значения False в опцию <b>use_fully_qualified_names</b>, которая включает режим полных имён (включая домен) для пользователей и групп.<br/>
+</li>
+<li>Второй способ менее прямолинейный и топорный, и на мой взгляд более удобный и предпочтительный. Отличие от первого только в конфигурации pam_mount<br/>
+<br/>
+<pre><code class="bash"># vim /etc/security/pam_mount.conf.xml</code></pre><br/>
+<pre><code class="xml">&lt;volume uid="100000000-2000200000" fstype="cifs" server="dfs" path="Profile_Users/%(USER)/Рабочий стол" mountpoint="~/Рабочий стол" options="sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775"/>
+&lt;volume uid="100000000-2000200000" fstype="cifs" server="dfs" path="Profile_Users/%(USER)/Downloads" mountpoint="~/Загрузки" options="sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775"/>
+&lt;volume uid="100000000-2000200000" fstype="cifs" server="dfs" path="Profile_Users/%(USER)/Мои документы" mountpoint="~/Документы" options="sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775"/></code></pre><br/>
+То есть просто отдельно монтируем каждую нашу папку в соответствующий ей каталог</li>
+</ol></li>
+</ol><br/>
+<b>Выводы</b><br/>
+<br/>
+За полмесяца работы на тестовом стенде данная связка успешно пережила несколько попеременных долговременных и кратковременных отключений обоих контроллеров, практически без последствий для клиентов (один раз клиент на Windows7 потерял доверительные отношения).<br/>
+<br/>
+В целом у меня остались довольно приятные впечатления от работы с этим продуктом, даже несмотря на все нюансы, с которыми пришлось столкнуться как в статье, так и «за кулисами».<br/>
+<br/>
+Подводные камни есть, их много, и по ходу работы с самбой их придётся вылавливать в большом количестве. Тем не менее на сегодняшний день нет иных решений, позволяющих организовывать гибридную среду, с использованием службы каталогов и без использования Windows.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blinux%5D" class="tm-tags-list__link">linux</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bwindows%5D" class="tm-tags-list__link">windows</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bsamba4%5D" class="tm-tags-list__link">samba4</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdomain%20controller%5D" class="tm-tags-list__link">domain controller</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D0%B5%D1%81%D1%82%D1%8B%5D" class="tm-tags-list__link">тесты</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%BC%D0%BF%D0%BE%D1%80%D1%82%D0%BE%D0%B7%D0%B0%D0%BC%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">импортозамещение</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/linux/" class="tm-hubs-list__link">
+    Настройка Linux
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/open_source/" class="tm-hubs-list__link">
+    Open source
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/sys_admin/" class="tm-hubs-list__link">
+    Системное администрирование
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 21: ↑19 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 21: ↑19 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+17</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">23K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    128
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Osennij_Lis/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/82f/546/96c/82f54696c0ef016decc944e088a4afbf.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 6 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    6
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Николай</span> <a href="/ru/users/Osennij_Lis/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Osennij_Lis
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Анти специалист</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450572/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 27 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450572/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450572/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450572":{"id":"450572","timePublished":"2019-06-05T14:05:26+00:00","isCorporative":false,"lang":"ru","titleHtml":"Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux","leadData":{"textHtml":"\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fq7\u002Fqz\u002Fgi\u002Fq7qzgibifknfegmdk3ffls-fik0.jpeg\" alt=\"image\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\nОсознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил неладное.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nОднако в процессе прохождения по стадиям принятия неизбежного я втянулся и даже немного начал получать удовольствие от процесса. А в какой-то момент подумал, что такими темпами рано или поздно мне придётся расставаться с решениями по организации службы каталогов от Microsoft и двигаться в сторону чего-то более экзотичного. Поэтому, чтобы заранее подготовиться к неизбежному, и по возможности выловить побольше подводных камней, было решено развернуть тестовый стенд, включающий в себя: \u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EDC1 — Windows Server 2012R2\u003C\u002Fli\u003E\r\n\u003Cli\u003EDC2 — Альт Сервер 8.2\u003C\u002Fli\u003E\r\n\u003Cli\u003EFile Server — Windows Server 2012R2\u003C\u002Fli\u003E\r\n\u003Cli\u003EPC1 — Windows 7\u003C\u002Fli\u003E\r\n\u003Cli\u003EPC2 — Альт Рабочая станция 8.2\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":6,"votesCount":6},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"267177","alias":"Osennij_Lis","fullname":"Николай","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F82f\u002F546\u002F96c\u002F82f54696c0ef016decc944e088a4afbf.jpg","speciality":"Анти специалист"},"statistics":{"commentsCount":27,"favoritesCount":128,"readingCount":23489,"score":17,"votesCount":21},"hubs":[{"relatedData":null,"id":"36","alias":"linux","type":"collective","title":"Настройка Linux","titleHtml":"Настройка Linux","isProfiled":true},{"relatedData":null,"id":"144","alias":"open_source","type":"collective","title":"Open source","titleHtml":"Open source","isProfiled":true},{"relatedData":null,"id":"221","alias":"sys_admin","type":"collective","title":"Системное администрирование","titleHtml":"Системное администрирование","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fq7\u002Fqz\u002Fgi\u002Fq7qzgibifknfegmdk3ffls-fik0.jpeg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fq7\u002Fqz\u002Fgi\u002Fq7qzgibifknfegmdk3ffls-fik0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nОсознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил неладное.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОднако в процессе прохождения по стадиям принятия неизбежного я втянулся и даже немного начал получать удовольствие от процесса. А в какой-то момент подумал, что такими темпами рано или поздно мне придётся расставаться с решениями по организации службы каталогов от Microsoft и двигаться в сторону чего-то более экзотичного. Поэтому, чтобы заранее подготовиться к неизбежному, и по возможности выловить побольше подводных камней, было решено развернуть тестовый стенд, включающий в себя: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EDC1 — Windows Server 2012R2\u003C\u002Fli\u003E\r\n\u003Cli\u003EDC2 — Альт Сервер 8.2\u003C\u002Fli\u003E\r\n\u003Cli\u003EFile Server — Windows Server 2012R2\u003C\u002Fli\u003E\r\n\u003Cli\u003EPC1 — Windows 7\u003C\u002Fli\u003E\r\n\u003Cli\u003EPC2 — Альт Рабочая станция 8.2\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЗадачи стенда:\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EРазвернуть домен на базе w2k12r2. Создать минимальный набор групповых политик (аналогично использующимся в рабочей инфраструктуре), включая политику переноса рабочих папок пользователей (Загрузки\u002FДокументы\u002FРабочий стол). В конечном итоге хочется, чтобы при смене пользователем рабочего места с Windows на Linux и обратно он имел комфортный доступ к своим рабочим документам.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВвод Samba DC вторым контроллером. Проверка репликации службы каталогов и DNS\u003C\u002Fli\u003E\r\n\u003Cli\u003EНастройка клиентов Linux на работу с перемещаемыми папками\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EРеализация:\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Cb\u003EУстановка и ввод нового контроллера\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС установкой MS Windows 2012R2 всё просто и более менее понятно. В интернете есть 1001 мануал по развертыванию домена на Windows как с помощью GUI так и средствами Powershell, поэтому повторять лишний раз не буду, оставлю только \u003Ca href=\"https:\u002F\u002Fdocs.microsoft.com\u002Fru-ru\u002Fwindows-server\u002Fidentity\u002Fad-ds\u002Fdeploy\u002Fad-ds-deployment\"\u003Eссылку\u003C\u002Fa\u003E на офф. документацию, для любопытствующих и тех кто захочет освежить память.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОднако один важный момент в данном пункте всё таки есть. На сегодняшний день Samba не умеет работать со схемами каталога выше 2008R2. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EЗаголовок спойлера\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E Вернее разработчиками данная поддержка заявлена в качестве экспериментальной. Но на практике попытка ввода самбы в качестве второго DC в существующий домен Windows со схемой 69 — встретит вас следующей ошибкой\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EDsAddEntry failed with status WERR_ACCESS_DENIED info (8567, 'WERR_DS_INCOMPATIBLE_VERSION')\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n \u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n Проблема в том, что Windows 2012 и 2012R2 используют инструменты WMI для работы с доменами и лесами, стабильная поддержка которых анонсирована только к версии Samba 4.11, которая должна выйти до конца этого года.\u003Cbr\u002F\u003E\r\n Из этого следует, что единственным вариантом для введения самбы в домен AD, развернутый на 2012R2 сервере, является понижение схемы с 69 до 47. Разумеется на рабочей инфраструктуре без веских причин этого делать не надо, но у нас тут тестовый стенд, так что почему бы собственно и нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСтавим Альт Сервер 8.2. Во время установки выбираем профиль «Сервер Samba-DC (контроллер AD)». На развернутом сервере производим полное обновление системы, и устанавливаем пакет task-samba-dc, который потянет за собой всё необходимое\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# apt-get install task-samba-dc\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EЕсли вдруг task-samba-dc, вопреки заверениям документации Альта откажется ставить всё необходимое сам.\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# apt-get install python-module-samba-DC samba-DC-common samba-DC-winbind-clients samba-DC-winbind samba-DC-common-libs libpytalloc-devel\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДалее переходим к настройке Kerberos и получению тикета. Открываем файл krb5.conf, переходим в раздел [libdefaults], и приводим к следующему виду:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# vim \u002Fetc\u002Fkrb5.conf\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E dns_lookup_kdc = true\n dns_lookup_realm = true\n default_realm = TEST.LOCAL\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗапрашиваем билет\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# kinit administrator\nPassword for administrator@TEST.LOCAL:\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПроверяем список полученых тикетов Kerberos\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# klist\nTicket cache: KEYRING:persistent:0:0\nDefault principal: administrator@TEST.LOCAL\n\nValid starting       Expires              Service principal\n16.05.2019 11:51:38  16.05.2019 21:51:38  krbtgt\u002FTEST.LOCAL@TEST.LOCAL\n        renew until 23.05.2019 11:51:35\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь удаляем или переименовываем существующий конфиг самбы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# mv smb.conf smb.conf.bak1\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИ наконец вводим в домен AD вторым контроллером:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# samba-tool domain join test.local DC -U\"TEST\\administrator\"\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EУспешный ввод будет сопровождаться следующим логом\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"bash\"\u003EFinding a writeable DC for domain 'test.local'\nFound DC DC1.TEST.LOCAL\nPassword for [TEST\\administrator]:\nReconnecting to naming master e31d7da6-8f56-4420-8473-80f2b3a31338._msdcs.TEST.                           LOCAL\nDNS name of new naming master is DC1.TEST.LOCAL\nworkgroup is TEST\nrealm is TEST.LOCAL\nAdding CN=DC2,OU=Domain Controllers,DC=TEST,DC=LOCAL\nAdding CN=DC2,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC                           =TEST,DC=LOCAL\nAdding CN=NTDS Settings,CN=DC2,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN                           =Configuration,DC=TEST,DC=LOCAL\nAdding SPNs to CN=DC2,OU=Domain Controllers,DC=TEST,DC=LOCAL\nSetting account password for DC2$\nEnabling account\nCalling bare provision\nLooking up IPv4 addresses\nLooking up IPv6 addresses\nNo IPv6 address will be assigned\nSetting up share.ldb\nSetting up secrets.ldb\nSetting up the registry\nSetting up the privileges database\nSetting up idmap db\nSetting up SAM db\nSetting up sam.ldb partitions and settings\nSetting up sam.ldb rootDSE\nPre-loading the Samba 4 and AD schema\nA Kerberos configuration suitable for Samba AD has been generated at \u002Fvar\u002Flib\u002Fsa                           mba\u002Fprivate\u002Fkrb5.conf\nProvision OK for domain DN DC=TEST,DC=LOCAL\nStarting replication\nSchema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[402\u002F1426] linked                           _values[0\u002F0]\nSchema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[804\u002F1426] linked                           _values[0\u002F0]\nSchema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[1206\u002F1426] linke                           d_values[0\u002F0]\nSchema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[1608\u002F1426] linke                           d_values[0\u002F0]\nSchema-DN[CN=Schema,CN=Configuration,DC=TEST,DC=LOCAL] objects[1743\u002F1426] linke                           d_values[0\u002F0]\nAnalyze and apply schema objects\nPartition[CN=Configuration,DC=TEST,DC=LOCAL] objects[402\u002F2240] linked_values[0\u002F                           24]\nPartition[CN=Configuration,DC=TEST,DC=LOCAL] objects[804\u002F2240] linked_values[0\u002F                           24]\nPartition[CN=Configuration,DC=TEST,DC=LOCAL] objects[1206\u002F2240] linked_values[0                           \u002F24]\nPartition[CN=Configuration,DC=TEST,DC=LOCAL] objects[1608\u002F2240] linked_values[0                           \u002F24]\nPartition[CN=Configuration,DC=TEST,DC=LOCAL] objects[1772\u002F2240] linked_values[2                           4\u002F24]\nReplicating critical objects from the base DN of the domain\nPartition[DC=TEST,DC=LOCAL] objects[109\u002F110] linked_values[26\u002F29]\nPartition[DC=TEST,DC=LOCAL] objects[394\u002F5008] linked_values[29\u002F29]\nDone with always replicated NC (base, config, schema)\nReplicating DC=DomainDnsZones,DC=TEST,DC=LOCAL\nPartition[DC=DomainDnsZones,DC=TEST,DC=LOCAL] objects[42\u002F42] linked_values[0\u002F0]\nReplicating DC=ForestDnsZones,DC=TEST,DC=LOCAL\nPartition[DC=ForestDnsZones,DC=TEST,DC=LOCAL] objects[20\u002F20] linked_values[0\u002F0]\nExop on[CN=RID Manager$,CN=System,DC=TEST,DC=LOCAL] objects[3] linked_values[0]\nCommitting SAM database\nAdding 1 remote DNS records for DC2.TEST.LOCAL\nAdding DNS A record DC2.TEST.LOCAL for IPv4 IP: 192.168.90.201\nAdding DNS CNAME record 6ff1df40-cbb5-41f0-b7b3-53a27dde8edf._msdcs.TEST.LOCAL                            for DC2.TEST.LOCAL\nAll other DNS records (like _ldap SRV records) will be created samba_dnsupdate o                           n first startup\nReplicating new DNS records in DC=DomainDnsZones,DC=TEST,DC=LOCAL\nPartition[DC=DomainDnsZones,DC=TEST,DC=LOCAL] objects[1\u002F42] linked_values[0\u002F0]\nReplicating new DNS records in DC=ForestDnsZones,DC=TEST,DC=LOCAL\nPartition[DC=ForestDnsZones,DC=TEST,DC=LOCAL] objects[1\u002F20] linked_values[0\u002F0]\nSending DsReplicaUpdateRefs for all the replicated partitions\nSetting isSynchronized and dsServiceName\nSetting up secrets database\nJoined domain TEST (SID S-1-5-21-3959064270-1572045903-2556826204) as a DC\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВ оснастке ADUC должна появиться запись о новом DC в домене TEST.LOCAL, а в диспетчере DNS — новая А запись, соответствующая DC2.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EРепликация между контроллерами\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля начала проверим работу службы репликации каталогов (DRS)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# samba-tool drs showrepl\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n \u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EВсе попытки репликации в выводе должны быть успешными. В списке объектов KCC, в течение 15 минут после ввода, должен появится наш DC1 на Windows\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E \u003Cpre\u003E\u003Ccode class=\"bash\"\u003EDefault-First-Site-Name\\DC2\n\tDSA Options: 0x00000001\n\tDSA object GUID: 0e9f5bce-ff59-401e-bdbd-fc69df3fc6bf\n\tDSA invocationId: 017997b5-d718-41d7-a3f3-e57ab5151b5c\n\n\t==== INBOUND NEIGHBORS ====\n\n\tDC=ForestDnsZones,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Mon May 27 12:56:31 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Mon May 27 12:56:31 2019 MSK\n\n\tDC=DomainDnsZones,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Mon May 27 12:56:32 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Mon May 27 12:56:32 2019 MSK\n\n\tCN=Schema,CN=Configuration,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Mon May 27 12:56:32 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Mon May 27 12:56:32 2019 MSK\n\n\tDC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Mon May 27 12:56:32 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Mon May 27 12:56:32 2019 MSK\n\n\tCN=Configuration,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Mon May 27 12:56:33 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Mon May 27 12:56:33 2019 MSK\n\n\t==== OUTBOUND NEIGHBORS ====\n\n\tDC=ForestDnsZones,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Thu May 23 16:40:03 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Thu May 23 16:40:03 2019 MSK\n\n\tDC=DomainDnsZones,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Thu May 23 16:40:03 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Thu May 23 16:40:03 2019 MSK\n\n\tCN=Schema,CN=Configuration,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Thu May 23 16:40:08 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Thu May 23 16:40:08 2019 MSK\n\n\tDC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Thu May 23 16:40:08 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Thu May 23 16:40:08 2019 MSK\n\n\tCN=Configuration,DC=test,DC=local\n\t        Default-First-Site-Name\\DC1 via RPC\n\t                DSA object GUID: 60fb339d-efa3-4585-a42d-04974e6601b7\n\t                Last attempt @ Mon May 27 12:12:17 2019 MSK was successful\n\t                0 consecutive failure(s).\n\t                Last success @ Mon May 27 12:12:17 2019 MSK\n\n\t==== KCC CONNECTION OBJECTS ====\n\n\tConnection --\n\t        Connection name: 6d2652b3-e723-4af7-a19f-1ee48915753c\n\t        Enabled        : TRUE\n\t        Server DNS name : DC1.test.local\n\t        Server DN name  : CN=NTDS Settings,CN=DC1,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=test,DC=local\n\t                TransportType: RPC\n\t                options: 0x00000001\n\tWarning: No NC replicated for Connection!\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n \u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n Предупреждение \u003Ci\u003E«No NC replicated for Connection!»\u003C\u002Fi\u003E можно смело игнорировать. Оно появляется из за того, что при регистрации нового DC самба неверно устанавливает некоторые флаги репликации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак же неплохо будет проверить репликацию LDAP.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# samba-tool ldapcmp ldap:\u002F\u002Fdc1.test.local ldap:\u002F\u002Fdc2.test.local -Uadministrator\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n Указанная выше команда сравнит значения атрибутов объектов всего каталога на DC1 и DC2. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример успешной репликации\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E \u003Cpre\u003E\u003Ccode class=\"bash\"\u003E* Comparing [DOMAIN] context...\n\n\t* Objects to be compared: 249\n\n\t* Result for [DOMAIN]: SUCCESS\n\n\t* Comparing [CONFIGURATION] context...\n\n\t* Objects to be compared: 1750\n\n\t* Result for [CONFIGURATION]: SUCCESS\n\n\t* Comparing [SCHEMA] context...\n\n\t* Objects to be compared: 1739\n\n\t* Result for [SCHEMA]: SUCCESS\n\n\t* Comparing [DNSDOMAIN] context...\n\n\t* Objects to be compared: 42\n\n\t* Result for [DNSDOMAIN]: SUCCESS\n\n\t* Comparing [DNSFOREST] context...\n\n\t* Objects to be compared: 20\n\n\t* Result for [DNSFOREST]: SUCCESS\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n В ряде случаев атрибуты объектов на разных контроллерах могут отличаться, и вывод команды даст об этом знать. Но далеко не во всех случаях это будет признаком проблемы с репликацией.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСледующим этапом необходимо вручную настроить стабильную репликацию каталога SysVol.\u003Cbr\u002F\u003E\r\n Дело в том, что самба пока не поддерживает DFS-R, впрочем как не поддерживала более раннюю FRS. Поэтому для репликации между DC Samba и Windows единственным на сегодняшний день рабочим решением является односторонняя репликация средствами утилиты \u003Ci\u003ERobocopy\u003C\u002Fi\u003E из комплекта \u003Ca href=\"https:\u002F\u002Fwww.microsoft.com\u002Fen-us\u002Fdownload\u002Fdetails.aspx?id=17657\"\u003EWindows Server 2003 Resource Kit Tools\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазработчики самбы, во избежание проблем с совместимостью, рекомендуют сначала установить комплект утилит на обычную рабочую станцию, и после этого скопировать Robocopy на контроллер в папку «C:\\Program Files (x86)\\Windows Resource Kits\\Tools\\»\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле установки, в планировщике задач на контроллере с Windows создаём задание на выполнение репликации со следующими параметрами:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — Выполнять для всех пользователей\u003Cbr\u002F\u003E\r\n — Триггер на выполнение Ежедневно каждые 5 минут в течение дня\u003Cbr\u002F\u003E\r\n — В действиях прописываем путь к утилите robocopy, в качестве аргументов указываем:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E\\\\DC1\\SYSVOL\\test.local\\ \\\\DC2\\SYSVOL\\test.local\\ \u002Fmir \u002Fsec\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n В конкретном случае копируем содержимое каталога SysVol с DC1 на DC2.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EПереносимые папки пользователей с помощью конфигурации pam_mount\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОпытным путём я нащупал два жизнеспособных варианта решения этой задачи с его помощью.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EПолное монтирование папки с профилем из сети в раздел \u002Fhome\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПростой вариант. Отлично отрабатывает, если названия папок Мои документы, Загрузки и Рабочий стол совпадают в обеих операционных системах. Подразумевается, что ПК на Linux уже введён в домен и пользователи логинятся под своими доменными учётными записями, используя в качестве механизма аутентификации и авторизации sssd.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# vim \u002Fetc\u002Fsecurity\u002Fpam_mount.conf.xml\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;volume uid=\"100000000-2000000000\" fstype=\"cifs\" server=\"dfs\" path=\"Profile_Users\u002F%(USER)\" mountpoint=\"~\" options=\"sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775\"\u002F\u003E\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nгде:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Euid=«100000000-2000000000»\u003C\u002Fb\u003E — диапазон UID, присваиваемый доменным пользователям от SSSD\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Eserver=«dfs»\u003C\u002Fb\u003E — имя файлового сервера\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Epath=«Profile_Users\u002F%(USER)»\u003C\u002Fb\u003E — ресурс на файловом сервере, с размещенным профилем пользователя\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Emountpoint=\"~\"\u003C\u002Fb\u003E — путь монтирования в домашнюю папку пользователя\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nЛогин пользователя передается в макропеременную \"%(USER)\", используемую pam_mount, для подключения нашего сетевого ресурса, в том виде, в котором он введен в дисплейном менеджере. Поэтому важно, чтобы в ДМ логин вводился без явного указания доменного имени. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ sssd.conf это решается комментированием, либо выставлением значения False в опцию \u003Cb\u003Euse_fully_qualified_names\u003C\u002Fb\u003E, которая включает режим полных имён (включая домен) для пользователей и групп.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EВторой способ менее прямолинейный и топорный, и на мой взгляд более удобный и предпочтительный. Отличие от первого только в конфигурации pam_mount\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E# vim \u002Fetc\u002Fsecurity\u002Fpam_mount.conf.xml\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;volume uid=\"100000000-2000200000\" fstype=\"cifs\" server=\"dfs\" path=\"Profile_Users\u002F%(USER)\u002FРабочий стол\" mountpoint=\"~\u002FРабочий стол\" options=\"sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775\"\u002F\u003E\n&lt;volume uid=\"100000000-2000200000\" fstype=\"cifs\" server=\"dfs\" path=\"Profile_Users\u002F%(USER)\u002FDownloads\" mountpoint=\"~\u002FЗагрузки\" options=\"sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775\"\u002F\u003E\n&lt;volume uid=\"100000000-2000200000\" fstype=\"cifs\" server=\"dfs\" path=\"Profile_Users\u002F%(USER)\u002FМои документы\" mountpoint=\"~\u002FДокументы\" options=\"sec=krb5,cruid=%(USERUID),nounix,uid=%(USERUID),gid=%(USERGID),file_mode=0664,dir_mode=0775\"\u002F\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТо есть просто отдельно монтируем каждую нашу папку в соответствующий ей каталог\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВыводы\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗа полмесяца работы на тестовом стенде данная связка успешно пережила несколько попеременных долговременных и кратковременных отключений обоих контроллеров, практически без последствий для клиентов (один раз клиент на Windows7 потерял доверительные отношения).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ целом у меня остались довольно приятные впечатления от работы с этим продуктом, даже несмотря на все нюансы, с которыми пришлось столкнуться как в статье, так и «за кулисами».\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПодводные камни есть, их много, и по ходу работы с самбой их придётся вылавливать в большом количестве. Тем не менее на сегодняшний день нет иных решений, позволяющих организовывать гибридную среду, с использованием службы каталогов и без использования Windows.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"linux"},{"titleHtml":"windows"},{"titleHtml":"samba4"},{"titleHtml":"domain controller"},{"titleHtml":"тесты"},{"titleHtml":"импортозамещение"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450572\u002F20762ebe95ece723162f663d0c2a7408\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450572\u002F20762ebe95ece723162f663d0c2a7408\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450572\\\u002F\"},\"headline\":\"Samba DC в качестве второго контроллера в домене AD Windows 2012R2 и перемещаемые папки для клиентов на Windows и Linux\",\"datePublished\":\"2019-06-05T17:05:26+03:00\",\"dateModified\":\"2019-06-10T09:53:28+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Николай\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450572\\\u002F#post-content-body\",\"about\":[\"h_linux\",\"h_open_source\",\"h_sys_admin\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fq7\\\u002Fqz\\\u002Fgi\\\u002Fq7qzgibifknfegmdk3ffls-fik0.jpeg\"]}","metaDescription":"Осознание того, что я попал в импортозамес пришло не сразу. Только когда из вышестоящей организации свежие поставки ПК стали стабильно приезжать с дистрибутивом «Альт Линукс» на борту, я заподозрил...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"linux,open_source,sys_admin"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

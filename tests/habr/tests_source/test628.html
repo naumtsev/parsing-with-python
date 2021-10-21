@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Julia: типы, мультиметоды и арифметика над полиномами / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450628\/"},"headline":"Julia: типы, мультиметоды и арифметика над полиномами","datePublished":"2019-05-07T22:17:13+03:00","dateModified":"2019-05-09T13:20:48+03:00","author":{"@type":"Person","name":"Василий Писарев"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia &mdash; представлении функций в виде методов с множественной диспетчери...","url":"https:\/\/habr.com\/ru\/post\/450628\/#post-content-body","about":["h_programming","h_julia","f_develop"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/formulas\/e64\/396\/fcf\/e64396fcf27c49e7690443369ab7ef26.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/3ed\/2eb\/e5d\/3ed2ebe5d0a41cb4f9d63ae6097a9469.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/9f6\/814\/1e2\/9f68141e2c9736035a13c1efac83d4be.svg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Julia: типы, мультиметоды и арифметика над полиномами" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Julia: типы, мультиметоды и арифметика над полиномами" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Julia: типы, мультиметоды и арифметика над полиномами" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450628/536c9ce18972f1e6abca757fbc36ebc9/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450628/536c9ce18972f1e6abca757fbc36ebc9/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450628/536c9ce18972f1e6abca757fbc36ebc9/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450628/536c9ce18972f1e6abca757fbc36ebc9/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450628/536c9ce18972f1e6abca757fbc36ebc9/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450628" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T19:17:13.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450628/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450628/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450628/536c9ce18972f1e6abca757fbc36ebc9/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Pand5461/" title="Pand5461" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/0bd/d11/fe5/0bdd11fe540cb045ed967b6fc85cded8.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Pand5461/" class="tm-user-info__username">
+      Pand5461
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T19:17:13.000Z" title="2019-05-07, 22:17">7  мая  2019 в 22:17</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Julia: типы, мультиметоды и арифметика над полиномами</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/programming/" class="tm-article-snippet__hubs-item-link"><span>Программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/julia/" class="tm-article-snippet__hubs-item-link"><span>Julia</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить производительность вычислений, не снижая читаемости кода и не портя абстрагируемость, с одной стороны, и позволяет работать с математическими понятиями в более привычной нотации, с другой. Для примера рассмотрен вопрос единообразной (с точки зрения линейных операций) работы с полиномами в представлении списка коэффициентов и с интерполяционными полиномами.<br/>
+<a name="habracut"></a><br/>
+<h2>Базовый синтаксис</h2><br/>
+Краткое введение для тех, кто не в курсе. Julia — как-бы-скриптовый язык, имеет REPL (read-evaluate-print loop, т.е. интерактивную оболочку). С первого взгляда выглядит довольно похоже на, например, Python или MATLAB.<br/>
+<h4>Арифметические операции</h4><br/>
+Арифметика примерно такая же, как и везде: +, -, *, /, ^ для возведения в степень и т.д.<br/>
+Сравнение: >, &lt;, >=, &lt;=, ==, != и т.д.<br/>
+Присваивание: =.<br/>
+Особенности: деление через <code>/</code> всегда возвращает дробное число; если нужна целая часть от деления двух целых чисел, нужно пользоваться операцией <code>div(m, n)</code> или инфиксным эквивалентом <code>m ÷ n</code>.<br/>
+<h4>Типы</h4><br/>
+Числовые типы:<br/>
+<ul>
+<li> Целые (<code>Int</code>) — <code>2</code>, <code>3</code>, <code>-42</code></li>
+<li> Беззнаковые целые (<code>UInt</code>) — <code>0x12345</code></li>
+<li> С плавающей точкой (<code>Float32</code>, <code>Float64</code>) — <code>1.0</code>, <code>3.1415</code>, <code>-Inf</code>, <code>NaN</code></li>
+<li> Рациональные (<code>Rational</code>) — <code>3//3</code>, <code>7//2</code></li>
+<li> Действительные (<code>Real</code>) — всё вышеперечисленное</li>
+<li> Комплексные (<code>Complex</code>) — <code>3+4*im</code>, <code>2//3+2//3*im</code>, <code>3.0+0.0*im</code> (<code>im</code> — мнимая единица, комплексным считается только число с явно выписанной мнимой частью)</li>
+<li> Число (<code>Number</code>) — всё вышеперечисленное</li>
+</ul><br/>
+<br/>
+Строки и символы:<br/>
+<ul>
+<li> <code>'a'</code> — символ (<code>Char</code>)</li>
+<li> <code>"a"</code> — строка (<code>String</code>)</li>
+</ul><br/>
+<br/>
+NB: строки, как сейчас во многих языках, иммутабельные.<br/>
+NB: строки (а также имена переменных) поддерживают Юникод, в том числе и эмодзи.<br/>
+<br/>
+Массивы:<br/>
+<ul>
+<li> <code>x = [1, 2, 3]</code> — задание массива прямым перечислением элементов</li>
+<li> специальные конструкторы: <code>zeros(length)</code> для массива из нулей, <code>ones(length)</code> для массива из единиц, <code>rand(length)</code> для массива из случайных чисел и др.</li>
+<li> поддержка многомерных массивов</li>
+<li> поддержка операций линейной алгебры (сложение массивов, умножение на скаляр, умножение матрицы на вектор и многое другое) в стандартной библиотеке</li>
+</ul><br/>
+<br/>
+NB: индексация всех коллекций идёт начиная с единицы.<br/>
+NB: т.к. язык предназначен для вычислительных задач, массивы — один из наиболее важных типов, к принципам их работы ещё не раз придётся возвращаться.<br/>
+<br/>
+Кортежи (упорядоченный набор элементов, иммутабельные):<br/>
+<ul>
+<li> <code>(2, 5.3, "k")</code> — обычный кортеж</li>
+<li> <code>(a = 3, b = 4)</code> — именованный кортеж</li>
+</ul><br/>
+<br/>
+NB: к полям именованного кортежа можно обращаться как по имени через точку, так и по индексу через []<br/>
+<pre><code class="julia">julia> x = (a = 5, b = 12)
+(a = 5, b = 12)
+julia> x[1]
+5
+julia> sqrt(x.a^2 + x[2]^2)
+13.0
+</code></pre><br/>
+<br/>
+Словари:<br/>
+<pre><code class="julia">julia> x = Dict('a' => 5, 'b' => 12)
+Dict{Char,Int64} with 2 entries:
+  'a' => 5
+  'b' => 12
+julia> x['c'] = 13
+13
+julia> x
+Dict{Char,Int64} with 3 entries:
+  'a' => 5
+  'c' => 13
+  'b' => 12
+</code></pre><br/>
+<br/>
+<h4>Основные управляющие конструкции языка</h4><br/>
+1. Переменные автоматически создаются при присваивании. Тип указывать необязательно.<br/>
+<pre><code class="julia">julia> x = 7; x + 2
+9
+julia> x = 42.0; x * 4
+168.0
+</code></pre><br/>
+2. Блок условного перехода начинается с выражения <code>if &lt;condition></code> и заканчивается словом <code>end</code>. Можно также иметь <code>else</code>-ветку или <code>elseif</code>-ветки:<br/>
+<pre><code class="julia">if x > y
+    println("X is more than Y")
+elseif x == y
+    println("X and Y are equal")
+else
+    println("X is less than Y")
+end
+</code></pre><br/>
+3. Есть две конструкции циклов: <code>while</code> и <code>for</code>. Второй работает как в Python, т.е. проводит итерирование по коллекции. Частое применение — итерирование по диапазону значений, синтаксис которого <code>start[:increment]:end</code>. В отличие от Python, диапазон <i>включает</i> как начальное, так и конечное значения, т.е. пустой диапазон будет не <code>1:1</code> (это диапазон из одного значения 1), а <code>1:0</code>. Конец тела цикла маркируется словом <code>end</code>.<br/>
+<pre><code class="julia">julia> for i in 1:3; print(i, " "); end # диапазон от 1 до 3 с шагом 1 (по умолчанию)
+1 2 3 
+julia> for i in 1:2:3; print(i, " "); end # диапазон от 1 до 3 с шагом 2
+1 3 
+</code></pre><br/>
+4. Функции задаются ключевым словом <code>function</code>, определение функции также завершается словом <code>end</code>. Поддерживаются аргументы со значениями по умолчанию и именованные аргументы.<br/>
+<pre><code class="julia">function square(x)
+    return x * x
+end
+
+function cube(x)
+    x * square(x) # последнее вычисленное значение возвращается из блока кода; return не обязателен
+end
+
+function root(x, degree = 2)
+    # аргумент degree имеет значение по умолчанию
+    return x^(1.0/degree)
+end
+
+function greeting(name; times = 42, greet = "hello")
+    # именованные аргументы отделяются точкой с запятой
+    println(times, " times ", greet, " to ", name)
+end
+
+julia> greeting("John")
+42 times hello to John
+julia> greeting("Mike", greet = "wassup", times = 100500) # именованные аргументы при вызове функции могут стоять в любом порядке
+100500 times wassup to Mike
+</code></pre><br/>
+<br/>
+В целом, это всё довольно похоже на Python, если не считать мелких отличий в синтаксисе и того, что блоки кода выделяются не пробелами, а всё-таки ключевыми словами. В простых случаях программы на Python даже транслируются в Julia практически один к одному.<br/>
+Но есть существенное отличие в том, что в Julia для переменных можно явно указывать типы, что позволяет компилировать программы, получая быстрый код.<br/>
+Второе существенное отличие — в том, что в Python реализована «классическая» модель ООП с классами и методами, а в Julia реализована модель множественной диспетчеризации.<br/>
+<br/>
+<h4>Аннотации типов и множественная диспетчеризация</h4><br/>
+Посмотрим, что представляет собой какая-нибудь встроенная функция:<br/>
+<pre><code class="julia">julia> sqrt
+sqrt (generic function with 19 methods)
+</code></pre><br/>
+Как показывает нам REPL, <code>sqrt</code> — это обобщённая функция с 19 методами. Что за обобщённая функция и что за методы?<br/>
+<br/>
+А означает это то, что есть <i>несколько</i> функций <code>sqrt</code>, которые применяются к разным типам аргументов и, соответственно, вычисляют квадратный корень по различным алгоритмам. Посмотреть, какие есть варианты, можно, набрав<br/>
+<pre><code class="julia">julia> methods(sqrt)
+</code></pre><br/>
+Видно, что функция определена для разных типов чисел, а также для матриц.<br/>
+<br/>
+В отличие от «классического» ООП, где конкретная реализация метода определяется только вызывающим классом (диспетчеризация по первому аргументу), в Julia выбор функции определяется типами (и количеством) <i>всех</i> её аргументов.<br/>
+При вызове функции с конкретными аргументами из всех её методов выбирается тот, который наиболее точно описывает конкретный набор типов, с которыми функция вызвана, и именно он применяется.<br/>
+<br/>
+Отличительной особенностью является то, что применяется подход, называемый авторами языка «just ahead-of-time» компиляцией. Т.е. функции компилируются для заданных типов данных при первом вызове, после чего следующие вызовы выполняются гораздо быстрее. Разница между первым и последующими вызовами может быть весьма существенной:<br/>
+<pre><code class="julia">julia> @time sqrt(8) # макрос @time - простое встроенное средство измерения производительности
+  0.006811 seconds (3.15 k allocations: 168.516 KiB) # на самом деле, это время и выделение памяти при компиляции
+2.8284271247461903
+julia> @time sqrt(15)
+  0.000002 seconds (5 allocations: 176 bytes) # 5 выделений памяти - это от вызова макроса @time
+3.872983346207417
+</code></pre><br/>
+В плохом случае каждый вызов функции — это проверка типов получаемых аргументов и поиск нужного метода в списке. Однако, если компилятору давать подсказки, проверки можно исключить, что приведёт к более быстрому коду.<br/>
+<br/>
+Для примера, рассмотрим вычисление суммы<br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/e64/396/fcf/e64396fcf27c49e7690443369ab7ef26.svg" alt="$\sum_{k=1}^N \sqrt{(-1)^k}$" data-tex="display"/></p><br/>
+<pre><code class="julia">function mysqrt(num)
+# если аргумент положителен - возвращает обычный квадратный корень
+# если нет - преобразует аргумент к комплексному числу и извлекает корень из него
+    if num >= 0
+        return sqrt(num)
+    else
+        return sqrt(complex(num))
+    end
+end
+
+function S(n)
+# оставим автоопределение типа
+    sum = 0
+    sgn = -1
+    for k = 1:n
+        sum += mysqrt(sgn)
+        sgn = -sgn
+    end
+    return sum
+end
+
+function S_typed(n::Integer)
+# т.к. уже первое слагаемое получается комплексное, то ответ должен быть комплексным
+# тип переменных указывается через 
+    sum::Complex = 0.0
+    sgn::Int = -1
+    for k = 1:n
+        sum += mysqrt(sgn)
+        sgn = -sgn
+    end
+    return sum
+end
+</code></pre><br/>
+Бенчмарк показывает, что функция <code>S_typed()</code> не только выполняется быстрее, но ещё и не требует выделений памяти при каждом вызове, в отличие от <code>S()</code>. Проблема тут в том, что тип возвращаемого из <code>mysqrt()</code> значения не определён, как и тип правой части выражения<br/>
+<pre><code class="julia">sum = sum + mysqrt(sgn)
+</code></pre><br/>
+Как следствие, компилятор даже не может понять, какого типа будет <code>sum</code> на каждой итерации. А значит, боксинг (прицепление метки типа) переменной и выделение памяти.<br/>
+Для функции <code>S_typed()</code> компилятор заранее знает, что <code>sum</code> — это комплексное значение, поэтому код получается более оптимизированным (в частности, вызов <code>mysqrt()</code> можно эффективно заинлайнить, приводя возвращаемое значение всегда к <code>Complex</code>).<br/>
+<br/>
+Что ещё важнее, для <code>S_typed()</code> компилятор знает, что возвращаемое значение имеет тип <code>Complex</code>, а вот для <code>S()</code> тип выходного значения опять не определён, что будет замедлять и все функции, где <code>S()</code> будет вызываться.<br/>
+Проверить, что компилятор думает о типах, возвращаемых из выражения, можно с помощью макроса <code>@code_warntype</code>:<br/>
+<pre><code class="julia">julia> @code_warntype S(3)
+Body::Any # компилятор не знает до вычисления, какого типа будет возвращаемое значение
+...
+julia> @code_warntype S_typed(3)
+Body::Complex{Float64} # компилятор сразу знает возвращаемый тип
+...
+</code></pre><br/>
+Если у вас где-то в цикле вызывается функция, для которой <code>@code_warntype</code> не может вывести возвращаемый тип, или для которой он в теле где-то показывает получение значения типа <code>Any</code> — то оптимизация этих вызовов с большой вероятностью даст очень ощутимый прирост производительности.<br/>
+<br/>
+<h4>Составные типы</h4><br/>
+Программист может определить составные типы данных для своих нужд с помощью конструкции <code>struct</code>:<br/>
+<pre><code class="julia">julia> struct GenericStruct
+# внутри блока struct идёт перечисление полей
+    name
+    b::Int
+    c::Char
+    v::Vector
+end
+# конструктор по умолчанию принимает позиционные аргументы 
+# и присваивает их полям в том порядке, в котором они идут в объявлении типа
+julia> s = GenericStruct("Name", 1, 'z', [3., 0])
+GenericStruct("Name", 1, 'z', [3.0, 0.0])
+
+julia> s.name, s.b, s.c, s.v
+("Name", 1, 'z', [3.0, 0.0])
+</code></pre><br/>
+Структуры в Julia иммутабельны, т.е., создав экземпляр структуры, поменять значения полей уже нельзя (точнее, нельзя поменять адрес полей в памяти — элементы мутабельных полей, как, например, <code>s.v</code> в примере выше, могут быть изменены). Мутабельные структуры создаются конструкцией <code>mutable struct</code>, синтаксис которой такой же, как и для обычных структур.<br/>
+<br/>
+Наследование структур в «классическом» смысле не поддерживается, однако есть возможность «наследования» поведения путём объединения составных типов в надтипы или, как они называются в Julia, абстрактные типы. Отношения типов выражаются как <code>A&lt;:B</code> (A — подтип B) и <code>A>:B</code> (A — надтип B). Выглядит примерно так:<br/>
+<pre><code class="julia">abstract type NDimPoint end # абстрактный тип - нужен только как интерфейс
+
+# считаем, что производные типы - это просто кортежи из N чисел
+struct PointScalar&lt;:NDimPoint
+    x1::Real
+end
+
+struct Point2D&lt;:NDimPoint
+    x1::Real
+    x2::Real
+end
+
+struct Point3D&lt;:NDimPoint
+    x1::Real
+    x2::Real
+    x3::Real
+end
+
+# документация пишется перед определением функции; поддерживается форматирование Markdown
+"""
+    mag(p::NDimPoint)
+
+Calculate the magnitude of the radius vector of an N-dimensional point `p`
+"""
+function mag(p::NDimPoint)
+    sqrmag = 0.0
+    # т.к. размерность точно неизвестна, нужно итерировать по всем полям структуры
+    # имена полей для типа T получаются вызовом fieldnames(T)
+    for name in fieldnames(typeof(p))
+        sqrmag += getfield(p, name)^2
+    end
+    return sqrt(sqrmag)
+end
+
+"""
+    add(p1::T, p2::T) where T&lt;:NDimPoint
+
+Calculate the sum of the radius vectors of two N-dimensional points `p1` and `p2`
+"""
+function add(p1::T, p2::T) where T&lt;:NDimPoint
+    # сложение - уже сложнее, т.к. оба аргумента должны быть одинаковых типов
+    # для получения компонентов используется list comprehension
+    sumvector = [Float64(getfield(p1, name) + getfield(p1, name)) for name in fieldnames(T)]
+    # возвращаем точку того же типа, что и аргументы
+    # оператор ... разбивает коллекцию на отдельные аргументы функции, т.е.
+    # f([1, 2, 3]...) - это то же, что f(1, 2, 3)
+    return T(sumvector...)
+end
+</code></pre><br/>
+<h4>Case study: Полиномы</h4><br/>
+Система типов вкупе с множественной диспетчеризацией удобна для выражения математических понятий. Рассмотрим на примере простой библиотеки для работы с полиномами.<br/>
+Введём два типа полиномов: «канонический», задаваемый через коэффициентами при степенях, и «интерполяционный», задаваемый набором пар (x, f(x)). Для простоты рассматривать будем только действительные аргументы.<br/>
+<br/>
+Для хранения многочлена в обычной записи подходит структура, имеющая в качестве поля массив или кортеж коэффициентов. Чтобы было совсем иммутабельно, пусть будет кортеж. Таким образом, код для задания абстрактного типа, структуры многочлена и вычисления значения многочлена в заданной точке довольно простой:<br/>
+<pre><code class="julia">abstract type AbstractPolynomial end
+
+"""
+    Polynomial &lt;: AbstractPolynomial
+
+Polynomials written in the canonical form
+"""
+struct Polynomial&lt;:AbstractPolynomial
+    degree::Int
+    coeff::NTuple{N, Float64} where N # NTuple{N, Type} - тип кортежа из N элементов одинакового типа
+end
+
+"""
+    evpoly(p::Polynomial, z::Real)
+
+Evaluate polynomial `p` at `z` using the Horner's rule
+"""
+function evpoly(p::Polynomial, z::Real)
+    ans = p.coeff[end]
+    for idx = p.degree:-1:1
+        ans = p.coeff[idx] + z * ans
+    end
+    return ans
+end
+</code></pre><br/>
+<br/>
+Для интерполяционных полиномов нужна другая структура представления и способ вычисления. В частности, если набор точек интерполяции известен заранее, и один и тот же многочлен планируется вычислять в разных точках, удобна <a href="https://en.wikipedia.org/wiki/Newton_polynomial">интерполяционная формула Ньютона</a>:<br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/3ed/2eb/e5d/3ed2ebe5d0a41cb4f9d63ae6097a9469.svg" alt="$P(x) = \sum_{k=0}^N{c_k n_k(x)},$" data-tex="display"/></p><br/>
+где <i>n<sub>k</sub></i>(<i>x</i>) — базисные полиномы, <i>n<sub>0</sub></i>(<i>x</i>) и для <i>k</i>>0<br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/9f6/814/1e2/9f68141e2c9736035a13c1efac83d4be.svg" alt="$n_k(x) = \prod_{i=0}^{k-1}{(x-x_i)},$" data-tex="display"/></p><br/>
+где <i>x<sub>i</sub></i> — узлы интерполяции.<br/>
+<br/>
+Из приведённых формул видно, что хранение удобно организовать в виде набора узлов интерполяции <i>x<sub>i</sub></i> и коэффициентов <i>c<sub>i</sub></i>, а вычисление может быть сделано способом, аналогичным схеме Горнера.<br/>
+<pre><code class="julia">"""
+    InterpPolynomial &lt;: AbstractPolynomial
+
+Interpolation polynomials in Newton's form
+"""
+struct InterpPolynomial&lt;:AbstractPolynomial
+    degree::Int
+    xval::NTuple{N, Float64} where N
+    coeff::NTuple{N, Float64} where N
+end
+
+"""
+    evpoly(p::Polynomial, z::Real)
+
+Evaluate polynomial `p` at `z` using the Horner's rule
+"""
+function evpoly(p::InterpPolynomial, z::Real)
+    ans = p.coeff[p.degree+1]
+    for idx = p.degree:-1:1
+        ans = ans * (z - p.xval[idx]) + p.coeff[idx]
+    end
+    return ans
+end
+</code></pre><br/>
+Функция для вычисления значения полинома в обоих случаях называется одинаково — <code>evpoly()</code> — но принимает разные типы аргументов.<br/>
+<br/>
+Кроме функции вычисления, неплохо бы ещё написать функцию, создающую полином по известным данным.<br/>
+<br/>
+Для этого в Julia есть две методики: внешние конструкторы и внутренние конструкторы. Внешний конструктор — это просто функция, возвращающая объект соответствующего типа. Внутренний конструктор — это функция, которая вводится внутри описания структуры и заменяет собой стандартный конструктор. Для построения интерполяционных полиномов целесообразно использовать именно внутренний конструктор, поскольку<br/>
+<ul>
+<li> получить полином удобнее не через узлы интерполяции и коэффициенты, а через узлы и значения интерполируемой функции</li>
+<li> узлы интерполяции должны обязательно быть различными</li>
+<li> число узлов и коэффициентов должно совпадать</li>
+</ul><br/>
+Написание внутреннего конструктора, в котором гарантированно будут соблюдаться эти правила, гарантирует, что все создаваемые переменные типа <code>InterpPolynomial</code>, по крайней мере, могут корректно быть обработаны функцией <code>evpoly()</code>.<br/>
+<br/>
+Напишем конструктор обычных полиномов, принимающий на вход одномерный массив или кортеж коэффициентов. Конструктор интерполяционного полинома принимает на вход узлы интерполяции и желаемые значения в них и использует <a href="https://en.wikipedia.org/wiki/Newton_polynomial#Examples">метод разделенных разностей</a> для вычисления коэффициентов.<br/>
+<pre><code class="julia">"""
+    Polynomial &lt;: AbstractPolynomial
+
+Polynomials written in the canonical form
+
+---
+
+    Polynomial(v::T) where T&lt;:Union{Vector{&lt;:Real}, NTuple{&lt;:Any, &lt;:Real}})
+
+Construct a `Polynomial` from the list of the coefficients. The coefficients are assumed to go from power 0 in the ascending order. If an empty collection is provided, the constructor returns a zero polynomial.
+"""
+struct Polynomial&lt;:AbstractPolynomial
+    degree::Int
+    coeff::NTuple{N, Float64} where N
+    function Polynomial(v::T where T&lt;:Union{Vector{&lt;:Real},
+                                            NTuple{&lt;:Any, &lt;:Real}})
+        # в случае пустого массива / кортежа в аргументе возвращаем P(x) ≡ 0
+        coeff = isempty(v) ? (0.0,) : tuple([Float64(x) for x in v]...)
+        # возврат значения - специальным оператором new
+        # аргументы - перечисление значений полей
+        return new(length(coeff)-1, coeff)
+    end
+end
+
+"""
+    InterpPolynomial &lt;: AbstractPolynomial
+
+Interpolation polynomials in Newton's form
+
+---
+
+    InterpPolynomial(xsample::Vector{&lt;:Real}, fsample::Vector{&lt;:Real})
+
+Construct an `InterpPolynomial` from a vector of points `xsample` and corresponding function values `fsample`. All values in `xsample` must be distinct.
+"""
+struct InterpPolynomial&lt;:AbstractPolynomial
+    degree::Int
+    xval::NTuple{N, Float64} where N
+    coeff::NTuple{N, Float64} where N
+    function InterpPolynomial(xsample::X,
+                              fsample::F) where {X&lt;:Union{Vector{&lt;:Real},
+                                                          NTuple{&lt;:Any, &lt;:Real}},
+                                                 F&lt;:Union{Vector{&lt;:Real},
+                                                          NTuple{&lt;:Any, &lt;:Real}}}
+        # проверки на то, что все узлы различны, и значений f столько же, сколько узлов
+        if !allunique(xsample)
+            throw(DomainError("Cannot interpolate with duplicate X points"))
+        end
+        N = length(xsample)
+        if length(fsample) != N
+            throw(DomainError("Lengths of X and F are not the same"))
+        end
+
+        coeff = [Float64(f) for f in fsample]
+        # алгоритм расчета разделенных разностей (Stoer, Bulirsch, Introduction to Numerical Analysis, гл. 2.1.3)
+        for i = 2:N
+            for j = 1:(i-1)
+                coeff[i] = (coeff[j] - coeff[i]) / (xsample[j] - xsample[i])
+            end
+        end
+
+        new(N-1, tuple([Float64(x) for x in xsample]...), tuple(coeff...))
+    end
+end
+</code></pre><br/>
+Кроме собственно генерации полиномов, неплохо бы иметь возможность производить с ними арифметические действия.<br/>
+<br/>
+Поскольку в Julia арифметические операторы — это обычные функции, к которым в качестве синтаксического сахара добавлена инфиксная запись (выражения <code>a + b</code> и <code>+(a, b)</code> — оба допустимы и абсолютно идентичны), то перегрузка их делается точно так же, как и написание дополнительных методов к своим функциям.<br/>
+<br/>
+Единственный тонкий момент — пользовательский код запускается из модуля (пространства имён) <code>Main</code>, а функции стандартной библиотеки находятся в модуле <code>Base</code>, поэтому при перегрузке нужно либо импортировать модуль <code>Base</code>, либо писать полное имя функции.<br/>
+<br/>
+Итак, добавляем сложение полинома с числом:<br/>
+<pre><code class="julia"># из-за особенностей парсера Base.+ не работает,
+# и нужно писать Base.:+, что означает "символ :+ из модуля Base"
+function Base.:+(p::Polynomial, x::Real)
+    Polynomial(tuple(p.coeff[1] + x, p.coeff[2:end]...))
+end
+
+function Base.:+(p::InterpPolynomial, x::Real)
+    # т.к. стандартный конструктор заменён на построение интерполяции по узлам и значениям - 
+    # при сложении с числом нужно пересчитать значения во всех узлах.
+    # Если операцию сложения планируется использовать часто -
+    # стоит добавить конструктор по узлам и коэффициентам
+    fval::Vector{Float64} = [evpoly(p, xval) + x for xval in p.xval]
+    InterpPolynomial(p.xval, fval)
+end
+
+# чтобы сложение работало в любом порядке
+function Base.:+(x::Real, p::AbstractPolynomial)
+    return p + x
+end
+</code></pre><br/>
+Для сложения двух обычных полиномов достаточно сложить коэффициенты, а при сложении интерполяционного полинома с другим можно найти значения суммы в нескольких точках и построить новую интерполяцию по ним.<br/>
+<br/>
+<pre><code class="julia">function Base.:+(p1::Polynomial, p2::Polynomial)
+    # при сложении нужно учесть, какой должна быть наивысшая степень
+    deg = max(p1.degree, p2.degree)
+    coeff = zeros(deg+1)
+
+    coeff[1:p1.degree+1] .+= p1.coeff
+    coeff[1:p2.degree+1] .+= p2.coeff
+
+    Polynomial(coeff)
+end
+
+function Base.:+(p1::InterpPolynomial, p2::InterpPolynomial)
+    xmax = max(p1.xval..., p2.xval...)
+    xmin = min(p1.xval..., p2.xval...)
+    deg = max(p1.degree, p2.degree)
+    # для построения суммы строим чебышёвскую сетку между минимальным
+    # и максимальным из узлов обоих полиномов
+    xmid = 0.5 * xmax + 0.5 * xmin
+    dx = 0.5 * (xmax - xmin) / cos(0.5 * π / (deg + 1))
+    chebgrid = [xmid + dx * cos((k - 0.5) * π / (deg + 1)) for k = 1:deg+1]
+    fsample = [evpoly(p1, x) + evpoly(p2, x) for x in chebgrid]
+    InterpPolynomial(chebgrid, fsample)
+end
+
+function Base.:+(p1::InterpPolynomial, p2::Polynomial)
+    xmax = max(p1.xval...)
+    xmin = min(p1.xval...)
+    deg = max(p1.degree, p2.degree)
+    xmid = 0.5 * xmax + 0.5 * xmin
+    dx = 0.5 * (xmax - xmin) / cos(0.5 * π / (deg + 1))
+    chebgrid = [xmid + dx * cos((k - 0.5) * π / (deg + 1)) for k = 1:deg+1]
+    fsample = [evpoly(p1, x) + evpoly(p2, x) for x in chebgrid]
+    InterpPolynomial(chebgrid, fsample)
+end
+
+function Base.:+(p1::Polynomial, p2::InterpPolynomial)
+    p2 + p1
+end
+</code></pre><br/>
+Таким же образом можно добавить и другие арифметические операции над полиномами, в результате получив представление их в коде в естественной математической записи.<br/>
+<br/>
+Пока на этом всё. Постараюсь дальше написать про реализацию других численных методов.<br/>
+<br/>
+При подготовке использованы материалы:<br/>
+<ol>
+<li> Документация языка Julia: <a href="https://docs.julialang.org/">docs.julialang.org</a></li>
+<li> Площадка обсуждения языка Julia: <a href="https://discourse.julialang.org/">discourse.julialang.org</a></li>
+<li> J.Stoer, W. Bulirsch. Introduction to Numerical Analysis</li>
+<li> Хаб Julia: <a href="https://habr.com/ru/hub/julia/">habr.com/ru/hub/julia</a></li>
+<li> Think Julia: <a href="https://benlauwens.github.io/ThinkJulia.jl/latest/book.html">benlauwens.github.io/ThinkJulia.jl/latest/book.html</a></li>
+</ol></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjulia%5D" class="tm-tags-list__link">julia</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D0%BE%D0%BB%D0%B8%D0%BD%D0%BE%D0%BC%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BF%D0%BE%D0%BB%D1%8F%D1%86%D0%B8%D1%8F%5D" class="tm-tags-list__link">полиномиальная интерполяция</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D1%83%D0%BB%D1%8C%D1%82%D0%B8%D0%BC%D0%B5%D1%82%D0%BE%D0%B4%D1%8B%5D" class="tm-tags-list__link">мультиметоды</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/programming/" class="tm-hubs-list__link">
+    Программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/julia/" class="tm-hubs-list__link">
+    Julia
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 14: ↑14 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 14: ↑14 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+14</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">2.7K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    31
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Pand5461/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/0bd/d11/fe5/0bdd11fe540cb045ed967b6fc85cded8.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 82 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    57.7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Василий Писарев</span> <a href="/ru/users/Pand5461/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Pand5461
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450628/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 10 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450628/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450628/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450628":{"id":"450628","timePublished":"2019-05-07T19:17:13+00:00","isCorporative":false,"lang":"ru","titleHtml":"Julia: типы, мультиметоды и арифметика над полиномами","leadData":{"textHtml":"В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить производительность вычислений, не снижая читаемости кода и не портя абстрагируемость, с одной стороны, и позволяет работать с математическими понятиями в более привычной нотации, с другой. Для примера рассмотрен вопрос единообразной (с точки зрения линейных операций) работы с полиномами в представлении списка коэффициентов и с интерполяционными полиномами.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":57.7,"votesCount":82},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"65525","alias":"Pand5461","fullname":"Василий Писарев","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F0bd\u002Fd11\u002Ffe5\u002F0bdd11fe540cb045ed967b6fc85cded8.jpg","speciality":null},"statistics":{"commentsCount":10,"favoritesCount":31,"readingCount":2662,"score":14,"votesCount":14},"hubs":[{"relatedData":null,"id":"359","alias":"programming","type":"collective","title":"Программирование","titleHtml":"Программирование","isProfiled":true},{"relatedData":null,"id":"18840","alias":"julia","type":"collective","title":"Julia","titleHtml":"Julia","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EВ этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить производительность вычислений, не снижая читаемости кода и не портя абстрагируемость, с одной стороны, и позволяет работать с математическими понятиями в более привычной нотации, с другой. Для примера рассмотрен вопрос единообразной (с точки зрения линейных операций) работы с полиномами в представлении списка коэффициентов и с интерполяционными полиномами.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EБазовый синтаксис\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nКраткое введение для тех, кто не в курсе. Julia — как-бы-скриптовый язык, имеет REPL (read-evaluate-print loop, т.е. интерактивную оболочку). С первого взгляда выглядит довольно похоже на, например, Python или MATLAB.\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EАрифметические операции\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nАрифметика примерно такая же, как и везде: +, -, *, \u002F, ^ для возведения в степень и т.д.\u003Cbr\u002F\u003E\r\nСравнение: \u003E, &lt;, \u003E=, &lt;=, ==, != и т.д.\u003Cbr\u002F\u003E\r\nПрисваивание: =.\u003Cbr\u002F\u003E\r\nОсобенности: деление через \u003Ccode\u003E\u002F\u003C\u002Fcode\u003E всегда возвращает дробное число; если нужна целая часть от деления двух целых чисел, нужно пользоваться операцией \u003Ccode\u003Ediv(m, n)\u003C\u002Fcode\u003E или инфиксным эквивалентом \u003Ccode\u003Em ÷ n\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EТипы\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nЧисловые типы:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E Целые (\u003Ccode\u003EInt\u003C\u002Fcode\u003E) — \u003Ccode\u003E2\u003C\u002Fcode\u003E, \u003Ccode\u003E3\u003C\u002Fcode\u003E, \u003Ccode\u003E-42\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E Беззнаковые целые (\u003Ccode\u003EUInt\u003C\u002Fcode\u003E) — \u003Ccode\u003E0x12345\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E С плавающей точкой (\u003Ccode\u003EFloat32\u003C\u002Fcode\u003E, \u003Ccode\u003EFloat64\u003C\u002Fcode\u003E) — \u003Ccode\u003E1.0\u003C\u002Fcode\u003E, \u003Ccode\u003E3.1415\u003C\u002Fcode\u003E, \u003Ccode\u003E-Inf\u003C\u002Fcode\u003E, \u003Ccode\u003ENaN\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E Рациональные (\u003Ccode\u003ERational\u003C\u002Fcode\u003E) — \u003Ccode\u003E3\u002F\u002F3\u003C\u002Fcode\u003E, \u003Ccode\u003E7\u002F\u002F2\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E Действительные (\u003Ccode\u003EReal\u003C\u002Fcode\u003E) — всё вышеперечисленное\u003C\u002Fli\u003E\r\n\u003Cli\u003E Комплексные (\u003Ccode\u003EComplex\u003C\u002Fcode\u003E) — \u003Ccode\u003E3+4*im\u003C\u002Fcode\u003E, \u003Ccode\u003E2\u002F\u002F3+2\u002F\u002F3*im\u003C\u002Fcode\u003E, \u003Ccode\u003E3.0+0.0*im\u003C\u002Fcode\u003E (\u003Ccode\u003Eim\u003C\u002Fcode\u003E — мнимая единица, комплексным считается только число с явно выписанной мнимой частью)\u003C\u002Fli\u003E\r\n\u003Cli\u003E Число (\u003Ccode\u003ENumber\u003C\u002Fcode\u003E) — всё вышеперечисленное\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСтроки и символы:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E \u003Ccode\u003E'a'\u003C\u002Fcode\u003E — символ (\u003Ccode\u003EChar\u003C\u002Fcode\u003E)\u003C\u002Fli\u003E\r\n\u003Cli\u003E \u003Ccode\u003E\"a\"\u003C\u002Fcode\u003E — строка (\u003Ccode\u003EString\u003C\u002Fcode\u003E)\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNB: строки, как сейчас во многих языках, иммутабельные.\u003Cbr\u002F\u003E\r\nNB: строки (а также имена переменных) поддерживают Юникод, в том числе и эмодзи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМассивы:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E \u003Ccode\u003Ex = [1, 2, 3]\u003C\u002Fcode\u003E — задание массива прямым перечислением элементов\u003C\u002Fli\u003E\r\n\u003Cli\u003E специальные конструкторы: \u003Ccode\u003Ezeros(length)\u003C\u002Fcode\u003E для массива из нулей, \u003Ccode\u003Eones(length)\u003C\u002Fcode\u003E для массива из единиц, \u003Ccode\u003Erand(length)\u003C\u002Fcode\u003E для массива из случайных чисел и др.\u003C\u002Fli\u003E\r\n\u003Cli\u003E поддержка многомерных массивов\u003C\u002Fli\u003E\r\n\u003Cli\u003E поддержка операций линейной алгебры (сложение массивов, умножение на скаляр, умножение матрицы на вектор и многое другое) в стандартной библиотеке\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNB: индексация всех коллекций идёт начиная с единицы.\u003Cbr\u002F\u003E\r\nNB: т.к. язык предназначен для вычислительных задач, массивы — один из наиболее важных типов, к принципам их работы ещё не раз придётся возвращаться.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКортежи (упорядоченный набор элементов, иммутабельные):\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E \u003Ccode\u003E(2, 5.3, \"k\")\u003C\u002Fcode\u003E — обычный кортеж\u003C\u002Fli\u003E\r\n\u003Cli\u003E \u003Ccode\u003E(a = 3, b = 4)\u003C\u002Fcode\u003E — именованный кортеж\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nNB: к полям именованного кортежа можно обращаться как по имени через точку, так и по индексу через []\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E x = (a = 5, b = 12)\n(a = 5, b = 12)\njulia\u003E x[1]\n5\njulia\u003E sqrt(x.a^2 + x[2]^2)\n13.0\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСловари:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E x = Dict('a' =\u003E 5, 'b' =\u003E 12)\nDict{Char,Int64} with 2 entries:\n  'a' =\u003E 5\n  'b' =\u003E 12\njulia\u003E x['c'] = 13\n13\njulia\u003E x\nDict{Char,Int64} with 3 entries:\n  'a' =\u003E 5\n  'c' =\u003E 13\n  'b' =\u003E 12\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EОсновные управляющие конструкции языка\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n1. Переменные автоматически создаются при присваивании. Тип указывать необязательно.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E x = 7; x + 2\n9\njulia\u003E x = 42.0; x * 4\n168.0\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n2. Блок условного перехода начинается с выражения \u003Ccode\u003Eif &lt;condition\u003E\u003C\u002Fcode\u003E и заканчивается словом \u003Ccode\u003Eend\u003C\u002Fcode\u003E. Можно также иметь \u003Ccode\u003Eelse\u003C\u002Fcode\u003E-ветку или \u003Ccode\u003Eelseif\u003C\u002Fcode\u003E-ветки:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Eif x \u003E y\n    println(\"X is more than Y\")\nelseif x == y\n    println(\"X and Y are equal\")\nelse\n    println(\"X is less than Y\")\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n3. Есть две конструкции циклов: \u003Ccode\u003Ewhile\u003C\u002Fcode\u003E и \u003Ccode\u003Efor\u003C\u002Fcode\u003E. Второй работает как в Python, т.е. проводит итерирование по коллекции. Частое применение — итерирование по диапазону значений, синтаксис которого \u003Ccode\u003Estart[:increment]:end\u003C\u002Fcode\u003E. В отличие от Python, диапазон \u003Ci\u003Eвключает\u003C\u002Fi\u003E как начальное, так и конечное значения, т.е. пустой диапазон будет не \u003Ccode\u003E1:1\u003C\u002Fcode\u003E (это диапазон из одного значения 1), а \u003Ccode\u003E1:0\u003C\u002Fcode\u003E. Конец тела цикла маркируется словом \u003Ccode\u003Eend\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E for i in 1:3; print(i, \" \"); end # диапазон от 1 до 3 с шагом 1 (по умолчанию)\n1 2 3 \njulia\u003E for i in 1:2:3; print(i, \" \"); end # диапазон от 1 до 3 с шагом 2\n1 3 \n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n4. Функции задаются ключевым словом \u003Ccode\u003Efunction\u003C\u002Fcode\u003E, определение функции также завершается словом \u003Ccode\u003Eend\u003C\u002Fcode\u003E. Поддерживаются аргументы со значениями по умолчанию и именованные аргументы.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Efunction square(x)\n    return x * x\nend\n\nfunction cube(x)\n    x * square(x) # последнее вычисленное значение возвращается из блока кода; return не обязателен\nend\n\nfunction root(x, degree = 2)\n    # аргумент degree имеет значение по умолчанию\n    return x^(1.0\u002Fdegree)\nend\n\nfunction greeting(name; times = 42, greet = \"hello\")\n    # именованные аргументы отделяются точкой с запятой\n    println(times, \" times \", greet, \" to \", name)\nend\n\njulia\u003E greeting(\"John\")\n42 times hello to John\njulia\u003E greeting(\"Mike\", greet = \"wassup\", times = 100500) # именованные аргументы при вызове функции могут стоять в любом порядке\n100500 times wassup to Mike\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ целом, это всё довольно похоже на Python, если не считать мелких отличий в синтаксисе и того, что блоки кода выделяются не пробелами, а всё-таки ключевыми словами. В простых случаях программы на Python даже транслируются в Julia практически один к одному.\u003Cbr\u002F\u003E\r\nНо есть существенное отличие в том, что в Julia для переменных можно явно указывать типы, что позволяет компилировать программы, получая быстрый код.\u003Cbr\u002F\u003E\r\nВторое существенное отличие — в том, что в Python реализована «классическая» модель ООП с классами и методами, а в Julia реализована модель множественной диспетчеризации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EАннотации типов и множественная диспетчеризация\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nПосмотрим, что представляет собой какая-нибудь встроенная функция:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E sqrt\nsqrt (generic function with 19 methods)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКак показывает нам REPL, \u003Ccode\u003Esqrt\u003C\u002Fcode\u003E — это обобщённая функция с 19 методами. Что за обобщённая функция и что за методы?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА означает это то, что есть \u003Ci\u003Eнесколько\u003C\u002Fi\u003E функций \u003Ccode\u003Esqrt\u003C\u002Fcode\u003E, которые применяются к разным типам аргументов и, соответственно, вычисляют квадратный корень по различным алгоритмам. Посмотреть, какие есть варианты, можно, набрав\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E methods(sqrt)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВидно, что функция определена для разных типов чисел, а также для матриц.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ отличие от «классического» ООП, где конкретная реализация метода определяется только вызывающим классом (диспетчеризация по первому аргументу), в Julia выбор функции определяется типами (и количеством) \u003Ci\u003Eвсех\u003C\u002Fi\u003E её аргументов.\u003Cbr\u002F\u003E\r\nПри вызове функции с конкретными аргументами из всех её методов выбирается тот, который наиболее точно описывает конкретный набор типов, с которыми функция вызвана, и именно он применяется.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОтличительной особенностью является то, что применяется подход, называемый авторами языка «just ahead-of-time» компиляцией. Т.е. функции компилируются для заданных типов данных при первом вызове, после чего следующие вызовы выполняются гораздо быстрее. Разница между первым и последующими вызовами может быть весьма существенной:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E @time sqrt(8) # макрос @time - простое встроенное средство измерения производительности\n  0.006811 seconds (3.15 k allocations: 168.516 KiB) # на самом деле, это время и выделение памяти при компиляции\n2.8284271247461903\njulia\u003E @time sqrt(15)\n  0.000002 seconds (5 allocations: 176 bytes) # 5 выделений памяти - это от вызова макроса @time\n3.872983346207417\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ плохом случае каждый вызов функции — это проверка типов получаемых аргументов и поиск нужного метода в списке. Однако, если компилятору давать подсказки, проверки можно исключить, что приведёт к более быстрому коду.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля примера, рассмотрим вычисление суммы\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fe64\u002F396\u002Ffcf\u002Fe64396fcf27c49e7690443369ab7ef26.svg\" alt=\"$\\sum_{k=1}^N \\sqrt{(-1)^k}$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Efunction mysqrt(num)\n# если аргумент положителен - возвращает обычный квадратный корень\n# если нет - преобразует аргумент к комплексному числу и извлекает корень из него\n    if num \u003E= 0\n        return sqrt(num)\n    else\n        return sqrt(complex(num))\n    end\nend\n\nfunction S(n)\n# оставим автоопределение типа\n    sum = 0\n    sgn = -1\n    for k = 1:n\n        sum += mysqrt(sgn)\n        sgn = -sgn\n    end\n    return sum\nend\n\nfunction S_typed(n::Integer)\n# т.к. уже первое слагаемое получается комплексное, то ответ должен быть комплексным\n# тип переменных указывается через \n    sum::Complex = 0.0\n    sgn::Int = -1\n    for k = 1:n\n        sum += mysqrt(sgn)\n        sgn = -sgn\n    end\n    return sum\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nБенчмарк показывает, что функция \u003Ccode\u003ES_typed()\u003C\u002Fcode\u003E не только выполняется быстрее, но ещё и не требует выделений памяти при каждом вызове, в отличие от \u003Ccode\u003ES()\u003C\u002Fcode\u003E. Проблема тут в том, что тип возвращаемого из \u003Ccode\u003Emysqrt()\u003C\u002Fcode\u003E значения не определён, как и тип правой части выражения\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Esum = sum + mysqrt(sgn)\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКак следствие, компилятор даже не может понять, какого типа будет \u003Ccode\u003Esum\u003C\u002Fcode\u003E на каждой итерации. А значит, боксинг (прицепление метки типа) переменной и выделение памяти.\u003Cbr\u002F\u003E\r\nДля функции \u003Ccode\u003ES_typed()\u003C\u002Fcode\u003E компилятор заранее знает, что \u003Ccode\u003Esum\u003C\u002Fcode\u003E — это комплексное значение, поэтому код получается более оптимизированным (в частности, вызов \u003Ccode\u003Emysqrt()\u003C\u002Fcode\u003E можно эффективно заинлайнить, приводя возвращаемое значение всегда к \u003Ccode\u003EComplex\u003C\u002Fcode\u003E).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто ещё важнее, для \u003Ccode\u003ES_typed()\u003C\u002Fcode\u003E компилятор знает, что возвращаемое значение имеет тип \u003Ccode\u003EComplex\u003C\u002Fcode\u003E, а вот для \u003Ccode\u003ES()\u003C\u002Fcode\u003E тип выходного значения опять не определён, что будет замедлять и все функции, где \u003Ccode\u003ES()\u003C\u002Fcode\u003E будет вызываться.\u003Cbr\u002F\u003E\r\nПроверить, что компилятор думает о типах, возвращаемых из выражения, можно с помощью макроса \u003Ccode\u003E@code_warntype\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E @code_warntype S(3)\nBody::Any # компилятор не знает до вычисления, какого типа будет возвращаемое значение\n...\njulia\u003E @code_warntype S_typed(3)\nBody::Complex{Float64} # компилятор сразу знает возвращаемый тип\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЕсли у вас где-то в цикле вызывается функция, для которой \u003Ccode\u003E@code_warntype\u003C\u002Fcode\u003E не может вывести возвращаемый тип, или для которой он в теле где-то показывает получение значения типа \u003Ccode\u003EAny\u003C\u002Fcode\u003E — то оптимизация этих вызовов с большой вероятностью даст очень ощутимый прирост производительности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EСоставные типы\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nПрограммист может определить составные типы данных для своих нужд с помощью конструкции \u003Ccode\u003Estruct\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Ejulia\u003E struct GenericStruct\n# внутри блока struct идёт перечисление полей\n    name\n    b::Int\n    c::Char\n    v::Vector\nend\n# конструктор по умолчанию принимает позиционные аргументы \n# и присваивает их полям в том порядке, в котором они идут в объявлении типа\njulia\u003E s = GenericStruct(\"Name\", 1, 'z', [3., 0])\nGenericStruct(\"Name\", 1, 'z', [3.0, 0.0])\n\njulia\u003E s.name, s.b, s.c, s.v\n(\"Name\", 1, 'z', [3.0, 0.0])\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nСтруктуры в Julia иммутабельны, т.е., создав экземпляр структуры, поменять значения полей уже нельзя (точнее, нельзя поменять адрес полей в памяти — элементы мутабельных полей, как, например, \u003Ccode\u003Es.v\u003C\u002Fcode\u003E в примере выше, могут быть изменены). Мутабельные структуры создаются конструкцией \u003Ccode\u003Emutable struct\u003C\u002Fcode\u003E, синтаксис которой такой же, как и для обычных структур.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаследование структур в «классическом» смысле не поддерживается, однако есть возможность «наследования» поведения путём объединения составных типов в надтипы или, как они называются в Julia, абстрактные типы. Отношения типов выражаются как \u003Ccode\u003EA&lt;:B\u003C\u002Fcode\u003E (A — подтип B) и \u003Ccode\u003EA\u003E:B\u003C\u002Fcode\u003E (A — надтип B). Выглядит примерно так:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Eabstract type NDimPoint end # абстрактный тип - нужен только как интерфейс\n\n# считаем, что производные типы - это просто кортежи из N чисел\nstruct PointScalar&lt;:NDimPoint\n    x1::Real\nend\n\nstruct Point2D&lt;:NDimPoint\n    x1::Real\n    x2::Real\nend\n\nstruct Point3D&lt;:NDimPoint\n    x1::Real\n    x2::Real\n    x3::Real\nend\n\n# документация пишется перед определением функции; поддерживается форматирование Markdown\n\"\"\"\n    mag(p::NDimPoint)\n\nCalculate the magnitude of the radius vector of an N-dimensional point `p`\n\"\"\"\nfunction mag(p::NDimPoint)\n    sqrmag = 0.0\n    # т.к. размерность точно неизвестна, нужно итерировать по всем полям структуры\n    # имена полей для типа T получаются вызовом fieldnames(T)\n    for name in fieldnames(typeof(p))\n        sqrmag += getfield(p, name)^2\n    end\n    return sqrt(sqrmag)\nend\n\n\"\"\"\n    add(p1::T, p2::T) where T&lt;:NDimPoint\n\nCalculate the sum of the radius vectors of two N-dimensional points `p1` and `p2`\n\"\"\"\nfunction add(p1::T, p2::T) where T&lt;:NDimPoint\n    # сложение - уже сложнее, т.к. оба аргумента должны быть одинаковых типов\n    # для получения компонентов используется list comprehension\n    sumvector = [Float64(getfield(p1, name) + getfield(p1, name)) for name in fieldnames(T)]\n    # возвращаем точку того же типа, что и аргументы\n    # оператор ... разбивает коллекцию на отдельные аргументы функции, т.е.\n    # f([1, 2, 3]...) - это то же, что f(1, 2, 3)\n    return T(sumvector...)\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003ECase study: Полиномы\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nСистема типов вкупе с множественной диспетчеризацией удобна для выражения математических понятий. Рассмотрим на примере простой библиотеки для работы с полиномами.\u003Cbr\u002F\u003E\r\nВведём два типа полиномов: «канонический», задаваемый через коэффициентами при степенях, и «интерполяционный», задаваемый набором пар (x, f(x)). Для простоты рассматривать будем только действительные аргументы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля хранения многочлена в обычной записи подходит структура, имеющая в качестве поля массив или кортеж коэффициентов. Чтобы было совсем иммутабельно, пусть будет кортеж. Таким образом, код для задания абстрактного типа, структуры многочлена и вычисления значения многочлена в заданной точке довольно простой:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Eabstract type AbstractPolynomial end\n\n\"\"\"\n    Polynomial &lt;: AbstractPolynomial\n\nPolynomials written in the canonical form\n\"\"\"\nstruct Polynomial&lt;:AbstractPolynomial\n    degree::Int\n    coeff::NTuple{N, Float64} where N # NTuple{N, Type} - тип кортежа из N элементов одинакового типа\nend\n\n\"\"\"\n    evpoly(p::Polynomial, z::Real)\n\nEvaluate polynomial `p` at `z` using the Horner's rule\n\"\"\"\nfunction evpoly(p::Polynomial, z::Real)\n    ans = p.coeff[end]\n    for idx = p.degree:-1:1\n        ans = p.coeff[idx] + z * ans\n    end\n    return ans\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля интерполяционных полиномов нужна другая структура представления и способ вычисления. В частности, если набор точек интерполяции известен заранее, и один и тот же многочлен планируется вычислять в разных точках, удобна \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FNewton_polynomial\"\u003Eинтерполяционная формула Ньютона\u003C\u002Fa\u003E:\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F3ed\u002F2eb\u002Fe5d\u002F3ed2ebe5d0a41cb4f9d63ae6097a9469.svg\" alt=\"$P(x) = \\sum_{k=0}^N{c_k n_k(x)},$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\nгде \u003Ci\u003En\u003Csub\u003Ek\u003C\u002Fsub\u003E\u003C\u002Fi\u003E(\u003Ci\u003Ex\u003C\u002Fi\u003E) — базисные полиномы, \u003Ci\u003En\u003Csub\u003E0\u003C\u002Fsub\u003E\u003C\u002Fi\u003E(\u003Ci\u003Ex\u003C\u002Fi\u003E) и для \u003Ci\u003Ek\u003C\u002Fi\u003E\u003E0\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F9f6\u002F814\u002F1e2\u002F9f68141e2c9736035a13c1efac83d4be.svg\" alt=\"$n_k(x) = \\prod_{i=0}^{k-1}{(x-x_i)},$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\nгде \u003Ci\u003Ex\u003Csub\u003Ei\u003C\u002Fsub\u003E\u003C\u002Fi\u003E — узлы интерполяции.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИз приведённых формул видно, что хранение удобно организовать в виде набора узлов интерполяции \u003Ci\u003Ex\u003Csub\u003Ei\u003C\u002Fsub\u003E\u003C\u002Fi\u003E и коэффициентов \u003Ci\u003Ec\u003Csub\u003Ei\u003C\u002Fsub\u003E\u003C\u002Fi\u003E, а вычисление может быть сделано способом, аналогичным схеме Горнера.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003E\"\"\"\n    InterpPolynomial &lt;: AbstractPolynomial\n\nInterpolation polynomials in Newton's form\n\"\"\"\nstruct InterpPolynomial&lt;:AbstractPolynomial\n    degree::Int\n    xval::NTuple{N, Float64} where N\n    coeff::NTuple{N, Float64} where N\nend\n\n\"\"\"\n    evpoly(p::Polynomial, z::Real)\n\nEvaluate polynomial `p` at `z` using the Horner's rule\n\"\"\"\nfunction evpoly(p::InterpPolynomial, z::Real)\n    ans = p.coeff[p.degree+1]\n    for idx = p.degree:-1:1\n        ans = ans * (z - p.xval[idx]) + p.coeff[idx]\n    end\n    return ans\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nФункция для вычисления значения полинома в обоих случаях называется одинаково — \u003Ccode\u003Eevpoly()\u003C\u002Fcode\u003E — но принимает разные типы аргументов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКроме функции вычисления, неплохо бы ещё написать функцию, создающую полином по известным данным.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля этого в Julia есть две методики: внешние конструкторы и внутренние конструкторы. Внешний конструктор — это просто функция, возвращающая объект соответствующего типа. Внутренний конструктор — это функция, которая вводится внутри описания структуры и заменяет собой стандартный конструктор. Для построения интерполяционных полиномов целесообразно использовать именно внутренний конструктор, поскольку\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E получить полином удобнее не через узлы интерполяции и коэффициенты, а через узлы и значения интерполируемой функции\u003C\u002Fli\u003E\r\n\u003Cli\u003E узлы интерполяции должны обязательно быть различными\u003C\u002Fli\u003E\r\n\u003Cli\u003E число узлов и коэффициентов должно совпадать\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nНаписание внутреннего конструктора, в котором гарантированно будут соблюдаться эти правила, гарантирует, что все создаваемые переменные типа \u003Ccode\u003EInterpPolynomial\u003C\u002Fcode\u003E, по крайней мере, могут корректно быть обработаны функцией \u003Ccode\u003Eevpoly()\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапишем конструктор обычных полиномов, принимающий на вход одномерный массив или кортеж коэффициентов. Конструктор интерполяционного полинома принимает на вход узлы интерполяции и желаемые значения в них и использует \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FNewton_polynomial#Examples\"\u003Eметод разделенных разностей\u003C\u002Fa\u003E для вычисления коэффициентов.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003E\"\"\"\n    Polynomial &lt;: AbstractPolynomial\n\nPolynomials written in the canonical form\n\n---\n\n    Polynomial(v::T) where T&lt;:Union{Vector{&lt;:Real}, NTuple{&lt;:Any, &lt;:Real}})\n\nConstruct a `Polynomial` from the list of the coefficients. The coefficients are assumed to go from power 0 in the ascending order. If an empty collection is provided, the constructor returns a zero polynomial.\n\"\"\"\nstruct Polynomial&lt;:AbstractPolynomial\n    degree::Int\n    coeff::NTuple{N, Float64} where N\n    function Polynomial(v::T where T&lt;:Union{Vector{&lt;:Real},\n                                            NTuple{&lt;:Any, &lt;:Real}})\n        # в случае пустого массива \u002F кортежа в аргументе возвращаем P(x) ≡ 0\n        coeff = isempty(v) ? (0.0,) : tuple([Float64(x) for x in v]...)\n        # возврат значения - специальным оператором new\n        # аргументы - перечисление значений полей\n        return new(length(coeff)-1, coeff)\n    end\nend\n\n\"\"\"\n    InterpPolynomial &lt;: AbstractPolynomial\n\nInterpolation polynomials in Newton's form\n\n---\n\n    InterpPolynomial(xsample::Vector{&lt;:Real}, fsample::Vector{&lt;:Real})\n\nConstruct an `InterpPolynomial` from a vector of points `xsample` and corresponding function values `fsample`. All values in `xsample` must be distinct.\n\"\"\"\nstruct InterpPolynomial&lt;:AbstractPolynomial\n    degree::Int\n    xval::NTuple{N, Float64} where N\n    coeff::NTuple{N, Float64} where N\n    function InterpPolynomial(xsample::X,\n                              fsample::F) where {X&lt;:Union{Vector{&lt;:Real},\n                                                          NTuple{&lt;:Any, &lt;:Real}},\n                                                 F&lt;:Union{Vector{&lt;:Real},\n                                                          NTuple{&lt;:Any, &lt;:Real}}}\n        # проверки на то, что все узлы различны, и значений f столько же, сколько узлов\n        if !allunique(xsample)\n            throw(DomainError(\"Cannot interpolate with duplicate X points\"))\n        end\n        N = length(xsample)\n        if length(fsample) != N\n            throw(DomainError(\"Lengths of X and F are not the same\"))\n        end\n\n        coeff = [Float64(f) for f in fsample]\n        # алгоритм расчета разделенных разностей (Stoer, Bulirsch, Introduction to Numerical Analysis, гл. 2.1.3)\n        for i = 2:N\n            for j = 1:(i-1)\n                coeff[i] = (coeff[j] - coeff[i]) \u002F (xsample[j] - xsample[i])\n            end\n        end\n\n        new(N-1, tuple([Float64(x) for x in xsample]...), tuple(coeff...))\n    end\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКроме собственно генерации полиномов, неплохо бы иметь возможность производить с ними арифметические действия.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоскольку в Julia арифметические операторы — это обычные функции, к которым в качестве синтаксического сахара добавлена инфиксная запись (выражения \u003Ccode\u003Ea + b\u003C\u002Fcode\u003E и \u003Ccode\u003E+(a, b)\u003C\u002Fcode\u003E — оба допустимы и абсолютно идентичны), то перегрузка их делается точно так же, как и написание дополнительных методов к своим функциям.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕдинственный тонкий момент — пользовательский код запускается из модуля (пространства имён) \u003Ccode\u003EMain\u003C\u002Fcode\u003E, а функции стандартной библиотеки находятся в модуле \u003Ccode\u003EBase\u003C\u002Fcode\u003E, поэтому при перегрузке нужно либо импортировать модуль \u003Ccode\u003EBase\u003C\u002Fcode\u003E, либо писать полное имя функции.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, добавляем сложение полинома с числом:\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003E# из-за особенностей парсера Base.+ не работает,\n# и нужно писать Base.:+, что означает \"символ :+ из модуля Base\"\nfunction Base.:+(p::Polynomial, x::Real)\n    Polynomial(tuple(p.coeff[1] + x, p.coeff[2:end]...))\nend\n\nfunction Base.:+(p::InterpPolynomial, x::Real)\n    # т.к. стандартный конструктор заменён на построение интерполяции по узлам и значениям - \n    # при сложении с числом нужно пересчитать значения во всех узлах.\n    # Если операцию сложения планируется использовать часто -\n    # стоит добавить конструктор по узлам и коэффициентам\n    fval::Vector{Float64} = [evpoly(p, xval) + x for xval in p.xval]\n    InterpPolynomial(p.xval, fval)\nend\n\n# чтобы сложение работало в любом порядке\nfunction Base.:+(x::Real, p::AbstractPolynomial)\n    return p + x\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДля сложения двух обычных полиномов достаточно сложить коэффициенты, а при сложении интерполяционного полинома с другим можно найти значения суммы в нескольких точках и построить новую интерполяцию по ним.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"julia\"\u003Efunction Base.:+(p1::Polynomial, p2::Polynomial)\n    # при сложении нужно учесть, какой должна быть наивысшая степень\n    deg = max(p1.degree, p2.degree)\n    coeff = zeros(deg+1)\n\n    coeff[1:p1.degree+1] .+= p1.coeff\n    coeff[1:p2.degree+1] .+= p2.coeff\n\n    Polynomial(coeff)\nend\n\nfunction Base.:+(p1::InterpPolynomial, p2::InterpPolynomial)\n    xmax = max(p1.xval..., p2.xval...)\n    xmin = min(p1.xval..., p2.xval...)\n    deg = max(p1.degree, p2.degree)\n    # для построения суммы строим чебышёвскую сетку между минимальным\n    # и максимальным из узлов обоих полиномов\n    xmid = 0.5 * xmax + 0.5 * xmin\n    dx = 0.5 * (xmax - xmin) \u002F cos(0.5 * π \u002F (deg + 1))\n    chebgrid = [xmid + dx * cos((k - 0.5) * π \u002F (deg + 1)) for k = 1:deg+1]\n    fsample = [evpoly(p1, x) + evpoly(p2, x) for x in chebgrid]\n    InterpPolynomial(chebgrid, fsample)\nend\n\nfunction Base.:+(p1::InterpPolynomial, p2::Polynomial)\n    xmax = max(p1.xval...)\n    xmin = min(p1.xval...)\n    deg = max(p1.degree, p2.degree)\n    xmid = 0.5 * xmax + 0.5 * xmin\n    dx = 0.5 * (xmax - xmin) \u002F cos(0.5 * π \u002F (deg + 1))\n    chebgrid = [xmid + dx * cos((k - 0.5) * π \u002F (deg + 1)) for k = 1:deg+1]\n    fsample = [evpoly(p1, x) + evpoly(p2, x) for x in chebgrid]\n    InterpPolynomial(chebgrid, fsample)\nend\n\nfunction Base.:+(p1::Polynomial, p2::InterpPolynomial)\n    p2 + p1\nend\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТаким же образом можно добавить и другие арифметические операции над полиномами, в результате получив представление их в коде в естественной математической записи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПока на этом всё. Постараюсь дальше написать про реализацию других численных методов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри подготовке использованы материалы:\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E Документация языка Julia: \u003Ca href=\"https:\u002F\u002Fdocs.julialang.org\u002F\"\u003Edocs.julialang.org\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E Площадка обсуждения языка Julia: \u003Ca href=\"https:\u002F\u002Fdiscourse.julialang.org\u002F\"\u003Ediscourse.julialang.org\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E J.Stoer, W. Bulirsch. Introduction to Numerical Analysis\u003C\u002Fli\u003E\r\n\u003Cli\u003E Хаб Julia: \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fhub\u002Fjulia\u002F\"\u003Ehabr.com\u002Fru\u002Fhub\u002Fjulia\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E Think Julia: \u003Ca href=\"https:\u002F\u002Fbenlauwens.github.io\u002FThinkJulia.jl\u002Flatest\u002Fbook.html\"\u003Ebenlauwens.github.io\u002FThinkJulia.jl\u002Flatest\u002Fbook.html\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"julia"},{"titleHtml":"полиномиальная интерполяция"},{"titleHtml":"мультиметоды"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450628\u002F536c9ce18972f1e6abca757fbc36ebc9\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450628\u002F536c9ce18972f1e6abca757fbc36ebc9\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450628\\\u002F\"},\"headline\":\"Julia: типы, мультиметоды и арифметика над полиномами\",\"datePublished\":\"2019-05-07T22:17:13+03:00\",\"dateModified\":\"2019-05-09T13:20:48+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Василий Писарев\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia &mdash; представлении функций в виде методов с множественной диспетчери...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450628\\\u002F#post-content-body\",\"about\":[\"h_programming\",\"h_julia\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fe64\\\u002F396\\\u002Ffcf\\\u002Fe64396fcf27c49e7690443369ab7ef26.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F3ed\\\u002F2eb\\\u002Fe5d\\\u002F3ed2ebe5d0a41cb4f9d63ae6097a9469.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F9f6\\\u002F814\\\u002F1e2\\\u002F9f68141e2c9736035a13c1efac83d4be.svg\"]}","metaDescription":"В этой публикации речь пойдёт об основной, на мой взгляд, отличительной особенности языка Julia — представлении функций в виде методов с множественной диспетчеризацией. Это позволяет повысить...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"programming,julia"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

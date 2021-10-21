@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450604\/"},"headline":"Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии","datePublished":"2019-05-05T18:06:30+03:00","dateModified":"2019-05-19T03:21:02+03:00","author":{"@type":"Person","name":"third112"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"(Источник рисунка )  Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подума...","url":"https:\/\/habr.com\/ru\/post\/450604\/#post-content-body","about":["h_zadachki","h_programming","h_delphi","h_algorithms","h_maths","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/jy\/oh\/qy\/jyohqy_o-2bys8egtl155tlb-qa.jpeg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/d15\/a0e\/cba\/d15a0ecbae5c14e0db503da557fa6747.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/7f8\/026\/bbe\/7f8026bbef96a787be72df6160794be4.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/e0a\/334\/de0\/e0a334de01441e857111964f644556db.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/c2b\/9de\/fb9\/c2b9defb9df124168ef7106b5630f90d.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/05a\/e85\/0a1\/05ae850a10a66ab0459134e0ab762286.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/4d8\/a82\/710\/4d8a827104e08da0a697f6ec9d0a2842.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/7cf\/1ca\/c72\/7cf1cac727a0629cd25106b3c53138aa.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/cf3\/1c1\/0cc\/cf31c10cce48f81dae42a6c203ebb30c.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/ccc\/645\/311\/ccc6453114da242e9bf6616c95571921.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/e7d\/265\/ff4\/e7d265ff4d51bfd2fdce573203dda802.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/47e\/792\/77d\/47e79277dc17c254743475ff05980a53.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/2b6\/47e\/ca4\/2b647eca43a3275e9b95a138b659a0ea.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/988\/dc9\/ffa\/988dc9ffafde3ec9c174d2fe2963173c.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/73a\/d65\/087\/73ad65087186c5505df3d5abc8ef4df5.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/1e8\/0c3\/b30\/1e80c3b3087c0a57b68ad11261a9ec2b.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/16f\/ff5\/a52\/16fff5a527dd5ad92f47e49634bcc9c4.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/75a\/99f\/12c\/75a99f12c4f63224c10f577d6045eda6.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/468\/21d\/c31\/46821dc313bcf43a14ffbe63420fdeca.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/1a5\/b39\/a24\/1a5b39a243d9a1305e8eaefb0123feff.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/46d\/d37\/c98\/46dd37c9899e2d5dd8ffff4115e88169.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/bce\/84b\/833\/bce84b833b307900e483515951fe4a08.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/027\/d2f\/484\/027d2f48439c514c7b9e44214daac670.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/99f\/3dd\/a2a\/99f3dda2a36039fcb8c8e5b0ebda36b0.svg","https:\/\/habrastorage.org\/getpro\/habr\/formulas\/8b5\/3b3\/a4a\/8b53b3a4a457253dda0eaf5bdc60737d.svg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="(Источник рисунка )
+
+Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="(Источник рисунка )
+
+Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="(Источник рисунка )
+
+Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="(Источник рисунка )
+
+Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="(Источник рисунка )
+
+Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450604/08e67edb8daf4c437104e47d0ec4c285/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450604/08e67edb8daf4c437104e47d0ec4c285/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450604/08e67edb8daf4c437104e47d0ec4c285/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450604/08e67edb8daf4c437104e47d0ec4c285/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450604/08e67edb8daf4c437104e47d0ec4c285/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450604" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-05T15:06:30.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450604/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450604/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450604/08e67edb8daf4c437104e47d0ec4c285/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/third112/" title="third112" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/4ea/3d6/cba/4ea3d6cbacc7a7b38328ad88cd4110bb.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/third112/" class="tm-user-info__username">
+      third112
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-05T15:06:30.000Z" title="2019-05-05, 18:06">5  мая  2019 в 18:06</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/zadachki/" class="tm-article-snippet__hubs-item-link"><span>Занимательные задачки</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/programming/" class="tm-article-snippet__hubs-item-link"><span>Программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/delphi/" class="tm-article-snippet__hubs-item-link"><span>Delphi</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/algorithms/" class="tm-article-snippet__hubs-item-link"><span>Алгоритмы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/maths/" class="tm-article-snippet__hubs-item-link"><span>Математика</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/jy/oh/qy/jyohqy_o-2bys8egtl155tlb-qa.jpeg" data-src="https://habrastorage.org/webt/jy/oh/qy/jyohqy_o-2bys8egtl155tlb-qa.jpeg" data-blurred="true"/>(<i><a href="https://commons.wikimedia.org/wiki/File:New_Animation_Sieve_of_Eratosthenes.gif?uselang=ru">Источник рисунка</a> </i>)<br/>
+<br/>
+Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен вдоль и поперек и добавить к нему ничего невозможно. Если посмотреть Википедию – там море ссылок на авторитетные источники, в которых запросто утонуть. Поэтому удивился, когда на днях случайно обнаружил, что <a href="https://ru.wikipedia.org/wiki/%D0%A0%D0%B5%D1%88%D0%B5%D1%82%D0%BE_%D0%AD%D1%80%D0%B0%D1%82%D0%BE%D1%81%D1%84%D0%B5%D0%BD%D0%B0#%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BA%D0%BE%D0%B4">вариант</a>, который в Википедии преподносится как оптимальный, можно заметно оптимизировать.<br/>
+<a name="habracut"></a><br/>
+Дело было так. В обсуждении статьи по функциональному программированию (ФП) задал <a href="https://habr.com/ru/post/450300/?reply_to=20113562#comment_20105570">вопрос</a>: как в этой парадигме написать РЭ. Обладая более чем скудными знаниями по ФП, не берусь судить об ответах, но другие участники обсуждения забраковали некоторые из предложенных сходу решений, указав, что вместо теоретической сложности<br/>
+<br/>
+<img src="https://habrastorage.org/getpro/habr/formulas/d15/a0e/cba/d15a0ecbae5c14e0db503da557fa6747.svg" alt="$O(n \log \log n)$" data-tex="inline"/> <b>(1)</b><br/>
+<br/>
+предложенная реализация будет обладать вычислительной сложностью<br/>
+<br/>
+<img src="https://habrastorage.org/getpro/habr/formulas/7f8/026/bbe/7f8026bbef96a787be72df6160794be4.svg" alt="$O(n^2/\log n) $" data-tex="inline"/> <b>(2)</b><br/>
+<br/>
+и что с такой сложностью не дождаться, когда, например, просеются 10 миллионов чисел. Мне стало интересно и я попробовал реализовать оптимальную согласно Википедии версию, используя привычное мне процедурное программирование. В Delphi-7 у меня получился следующий код:<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Листинг 1</b><div class="spoiler_text"><pre><code class="delphi">program EratosthenesSieve;
+// Sieve of Eratosthenes
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils, DateUtils,Math;
+const
+ version ='1.0.1d1';
+ N = 1000000000; // number of primes
+var
+ sieve : array [2..N] of boolean; // false if prime
+ t0, t1,dt : TDateTime;
+ O,C : Extended;
+
+procedure init;
+  var
+   i : integer;
+  begin
+   for i:=2 to n do
+    sieve [i] := false;
+  end; //init
+
+procedure calc (start : integer);
+  var
+   prime, i : integer;
+   breakLoop, exitProc : Boolean;
+  begin
+   prime := start;
+   exitProc := false;
+   repeat
+// find next prime
+      prime := prime+1;
+      while (prime&lt;N) and sieve[prime] do
+       inc (prime);
+      i:= sqr(prime);
+// delete
+      if i&lt;= N then
+        begin
+          breakLoop := false;
+          repeat
+            if i&lt;= N then
+             begin
+              sieve [i] := true;
+              inc (i,prime);
+             end
+            else  // if i&lt;= N
+             breakLoop := true;
+          until breakLoop;
+        end  
+      else // if prime+prime&lt;= N
+       exitProc := true;
+   until exitProc;
+  end; //calc
+
+procedure print;
+  var
+    i :integer;
+    found : integer;
+
+  begin
+    found := 0;
+    for i:=2 to N do
+     if not sieve [i] then
+      begin
+//       write (i,', ');
+        inc(found);
+      end;
+    writeln;
+    writeln ('Found ',found,' primes.');
+  end; //
+
+begin // program body
+  writeln ('Sieve of Eratosthenes version ', version);
+  writeln('N= ',N);
+
+  init;
+  t0 := now;
+  writeln('Program started ',DateTimeToStr(t0));
+  t0 := now;
+  calc (1);
+  t1 := now;
+  writeln('Program finished ',DateTimeToStr(t1));
+  dt := SecondSpan(t1,t0);
+  writeln ('Time is ',FloatToStr(dt),' sec.');
+
+  O := N* ln(ln(N));
+  C := dt/O;
+  writeln ('O(N ln ln N)= ',O,' C=',C);
+
+  O := sqr(N)/ln(N);
+  C := dt/O;
+  writeln ('O(N*N/ln N)= ',O,' C=',C);
+
+  print;
+  
+  writeln ('Press Enter to stop...');
+  readln;
+end.</code></pre><br/>
+</div></div><br/>
+РЭ представлено булевым массивом sieve с инверсными значениями — если число простое, оно обозначается как false, что позволяет сократить количество операций отрицания (not) при просеивании. В программе 3 процедуры: инициализации РЭ — init, вычислений (просеивание и зачеркивание чисел в РЭ) — calc и вывода найденных в результате простых чисел — print, при этом подсчитывается количество найденных чисел. Особо обращу внимание на закомментированный вывод простых чисел в процедуре print: для тестирования при N=1000 комментарий снимается.<br/>
+<br/>
+Здесь в процедуре calc использую рекомендацию Википедии: для очередного простого числа i вычеркивать из РЭ числа <br/>
+<br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/e0a/334/de0/e0a334de01441e857111964f644556db.svg" alt="$i^2, i^2+i, i^2+2i, …$" data-tex="display"/></p><br/>
+<br/>
+Эта программа просеяла миллиард чисел за 17.6 сек. на моем ПК (CPU Intel Core i7 3.4 ГГц). <br/>
+Сделав эту программу, я вдруг вспомнил о широко известных свойствах <a href="https://ru.wikipedia.org/wiki/%D0%A7%D1%91%D1%82%D0%BD%D1%8B%D0%B5_%D0%B8_%D0%BD%D0%B5%D1%87%D1%91%D1%82%D0%BD%D1%8B%D0%B5_%D1%87%D0%B8%D1%81%D0%BB%D0%B0#%D0%90%D1%80%D0%B8%D1%84%D0%BC%D0%B5%D1%82%D0%B8%D0%BA%D0%B0">четных и нечетных чисел</a>.<br/>
+<br/>
+<b>Лемма 1.</b><i> 1) нечетное+нечетное=четное; 2) нечетное+четное=нечетное; 3) четное+четное= четное.</i><br/>
+<br/>
+<b>Доказательство</b><br/>
+<br/>
+1) <img src="https://habrastorage.org/getpro/habr/formulas/c2b/9de/fb9/c2b9defb9df124168ef7106b5630f90d.svg" alt="$(2n+1)+(2m+1)=2n+2m+2 $" data-tex="inline"/>делится на 2. ЧТД.<br/>
+2)<img src="https://habrastorage.org/getpro/habr/formulas/05a/e85/0a1/05ae850a10a66ab0459134e0ab762286.svg" alt="$ (2n+1)+(2m)=2n+2m+1$" data-tex="inline"/> не делится на 2 без остатка. ЧТД.<br/>
+3)<img src="https://habrastorage.org/getpro/habr/formulas/4d8/a82/710/4d8a827104e08da0a697f6ec9d0a2842.svg" alt="$ (2n)+(2m)=2n+2m$" data-tex="inline"/> делится на 2. ЧТД.<br/>
+ <br/>
+<b>Лемма 2.</b><i> Квадрат нечетного числа есть нечетное число.</i><br/>
+<b>Доказательство. </b><img src="https://habrastorage.org/getpro/habr/formulas/7cf/1ca/c72/7cf1cac727a0629cd25106b3c53138aa.svg" alt="$(2n+1)^{2}=4n^{2}+4n+1$" data-tex="inline"/> не делится на 2 без остатка. ЧТД.<br/>
+ <br/>
+<b>Замечание. </b><i>Простое число, большее 2, нечетное.</i><br/>
+<br/>
+Поэтому можно вычеркивать только нечетные числа:<br/>
+<br/>
+<img src="https://habrastorage.org/getpro/habr/formulas/cf3/1c1/0cc/cf31c10cce48f81dae42a6c203ebb30c.svg" alt="$i^2, i^2+2i, i^2+4i, … $" data-tex="inline"/> <b>(3)</b><br/>
+<br/>
+Но прежде надо вычеркнуть все четные числа. Это делает измененная процедура инициализации init.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Листинг 2</b><div class="spoiler_text"><pre><code class="delphi">program EratosthenesSieve;
+// Sieve of Eratosthenes
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils, DateUtils,Math;
+const
+ version ='1.0.1d1';
+ N = 1000000000; // number of primes
+var
+ sieve : array [2..N] of boolean; // false if prime
+ t0, t1,dt : TDateTime;
+ O,C : Extended;
+
+procedure init;
+  var
+   i : integer;
+  begin
+   for i:=2 to n do
+    sieve [i] := not odd(i); 
+  end; //init
+
+procedure calc (start : integer);
+  var
+   prime,prime2, i : integer;
+   breakLoop, exitProc : Boolean;
+  begin
+   prime := start;
+   exitProc := false;
+   repeat
+// find next prime
+      prime := prime+1;
+      while (prime&lt;N) and sieve[prime] do
+       inc (prime);
+//      i:= prime*prime;
+      i:= sqr(prime);
+      prime2 := prime+prime;   
+// delete
+      if i&lt;= N then
+        begin
+          breakLoop := false;
+          repeat
+            if i&lt;= N then
+             begin
+              sieve [i] := true;
+              inc (i,prime2);
+             end
+            else  // if i&lt;= N
+             breakLoop := true;
+          until breakLoop;
+        end  
+      else // if prime+prime&lt;= N
+       exitProc := true;
+   until exitProc;
+   sieve [2] := false;
+  end; //calc
+
+procedure print;
+  var
+    i :integer;
+    found : integer;
+
+  begin
+    found := 0;
+    for i:=2 to N do
+     if not sieve [i] then
+      begin
+//      write (i,', ');
+        inc(found);
+      end;
+    writeln;
+    writeln ('Found ',found,' primes.');
+  end; //
+
+begin // program body
+  writeln ('Sieve of Eratosthenes version ', version);
+  writeln('N= ',N);
+
+  init;
+  t0 := now;
+  writeln('Program started ',DateTimeToStr(t0));
+  t0 := now;
+  calc (2);
+  t1 := now;
+  writeln('Program finished ',DateTimeToStr(t1));
+  dt := SecondSpan(t1,t0);
+  writeln ('Time is ',FloatToStr(dt),' sec.');
+
+  O := N* ln(ln(N));
+  C := dt/O;
+  writeln ('O(N ln ln N)= ',O,' C=',C);
+
+  O := sqr(N)/ln(N);
+  C := dt/O;
+  writeln ('O(N*N/ln N)= ',O,' C=',C);
+
+  print;
+  
+  writeln ('Press Enter to stop...');
+  readln;
+end.</code></pre><br/>
+</div></div><br/>
+Эта программа сработала за 9.9 сек. – почти вдвое быстрее.<br/>
+<br/>
+Для оценки соответствия реального времени работы программы теоретическому я предположил, что <br/>
+<br/>
+<p></p><p><img src="https://habrastorage.org/getpro/habr/formulas/ccc/645/311/ccc6453114da242e9bf6616c95571921.svg" alt="$dt=C*O,$" data-tex="display"/></p><br/>
+<br/>
+где <img src="https://habrastorage.org/getpro/habr/formulas/e7d/265/ff4/e7d265ff4d51bfd2fdce573203dda802.svg" alt="$dt$" data-tex="inline"/> – измеренное время работы;<br/>
+<img src="https://habrastorage.org/getpro/habr/formulas/47e/792/77d/47e79277dc17c254743475ff05980a53.svg" alt="$C $" data-tex="inline"/>– константа с размерностью времени;<br/>
+<img src="https://habrastorage.org/getpro/habr/formulas/2b6/47e/ca4/2b647eca43a3275e9b95a138b659a0ea.svg" alt="$O$" data-tex="inline"/> – теоретическая оценка.<br/>
+<br/>
+Вычислил отсюда <img src="https://habrastorage.org/getpro/habr/formulas/47e/792/77d/47e79277dc17c254743475ff05980a53.svg" alt="$C $" data-tex="inline"/> для оценки (1) и (2). Для <img src="https://habrastorage.org/getpro/habr/formulas/988/dc9/ffa/988dc9ffafde3ec9c174d2fe2963173c.svg" alt="$N= 10^6$" data-tex="inline"/> и меньше <img src="https://habrastorage.org/getpro/habr/formulas/e7d/265/ff4/e7d265ff4d51bfd2fdce573203dda802.svg" alt="$dt$" data-tex="inline"/> близко нулю. Поэтому привожу данные по первой программе для больших <img src="https://habrastorage.org/getpro/habr/formulas/73a/d65/087/73ad65087186c5505df3d5abc8ef4df5.svg" alt="$N.$" data-tex="inline"/><br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<th><img src="https://habrastorage.org/getpro/habr/formulas/1e8/0c3/b30/1e80c3b3087c0a57b68ad11261a9ec2b.svg" alt="$N $" data-tex="inline"/></th>
+<th> (1)</th>
+<th>(2)</th>
+</tr>
+<tr>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/16f/ff5/a52/16fff5a527dd5ad92f47e49634bcc9c4.svg" alt="$10^7 $" data-tex="inline"/></td>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/75a/99f/12c/75a99f12c4f63224c10f577d6045eda6.svg" alt="$1.69\cdot 10^{-9} $" data-tex="inline"/></td>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/468/21d/c31/46821dc313bcf43a14ffbe63420fdeca.svg" alt="$2.74\cdot 10^{-9}$" data-tex="inline"/></td>
+</tr>
+<tr>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/1a5/b39/a24/1a5b39a243d9a1305e8eaefb0123feff.svg" alt="$10^8 $" data-tex="inline"/></td>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/46d/d37/c98/46dd37c9899e2d5dd8ffff4115e88169.svg" alt="$5.14 \cdot 10^{-9}$" data-tex="inline"/></td>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/bce/84b/833/bce84b833b307900e483515951fe4a08.svg" alt="$1.47 \cdot 10^{-8}$" data-tex="inline"/></td>
+</tr>
+<tr>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/027/d2f/484/027d2f48439c514c7b9e44214daac670.svg" alt="$10^9$" data-tex="inline"/></td>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/99f/3dd/a2a/99f3dda2a36039fcb8c8e5b0ebda36b0.svg" alt="$5.80 \cdot 10^{-9}$" data-tex="inline"/></td>
+<td><img src="https://habrastorage.org/getpro/habr/formulas/8b5/3b3/a4a/8b53b3a4a457253dda0eaf5bdc60737d.svg" alt="$1.29 \cdot 10^{-7}$" data-tex="inline"/></td>
+</tr>
+</table></div><br/>
+Как видим, оценка (1) гораздо ближе к реальным результатам. Для второй программы наблюдается похожая картина. Сильно сомневаюсь, что открыл Америку с применением последовательности (3) и буду очень благодарен за ссылку на работу, где применялся этот подход. Скорее всего, авторы Википедии сами утонули в море информации по РЭ и пропустили эту работу.<br/>
+<br/>
+PS О приведенном в Википедии алгоритме с «линейным временем работы» <a href="https://habr.com/ru/post/452388/">см</a>.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%8B%D0%B5%20%D1%87%D0%B8%D1%81%D0%BB%D0%B0%5D" class="tm-tags-list__link">простые числа</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B5%D1%88%D0%B5%D1%82%D0%BE%20%D1%8D%D1%80%D0%B0%D1%82%D0%BE%D1%81%D1%84%D0%B5%D0%BD%D0%B0%5D" class="tm-tags-list__link">решето эратосфена</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdelphi%5D" class="tm-tags-list__link">delphi</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D1%8B%5D" class="tm-tags-list__link">алгоритмы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">программирование</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F%5D" class="tm-tags-list__link">оптимизация</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B0%D1%82%D0%B5%D0%BC%D0%B0%D1%82%D0%B8%D0%BA%D0%B0%5D" class="tm-tags-list__link">математика</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/zadachki/" class="tm-hubs-list__link">
+    Занимательные задачки
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/programming/" class="tm-hubs-list__link">
+    Программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/delphi/" class="tm-hubs-list__link">
+    Delphi
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/algorithms/" class="tm-hubs-list__link">
+    Алгоритмы
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/maths/" class="tm-hubs-list__link">
+    Математика
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 26: ↑19 и ↓7</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 26: ↑19 и ↓7" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+12</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">12K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    55
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/third112/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/4ea/3d6/cba/4ea3d6cbacc7a7b38328ad88cd4110bb.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 322 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    9
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">27.2</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/third112/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @third112
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Химик и программист.</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450604/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 139 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450604/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450604/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450604":{"id":"450604","timePublished":"2019-05-05T15:06:30+00:00","isCorporative":false,"lang":"ru","titleHtml":"Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjy\u002Foh\u002Fqy\u002Fjyohqy_o-2bys8egtl155tlb-qa.jpeg\"\u003E(\u003Ci\u003E\u003Ca href=\"https:\u002F\u002Fcommons.wikimedia.org\u002Fwiki\u002FFile:New_Animation_Sieve_of_Eratosthenes.gif?uselang=ru\"\u003EИсточник рисунка\u003C\u002Fa\u003E \u003C\u002Fi\u003E)\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nОбщеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен вдоль и поперек и добавить к нему ничего невозможно. Если посмотреть Википедию – там море ссылок на авторитетные источники, в которых запросто утонуть. Поэтому удивился, когда на днях случайно обнаружил, что \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%A0%D0%B5%D1%88%D0%B5%D1%82%D0%BE_%D0%AD%D1%80%D0%B0%D1%82%D0%BE%D1%81%D1%84%D0%B5%D0%BD%D0%B0#%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BA%D0%BE%D0%B4\"\u003Eвариант\u003C\u002Fa\u003E, который в Википедии преподносится как оптимальный, можно заметно оптимизировать.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":9,"votesCount":322},"rating":27.2,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1234896","alias":"third112","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F4ea\u002F3d6\u002Fcba\u002F4ea3d6cbacc7a7b38328ad88cd4110bb.jpg","speciality":"Химик и программист."},"statistics":{"commentsCount":139,"favoritesCount":55,"readingCount":11874,"score":12,"votesCount":26},"hubs":[{"relatedData":null,"id":"287","alias":"zadachki","type":"collective","title":"Занимательные задачки","titleHtml":"Занимательные задачки","isProfiled":false},{"relatedData":null,"id":"359","alias":"programming","type":"collective","title":"Программирование","titleHtml":"Программирование","isProfiled":true},{"relatedData":null,"id":"604","alias":"delphi","type":"collective","title":"Delphi","titleHtml":"Delphi","isProfiled":true},{"relatedData":null,"id":"8000","alias":"algorithms","type":"collective","title":"Алгоритмы","titleHtml":"Алгоритмы","isProfiled":true},{"relatedData":null,"id":"17812","alias":"maths","type":"collective","title":"Математика","titleHtml":"Математика","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fjy\u002Foh\u002Fqy\u002Fjyohqy_o-2bys8egtl155tlb-qa.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjy\u002Foh\u002Fqy\u002Fjyohqy_o-2bys8egtl155tlb-qa.jpeg\" data-blurred=\"true\"\u002F\u003E(\u003Ci\u003E\u003Ca href=\"https:\u002F\u002Fcommons.wikimedia.org\u002Fwiki\u002FFile:New_Animation_Sieve_of_Eratosthenes.gif?uselang=ru\"\u003EИсточник рисунка\u003C\u002Fa\u003E \u003C\u002Fi\u003E)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбщеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен вдоль и поперек и добавить к нему ничего невозможно. Если посмотреть Википедию – там море ссылок на авторитетные источники, в которых запросто утонуть. Поэтому удивился, когда на днях случайно обнаружил, что \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%A0%D0%B5%D1%88%D0%B5%D1%82%D0%BE_%D0%AD%D1%80%D0%B0%D1%82%D0%BE%D1%81%D1%84%D0%B5%D0%BD%D0%B0#%D0%9F%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BA%D0%BE%D0%B4\"\u003Eвариант\u003C\u002Fa\u003E, который в Википедии преподносится как оптимальный, можно заметно оптимизировать.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nДело было так. В обсуждении статьи по функциональному программированию (ФП) задал \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450300\u002F?reply_to=20113562#comment_20105570\"\u003Eвопрос\u003C\u002Fa\u003E: как в этой парадигме написать РЭ. Обладая более чем скудными знаниями по ФП, не берусь судить об ответах, но другие участники обсуждения забраковали некоторые из предложенных сходу решений, указав, что вместо теоретической сложности\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fd15\u002Fa0e\u002Fcba\u002Fd15a0ecbae5c14e0db503da557fa6747.svg\" alt=\"$O(n \\log \\log n)$\" data-tex=\"inline\"\u002F\u003E \u003Cb\u003E(1)\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nпредложенная реализация будет обладать вычислительной сложностью\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F7f8\u002F026\u002Fbbe\u002F7f8026bbef96a787be72df6160794be4.svg\" alt=\"$O(n^2\u002F\\log n) $\" data-tex=\"inline\"\u002F\u003E \u003Cb\u003E(2)\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nи что с такой сложностью не дождаться, когда, например, просеются 10 миллионов чисел. Мне стало интересно и я попробовал реализовать оптимальную согласно Википедии версию, используя привычное мне процедурное программирование. В Delphi-7 у меня получился следующий код:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EЛистинг 1\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"delphi\"\u003Eprogram EratosthenesSieve;\n\u002F\u002F Sieve of Eratosthenes\n{$APPTYPE CONSOLE}\n\nuses\n  SysUtils, DateUtils,Math;\nconst\n version ='1.0.1d1';\n N = 1000000000; \u002F\u002F number of primes\nvar\n sieve : array [2..N] of boolean; \u002F\u002F false if prime\n t0, t1,dt : TDateTime;\n O,C : Extended;\n\nprocedure init;\n  var\n   i : integer;\n  begin\n   for i:=2 to n do\n    sieve [i] := false;\n  end; \u002F\u002Finit\n\nprocedure calc (start : integer);\n  var\n   prime, i : integer;\n   breakLoop, exitProc : Boolean;\n  begin\n   prime := start;\n   exitProc := false;\n   repeat\n\u002F\u002F find next prime\n      prime := prime+1;\n      while (prime&lt;N) and sieve[prime] do\n       inc (prime);\n      i:= sqr(prime);\n\u002F\u002F delete\n      if i&lt;= N then\n        begin\n          breakLoop := false;\n          repeat\n            if i&lt;= N then\n             begin\n              sieve [i] := true;\n              inc (i,prime);\n             end\n            else  \u002F\u002F if i&lt;= N\n             breakLoop := true;\n          until breakLoop;\n        end  \n      else \u002F\u002F if prime+prime&lt;= N\n       exitProc := true;\n   until exitProc;\n  end; \u002F\u002Fcalc\n\nprocedure print;\n  var\n    i :integer;\n    found : integer;\n\n  begin\n    found := 0;\n    for i:=2 to N do\n     if not sieve [i] then\n      begin\n\u002F\u002F       write (i,', ');\n        inc(found);\n      end;\n    writeln;\n    writeln ('Found ',found,' primes.');\n  end; \u002F\u002F\n\nbegin \u002F\u002F program body\n  writeln ('Sieve of Eratosthenes version ', version);\n  writeln('N= ',N);\n\n  init;\n  t0 := now;\n  writeln('Program started ',DateTimeToStr(t0));\n  t0 := now;\n  calc (1);\n  t1 := now;\n  writeln('Program finished ',DateTimeToStr(t1));\n  dt := SecondSpan(t1,t0);\n  writeln ('Time is ',FloatToStr(dt),' sec.');\n\n  O := N* ln(ln(N));\n  C := dt\u002FO;\n  writeln ('O(N ln ln N)= ',O,' C=',C);\n\n  O := sqr(N)\u002Fln(N);\n  C := dt\u002FO;\n  writeln ('O(N*N\u002Fln N)= ',O,' C=',C);\n\n  print;\n  \n  writeln ('Press Enter to stop...');\n  readln;\nend.\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nРЭ представлено булевым массивом sieve с инверсными значениями — если число простое, оно обозначается как false, что позволяет сократить количество операций отрицания (not) при просеивании. В программе 3 процедуры: инициализации РЭ — init, вычислений (просеивание и зачеркивание чисел в РЭ) — calc и вывода найденных в результате простых чисел — print, при этом подсчитывается количество найденных чисел. Особо обращу внимание на закомментированный вывод простых чисел в процедуре print: для тестирования при N=1000 комментарий снимается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗдесь в процедуре calc использую рекомендацию Википедии: для очередного простого числа i вычеркивать из РЭ числа \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fe0a\u002F334\u002Fde0\u002Fe0a334de01441e857111964f644556db.svg\" alt=\"$i^2, i^2+i, i^2+2i, …$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта программа просеяла миллиард чисел за 17.6 сек. на моем ПК (CPU Intel Core i7 3.4 ГГц). \u003Cbr\u002F\u003E\r\nСделав эту программу, я вдруг вспомнил о широко известных свойствах \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%A7%D1%91%D1%82%D0%BD%D1%8B%D0%B5_%D0%B8_%D0%BD%D0%B5%D1%87%D1%91%D1%82%D0%BD%D1%8B%D0%B5_%D1%87%D0%B8%D1%81%D0%BB%D0%B0#%D0%90%D1%80%D0%B8%D1%84%D0%BC%D0%B5%D1%82%D0%B8%D0%BA%D0%B0\"\u003Eчетных и нечетных чисел\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЛемма 1.\u003C\u002Fb\u003E\u003Ci\u003E 1) нечетное+нечетное=четное; 2) нечетное+четное=нечетное; 3) четное+четное= четное.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EДоказательство\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n1) \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fc2b\u002F9de\u002Ffb9\u002Fc2b9defb9df124168ef7106b5630f90d.svg\" alt=\"$(2n+1)+(2m+1)=2n+2m+2 $\" data-tex=\"inline\"\u002F\u003Eделится на 2. ЧТД.\u003Cbr\u002F\u003E\r\n2)\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F05a\u002Fe85\u002F0a1\u002F05ae850a10a66ab0459134e0ab762286.svg\" alt=\"$ (2n+1)+(2m)=2n+2m+1$\" data-tex=\"inline\"\u002F\u003E не делится на 2 без остатка. ЧТД.\u003Cbr\u002F\u003E\r\n3)\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F4d8\u002Fa82\u002F710\u002F4d8a827104e08da0a697f6ec9d0a2842.svg\" alt=\"$ (2n)+(2m)=2n+2m$\" data-tex=\"inline\"\u002F\u003E делится на 2. ЧТД.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cb\u003EЛемма 2.\u003C\u002Fb\u003E\u003Ci\u003E Квадрат нечетного числа есть нечетное число.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EДоказательство. \u003C\u002Fb\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F7cf\u002F1ca\u002Fc72\u002F7cf1cac727a0629cd25106b3c53138aa.svg\" alt=\"$(2n+1)^{2}=4n^{2}+4n+1$\" data-tex=\"inline\"\u002F\u003E не делится на 2 без остатка. ЧТД.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cb\u003EЗамечание. \u003C\u002Fb\u003E\u003Ci\u003EПростое число, большее 2, нечетное.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоэтому можно вычеркивать только нечетные числа:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fcf3\u002F1c1\u002F0cc\u002Fcf31c10cce48f81dae42a6c203ebb30c.svg\" alt=\"$i^2, i^2+2i, i^2+4i, … $\" data-tex=\"inline\"\u002F\u003E \u003Cb\u003E(3)\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо прежде надо вычеркнуть все четные числа. Это делает измененная процедура инициализации init.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EЛистинг 2\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"delphi\"\u003Eprogram EratosthenesSieve;\n\u002F\u002F Sieve of Eratosthenes\n{$APPTYPE CONSOLE}\n\nuses\n  SysUtils, DateUtils,Math;\nconst\n version ='1.0.1d1';\n N = 1000000000; \u002F\u002F number of primes\nvar\n sieve : array [2..N] of boolean; \u002F\u002F false if prime\n t0, t1,dt : TDateTime;\n O,C : Extended;\n\nprocedure init;\n  var\n   i : integer;\n  begin\n   for i:=2 to n do\n    sieve [i] := not odd(i); \n  end; \u002F\u002Finit\n\nprocedure calc (start : integer);\n  var\n   prime,prime2, i : integer;\n   breakLoop, exitProc : Boolean;\n  begin\n   prime := start;\n   exitProc := false;\n   repeat\n\u002F\u002F find next prime\n      prime := prime+1;\n      while (prime&lt;N) and sieve[prime] do\n       inc (prime);\n\u002F\u002F      i:= prime*prime;\n      i:= sqr(prime);\n      prime2 := prime+prime;   \n\u002F\u002F delete\n      if i&lt;= N then\n        begin\n          breakLoop := false;\n          repeat\n            if i&lt;= N then\n             begin\n              sieve [i] := true;\n              inc (i,prime2);\n             end\n            else  \u002F\u002F if i&lt;= N\n             breakLoop := true;\n          until breakLoop;\n        end  \n      else \u002F\u002F if prime+prime&lt;= N\n       exitProc := true;\n   until exitProc;\n   sieve [2] := false;\n  end; \u002F\u002Fcalc\n\nprocedure print;\n  var\n    i :integer;\n    found : integer;\n\n  begin\n    found := 0;\n    for i:=2 to N do\n     if not sieve [i] then\n      begin\n\u002F\u002F      write (i,', ');\n        inc(found);\n      end;\n    writeln;\n    writeln ('Found ',found,' primes.');\n  end; \u002F\u002F\n\nbegin \u002F\u002F program body\n  writeln ('Sieve of Eratosthenes version ', version);\n  writeln('N= ',N);\n\n  init;\n  t0 := now;\n  writeln('Program started ',DateTimeToStr(t0));\n  t0 := now;\n  calc (2);\n  t1 := now;\n  writeln('Program finished ',DateTimeToStr(t1));\n  dt := SecondSpan(t1,t0);\n  writeln ('Time is ',FloatToStr(dt),' sec.');\n\n  O := N* ln(ln(N));\n  C := dt\u002FO;\n  writeln ('O(N ln ln N)= ',O,' C=',C);\n\n  O := sqr(N)\u002Fln(N);\n  C := dt\u002FO;\n  writeln ('O(N*N\u002Fln N)= ',O,' C=',C);\n\n  print;\n  \n  writeln ('Press Enter to stop...');\n  readln;\nend.\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЭта программа сработала за 9.9 сек. – почти вдвое быстрее.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля оценки соответствия реального времени работы программы теоретическому я предположил, что \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fccc\u002F645\u002F311\u002Fccc6453114da242e9bf6616c95571921.svg\" alt=\"$dt=C*O,$\" data-tex=\"display\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nгде \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fe7d\u002F265\u002Fff4\u002Fe7d265ff4d51bfd2fdce573203dda802.svg\" alt=\"$dt$\" data-tex=\"inline\"\u002F\u003E – измеренное время работы;\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F47e\u002F792\u002F77d\u002F47e79277dc17c254743475ff05980a53.svg\" alt=\"$C $\" data-tex=\"inline\"\u002F\u003E– константа с размерностью времени;\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F2b6\u002F47e\u002Fca4\u002F2b647eca43a3275e9b95a138b659a0ea.svg\" alt=\"$O$\" data-tex=\"inline\"\u002F\u003E – теоретическая оценка.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВычислил отсюда \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F47e\u002F792\u002F77d\u002F47e79277dc17c254743475ff05980a53.svg\" alt=\"$C $\" data-tex=\"inline\"\u002F\u003E для оценки (1) и (2). Для \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F988\u002Fdc9\u002Fffa\u002F988dc9ffafde3ec9c174d2fe2963173c.svg\" alt=\"$N= 10^6$\" data-tex=\"inline\"\u002F\u003E и меньше \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fe7d\u002F265\u002Fff4\u002Fe7d265ff4d51bfd2fdce573203dda802.svg\" alt=\"$dt$\" data-tex=\"inline\"\u002F\u003E близко нулю. Поэтому привожу данные по первой программе для больших \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F73a\u002Fd65\u002F087\u002F73ad65087186c5505df3d5abc8ef4df5.svg\" alt=\"$N.$\" data-tex=\"inline\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F1e8\u002F0c3\u002Fb30\u002F1e80c3b3087c0a57b68ad11261a9ec2b.svg\" alt=\"$N $\" data-tex=\"inline\"\u002F\u003E\u003C\u002Fth\u003E\r\n\u003Cth\u003E (1)\u003C\u002Fth\u003E\r\n\u003Cth\u003E(2)\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F16f\u002Fff5\u002Fa52\u002F16fff5a527dd5ad92f47e49634bcc9c4.svg\" alt=\"$10^7 $\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F75a\u002F99f\u002F12c\u002F75a99f12c4f63224c10f577d6045eda6.svg\" alt=\"$1.69\\cdot 10^{-9} $\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F468\u002F21d\u002Fc31\u002F46821dc313bcf43a14ffbe63420fdeca.svg\" alt=\"$2.74\\cdot 10^{-9}$\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F1a5\u002Fb39\u002Fa24\u002F1a5b39a243d9a1305e8eaefb0123feff.svg\" alt=\"$10^8 $\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F46d\u002Fd37\u002Fc98\u002F46dd37c9899e2d5dd8ffff4115e88169.svg\" alt=\"$5.14 \\cdot 10^{-9}$\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002Fbce\u002F84b\u002F833\u002Fbce84b833b307900e483515951fe4a08.svg\" alt=\"$1.47 \\cdot 10^{-8}$\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F027\u002Fd2f\u002F484\u002F027d2f48439c514c7b9e44214daac670.svg\" alt=\"$10^9$\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F99f\u002F3dd\u002Fa2a\u002F99f3dda2a36039fcb8c8e5b0ebda36b0.svg\" alt=\"$5.80 \\cdot 10^{-9}$\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fformulas\u002F8b5\u002F3b3\u002Fa4a\u002F8b53b3a4a457253dda0eaf5bdc60737d.svg\" alt=\"$1.29 \\cdot 10^{-7}$\" data-tex=\"inline\"\u002F\u003E\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nКак видим, оценка (1) гораздо ближе к реальным результатам. Для второй программы наблюдается похожая картина. Сильно сомневаюсь, что открыл Америку с применением последовательности (3) и буду очень благодарен за ссылку на работу, где применялся этот подход. Скорее всего, авторы Википедии сами утонули в море информации по РЭ и пропустили эту работу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nPS О приведенном в Википедии алгоритме с «линейным временем работы» \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F452388\u002F\"\u003Eсм\u003C\u002Fa\u003E.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"простые числа"},{"titleHtml":"решето эратосфена"},{"titleHtml":"delphi"},{"titleHtml":"алгоритмы"},{"titleHtml":"программирование"},{"titleHtml":"оптимизация"},{"titleHtml":"математика"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450604\u002F08e67edb8daf4c437104e47d0ec4c285\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450604\u002F08e67edb8daf4c437104e47d0ec4c285\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450604\\\u002F\"},\"headline\":\"Отсеиваем простые из миллиарда чисел быстрее, чем в Википедии\",\"datePublished\":\"2019-05-05T18:06:30+03:00\",\"dateModified\":\"2019-05-19T03:21:02+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"third112\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"(Источник рисунка )  Общеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подума...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450604\\\u002F#post-content-body\",\"about\":[\"h_zadachki\",\"h_programming\",\"h_delphi\",\"h_algorithms\",\"h_maths\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjy\\\u002Foh\\\u002Fqy\\\u002Fjyohqy_o-2bys8egtl155tlb-qa.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fd15\\\u002Fa0e\\\u002Fcba\\\u002Fd15a0ecbae5c14e0db503da557fa6747.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F7f8\\\u002F026\\\u002Fbbe\\\u002F7f8026bbef96a787be72df6160794be4.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fe0a\\\u002F334\\\u002Fde0\\\u002Fe0a334de01441e857111964f644556db.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fc2b\\\u002F9de\\\u002Ffb9\\\u002Fc2b9defb9df124168ef7106b5630f90d.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F05a\\\u002Fe85\\\u002F0a1\\\u002F05ae850a10a66ab0459134e0ab762286.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F4d8\\\u002Fa82\\\u002F710\\\u002F4d8a827104e08da0a697f6ec9d0a2842.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F7cf\\\u002F1ca\\\u002Fc72\\\u002F7cf1cac727a0629cd25106b3c53138aa.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fcf3\\\u002F1c1\\\u002F0cc\\\u002Fcf31c10cce48f81dae42a6c203ebb30c.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fccc\\\u002F645\\\u002F311\\\u002Fccc6453114da242e9bf6616c95571921.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fe7d\\\u002F265\\\u002Fff4\\\u002Fe7d265ff4d51bfd2fdce573203dda802.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F47e\\\u002F792\\\u002F77d\\\u002F47e79277dc17c254743475ff05980a53.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F2b6\\\u002F47e\\\u002Fca4\\\u002F2b647eca43a3275e9b95a138b659a0ea.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F988\\\u002Fdc9\\\u002Fffa\\\u002F988dc9ffafde3ec9c174d2fe2963173c.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F73a\\\u002Fd65\\\u002F087\\\u002F73ad65087186c5505df3d5abc8ef4df5.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F1e8\\\u002F0c3\\\u002Fb30\\\u002F1e80c3b3087c0a57b68ad11261a9ec2b.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F16f\\\u002Fff5\\\u002Fa52\\\u002F16fff5a527dd5ad92f47e49634bcc9c4.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F75a\\\u002F99f\\\u002F12c\\\u002F75a99f12c4f63224c10f577d6045eda6.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F468\\\u002F21d\\\u002Fc31\\\u002F46821dc313bcf43a14ffbe63420fdeca.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F1a5\\\u002Fb39\\\u002Fa24\\\u002F1a5b39a243d9a1305e8eaefb0123feff.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F46d\\\u002Fd37\\\u002Fc98\\\u002F46dd37c9899e2d5dd8ffff4115e88169.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002Fbce\\\u002F84b\\\u002F833\\\u002Fbce84b833b307900e483515951fe4a08.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F027\\\u002Fd2f\\\u002F484\\\u002F027d2f48439c514c7b9e44214daac670.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F99f\\\u002F3dd\\\u002Fa2a\\\u002F99f3dda2a36039fcb8c8e5b0ebda36b0.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fformulas\\\u002F8b5\\\u002F3b3\\\u002Fa4a\\\u002F8b53b3a4a457253dda0eaf5bdc60737d.svg\"]}","metaDescription":"(Источник рисунка )\r\n\r\nОбщеизвестно, что Решето Эратосфена (РЭ) один из древнейших алгоритмов, появившийся задолго до изобретения компьютеров. Поэтому можно подумать, что за века этот алгоритм изучен...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"zadachki,programming,delphi,algorithms,maths"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

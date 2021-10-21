@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Методы сжатия/хранения медиа данных в форматах WAVE и JPEG, часть 1 / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450774\/"},"headline":"Методы сжатия\/хранения медиа данных в форматах WAVE и JPEG, часть 1","datePublished":"2019-05-06T23:50:11+03:00","dateModified":"2019-05-09T08:57:06+03:00","author":{"@type":"Person","name":"dredsss0"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений\/звука, таких как JPEG (изобр.) и WAVE (звук), также в ни...","url":"https:\/\/habr.com\/ru\/post\/450774\/#post-content-body","about":["h_python","h_sound","f_develop","f_popsci"],"image":["https:\/\/habr.com\/share\/publication\/450774\/8c5c23236ec4877fb11a9e4d9e180026\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Методы сжатия/хранения медиа данных в форматах WAVE и JPEG, часть 1" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Методы сжатия/хранения медиа данных в форматах WAVE и JPEG, часть 1" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Методы сжатия/хранения медиа данных в форматах WAVE и JPEG, часть 1" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений/звука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений/звука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений/звука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений/звука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений/звука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450774/8c5c23236ec4877fb11a9e4d9e180026/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450774/8c5c23236ec4877fb11a9e4d9e180026/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450774/8c5c23236ec4877fb11a9e4d9e180026/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450774/8c5c23236ec4877fb11a9e4d9e180026/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450774/8c5c23236ec4877fb11a9e4d9e180026/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450774" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T20:50:11.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450774/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450774/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450774/8c5c23236ec4877fb11a9e4d9e180026/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/dredsss0/" title="dredsss0" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_blue"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/dredsss0/" class="tm-user-info__username">
+      dredsss0
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T20:50:11.000Z" title="2019-05-06, 23:50">6  мая  2019 в 23:50</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Методы сжатия/хранения медиа данных в форматах WAVE и JPEG, часть 1</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/python/" class="tm-article-snippet__hubs-item-link"><span>Python</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sound/" class="tm-article-snippet__hubs-item-link"><span>Звук</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений/звука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с использованием этих форматов (.jpg, .wav) на практике. В этой части мы рассмотрим именно WAVE.</p><a name="habracut"></a><br/>
+<h3 id="istoriya">История</h3><br/>
+<blockquote>WAVE (Waveform Audio File Format) — формат файла-контейнера для хранения записи аудио потока. Этот контейнер, как правило, используется для хранения несжатого звука в импульсно-кодовой модуляции. (Взято из Википедии)</blockquote><p>Он был придуман и опубликован в 1991 году вместе с RIFF компаниями Microsoft и IBM (Ведущие IT компании того времени).</p><br/>
+<h3 id="struktura-fayla">Структура файла</h3><br/>
+<p>У файла есть заголовочная часть, сами данные, но нет футера. Заголовок весит в общем 44 байта.<br/>
+В хедере находятся настройки количества бит в семпле, частоты дескритизации, глубины звука и т.п. информации, необходимой для звуковой карты. (Все числовые значения таблицы должны быть записаны в Little-Endian порядке)</p><br/>
+<div class="scrollable-table"><table>
+<thead>
+<tr>
+<th><strong>Имя блока</strong></th>
+<th><strong>Размер блока (B)</strong></th>
+<th><strong>Описание/Предназначение</strong></th>
+<th><strong>Значение (у некоторых оно фиксировано</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>chunkId</td>
+<td>4</td>
+<td>Определение файла как медиа-контейнер</td>
+<td>0x52494646 в Big-Endian ("RIFF")</td>
+</tr>
+<tr>
+<td>chunkSize</td>
+<td>4</td>
+<td>Размер всего файла без chunkId и chunkSize</td>
+<td>FILE_SIZE — 8</td>
+</tr>
+<tr>
+<td>format</td>
+<td>4</td>
+<td>Определение типа из RIFF</td>
+<td>0x57415645 в Big-Endian ("WAVE")</td>
+</tr>
+<tr>
+<td>subchunk1Id</td>
+<td>4</td>
+<td><del>Чтобы файл побольше места занимал</del> продолжение format'а</td>
+<td>0x666d7420 в Big-Endian ("fmt ")</td>
+</tr>
+<tr>
+<td>subchunk1Size</td>
+<td>4</td>
+<td>Оставшийся хедер (в байтах)</td>
+<td>16 по умолчанию (для случая без сжатия аудиопотока)</td>
+</tr>
+<tr>
+<td>audioFormat</td>
+<td>2</td>
+<td>Аудио формат (зависит от метода сжатия и структуры аудиоданных)</td>
+<td>1 (для PCM, который мы и рассматриваем)</td>
+</tr>
+<tr>
+<td>numChannels</td>
+<td>2</td>
+<td>Количество каналов</td>
+<td>1/2, мы возьмем 1 канал (3/4/5/6/7… — специфическая аудиодорожка, например 4 для квадро звука и т.п.)</td>
+</tr>
+<tr>
+<td>sampleRate</td>
+<td>4</td>
+<td>Частота семплирования звука (в Герцах)</td>
+<td>Чем больше, тем качественнее будет звук, но тем больше потребуется памяти для создания аудиодорожки той же длины, рекомендуемое значение — 48000 (наиболее приемлемое качество звука)</td>
+</tr>
+<tr>
+<td>byteRate</td>
+<td>4</td>
+<td>Количество байт за 1 секунду</td>
+<td>sampleRate <em> numChannels </em> bitsPerSample (далее)</td>
+</tr>
+<tr>
+<td>blockAlign</td>
+<td>2</td>
+<td>Количество байт для 1 семпла</td>
+<td>numChannels * bitsPerSample: 8</td>
+</tr>
+<tr>
+<td>bitsPerSample</td>
+<td>2</td>
+<td>Количество бит за 1 семпл (глубина)</td>
+<td>Любое число, кратное 8. Чем больше, тем лучше и тяжелее будет аудио, от 32 бит разницы нет для человека</td>
+</tr>
+<tr>
+<td>subchunk2Id</td>
+<td>4</td>
+<td>Метка отсчета начала данных (т.к. могут быть другие элементы хедера в зависимости от audioFormat)</td>
+<td>0x64617461 в Big-Endian ("data")</td>
+</tr>
+<tr>
+<td>subchunk2Size</td>
+<td>4</td>
+<td>Размер области данных</td>
+<td>размер data в int'е</td>
+</tr>
+<tr>
+<td>data</td>
+<td>byteRate * продолжительность аудио</td>
+<td>Аудиоданные</td>
+<td>?</td>
+</tr>
+</tbody>
+</table></div><br/>
+<h3 id="primer-s-wave">Пример с WAVE</h3><br/>
+<p>Предыдущую таблицу можно с легкостью перевести в структуру на C, но наш язык на сегодня — Python. Самое легкое, что можно сделать, используя "волну" — генератор шума. Для этой задачи нам не потребуются высокий byteRate и сжатие.<br/>
+Для начала импортируем необходимые модули:</p><br/>
+<pre><code class="python"># WAV.py
+
+from struct import pack  # перевод py-объектов в базовые типы из C
+from os import urandom  # функция для чтения /dev/urandom, для windows:
+# from random import randint
+# urandom = lambda sz: bytes([randint(0, 255) for _ in range(sz)])  # лямбда под windows, т.к. urandom'а в винде нет
+from sys import argv, exit  # аргументы к проге и выход
+
+if len(argv) != 3:  # +1 имя скрипта (-1, если будете замораживать)
+    print('Usage: python3 WAV.py [num of samples] [output]')
+    exit(1)</code></pre><br/>
+<p>Далее нам необходимо создать все необходимые переменные из таблицы по их размерам. Непостоянные величины в ней зависят тут только от numSamples (количество семплов). Чем больше их будет, тем дольше будет идти наш шум.</p><br/>
+<pre><code class="python">numSamples = int(argv[1])
+output_path = argv[2]
+
+chunkId = b'RIFF'
+Format = b'WAVE'
+subchunk1ID = b'fmt '
+subchunk1Size = b'\x10\x00\x00\x00'  # 0d16
+audioFormat = b'\x01\x00'
+numChannels = b'\x02\x00'  # 2-х каналов будет достаточно (стерео)
+sampleRate = pack('&lt;L', 1000)  # 1000 хватит, но если поставить больше, то шум будет слышен лучше. С 1000-ю он звучит, как ветер
+bitsPerSample = b'\x20\x00'  # 0d32
+byteRate = pack('&lt;L', 1000 * 2 * 4)  # sampleRate * numChannels * bitsPerSample / 8  (32 bit sound)
+blockAlign = b'\x08\x00'  # numChannels * BPS / 8
+subchunk2ID = b'data'
+subchunk2Size = pack('&lt;L', numSamples * 2 * 4)  # * numChannels * BPS / 8
+chunkSize = pack('&lt;L', 36 + numSamples * 2 * 4)  # 36 + subchunk2Size
+
+data = urandom(1000 * 2 * 4 * numSamples)  # сам шум</code></pre><br/>
+<p>Осталось лишь только записать их в необходимой последовательности (как в таблице):</p><br/>
+<pre><code class="python">with open(output_path, 'wb') as fh:
+    fh.write(chunkId + chunkSize + Format + subchunk1ID +
+            subchunk1Size + audioFormat + numChannels + 
+            sampleRate + byteRate + blockAlign + bitsPerSample +
+            subchunk2ID + subchunk2Size + data)  # записываем</code></pre><br/>
+<p>И так, готово. Для использования скрипта, нам нужно добавить необходимые аргументы командной строки:<br/>
+<code>python3 WAV.py [num of samples] [output]</code><br/>
+num of samples — кол. семплов<br/>
+output — путь к выходному файлу</p><br/>
+<p>Вот ссылка на тестовый аудиофайл с шумом, но для экономии памяти я снизил BPS до 1b/s и количество каналов опустил до 1 (с 32 битным несжатым стерео аудиопотоком в 64kbs получилось 80M чистого .wav файла, а так только 10): <a href="https://instaud.io/3Dcy">https://instaud.io/3Dcy</a></p><br/>
+<p>Весь код целиком (WAV.py) (Код имеет множество дублирований значений переменнных, это лишь набросок):</p><br/>
+<pre><code class="python">from struct import pack  # перевод py-объектов в базовые типы из C
+from os import urandom  # функция для чтения /dev/urandom, для windows:
+# from random import randint
+# urandom = lambda sz: bytes([randint(0, 255) for _ in range(sz)])  # лямбда под windows, т.к. urandom'а в винде нет
+from sys import argv, exit  # аргументы к проге и выход
+
+if len(argv) != 3:  # +1 имя скрипта (-1, если будете замораживать)
+    print('Usage: python3 WAV.py [num of samples] [output]')
+    exit(1)
+
+numSamples = int(argv[1])
+output_path = argv[2]
+
+chunkId = b'RIFF'
+Format = b'WAVE'
+subchunk1ID = b'fmt '
+subchunk1Size = b'\x10\x00\x00\x00'  # 0d16
+audioFormat = b'\x01\x00'
+numChannels = b'\x02\x00'  # 2-х каналов будет достаточно (стерео) 
+sampleRate = pack('&lt;L', 1000)  # 1000 хватит, но можно и больше.
+bitsPerSample = b'\x20\x00'  # 0d32
+byteRate = pack('&lt;L', 1000 * 2 * 4)  # sampleRate * numChannels * bitsPerSample / 8  (32 bit sound)
+blockAlign = b'\x08\x00'  # numChannels * BPS / 8
+subchunk2ID = b'data'
+subchunk2Size = pack('&lt;L', numSamples * 2 * 4)  # * numChannels * BPS / 8
+chunkSize = pack('&lt;L', 36 + numSamples * 2 * 4)  # 36 + subchunk2Size
+
+data = urandom(1000 * 2 * 4 * numSamples)  # сам шум
+
+with open(output_path, 'wb') as fh:
+    fh.write(chunkId + chunkSize + Format + subchunk1ID +
+            subchunk1Size + audioFormat + numChannels + 
+            sampleRate + byteRate + blockAlign + bitsPerSample +
+            subchunk2ID + subchunk2Size + data)  # записываем в файл результат</code></pre><br/>
+<h3 id="itog">Итог</h3><br/>
+<p>Вот вы и узнали чуть побольше о цифровом звуке и о том, как его хранят. В этом посте мы не использовали сжатия (audioFormat), но для рассмотра каждого из популярных потребуется статей 10. Надеюсь вы узнали что-то новое для себя и это вам поможет в будущих разработках.<br/>
+Спасибо!</p><br/>
+<h5 id="istochniki">Источники</h5><br/>
+<p><a href="https://audiocoding.ru/article/2008/05/22/wav-file-structure.html">Структура WAV файла</a><br/>
+<a href="https://en.wikipedia.org/wiki/WAV">WAV — Википедия</a></p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpython3%5D" class="tm-tags-list__link">python3</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bwav%5D" class="tm-tags-list__link">wav</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F%5D" class="tm-tags-list__link">статья</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D1%8B%20%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85%5D" class="tm-tags-list__link">структуры данных</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/python/" class="tm-hubs-list__link">
+    Python
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/sound/" class="tm-hubs-list__link">
+    Звук
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 25: ↑19 и ↓6</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 25: ↑19 и ↓6" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+13</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">6.2K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    51
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/dredsss0/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_blue"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 11 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/dredsss0/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @dredsss0
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450774/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 5 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450774/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450774/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450774":{"id":"450774","timePublished":"2019-05-06T20:50:11+00:00","isCorporative":false,"lang":"ru","titleHtml":"Методы сжатия\u002Fхранения медиа данных в форматах WAVE и JPEG, часть 1","leadData":{"textHtml":"\u003Cp\u003EЗдравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений\u002Fзвука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с использованием этих форматов (.jpg, .wav) на практике. В этой части мы рассмотрим именно WAVE.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":5,"votesCount":11},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"2044133","alias":"dredsss0","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":5,"favoritesCount":51,"readingCount":6169,"score":13,"votesCount":25},"hubs":[{"relatedData":null,"id":"340","alias":"python","type":"collective","title":"Python","titleHtml":"Python","isProfiled":true},{"relatedData":null,"id":"21988","alias":"sound","type":"collective","title":"Звук","titleHtml":"Звук","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EЗдравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений\u002Fзвука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с использованием этих форматов (.jpg, .wav) на практике. В этой части мы рассмотрим именно WAVE.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"istoriya\"\u003EИстория\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EWAVE (Waveform Audio File Format) — формат файла-контейнера для хранения записи аудио потока. Этот контейнер, как правило, используется для хранения несжатого звука в импульсно-кодовой модуляции. (Взято из Википедии)\u003C\u002Fblockquote\u003E\u003Cp\u003EОн был придуман и опубликован в 1991 году вместе с RIFF компаниями Microsoft и IBM (Ведущие IT компании того времени).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"struktura-fayla\"\u003EСтруктура файла\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EУ файла есть заголовочная часть, сами данные, но нет футера. Заголовок весит в общем 44 байта.\u003Cbr\u002F\u003E\r\nВ хедере находятся настройки количества бит в семпле, частоты дескритизации, глубины звука и т.п. информации, необходимой для звуковой карты. (Все числовые значения таблицы должны быть записаны в Little-Endian порядке)\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Cthead\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003E\u003Cstrong\u003EИмя блока\u003C\u002Fstrong\u003E\u003C\u002Fth\u003E\r\n\u003Cth\u003E\u003Cstrong\u003EРазмер блока (B)\u003C\u002Fstrong\u003E\u003C\u002Fth\u003E\r\n\u003Cth\u003E\u003Cstrong\u003EОписание\u002FПредназначение\u003C\u002Fstrong\u003E\u003C\u002Fth\u003E\r\n\u003Cth\u003E\u003Cstrong\u003EЗначение (у некоторых оно фиксировано\u003C\u002Fstrong\u003E\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Fthead\u003E\r\n\u003Ctbody\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EchunkId\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EОпределение файла как медиа-контейнер\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0x52494646 в Big-Endian (\"RIFF\")\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EchunkSize\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EРазмер всего файла без chunkId и chunkSize\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EFILE_SIZE — 8\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003Eformat\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EОпределение типа из RIFF\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0x57415645 в Big-Endian (\"WAVE\")\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003Esubchunk1Id\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E\u003Cdel\u003EЧтобы файл побольше места занимал\u003C\u002Fdel\u003E продолжение format'а\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0x666d7420 в Big-Endian (\"fmt \")\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003Esubchunk1Size\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EОставшийся хедер (в байтах)\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E16 по умолчанию (для случая без сжатия аудиопотока)\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EaudioFormat\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EАудио формат (зависит от метода сжатия и структуры аудиоданных)\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1 (для PCM, который мы и рассматриваем)\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EnumChannels\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EКоличество каналов\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1\u002F2, мы возьмем 1 канал (3\u002F4\u002F5\u002F6\u002F7… — специфическая аудиодорожка, например 4 для квадро звука и т.п.)\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EsampleRate\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EЧастота семплирования звука (в Герцах)\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EЧем больше, тем качественнее будет звук, но тем больше потребуется памяти для создания аудиодорожки той же длины, рекомендуемое значение — 48000 (наиболее приемлемое качество звука)\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EbyteRate\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EКоличество байт за 1 секунду\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EsampleRate \u003Cem\u003E numChannels \u003C\u002Fem\u003E bitsPerSample (далее)\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EblockAlign\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EКоличество байт для 1 семпла\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EnumChannels * bitsPerSample: 8\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EbitsPerSample\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EКоличество бит за 1 семпл (глубина)\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EЛюбое число, кратное 8. Чем больше, тем лучше и тяжелее будет аудио, от 32 бит разницы нет для человека\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003Esubchunk2Id\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EМетка отсчета начала данных (т.к. могут быть другие элементы хедера в зависимости от audioFormat)\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0x64617461 в Big-Endian (\"data\")\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003Esubchunk2Size\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E4\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EРазмер области данных\u003C\u002Ftd\u003E\r\n\u003Ctd\u003Eразмер data в int'е\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003Edata\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EbyteRate * продолжительность аудио\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EАудиоданные\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E?\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftbody\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"primer-s-wave\"\u003EПример с WAVE\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПредыдущую таблицу можно с легкостью перевести в структуру на C, но наш язык на сегодня — Python. Самое легкое, что можно сделать, используя \"волну\" — генератор шума. Для этой задачи нам не потребуются высокий byteRate и сжатие.\u003Cbr\u002F\u003E\r\nДля начала импортируем необходимые модули:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003E# WAV.py\n\nfrom struct import pack  # перевод py-объектов в базовые типы из C\nfrom os import urandom  # функция для чтения \u002Fdev\u002Furandom, для windows:\n# from random import randint\n# urandom = lambda sz: bytes([randint(0, 255) for _ in range(sz)])  # лямбда под windows, т.к. urandom'а в винде нет\nfrom sys import argv, exit  # аргументы к проге и выход\n\nif len(argv) != 3:  # +1 имя скрипта (-1, если будете замораживать)\n    print('Usage: python3 WAV.py [num of samples] [output]')\n    exit(1)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДалее нам необходимо создать все необходимые переменные из таблицы по их размерам. Непостоянные величины в ней зависят тут только от numSamples (количество семплов). Чем больше их будет, тем дольше будет идти наш шум.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003EnumSamples = int(argv[1])\noutput_path = argv[2]\n\nchunkId = b'RIFF'\nFormat = b'WAVE'\nsubchunk1ID = b'fmt '\nsubchunk1Size = b'\\x10\\x00\\x00\\x00'  # 0d16\naudioFormat = b'\\x01\\x00'\nnumChannels = b'\\x02\\x00'  # 2-х каналов будет достаточно (стерео)\nsampleRate = pack('&lt;L', 1000)  # 1000 хватит, но если поставить больше, то шум будет слышен лучше. С 1000-ю он звучит, как ветер\nbitsPerSample = b'\\x20\\x00'  # 0d32\nbyteRate = pack('&lt;L', 1000 * 2 * 4)  # sampleRate * numChannels * bitsPerSample \u002F 8  (32 bit sound)\nblockAlign = b'\\x08\\x00'  # numChannels * BPS \u002F 8\nsubchunk2ID = b'data'\nsubchunk2Size = pack('&lt;L', numSamples * 2 * 4)  # * numChannels * BPS \u002F 8\nchunkSize = pack('&lt;L', 36 + numSamples * 2 * 4)  # 36 + subchunk2Size\n\ndata = urandom(1000 * 2 * 4 * numSamples)  # сам шум\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОсталось лишь только записать их в необходимой последовательности (как в таблице):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Ewith open(output_path, 'wb') as fh:\n    fh.write(chunkId + chunkSize + Format + subchunk1ID +\n            subchunk1Size + audioFormat + numChannels + \n            sampleRate + byteRate + blockAlign + bitsPerSample +\n            subchunk2ID + subchunk2Size + data)  # записываем\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ так, готово. Для использования скрипта, нам нужно добавить необходимые аргументы командной строки:\u003Cbr\u002F\u003E\r\n\u003Ccode\u003Epython3 WAV.py [num of samples] [output]\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\nnum of samples — кол. семплов\u003Cbr\u002F\u003E\r\noutput — путь к выходному файлу\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВот ссылка на тестовый аудиофайл с шумом, но для экономии памяти я снизил BPS до 1b\u002Fs и количество каналов опустил до 1 (с 32 битным несжатым стерео аудиопотоком в 64kbs получилось 80M чистого .wav файла, а так только 10): \u003Ca href=\"https:\u002F\u002Finstaud.io\u002F3Dcy\"\u003Ehttps:\u002F\u002Finstaud.io\u002F3Dcy\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВесь код целиком (WAV.py) (Код имеет множество дублирований значений переменнных, это лишь набросок):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Efrom struct import pack  # перевод py-объектов в базовые типы из C\nfrom os import urandom  # функция для чтения \u002Fdev\u002Furandom, для windows:\n# from random import randint\n# urandom = lambda sz: bytes([randint(0, 255) for _ in range(sz)])  # лямбда под windows, т.к. urandom'а в винде нет\nfrom sys import argv, exit  # аргументы к проге и выход\n\nif len(argv) != 3:  # +1 имя скрипта (-1, если будете замораживать)\n    print('Usage: python3 WAV.py [num of samples] [output]')\n    exit(1)\n\nnumSamples = int(argv[1])\noutput_path = argv[2]\n\nchunkId = b'RIFF'\nFormat = b'WAVE'\nsubchunk1ID = b'fmt '\nsubchunk1Size = b'\\x10\\x00\\x00\\x00'  # 0d16\naudioFormat = b'\\x01\\x00'\nnumChannels = b'\\x02\\x00'  # 2-х каналов будет достаточно (стерео) \nsampleRate = pack('&lt;L', 1000)  # 1000 хватит, но можно и больше.\nbitsPerSample = b'\\x20\\x00'  # 0d32\nbyteRate = pack('&lt;L', 1000 * 2 * 4)  # sampleRate * numChannels * bitsPerSample \u002F 8  (32 bit sound)\nblockAlign = b'\\x08\\x00'  # numChannels * BPS \u002F 8\nsubchunk2ID = b'data'\nsubchunk2Size = pack('&lt;L', numSamples * 2 * 4)  # * numChannels * BPS \u002F 8\nchunkSize = pack('&lt;L', 36 + numSamples * 2 * 4)  # 36 + subchunk2Size\n\ndata = urandom(1000 * 2 * 4 * numSamples)  # сам шум\n\nwith open(output_path, 'wb') as fh:\n    fh.write(chunkId + chunkSize + Format + subchunk1ID +\n            subchunk1Size + audioFormat + numChannels + \n            sampleRate + byteRate + blockAlign + bitsPerSample +\n            subchunk2ID + subchunk2Size + data)  # записываем в файл результат\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"itog\"\u003EИтог\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВот вы и узнали чуть побольше о цифровом звуке и о том, как его хранят. В этом посте мы не использовали сжатия (audioFormat), но для рассмотра каждого из популярных потребуется статей 10. Надеюсь вы узнали что-то новое для себя и это вам поможет в будущих разработках.\u003Cbr\u002F\u003E\r\nСпасибо!\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch5 id=\"istochniki\"\u003EИсточники\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ca href=\"https:\u002F\u002Faudiocoding.ru\u002Farticle\u002F2008\u002F05\u002F22\u002Fwav-file-structure.html\"\u003EСтруктура WAV файла\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FWAV\"\u003EWAV — Википедия\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"python3"},{"titleHtml":"wav"},{"titleHtml":"статья"},{"titleHtml":"структуры данных"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450774\u002F8c5c23236ec4877fb11a9e4d9e180026\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450774\u002F8c5c23236ec4877fb11a9e4d9e180026\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450774\\\u002F\"},\"headline\":\"Методы сжатия\\\u002Fхранения медиа данных в форматах WAVE и JPEG, часть 1\",\"datePublished\":\"2019-05-06T23:50:11+03:00\",\"dateModified\":\"2019-05-09T08:57:06+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"dredsss0\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений\\\u002Fзвука, таких как JPEG (изобр.) и WAVE (звук), также в ни...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450774\\\u002F#post-content-body\",\"about\":[\"h_python\",\"h_sound\",\"f_develop\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450774\\\u002F8c5c23236ec4877fb11a9e4d9e180026\\\u002F\"]}","metaDescription":"Здравствуйте! Моя первая серия статей будет направлена на изучение методов сжатия и хранения изображений\u002Fзвука, таких как JPEG (изобр.) и WAVE (звук), также в них будут примеры программ с...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"python,sound"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

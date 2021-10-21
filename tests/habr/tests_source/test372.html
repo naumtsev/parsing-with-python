@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как алгоритмы Amazon определяют, кого пора уволить / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/pochtoy\/blog\/450372\/"},"headline":"Как алгоритмы Amazon определяют, кого пора уволить","datePublished":"2019-05-03T10:11:03+03:00","dateModified":"2019-05-04T02:56:19+03:00","author":{"@type":"Person","name":"Pochtoycom"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не мо...","url":"https:\/\/habr.com\/ru\/company\/pochtoy\/blog\/450372\/#post-content-body","about":["c_pochtoy","h_ecommerce","h_hr_management","h_itcompanies","f_management","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/gz\/kz\/i5\/gzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg","https:\/\/habrastorage.org\/webt\/lb\/u9\/ur\/lbu9ure1nq1krurkg34bepuxxec.jpeg","https:\/\/habrastorage.org\/webt\/if\/ha\/t7\/ifhat7wc2euh6tov8gxasxfejkw.jpeg","https:\/\/habrastorage.org\/webt\/oa\/sj\/bm\/oasjbmzg8jifvwz5tbcvug9f1q8.jpeg","https:\/\/habrastorage.org\/webt\/td\/yg\/rc\/tdygrcx4ty9wva1fl-wtcg_4pfw.jpeg","https:\/\/habrastorage.org\/webt\/xi\/mk\/dy\/ximkdyktud3lwffbbbhrjlrmt0w.jpeg","https:\/\/habrastorage.org\/webt\/8s\/l3\/3d\/8sl33dtn9xrykvzid2enikzqcfq.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как алгоритмы Amazon определяют, кого пора уволить" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как алгоритмы Amazon определяют, кого пора уволить" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как алгоритмы Amazon определяют, кого пора уволить" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450372/6a18fde43765e70e25e307c28823afdc/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450372/6a18fde43765e70e25e307c28823afdc/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450372/6a18fde43765e70e25e307c28823afdc/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450372/6a18fde43765e70e25e307c28823afdc/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450372/6a18fde43765e70e25e307c28823afdc/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450372" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-03T07:11:03.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450372/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/pochtoy/blog/450372/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450372/6a18fde43765e70e25e307c28823afdc/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450372/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="pochtoy" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/pochtoy/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/geektimes/company/af4/d46/07c/af4d4607cd74ccef8bb3fc645d4432de.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/pochtoy/profile/" class="tm-company-card__name">
+        Pochtoy.com
+      </a> <div class="tm-company-card__description">Адрес для ваших покупок в США и пересылки в Россию</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Pochtoycom/" title="Pochtoycom" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/a16/2e3/b12/a162e3b12c6addac1ef45da87403640f.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Pochtoycom/" class="tm-user-info__username">
+      Pochtoycom
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-03T07:11:03.000Z" title="2019-05-03, 10:11">3  мая  2019 в 10:11</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как алгоритмы Amazon определяют, кого пора уволить</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/pochtoy/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Pochtoy.com</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/ecommerce/" class="tm-article-snippet__hubs-item-link"><span>Управление e-commerce</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/hr_management/" class="tm-article-snippet__hubs-item-link"><span>Управление персоналом</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/itcompanies/" class="tm-article-snippet__hubs-item-link"><span>IT-компании</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/gz/kz/i5/gzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg" data-src="https://habrastorage.org/webt/gz/kz/i5/gzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg" data-blurred="true"/><br/>
+<br/>
+<p>У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной автоматизации ей потребуется еще минимум 10 лет. Поэтому на всех этих объектах трудится более 125 000 штатных сотрудников компании. Всех их нужно контролировать, чтобы ни один товар не задерживался на пути к покупателю. Как это сделать? Пока алгоритмы не могут справиться с физической работой, они, оказывается, заняты самым важным: они увольняют людей.<a name="habracut"></a></p><br/>
+<p>Исполнительные центры Amazon – главная движущая сила компании. Огромные склады площадью по 100 000 м2, на которых сотрудники принимают, распределяют, сортируют, отслеживают, пакуют и отправляют десятки тысяч посылок каждый день. Критики говорят, что в этих центрах многие люди каждый день испытывают почти нечеловеческие условия труда, боясь потерять работу. Журналист из Британии проработал на складе Amazon месяц, и сообщил о том, что многие его коллеги <a href="https://www.mirror.co.uk/news/uk-news/amazon-delivery-drivers-forced-pee-13773445">были вынуждены</a> писать в бутылки, чтобы выполнить норму. Если ты не успеваешь паковать 240 (иногда до 400) ящиков в час или недостаточно быстро отбираешь товары – ты сразу же становишься кандидатом на увольнение.</p><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/lb/u9/ur/lbu9ure1nq1krurkg34bepuxxec.jpeg" data-src="https://habrastorage.org/webt/lb/u9/ur/lbu9ure1nq1krurkg34bepuxxec.jpeg" data-blurred="true"/><br/>
+<br/>
+<p>«Их логистическая система построена на том, чтобы люди вырабатывали себя до кости, а потом заменялись другими», – <a href="https://habr.com/ru/company/pochtoy/blog/430832/">рассказывает</a> один из менеджеров склада Amazon, бывший ветеран ВВС США. – «И за тобой всегда стоит кто-то, кто готов получить твою должность».</p><br/>
+<p>Amazon всегда <a href="https://habr.com/ru/company/pochtoy/blog/425849/">находила ответы</a> критикам. В том числе заявляя, что условия и зарплата у неё лучше, чем у других ритейлеров, а информация о постоянном страхе увольнений сильно преувеличена. Но на днях в руках Vox оказался документ, ставящий такие заявления под сомнение. На самом деле увольнения из-за «недовыполнения норм» происходят даже еще чаще, чем думали инсайдеры. Просто мало кто задерживается так надолго, чтобы собрать статистику.</p><br/>
+<p>Полный документ (35 страниц, в основном таблицы с значениями продуктивности по каждому из сотрудников, которые закрашены из соображений конфиденциальности) доступен <a href="https://ru.scribd.com/document/407590982/Amazon-Terminations#from_embed">вот здесь</a>. Это письмо адвоката из Morgan Lewis, представляющего Amazon по одному из дел, открытых против компании из-за «нечестного увольнения». В нём адвокат, Кэри Кристал, сообщает, что нормы для сотрудников выдаются алгоритмом извне и распространяются на весь центр, то есть на каждого работника в нём, и не могут быть модифицированы внутри, даже если вы не понравились (или, наоборот, сильно понравились) менеджеру. А система, выдающая предупреждения и подающая приказ об увольнении, является «предельно объективной».</p><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/if/ha/t7/ifhat7wc2euh6tov8gxasxfejkw.jpeg" data-src="https://habrastorage.org/webt/if/ha/t7/ifhat7wc2euh6tov8gxasxfejkw.jpeg" data-blurred="true"/><br/>
+<i>Мусульмане, работающие на складе Amazon в Миннеаполисе, протестуют потому, что у них нет времени молиться (на Рамадан им дают 2 перерыва по 15 минут)</i><br/>
+<br/>
+<p>Документ приоткрывает некоторые секреты работы компании. Например, выясняется, что со склада в Балтиморе (где работала Барбара Дювалл, обратившаяся с жалобой на Amazon) за год было уволено порядка 300 полноценных сотрудников (т.е. прошедших стажировку и работающих на постоянной основе, а не под Prime Day или Рождество). Это из 2500 работающих там человек. Если такой темп увольнений держится постоянно, это значит, что Amazon ежегодно увольняет больше 10% своих сотрудников. Штат компании в Америке – больше 125 000 сотрудников, значит, тысячи людей ежемесячно теряют работу из-за недостаточно быстрого перемещения товаров и ящиков.</p><br/>
+<p>И это – только увольнения по причинам невыполнения норм продуктивности, которые отслеживают алгоритмы. На самом деле текучка в Amazon намного больше. Сотрудников также могут уволить менеджеры (например, за антисоциальное поведение) или они могут уволиться сами, не выдержав темпа работы.</p><br/>
+<p>Критики системы (в основном, сами рабочие Amazon) говорят, что эта машина видит только цифры, а не стоящих за ними людей. Cтейси Митчелл, директор Института Самообеспеченности, говорит, что к ней в центр регулярно приходят работники исполнительных центров, ищущие материальной или социальной поддержки. «Я постоянно слышу от них, что они чувствуют себя полностью заменимыми, как винтики в системе. К ним относятся как к роботам, потому что их постоянно мониторят и оценивают эти автоматические системы. Роботы хотят, чтобы на них работали такие же роботы».</p><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/oa/sj/bm/oasjbmzg8jifvwz5tbcvug9f1q8.jpeg" data-src="https://habrastorage.org/webt/oa/sj/bm/oasjbmzg8jifvwz5tbcvug9f1q8.jpeg" data-blurred="true"/><br/>
+<br/>
+<p>Основной показатель вашей эффективности в системе, согласно документу адвоката Amazon, – «время вне задания» («time off task», ToT). Чем он ниже, то есть чем меньше вы отдыхаете, тем лучше. Другие показатели эффективности – второстепенны. Даже если вы душа компании и не брали себе выходных десять лет, достаточно пропустить два часа, и вы уволены. За 30 минут получаете письменное предупреждение, 1 час –  последнее предупреждение. Отсюда и рабочие, которые боятся взять перерыв в туалет. Если провозишься слишком долго, это может быть предупреждение, а если получить несколько таких в одном месяце – прощай, работа.</p><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/td/yg/rc/tdygrcx4ty9wva1fl-wtcg_4pfw.jpeg" data-src="https://habrastorage.org/webt/td/yg/rc/tdygrcx4ty9wva1fl-wtcg_4pfw.jpeg" data-blurred="true"/><br/>
+<br/>
+<p>Amazon говорит, что темпы работы задаются для всех сотрудников склада, и снижаются только если больше 75% из них не справляются со своей нормой. Худшие 5% отсылаются на тренировочную программу, и если их результаты там не улучшатся, тут тоже следует увольнение. Если сотрудник не согласен с решением, можно попробовать оспорить его внутри компании.</p><br/>
+<p>Собственно, так и уволили Барбару Дювалл, которая пошла в суд: она несколько недель выполняла задачи со скоростью 72-93% от нормы. Особенно туго было с запаковкой и скоростью сканирования штрихкодов товаров. Алгоритм послал её на тренировку, там ей показали более быстрый способ сканирования. Она ему не последовала, темпы улучшились, но не намного. Параллельно Барбара пыталась бороться за «права рабочих» (Amazon говорит, что только за свои права не работать). Вскоре её уволили, наравне с несколькими сотнями других «лентяев». Барбара уверена, что её уволили за её протестную активность, но у Amazon есть все цифры, её показатели за каждую неделю.</p><br/>
+<p>Представитель компании в письме ответил в защиту Amazon:</p><br/>
+<blockquote>Всего лишь порядка трёхсот человек в Балтиморе были уволены за это время из-за недостаточной продуктивности. В целом, количество уволенных сотрудников в последние два года снизилось как на этом объекте, так и в целом по Северной Америке. Наши системы автоматически задают нормативы, основываясь на таких параметрах, как расположение склада и спрос в этом регионе. Мы не требуем от людей невозможного.<br/>
+</blockquote><br/>
+<p>Может быть, самое удивительное во всём этом – что люди еще удивляются, когда софт начинает заниматься вопросами увольнений. AI уже несколько лет <a href="https://www.wsj.com/articles/how-ai-is-transforming-the-workplace-1489371060?mod=article_inline">отбирает соискателей</a>, работает <a href="https://www.wsj.com/articles/meet-your-new-boss-an-algorithm-1512910800?mod=article_inline">менеджером проектов</a>, а у Walmart – и <a href="https://habr.com/ru/company/pochtoy/blog/450240/">управляет магазином</a>. Системы учета рабочего времени давно используются для оценки активности работы офисных сотрудников. Бортовые компьютеры на фурах в США проверяют скорость, переключение передач и обороты двигателя в минуту, чтобы следить за качеством труда дальнобойщика. Кассовые терминалы в крупных магазинах следят за темпом работы кассира, и если он слишком медленно сканирует товары, подают ему об этом сигнал.</p><br/>
+<p>Все эти системы уже помогают работодателям принять решение о том, кого нужно уволить. Amazon просто перешел на следующую логическую ступень, и перестал требовать у людей-менеджеров разрешения, окончательно поставив цифры во главе угла. Бездушно? Зато эффективно!</p><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/xi/mk/dy/ximkdyktud3lwffbbbhrjlrmt0w.jpeg" data-src="https://habrastorage.org/webt/xi/mk/dy/ximkdyktud3lwffbbbhrjlrmt0w.jpeg" data-blurred="true"/><br/>
+<br/>
+<p>Собственные сотрудники для компании – максимально расходный товар, настолько, насколько это позволяют законы. По всем вопросам в приоритете стоят покупатели. Только несколько дней назад Безос анонсировал, что потратит $800 млн, чтобы клиенты компании в США, подписанные на Prime, получали товары в течение тех же суток. Это будет достигаться в том числе путём открытия новых исполнительных центров. Это при том, что на наш склад в Штатах товары от Amazon и так в среднем приходят за два-три дня, это самая быстрая доставка из магазинов. Но Безос считает, что скорость их работы – главное конкурентное преимущество компании. И минутное промедление (например, из-за сотрудника, решившего передохнуть) может помешать ему реализовать это преимущество.</p><br/>
+<p>Такая стратегия приносит компании хорошие плоды. 25 апреля Amazon <a href="https://press.aboutamazon.com/news-releases/news-release-details/amazoncom-announces-first-quarter-sales-17-597-billion">опубликовала</a> квартальный отчет, согласно которому в январе-марте интернет-гигант увеличил свою чистую прибыль более чем в два раза. Она достигла исторического максимума и составила $3,561 млрд ( по сравнению с $1,629 млрд годом ранее). Выручка поднялась на 17% и достигла $59,7 млрд. На таких новостях состояние Джеффа Безоса превысило $160 млрд. Это больше, чем у 40 млн беднейших американцев.</p><br/>
+<a href="http://bit.ly/PochtoyHABR"><img src="https://habrastorage.org/r/w780q1/webt/8s/l3/3d/8sl33dtn9xrykvzid2enikzqcfq.jpeg" data-src="https://habrastorage.org/webt/8s/l3/3d/8sl33dtn9xrykvzid2enikzqcfq.jpeg" data-blurred="true"/></a></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bamazon%5D" class="tm-tags-list__link">amazon</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpochtoy%5D" class="tm-tags-list__link">pochtoy</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D1%88%D0%B0%5D" class="tm-tags-list__link">сша</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D0%BA%D0%BB%D0%B0%D0%B4%D1%8B%5D" class="tm-tags-list__link">склады</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D0%BA%D0%B8%5D" class="tm-tags-list__link">сотрудники</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B1%D0%B5%D0%B7%D0%BE%D1%81%5D" class="tm-tags-list__link">безос</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%83%D0%B2%D0%BE%D0%BB%D1%8C%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">увольнение</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D0%BD%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5%20%D1%86%D0%B5%D0%BD%D1%82%D1%80%D1%8B%5D" class="tm-tags-list__link">исполнительные центры</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/pochtoy/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Pochtoy.com
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/ecommerce/" class="tm-hubs-list__link">
+    Управление e-commerce
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/hr_management/" class="tm-hubs-list__link">
+    Управление персоналом
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/itcompanies/" class="tm-hubs-list__link">
+    IT-компании
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 64: ↑52 и ↓12</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 64: ↑52 и ↓12" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+40</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">54K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    72
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/pochtoy/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/geektimes/company/af4/d46/07c/af4d4607cd74ccef8bb3fc645d4432de.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/pochtoy/profile/" class="tm-company-snippet__title">Pochtoy.com</a> <div class="tm-company-snippet__description">Адрес для ваших покупок в США и пересылки в Россию</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="http://pochtoy.com/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://facebook.com/pochtoy" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://vk.com/clubpochtoy" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Pochtoycom/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/a16/2e3/b12/a162e3b12c6addac1ef45da87403640f.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 323 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    85
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/Pochtoycom/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Pochtoycom
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Доставка товаров из США в Россию</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/pochtoy/blog/450372/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 326 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2010-09-20T20:00:00.000Z" title="2010-09-21, 00:00">21  сентября  2010</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    США
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://pochtoy.com/" target="_blank" class="tm-company-basic-info__link">
+      pochtoy.com
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    11–30 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2016-08-17T08:12:34.000Z" title="2016-08-17, 11:12">17  августа  2016</time></dd></dl> <!----></div></div> <!----></section> <!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/pochtoy/blog/450372/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/pochtoy/blog/450372/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450372":{"id":"450372","timePublished":"2019-05-03T07:11:03+00:00","isCorporative":true,"lang":"ru","titleHtml":"Как алгоритмы Amazon определяют, кого пора уволить","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgz\u002Fkz\u002Fi5\u002Fgzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cp\u003EУ Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной автоматизации ей потребуется еще минимум 10 лет. Поэтому на всех этих объектах трудится более 125 000 штатных сотрудников компании. Всех их нужно контролировать, чтобы ни один товар не задерживался на пути к покупателю. Как это сделать? Пока алгоритмы не могут справиться с физической работой, они, оказывается, заняты самым важным: они увольняют людей.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":85,"votesCount":323},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1553065","alias":"Pochtoycom","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fa16\u002F2e3\u002Fb12\u002Fa162e3b12c6addac1ef45da87403640f.jpg","speciality":"Доставка товаров из США в Россию"},"statistics":{"commentsCount":326,"favoritesCount":72,"readingCount":54131,"score":40,"votesCount":64},"hubs":[{"relatedData":null,"id":"21760","alias":"pochtoy","type":"corporative","title":"Блог компании Pochtoy.com","titleHtml":"Блог компании Pochtoy.com","isProfiled":false},{"relatedData":null,"id":"20716","alias":"ecommerce","type":"collective","title":"Управление e-commerce","titleHtml":"Управление e-commerce","isProfiled":true},{"relatedData":null,"id":"20736","alias":"hr_management","type":"collective","title":"Управление персоналом","titleHtml":"Управление персоналом","isProfiled":true},{"relatedData":null,"id":"22026","alias":"itcompanies","type":"collective","title":"IT-компании","titleHtml":"IT-компании","isProfiled":false}],"flows":[{"id":"3","alias":"management","title":"Менеджмент"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fgz\u002Fkz\u002Fi5\u002Fgzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgz\u002Fkz\u002Fi5\u002Fgzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003EУ Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной автоматизации ей потребуется еще минимум 10 лет. Поэтому на всех этих объектах трудится более 125 000 штатных сотрудников компании. Всех их нужно контролировать, чтобы ни один товар не задерживался на пути к покупателю. Как это сделать? Пока алгоритмы не могут справиться с физической работой, они, оказывается, заняты самым важным: они увольняют людей.\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИсполнительные центры Amazon – главная движущая сила компании. Огромные склады площадью по 100 000 м2, на которых сотрудники принимают, распределяют, сортируют, отслеживают, пакуют и отправляют десятки тысяч посылок каждый день. Критики говорят, что в этих центрах многие люди каждый день испытывают почти нечеловеческие условия труда, боясь потерять работу. Журналист из Британии проработал на складе Amazon месяц, и сообщил о том, что многие его коллеги \u003Ca href=\"https:\u002F\u002Fwww.mirror.co.uk\u002Fnews\u002Fuk-news\u002Famazon-delivery-drivers-forced-pee-13773445\"\u003Eбыли вынуждены\u003C\u002Fa\u003E писать в бутылки, чтобы выполнить норму. Если ты не успеваешь паковать 240 (иногда до 400) ящиков в час или недостаточно быстро отбираешь товары – ты сразу же становишься кандидатом на увольнение.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Flb\u002Fu9\u002Fur\u002Flbu9ure1nq1krurkg34bepuxxec.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flb\u002Fu9\u002Fur\u002Flbu9ure1nq1krurkg34bepuxxec.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003E«Их логистическая система построена на том, чтобы люди вырабатывали себя до кости, а потом заменялись другими», – \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fpochtoy\u002Fblog\u002F430832\u002F\"\u003Eрассказывает\u003C\u002Fa\u003E один из менеджеров склада Amazon, бывший ветеран ВВС США. – «И за тобой всегда стоит кто-то, кто готов получить твою должность».\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAmazon всегда \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fpochtoy\u002Fblog\u002F425849\u002F\"\u003Eнаходила ответы\u003C\u002Fa\u003E критикам. В том числе заявляя, что условия и зарплата у неё лучше, чем у других ритейлеров, а информация о постоянном страхе увольнений сильно преувеличена. Но на днях в руках Vox оказался документ, ставящий такие заявления под сомнение. На самом деле увольнения из-за «недовыполнения норм» происходят даже еще чаще, чем думали инсайдеры. Просто мало кто задерживается так надолго, чтобы собрать статистику.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолный документ (35 страниц, в основном таблицы с значениями продуктивности по каждому из сотрудников, которые закрашены из соображений конфиденциальности) доступен \u003Ca href=\"https:\u002F\u002Fru.scribd.com\u002Fdocument\u002F407590982\u002FAmazon-Terminations#from_embed\"\u003Eвот здесь\u003C\u002Fa\u003E. Это письмо адвоката из Morgan Lewis, представляющего Amazon по одному из дел, открытых против компании из-за «нечестного увольнения». В нём адвокат, Кэри Кристал, сообщает, что нормы для сотрудников выдаются алгоритмом извне и распространяются на весь центр, то есть на каждого работника в нём, и не могут быть модифицированы внутри, даже если вы не понравились (или, наоборот, сильно понравились) менеджеру. А система, выдающая предупреждения и подающая приказ об увольнении, является «предельно объективной».\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fif\u002Fha\u002Ft7\u002Fifhat7wc2euh6tov8gxasxfejkw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fif\u002Fha\u002Ft7\u002Fifhat7wc2euh6tov8gxasxfejkw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EМусульмане, работающие на складе Amazon в Миннеаполисе, протестуют потому, что у них нет времени молиться (на Рамадан им дают 2 перерыва по 15 минут)\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДокумент приоткрывает некоторые секреты работы компании. Например, выясняется, что со склада в Балтиморе (где работала Барбара Дювалл, обратившаяся с жалобой на Amazon) за год было уволено порядка 300 полноценных сотрудников (т.е. прошедших стажировку и работающих на постоянной основе, а не под Prime Day или Рождество). Это из 2500 работающих там человек. Если такой темп увольнений держится постоянно, это значит, что Amazon ежегодно увольняет больше 10% своих сотрудников. Штат компании в Америке – больше 125 000 сотрудников, значит, тысячи людей ежемесячно теряют работу из-за недостаточно быстрого перемещения товаров и ящиков.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ это – только увольнения по причинам невыполнения норм продуктивности, которые отслеживают алгоритмы. На самом деле текучка в Amazon намного больше. Сотрудников также могут уволить менеджеры (например, за антисоциальное поведение) или они могут уволиться сами, не выдержав темпа работы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКритики системы (в основном, сами рабочие Amazon) говорят, что эта машина видит только цифры, а не стоящих за ними людей. Cтейси Митчелл, директор Института Самообеспеченности, говорит, что к ней в центр регулярно приходят работники исполнительных центров, ищущие материальной или социальной поддержки. «Я постоянно слышу от них, что они чувствуют себя полностью заменимыми, как винтики в системе. К ним относятся как к роботам, потому что их постоянно мониторят и оценивают эти автоматические системы. Роботы хотят, чтобы на них работали такие же роботы».\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Foa\u002Fsj\u002Fbm\u002Foasjbmzg8jifvwz5tbcvug9f1q8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Foa\u002Fsj\u002Fbm\u002Foasjbmzg8jifvwz5tbcvug9f1q8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОсновной показатель вашей эффективности в системе, согласно документу адвоката Amazon, – «время вне задания» («time off task», ToT). Чем он ниже, то есть чем меньше вы отдыхаете, тем лучше. Другие показатели эффективности – второстепенны. Даже если вы душа компании и не брали себе выходных десять лет, достаточно пропустить два часа, и вы уволены. За 30 минут получаете письменное предупреждение, 1 час –  последнее предупреждение. Отсюда и рабочие, которые боятся взять перерыв в туалет. Если провозишься слишком долго, это может быть предупреждение, а если получить несколько таких в одном месяце – прощай, работа.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ftd\u002Fyg\u002Frc\u002Ftdygrcx4ty9wva1fl-wtcg_4pfw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftd\u002Fyg\u002Frc\u002Ftdygrcx4ty9wva1fl-wtcg_4pfw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAmazon говорит, что темпы работы задаются для всех сотрудников склада, и снижаются только если больше 75% из них не справляются со своей нормой. Худшие 5% отсылаются на тренировочную программу, и если их результаты там не улучшатся, тут тоже следует увольнение. Если сотрудник не согласен с решением, можно попробовать оспорить его внутри компании.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСобственно, так и уволили Барбару Дювалл, которая пошла в суд: она несколько недель выполняла задачи со скоростью 72-93% от нормы. Особенно туго было с запаковкой и скоростью сканирования штрихкодов товаров. Алгоритм послал её на тренировку, там ей показали более быстрый способ сканирования. Она ему не последовала, темпы улучшились, но не намного. Параллельно Барбара пыталась бороться за «права рабочих» (Amazon говорит, что только за свои права не работать). Вскоре её уволили, наравне с несколькими сотнями других «лентяев». Барбара уверена, что её уволили за её протестную активность, но у Amazon есть все цифры, её показатели за каждую неделю.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПредставитель компании в письме ответил в защиту Amazon:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EВсего лишь порядка трёхсот человек в Балтиморе были уволены за это время из-за недостаточной продуктивности. В целом, количество уволенных сотрудников в последние два года снизилось как на этом объекте, так и в целом по Северной Америке. Наши системы автоматически задают нормативы, основываясь на таких параметрах, как расположение склада и спрос в этом регионе. Мы не требуем от людей невозможного.\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМожет быть, самое удивительное во всём этом – что люди еще удивляются, когда софт начинает заниматься вопросами увольнений. AI уже несколько лет \u003Ca href=\"https:\u002F\u002Fwww.wsj.com\u002Farticles\u002Fhow-ai-is-transforming-the-workplace-1489371060?mod=article_inline\"\u003Eотбирает соискателей\u003C\u002Fa\u003E, работает \u003Ca href=\"https:\u002F\u002Fwww.wsj.com\u002Farticles\u002Fmeet-your-new-boss-an-algorithm-1512910800?mod=article_inline\"\u003Eменеджером проектов\u003C\u002Fa\u003E, а у Walmart – и \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fpochtoy\u002Fblog\u002F450240\u002F\"\u003Eуправляет магазином\u003C\u002Fa\u003E. Системы учета рабочего времени давно используются для оценки активности работы офисных сотрудников. Бортовые компьютеры на фурах в США проверяют скорость, переключение передач и обороты двигателя в минуту, чтобы следить за качеством труда дальнобойщика. Кассовые терминалы в крупных магазинах следят за темпом работы кассира, и если он слишком медленно сканирует товары, подают ему об этом сигнал.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВсе эти системы уже помогают работодателям принять решение о том, кого нужно уволить. Amazon просто перешел на следующую логическую ступень, и перестал требовать у людей-менеджеров разрешения, окончательно поставив цифры во главе угла. Бездушно? Зато эффективно!\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fxi\u002Fmk\u002Fdy\u002Fximkdyktud3lwffbbbhrjlrmt0w.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fxi\u002Fmk\u002Fdy\u002Fximkdyktud3lwffbbbhrjlrmt0w.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСобственные сотрудники для компании – максимально расходный товар, настолько, насколько это позволяют законы. По всем вопросам в приоритете стоят покупатели. Только несколько дней назад Безос анонсировал, что потратит $800 млн, чтобы клиенты компании в США, подписанные на Prime, получали товары в течение тех же суток. Это будет достигаться в том числе путём открытия новых исполнительных центров. Это при том, что на наш склад в Штатах товары от Amazon и так в среднем приходят за два-три дня, это самая быстрая доставка из магазинов. Но Безос считает, что скорость их работы – главное конкурентное преимущество компании. И минутное промедление (например, из-за сотрудника, решившего передохнуть) может помешать ему реализовать это преимущество.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТакая стратегия приносит компании хорошие плоды. 25 апреля Amazon \u003Ca href=\"https:\u002F\u002Fpress.aboutamazon.com\u002Fnews-releases\u002Fnews-release-details\u002Famazoncom-announces-first-quarter-sales-17-597-billion\"\u003Eопубликовала\u003C\u002Fa\u003E квартальный отчет, согласно которому в январе-марте интернет-гигант увеличил свою чистую прибыль более чем в два раза. Она достигла исторического максимума и составила $3,561 млрд ( по сравнению с $1,629 млрд годом ранее). Выручка поднялась на 17% и достигла $59,7 млрд. На таких новостях состояние Джеффа Безоса превысило $160 млрд. Это больше, чем у 40 млн беднейших американцев.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"http:\u002F\u002Fbit.ly\u002FPochtoyHABR\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F8s\u002Fl3\u002F3d\u002F8sl33dtn9xrykvzid2enikzqcfq.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8s\u002Fl3\u002F3d\u002F8sl33dtn9xrykvzid2enikzqcfq.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fa\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"amazon"},{"titleHtml":"pochtoy"},{"titleHtml":"сша"},{"titleHtml":"склады"},{"titleHtml":"сотрудники"},{"titleHtml":"безос"},{"titleHtml":"увольнение"},{"titleHtml":"исполнительные центры"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450372\u002F6a18fde43765e70e25e307c28823afdc\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450372\u002F6a18fde43765e70e25e307c28823afdc\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fpochtoy\\\u002Fblog\\\u002F450372\\\u002F\"},\"headline\":\"Как алгоритмы Amazon определяют, кого пора уволить\",\"datePublished\":\"2019-05-03T10:11:03+03:00\",\"dateModified\":\"2019-05-04T02:56:19+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Pochtoycom\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не мо...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fpochtoy\\\u002Fblog\\\u002F450372\\\u002F#post-content-body\",\"about\":[\"c_pochtoy\",\"h_ecommerce\",\"h_hr_management\",\"h_itcompanies\",\"f_management\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgz\\\u002Fkz\\\u002Fi5\\\u002Fgzkzi5hqhwsrqcl3vid2jzsl-lm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flb\\\u002Fu9\\\u002Fur\\\u002Flbu9ure1nq1krurkg34bepuxxec.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fif\\\u002Fha\\\u002Ft7\\\u002Fifhat7wc2euh6tov8gxasxfejkw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Foa\\\u002Fsj\\\u002Fbm\\\u002Foasjbmzg8jifvwz5tbcvug9f1q8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftd\\\u002Fyg\\\u002Frc\\\u002Ftdygrcx4ty9wva1fl-wtcg_4pfw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fxi\\\u002Fmk\\\u002Fdy\\\u002Fximkdyktud3lwffbbbhrjlrmt0w.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8s\\\u002Fl3\\\u002F3d\\\u002F8sl33dtn9xrykvzid2enikzqcfq.jpeg\"]}","metaDescription":"У Amazon в США 110 больших складов, 75 исполнительных центров, 45 сортировочных центров и 50 станций доставки. Роботы пока со всем этим добром справиться не могут: компания говорит, что для полной...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"pochtoy":{"alias":"pochtoy","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fgeektimes\u002Fcompany\u002Faf4\u002Fd46\u002F07c\u002Faf4d4607cd74ccef8bb3fc645d4432de.jpg","titleHtml":"Pochtoy.com","descriptionHtml":"Адрес для ваших покупок в США и пересылки в Россию","relatedData":null,"statistics":{"postsCount":231,"newsCount":1,"vacanciesCount":0,"employeesCount":6,"careerRating":null,"subscribersCount":290,"rating":0,"invest":null},"foundationDate":{"year":"2010","month":"09","day":"21"},"location":{"city":{"id":"482790","title":"Pittsburgh"},"region":{"id":"1096","title":"Pennsylvania"},"country":{"id":"198","title":"США"}},"siteUrl":"http:\u002F\u002Fpochtoy.com\u002F","staffNumber":"11–30 человек","registrationDate":"2016-08-17T08:12:34+00:00","representativeUser":null,"contacts":[{"title":"Сайт","url":"http:\u002F\u002Fpochtoy.com\u002F"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fpochtoy"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fclubpochtoy"}],"settings":{"analyticsSettings":[],"branding":null,"status":"expired"},"metadata":{"titleHtml":"Pochtoy.com, Pittsburgh - Адрес для ваших покупок в США и пересылки в Россию с 21 сентября 2010 г.","title":"Pochtoy.com, Pittsburgh - Адрес для ваших покупок в США и пересылки в Россию с 21 сентября 2010 г.","keywords":[],"descriptionHtml":"231 статья от авторов компании Pochtoy.com","description":"231 статья от авторов компании Pochtoy.com"},"aDeskSettings":null,"careerAlias":null,"maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

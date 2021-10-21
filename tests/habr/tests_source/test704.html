@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/kaspersky\/blog\/450704\/"},"headline":"Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах","datePublished":"2019-05-06T15:06:42+03:00","dateModified":"2019-05-06T17:35:30+03:00","author":{"@type":"Person","name":"Kaspersky_Lab"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"За неделю подобралось сразу несколько новостей на тему &laquo;что еще не так с IoT&raquo; (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-тр...","url":"https:\/\/habr.com\/ru\/company\/kaspersky\/blog\/450704\/#post-content-body","about":["c_kaspersky","h_infosecurity","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/_2\/sp\/lb\/_2splbzeze4ohu5llw1me3j39e0.jpeg","https:\/\/habrastorage.org\/webt\/60\/93\/0r\/60930rf4xhxtqhcfqwdyjrtukp8.png","https:\/\/habrastorage.org\/webt\/g0\/-y\/fw\/g0-yfwtlt9lhkf1izmthkpyvur0.png","https:\/\/habrastorage.org\/webt\/rt\/it\/on\/rtitonimxdj-4icpqwyx5q9afce.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450704/e910a85d2f109db42f7cace641796b65/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450704/e910a85d2f109db42f7cace641796b65/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450704/e910a85d2f109db42f7cace641796b65/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450704/e910a85d2f109db42f7cace641796b65/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450704/e910a85d2f109db42f7cace641796b65/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450704" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T12:06:42.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450704/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/kaspersky/blog/450704/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450704/e910a85d2f109db42f7cace641796b65/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450704/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="kaspersky" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/kaspersky/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/8a6/991/272/8a69912727889ab6bdd5244d5f2e4a2c.png" width="48" class="tm-entity-image__pic"></div></a> <a href="https://career.habr.com/companies/kaspersky" rel="noopener" target="_blank" class="tm-grade tm-company-card__rating"><div class="tm-rating"><div class="tm-rating__header"><svg height="24" width="24" class="tm-svg-img tm-svg-grade__icon"><title>Оценка компании на Хабр Карьере</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#grade"></use></svg> <div class="tm-rating__counter tm-rating__counter_variant-grade">4.22</div></div> <div class="tm-rating__text tm-rating__text_variant-grade">
+    Оценка
+  </div></div></a> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">267.13</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/kaspersky/profile/" class="tm-company-card__name">
+        «Лаборатория Касперского»
+      </a> <div class="tm-company-card__description">Ловим вирусы, исследуем угрозы, спасаем мир</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Kaspersky_Lab/" title="Kaspersky_Lab" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/fe4/0e2/2a9/fe40e22a957a2624684a47d3da2d924f.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Kaspersky_Lab/" class="tm-user-info__username">
+      Kaspersky_Lab
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T12:06:42.000Z" title="2019-05-06, 15:06">6  мая  2019 в 15:06</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/kaspersky/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании «Лаборатория Касперского»</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/infosecurity/" class="tm-article-snippet__hubs-item-link"><span>Информационная безопасность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/_2/sp/lb/_2splbzeze4ohu5llw1me3j39e0.jpeg" align="right" data-src="https://habrastorage.org/webt/_2/sp/lb/_2splbzeze4ohu5llw1me3j39e0.jpeg" data-blurred="true"/>За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: <a href="https://habr.com/ru/company/kaspersky/blog/447258/">1</a>,<a href="https://habr.com/ru/company/kaspersky/blog/439880/">2</a>,<a href="https://habr.com/ru/company/kaspersky/blog/425701/">3</a>). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и аналогичных устройствах разных производителей из Китая, и даже в ЖК-панелях с беспроводным подключением, как правило, используемых для проведения офисных презентаций. <br/>
+<br/>
+Начнем с проблемы, затрагивающей максимальное количество устройств: видеокамер, удаленно управляемых дверных звонков и радионянь множества производителей из Китая. Исследователь Пол Маррапезе обнаружил (<a href="https://threatpost.ru/ilnkp2p-vuln-paves-way-for-new-botnet/32506/">новость</a>, краткий <a href="https://hacked.camera/">отчет</a>), что доступ к таким устройствам может быть получен без авторизации путем перебора серийных номеров, которые составляются по простому алгоритму. <br/>
+<a name="habracut"></a><br/>
+Все устройства объединяет общее приложение для удаленного управления, известное как iLnkP2P. При первом подключении владельцу IoT-устройства нужно просканировать нанесенный на корпус штрихкод или ввести вручную серийный номер. Соответственно, злоумышленники могут легко просканировать весь диапазон серийных номеров, найти работающие устройства и получить к ним доступ с использованием дефолтного логина и пароля. <br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/60/93/0r/60930rf4xhxtqhcfqwdyjrtukp8.png"/></div><br/>
+Даже если владелец поменяет пароль, его в ряде случаев можно перехватить, так как часть уязвимых устройств не использует шифрование данных. По словам исследователя, для некоторых устройств заявлено шифрование данных, хотя на самом деле информация передается открытым текстом. Всего удалось идентифицировать 15 наименований устройств минимум шести разных производителей. Полный список уязвимых устройств вряд ли удастся составить, проще идентифицировать их по названию приложения и части серийного номера. <br/>
+<br/>
+На запросы исследователя разработчик приложения не ответил, да и вряд ли получится закрыть данную уязвимость целиком: придется ломать механизм авторизации новых устройств. Более того, сайт разработчика софта, судя по всему, взломан, там стоит скрипт, перенаправляющий посетителей на китайскую игровую площадку. Поможет разве что блокировка передачи данных по UDP-порту 32100, через который устройства выходят в интернет. <br/>
+<br/>
+У автора еще одного «исследования» явные проблемы с этическим подходом к поиску уязвимостей. Вместо того чтобы уведомить вендора, хакер по имени L&amp;M взломал десятки тысяч профилей сервиса геолокации и слил информацию в СМИ (<a href="https://threatpost.ru/hacker-claims-he-has-control-over-27k-cars/32490/">новость</a>, оригинальная <a href="https://motherboard.vice.com/en_us/article/zmpx4x/hacker-monitor-cars-kill-engine-gps-tracking-apps">статья</a> на Motherboard). Речь идет о веб-сервисе для GPS-трекеров ProTrack и iTrack. <br/>
+<br/>
+Такие трекеры обычно устанавливаются в автомобили и позволяют удаленно отслеживать перемещения. В некоторых случаях возможна расширенная функциональность, например запуск и остановка двигателя. Для доступа к данным и управления используются приложения для смартфонов. Исследуя приложения, L&amp;M обнаружил, что по умолчанию клиенты сервиса получают пароль 123456, и далеко не все его меняют. <br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/g0/-y/fw/g0-yfwtlt9lhkf1izmthkpyvur0.png"/></div><br/>
+В результате стало возможно получить доступ к данным о местоположении устройства, реальному имени клиента, а для некоторых устройств появилась возможность удаленно заглушить двигатель, если автомобиль стоит или двигается со скоростью до 20 километров в час. Изданию Motherboard удалось связаться с четырьмя владельцами устройств и подтвердить подлинность данных, полученных без авторизации. Интересная и потенциально опасная уязвимость, но в любом случае исследования безопасности проводятся немного не так. <br/>
+<br/>
+Добавим к списку IoT-проблем исследование ESET (<a href="https://threatpost.com/d-link-cloud-camera-flaw/144304/">новость</a>, <a href="https://www.welivesecurity.com/2019/05/02/d-link-camera-vulnerability-video-stream/">отчет</a> компании) об уязвимости в IP-камерах D-Link DCS-2132L. Эксперты выяснили, что значительная часть данных между камерой и управляющим приложением передается без шифрования. Это дает возможность перехвата видеоданных, но только при сценарии Man-In-The-Middle либо при наличии доступа к локальной сети. В последнем случае есть возможность подмены прошивки устройства. <br/>
+<br/>
+Наконец, исследователи Tenable Security нашли (<a href="https://threatpost.com/bugs-wireless-presentation-systems/144318/">новость</a>, <a href="https://www.tenable.com/security/research/tra-2019-20">отчет</a>) 15 уязвимостей в популярных беспроводных дисплеях нескольких производителей, включая Crestron AirMedia и Barco wePresent. Во всех подверженных мониторах для беспроводного подключения компьютеров используется (почти) одинаковый код. Данные устройства, во-первых, не требуют проводов для подключения к компьютеру, во-вторых, могут управляться через веб-интерфейс. Уязвимости, найденные при исследовании устройства Crestron AM-100, позволяют получить полный доступ к беспроводному монитору. <br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/rt/it/on/rtitonimxdj-4icpqwyx5q9afce.png"/></div><br/>
+Данная проблема интересна в контексте сценария использования таких панелей: они устанавливаются в офисах, могут иметь доступ к локальной сети предприятия и одновременно — упрощенный доступ к самой панели для гостей. Неаккуратная настройка монитора может пробить серьезную брешь в защите компьютерной сети. По данным исследователей, уязвимости были частично закрыты обновлением ПО. <br/>
+<br/>
+<i>Disclaimer: Мнения, изложенные в этом дайджесте, могут не всегда совпадать с официальной позицией «Лаборатории Касперского». Дорогая редакция вообще рекомендует относиться к любым мнениям со здоровым скептицизмом.</i></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bd-link%5D" class="tm-tags-list__link">d-link</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcrestron%5D" class="tm-tags-list__link">crestron</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bbarco%20wepresent%5D" class="tm-tags-list__link">barco wepresent</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bextron%20sharelink%5D" class="tm-tags-list__link">extron sharelink</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bitrack%5D" class="tm-tags-list__link">itrack</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bprotrack%5D" class="tm-tags-list__link">protrack</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bilnkp2p%5D" class="tm-tags-list__link">ilnkp2p</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/kaspersky/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании «Лаборатория Касперского»
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/infosecurity/" class="tm-hubs-list__link">
+    Информационная безопасность
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 18: ↑16 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 18: ↑16 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+14</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">4.2K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    21
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/kaspersky/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/8a6/991/272/8a69912727889ab6bdd5244d5f2e4a2c.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/kaspersky/profile/" class="tm-company-snippet__title">«Лаборатория Касперского»</a> <div class="tm-company-snippet__description">Ловим вирусы, исследуем угрозы, спасаем мир</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://career.habr.com/companies/kaspersky" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Хабр Карьера
+    </a><a href="https://facebook.com/KasperskyLabRussia" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://twitter.com/kaspersky_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/kaspersky" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://instagram.com/kasperskylabrus" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Instagram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Kaspersky_Lab/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/fe4/0e2/2a9/fe40e22a957a2624684a47d3da2d924f.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 452 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    88
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">41</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/Kaspersky_Lab/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Kaspersky_Lab
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://twitter.com/kaspersky_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/kaspersky/blog/450704/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="1997-07-20T20:00:00.000Z" title="1997-07-21, 00:00">21  июля  1997</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://www.kaspersky.ru/" target="_blank" class="tm-company-basic-info__link">
+      www.kaspersky.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    1 001–5 000 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2008-08-09T07:42:34.000Z" title="2008-08-09, 11:42">9  августа  2008</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/kaspersky/blog/450704/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/kaspersky/blog/450704/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450704":{"id":"450704","timePublished":"2019-05-06T12:06:42+00:00","isCorporative":true,"lang":"ru","titleHtml":"Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_2\u002Fsp\u002Flb\u002F_2splbzeze4ohu5llw1me3j39e0.jpeg\" align=\"right\"\u003EЗа неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fkaspersky\u002Fblog\u002F447258\u002F\"\u003E1\u003C\u002Fa\u003E,\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fkaspersky\u002Fblog\u002F439880\u002F\"\u003E2\u003C\u002Fa\u003E,\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fkaspersky\u002Fblog\u002F425701\u002F\"\u003E3\u003C\u002Fa\u003E). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и аналогичных устройствах разных производителей из Китая, и даже в ЖК-панелях с беспроводным подключением, как правило, используемых для проведения офисных презентаций. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\nНачнем с проблемы, затрагивающей максимальное количество устройств: видеокамер, удаленно управляемых дверных звонков и радионянь множества производителей из Китая. Исследователь Пол Маррапезе обнаружил (\u003Ca href=\"https:\u002F\u002Fthreatpost.ru\u002Filnkp2p-vuln-paves-way-for-new-botnet\u002F32506\u002F\"\u003Eновость\u003C\u002Fa\u003E, краткий \u003Ca href=\"https:\u002F\u002Fhacked.camera\u002F\"\u003Eотчет\u003C\u002Fa\u003E), что доступ к таким устройствам может быть получен без авторизации путем перебора серийных номеров, которые составляются по простому алгоритму. \u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":88,"votesCount":452},"rating":41,"relatedData":null,"contacts":[{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fkaspersky_ru","value":"kaspersky_ru"}],"authorContacts":[{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fkaspersky_ru","value":"kaspersky_ru"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"62152","alias":"Kaspersky_Lab","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Ffe4\u002F0e2\u002F2a9\u002Ffe40e22a957a2624684a47d3da2d924f.png","speciality":"Пользователь"},"statistics":{"commentsCount":0,"favoritesCount":21,"readingCount":4160,"score":14,"votesCount":18},"hubs":[{"relatedData":null,"id":"5020","alias":"kaspersky","type":"corporative","title":"Блог компании «Лаборатория Касперского»","titleHtml":"Блог компании «Лаборатория Касперского»","isProfiled":false},{"relatedData":null,"id":"50","alias":"infosecurity","type":"collective","title":"Информационная безопасность","titleHtml":"Информационная безопасность","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F_2\u002Fsp\u002Flb\u002F_2splbzeze4ohu5llw1me3j39e0.jpeg\" align=\"right\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_2\u002Fsp\u002Flb\u002F_2splbzeze4ohu5llw1me3j39e0.jpeg\" data-blurred=\"true\"\u002F\u003EЗа неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fkaspersky\u002Fblog\u002F447258\u002F\"\u003E1\u003C\u002Fa\u003E,\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fkaspersky\u002Fblog\u002F439880\u002F\"\u003E2\u003C\u002Fa\u003E,\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fkaspersky\u002Fblog\u002F425701\u002F\"\u003E3\u003C\u002Fa\u003E). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и аналогичных устройствах разных производителей из Китая, и даже в ЖК-панелях с беспроводным подключением, как правило, используемых для проведения офисных презентаций. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНачнем с проблемы, затрагивающей максимальное количество устройств: видеокамер, удаленно управляемых дверных звонков и радионянь множества производителей из Китая. Исследователь Пол Маррапезе обнаружил (\u003Ca href=\"https:\u002F\u002Fthreatpost.ru\u002Filnkp2p-vuln-paves-way-for-new-botnet\u002F32506\u002F\"\u003Eновость\u003C\u002Fa\u003E, краткий \u003Ca href=\"https:\u002F\u002Fhacked.camera\u002F\"\u003Eотчет\u003C\u002Fa\u003E), что доступ к таким устройствам может быть получен без авторизации путем перебора серийных номеров, которые составляются по простому алгоритму. \u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nВсе устройства объединяет общее приложение для удаленного управления, известное как iLnkP2P. При первом подключении владельцу IoT-устройства нужно просканировать нанесенный на корпус штрихкод или ввести вручную серийный номер. Соответственно, злоумышленники могут легко просканировать весь диапазон серийных номеров, найти работающие устройства и получить к ним доступ с использованием дефолтного логина и пароля. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F60\u002F93\u002F0r\u002F60930rf4xhxtqhcfqwdyjrtukp8.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДаже если владелец поменяет пароль, его в ряде случаев можно перехватить, так как часть уязвимых устройств не использует шифрование данных. По словам исследователя, для некоторых устройств заявлено шифрование данных, хотя на самом деле информация передается открытым текстом. Всего удалось идентифицировать 15 наименований устройств минимум шести разных производителей. Полный список уязвимых устройств вряд ли удастся составить, проще идентифицировать их по названию приложения и части серийного номера. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа запросы исследователя разработчик приложения не ответил, да и вряд ли получится закрыть данную уязвимость целиком: придется ломать механизм авторизации новых устройств. Более того, сайт разработчика софта, судя по всему, взломан, там стоит скрипт, перенаправляющий посетителей на китайскую игровую площадку. Поможет разве что блокировка передачи данных по UDP-порту 32100, через который устройства выходят в интернет. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ автора еще одного «исследования» явные проблемы с этическим подходом к поиску уязвимостей. Вместо того чтобы уведомить вендора, хакер по имени L&amp;M взломал десятки тысяч профилей сервиса геолокации и слил информацию в СМИ (\u003Ca href=\"https:\u002F\u002Fthreatpost.ru\u002Fhacker-claims-he-has-control-over-27k-cars\u002F32490\u002F\"\u003Eновость\u003C\u002Fa\u003E, оригинальная \u003Ca href=\"https:\u002F\u002Fmotherboard.vice.com\u002Fen_us\u002Farticle\u002Fzmpx4x\u002Fhacker-monitor-cars-kill-engine-gps-tracking-apps\"\u003Eстатья\u003C\u002Fa\u003E на Motherboard). Речь идет о веб-сервисе для GPS-трекеров ProTrack и iTrack. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакие трекеры обычно устанавливаются в автомобили и позволяют удаленно отслеживать перемещения. В некоторых случаях возможна расширенная функциональность, например запуск и остановка двигателя. Для доступа к данным и управления используются приложения для смартфонов. Исследуя приложения, L&amp;M обнаружил, что по умолчанию клиенты сервиса получают пароль 123456, и далеко не все его меняют. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fg0\u002F-y\u002Ffw\u002Fg0-yfwtlt9lhkf1izmthkpyvur0.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВ результате стало возможно получить доступ к данным о местоположении устройства, реальному имени клиента, а для некоторых устройств появилась возможность удаленно заглушить двигатель, если автомобиль стоит или двигается со скоростью до 20 километров в час. Изданию Motherboard удалось связаться с четырьмя владельцами устройств и подтвердить подлинность данных, полученных без авторизации. Интересная и потенциально опасная уязвимость, но в любом случае исследования безопасности проводятся немного не так. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДобавим к списку IoT-проблем исследование ESET (\u003Ca href=\"https:\u002F\u002Fthreatpost.com\u002Fd-link-cloud-camera-flaw\u002F144304\u002F\"\u003Eновость\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.welivesecurity.com\u002F2019\u002F05\u002F02\u002Fd-link-camera-vulnerability-video-stream\u002F\"\u003Eотчет\u003C\u002Fa\u003E компании) об уязвимости в IP-камерах D-Link DCS-2132L. Эксперты выяснили, что значительная часть данных между камерой и управляющим приложением передается без шифрования. Это дает возможность перехвата видеоданных, но только при сценарии Man-In-The-Middle либо при наличии доступа к локальной сети. В последнем случае есть возможность подмены прошивки устройства. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаконец, исследователи Tenable Security нашли (\u003Ca href=\"https:\u002F\u002Fthreatpost.com\u002Fbugs-wireless-presentation-systems\u002F144318\u002F\"\u003Eновость\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.tenable.com\u002Fsecurity\u002Fresearch\u002Ftra-2019-20\"\u003Eотчет\u003C\u002Fa\u003E) 15 уязвимостей в популярных беспроводных дисплеях нескольких производителей, включая Crestron AirMedia и Barco wePresent. Во всех подверженных мониторах для беспроводного подключения компьютеров используется (почти) одинаковый код. Данные устройства, во-первых, не требуют проводов для подключения к компьютеру, во-вторых, могут управляться через веб-интерфейс. Уязвимости, найденные при исследовании устройства Crestron AM-100, позволяют получить полный доступ к беспроводному монитору. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Frt\u002Fit\u002Fon\u002Frtitonimxdj-4icpqwyx5q9afce.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДанная проблема интересна в контексте сценария использования таких панелей: они устанавливаются в офисах, могут иметь доступ к локальной сети предприятия и одновременно — упрощенный доступ к самой панели для гостей. Неаккуратная настройка монитора может пробить серьезную брешь в защите компьютерной сети. По данным исследователей, уязвимости были частично закрыты обновлением ПО. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EDisclaimer: Мнения, изложенные в этом дайджесте, могут не всегда совпадать с официальной позицией «Лаборатории Касперского». Дорогая редакция вообще рекомендует относиться к любым мнениям со здоровым скептицизмом.\u003C\u002Fi\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"d-link"},{"titleHtml":"crestron"},{"titleHtml":"barco wepresent"},{"titleHtml":"extron sharelink"},{"titleHtml":"itrack"},{"titleHtml":"protrack"},{"titleHtml":"ilnkp2p"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450704\u002Fe910a85d2f109db42f7cace641796b65\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450704\u002Fe910a85d2f109db42f7cace641796b65\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fkaspersky\\\u002Fblog\\\u002F450704\\\u002F\"},\"headline\":\"Security Week 19: уязвимости в IP-камерах, GPS-трекерах и беспроводных мониторах\",\"datePublished\":\"2019-05-06T15:06:42+03:00\",\"dateModified\":\"2019-05-06T17:35:30+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Kaspersky_Lab\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"За неделю подобралось сразу несколько новостей на тему &laquo;что еще не так с IoT&raquo; (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-тр...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fkaspersky\\\u002Fblog\\\u002F450704\\\u002F#post-content-body\",\"about\":[\"c_kaspersky\",\"h_infosecurity\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_2\\\u002Fsp\\\u002Flb\\\u002F_2splbzeze4ohu5llw1me3j39e0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F60\\\u002F93\\\u002F0r\\\u002F60930rf4xhxtqhcfqwdyjrtukp8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fg0\\\u002F-y\\\u002Ffw\\\u002Fg0-yfwtlt9lhkf1izmthkpyvur0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Frt\\\u002Fit\\\u002Fon\\\u002Frtitonimxdj-4icpqwyx5q9afce.png\"]}","metaDescription":"За неделю подобралось сразу несколько новостей на тему «что еще не так с IoT» (предыдущие выпуски: 1,2,3). Уязвимости были обнаружены в веб-интерфейсе для GPS-трекеров, в сетевых видеокамерах D-Link и...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"kaspersky":{"alias":"kaspersky","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F8a6\u002F991\u002F272\u002F8a69912727889ab6bdd5244d5f2e4a2c.png","titleHtml":"«Лаборатория Касперского»","descriptionHtml":"Ловим вирусы, исследуем угрозы, спасаем мир","relatedData":null,"statistics":{"postsCount":576,"newsCount":0,"vacanciesCount":132,"employeesCount":68,"careerRating":4.22,"subscribersCount":60093,"rating":267.13,"invest":null},"foundationDate":{"year":"1997","month":"07","day":"21"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fwww.kaspersky.ru\u002F","staffNumber":"1 001–5 000 человек","registrationDate":"2008-08-09T07:42:34+00:00","representativeUser":null,"contacts":[{"title":"Хабр Карьера","url":"https:\u002F\u002Fcareer.habr.com\u002Fcompanies\u002Fkaspersky"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002FKasperskyLabRussia"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fkaspersky_ru"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fkaspersky"},{"title":"Instagram","url":"https:\u002F\u002Finstagram.com\u002Fkasperskylabrus"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-35676203-50"}],"branding":null,"status":"active"},"metadata":{"titleHtml":"«Лаборатория Касперского», Москва - Ловим вирусы, исследуем угрозы, спасаем мир с 21 июля 1997 г.","title":"«Лаборатория Касперского», Москва - Ловим вирусы, исследуем угрозы, спасаем мир с 21 июля 1997 г.","keywords":["Информационная безопасность","Старое железо","Звук","Видеотехника","Разработка мобильных приложений"],"descriptionHtml":"576 статей от авторов компании «Лаборатория Касперского»","description":"576 статей от авторов компании «Лаборатория Касперского»"},"aDeskSettings":null,"careerAlias":"kaspersky","maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Sidecar for a Code splitting / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/en\/post\/450942\/"},"headline":"Sidecar for a Code splitting","datePublished":"2019-05-08T03:52:14+03:00","dateModified":"2019-05-08T10:37:27+03:00","author":{"@type":"Person","name":"Корзунов Антон"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in...","url":"https:\/\/habr.com\/en\/post\/450942\/#post-content-body","about":["h_javascript","h_reactjs","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/ts\/bi\/e4\/tsbie49wsfunvcztrdwhlnik6ge.jpeg","https:\/\/habrastorage.org\/webt\/dz\/fc\/kn\/dzfcknugbqrpbxturkjjae2v2se.jpeg","https:\/\/habrastorage.org\/webt\/py\/eg\/mi\/pyegmilj0w2cshkxcj8nwqxhpg0.jpeg","https:\/\/habrastorage.org\/webt\/yk\/4o\/s1\/yk4os1fia5xv28cfdsoccss6nr0.png","https:\/\/habrastorage.org\/webt\/fl\/kn\/hn\/flknhn-kd8_aad9ro7g6fisrpqy.jpeg","https:\/\/habrastorage.org\/webt\/ec\/zx\/xo\/eczxxohgulg4yvyjdeyxvzwi3g0.png","https:\/\/habrastorage.org\/webt\/m3\/3a\/fu\/m33afuxsi_rirx3uwjusiprzj94.jpeg","https:\/\/habrastorage.org\/webt\/sw\/fq\/if\/swfqifrldpp0n6o7qcfr6osdunk.jpeg","https:\/\/habrastorage.org\/webt\/8_\/5u\/7e\/8_5u7ehdn7nkcjiaqfv1-rzadfa.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Sidecar for a Code splitting" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Sidecar for a Code splitting" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Sidecar for a Code splitting" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in time.
+JS is a very heavy thing. Not..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in time.
+JS is a very heavy thing. Not..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in time.
+JS is a very heavy thing. Not..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in time.
+JS is a very heavy thing. Not..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in time.
+JS is a very heavy thing. Not..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450942/1ec3e3f0fa5c5f5b8c388dd10d8e9738/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450942/1ec3e3f0fa5c5f5b8c388dd10d8e9738/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450942/1ec3e3f0fa5c5f5b8c388dd10d8e9738/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450942/1ec3e3f0fa5c5f5b8c388dd10d8e9738/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450942/1ec3e3f0fa5c5f5b8c388dd10d8e9738/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450942" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-08T00:52:14.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="en_US" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450942/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/en/post/450942/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450942/1ec3e3f0fa5c5f5b8c388dd10d8e9738/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/kashey/" title="kashey" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/902/c7a/49b/902c7a49be188965de879f924b676efc.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/kashey/" class="tm-user-info__username">
+      kashey
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-08T00:52:14.000Z" title="2019-05-08, 03:52">8  мая  2019 в 03:52</time></span></div> <!----></div> <h1 lang="en" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Sidecar for a Code splitting</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/javascript/" class="tm-article-snippet__hubs-item-link"><span>JavaScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/reactjs/" class="tm-article-snippet__hubs-item-link"><span>ReactJS</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="en" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p><img src="https://habrastorage.org/r/w780q1/webt/ts/bi/e4/tsbie49wsfunvcztrdwhlnik6ge.jpeg" data-src="https://habrastorage.org/webt/ts/bi/e4/tsbie49wsfunvcztrdwhlnik6ge.jpeg" data-blurred="true"/></p><br/>
+<p>Code splitting. Code splitting is everywhere. However, why? Just because there is <strong>too much of javascript</strong> nowadays, and not all are in use at the same point in time.</p><br/>
+<p>JS is a very <em>heavy</em> thing. Not for your iPhone Xs or brand new i9 laptop, but for millions(probably billions) of <em>slower</em> devices owners. Or, at least, for your watches.</p><br/>
+<p>So — JS is bad, but what would happen if we <strong>just disable it</strong> — the problem would be gone… for some sites, and be gone "with sites" for the React-based ones. But anyway — there are sites, which could work without JS… and there is something we should learn from them...</p><a name="habracut"></a><br/>
+<h1 id="code-splitting">Code splitting</h1><br/>
+<p>Today we have two ways to go, two ways to make it better, or to not make it worse:</p><br/>
+<h2 id="1-write-less-code">1. Write less code</h2><br/>
+<p>That's the best thing you can do. While <code>React Hooks</code> are letting you ship a bit less code, and solutions like <code>Svelte</code> let you generate just less code than <em>usual</em>, that's not so easy to do. </p><br/>
+<p>It's not only about the code, but also about <em>functionality</em> — to keep code "compact" you have to keep it "compact". There is no way to keep application bundle small if it's doing so many things (and got shipped in 20 languages).</p><br/>
+<p>There are ways to write <em>short and sound</em> code, and there are ways to write the opposite implementation — <em>the bloody enterprise</em>. And, you know, both are legit.</p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/dz/fc/kn/dzfcknugbqrpbxturkjjae2v2se.jpeg" data-src="https://habrastorage.org/webt/dz/fc/kn/dzfcknugbqrpbxturkjjae2v2se.jpeg" data-blurred="true"/></p><br/>
+<p>But the main issue — the code itself. A simple react application could easily bypass "recommended" 250kb. And you might spend a month optimizing it and make it smaller. "Small" optimizations are well documented and quite useful — just get <code>bundle-analyzer</code> with <code>size-limit</code> and get back in shape.<br/>
+There are many libraries, which fight for every byte, trying to keep you in your limits — <a href="https://preactjs.com/">preact</a> and <a href="https://github.com/storeon/storeon">storeon</a>, to name a few. </p><br/>
+<p>But our application is a bit beyond 200kb. It's closer to <strong>100Mb</strong>. Removing kilobytes makes no sense. Even removing megabytes makes no sense.</p><br/>
+<blockquote>After some moment it's impossible to keep your application small. It will grow bigger in time.</blockquote><br/>
+<h2 id="2-ship-less-code">2. Ship less code</h2><br/>
+<p>Alternatively, <code>code split</code>. In other words — <strong>surrender</strong>. Take your 100mb bundle, and make twenty 5mb bundles from it. Honestly — that's the only possible way to handle your application if it got big — create a pack of smaller apps from it.</p><br/>
+<p>But there is one thing you should know right now: whatever option you choose, it's an implementation detail, while we are looking for something more reliable.</p><br/>
+<h1 id="the-truth-about-code-splitting">The Truth about Code Splitting</h1><br/>
+<p>The truth about code splitting is that it's nature is <strong>TIME SEPARATION</strong>. You are not just <em>splitting</em> your code, you are splitting it in a way where you will <strong>use</strong> as little as possible in a single point of time.</p><br/>
+<p>Just don't ship the code you don't need right now. Get rid of it.</p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/py/eg/mi/pyegmilj0w2cshkxcj8nwqxhpg0.jpeg" data-src="https://habrastorage.org/webt/py/eg/mi/pyegmilj0w2cshkxcj8nwqxhpg0.jpeg" data-blurred="true"/></p><br/>
+<p>Easy to say, hard to do. I have a few heavy, but not adequately split applications, where any page loads like 50% of everything. Sometimes <code>code splitting</code> becomes <code>code separation</code>, I mean — you may move the code to the different chunks, but still, use it all. Recal that <em>"Just don't ship the code you don't need right now"</em>,– I <em>needed</em> 50% of the code, and that was the real problem.</p><br/>
+<blockquote>Sometimes just adding <code>import</code> here and there is not enough. Till it is not <strong>time</strong> separation, but only <strong>space</strong> separation — it does not matter at all.</blockquote><p>There are 3 common ways to code split:</p><br/>
+<ol>
+<li>Just dynamic <code>import</code>. Barely used alone these days. It's more about issues with tracking a <em>state</em>.</li>
+<li><code>Lazy</code> Component, when you might postpone rendering and loading of a React Component. Probably 90% of "react code splitting" these days.</li>
+<li><em>Lazy</em> <code>Library</code>, which is actually <code>.1</code>, but you will be given a library code via React render props. Implemented in <a href="https://github.com/theKashey/react-imported-component#library-level-code-splitting">react-imported-component</a> and <a href="https://www.smooth-code.com/open-source/loadable-components/docs/library-splitting/">loadable-components</a>. Quite useful, but not well known.</li>
+</ol><br/>
+<h2 id="component-level-code-splitting">Component Level Code Splitting</h2><br/>
+<p>This one is the most popular. As a per-route code splitting, or per-component code splitting. It's not so easy to do it and maintain good <em>perceptual results</em> as a result. It's death from <code>Flash of Loading Content</code>.</p><br/>
+<p>The good techniques are:</p><br/>
+<ul>
+<li>load <code>js chunk</code> and <code>data</code> for a route in parallel.</li>
+<li>use a <code>skeleton</code> to display something similar to the page before the page load (like Facebook).</li>
+<li><code>prefetch</code> chunks, you may even use <a href="https://github.com/guess-js/guess">guess-js</a> for a better prediction.</li>
+<li>use some delays, loading indicators, <code>animations</code> and <code>Suspense</code>(in the future) to soften transitions.</li>
+</ul><br/>
+<p>And, you know, that's all about <em>perceptual</em> performance.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/yk/4o/s1/yk4os1fia5xv28cfdsoccss6nr0.png"/></p><br/>
+<blockquote>Image from <a href="https://blog.angularindepth.com/https-medium-com-thomasburleson-animated-ghosts-bfc045a51fba">Improved UX with Ghost Elements</a></blockquote><br/>
+<h1 id="that-doesnt-sound-good">That doesn't sound good</h1><br/>
+<p>You know, I could call myself an expert in code splitting — but I have my own failures.</p><br/>
+<p>Sometimes I could fail to reduce the bundle size. Sometimes I could fail to improve resulting performance, as long as <code>the _more_ code splitting you are introducing - the more you spatially split your page - the more time you need to _reassemble_ your page back</code>*. It's called a <strong>loading waves</strong>.</p><br/>
+<ul>
+<li>without SSR or pre-rendering. Proper SSR is a game changer at this moment.</li>
+</ul><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/fl/kn/hn/flknhn-kd8_aad9ro7g6fisrpqy.jpeg" data-src="https://habrastorage.org/webt/fl/kn/hn/flknhn-kd8_aad9ro7g6fisrpqy.jpeg" data-blurred="true"/></p><br/>
+<p>Last week I've got two failures:</p><br/>
+<ul>
+<li>I've lost in <a href="https://github.com/mui-org/material-ui/issues/15450">one library comparison</a>, as long as my library was better, but MUCH bigger than another one. I have failed to <strong>"1. Write less code"</strong>. </li>
+<li>optimize a small site, made in React by my wife. It was using route-based component splitting, but the <code>header</code> and <code>footer</code> were kept in the main bundle to make transitions more "acceptable". Just a few things, <strong>tightly coupled</strong> with each other skyrocketed bundle side up to 320kb(before gzip). There was nothing important, and nothing I could really remove. <strong>A death by a thousand cuts</strong>. I have failed to <strong>Ship less code</strong>.</li>
+</ul><br/>
+<blockquote>React-Dom was 20%, core-js was 10%, react-router, jsLingui, react-powerplug… 20% of own code… We are already done.</blockquote><p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ec/zx/xo/eczxxohgulg4yvyjdeyxvzwi3g0.png"/></p><br/>
+<h2 id="the-solution">The solution</h2><br/>
+<p>I've started to think about how to solve my problem, and why <em>common solutions</em> are not working properly for my use case.</p><br/>
+<blockquote>What did I do? I've listed all crucial location, without which application would not work at all, and tried to understand why I have the rest.</blockquote><p>It was a surprise. But my problem was in CSS. In vanilla CSS transition.</p><br/>
+<p>Here is the code</p><br/>
+<ul>
+<li>a <em>control</em> variable — <code>componentControl</code>, eventually would be set to something <code>DisplayData</code> should display.</li>
+<li>once value is set — <code>DisplayData</code> become visible, changing <code>className</code>, thus triggering fancy transition. Simultaneusly <code>FocusLock</code> become active making <code>DisplayData</code> a <strong>modal</strong>.<br/>
+<pre><code class="javascript">&lt;FocusLock
+enabled={componentControl.value} 
+// ^ it's "disabled". When it's disabled - it's dead.
+>
+{componentControl.value &amp;&amp; &lt;PageTitle title={componentControl.value.title}/>}
+// ^ it's does not exists. Also dead
+&lt;DisplayData
+data={componentControl.value}
+visible={componentControl.value !== null}
+// ^ would change a className basing on visible state
+/>
+// ^ that is just not visible, but NOT dead
+&lt;/FocusLock></code></pre></li>
+</ul><br/>
+<p>I would like to code split this piece as a whole, but this is something I could not do, due to two reasons:</p><br/>
+<ol>
+<li>the information should be visible immediately, once required, without any delay. A business requirement.</li>
+<li>the information "chrome" should exist before, to property handle transition.</li>
+</ol><br/>
+<p>This problem could be partially solved using <a href="https://github.com/reactjs/react-transition-group">CSSTransitionGroup</a> or <a href="https://github.com/theKashey/recondition">recondition</a>. But, you know, fixing <em>one code</em> adding <em>another code</em> sounds weird, even if actually <em>enought</em>. I mean adding more code could help in removing even more code. But… but...</p><br/>
+<blockquote>There should be a better way!</blockquote><p>TL;DR — there are two key points here:</p><br/>
+<ul>
+<li><code>DisplayData</code> has to be <strong>mounted</strong>, and exists in the DOM prior.</li>
+<li><code>FocusLock</code> should also exist prior, not to cause <code>DisplayData</code> remount, but it's <strong>brains are not needed</strong> in the beginning.</li>
+</ul><br/>
+<hr/><br/>
+<p>So let's change our mental model</p><br/>
+<h1 id="batman-and-robin">Batman and Robin</h1><br/>
+<p>Let assume that our code is Batman and Robin. Batman can handle most the bad guys, but when he can't, his sidekick Robin comes to the rescue..</p><br/>
+<blockquote>Once again Batman would engage the battle, Robin will arrive later.</blockquote><p>This is Batman:</p><br/>
+<pre><code class="diff">+&lt;FocusLock
+- enabled={componentControl.value} 
++>
+-  {componentControl.value &amp;&amp; &lt;PageTitle title={componentControl.value.title}/>}
++  &lt;DisplayData
++    data={componentControl.value}
++    visible={componentControl.value !== null}
++  />
++&lt;/FocusLock></code></pre><br/>
+<p>This is his sidekick, Robin::</p><br/>
+<pre><code class="diff">-&lt;FocusLock
++ enabled={componentControl.value} 
+->
++  {componentControl.value &amp;&amp; &lt;PageTitle title={componentControl.value.title}/>}
+-  &lt;DisplayData
+-    data={componentControl.value}
+-    visible={componentControl.value !== null}
+-  />
+-&lt;/FocusLock></code></pre><br/>
+<p>Batman and Robin could form a <em>TEAM</em>, but they actually, are two different persons.</p><br/>
+<p>And don't forget — we are still talking about <strong>code splitting</strong>. And, in terms of code splitting, where is the sidekick? Where is Robin?</p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/m3/3a/fu/m33afuxsi_rirx3uwjusiprzj94.jpeg" data-src="https://habrastorage.org/webt/m3/3a/fu/m33afuxsi_rirx3uwjusiprzj94.jpeg" data-blurred="true"/></p><br/>
+<blockquote>in a sidecar. Robin is waiting in a <strong>sidecar chunk</strong>.</blockquote><br/>
+<h1 id="sidecar">Sidecar</h1><br/>
+<ul>
+<li><code>Batman</code> here is all visual stuff your customer must see as soon as possible. Ideally instantly.</li>
+<li><code>Robin</code> here is all logic, and fancy interactive features, which may be available a second after, but not in the very beginning.</li>
+</ul><br/>
+<p>It would be better to call this a <strong>vertical code splitting</strong> where code branches exist in a parallel, in opposite to a common <strong>horizontal code splitting</strong> where code branches are <em>cut</em>.</p><br/>
+<p>In <a href="https://github.com/respond-framework/rudy">some lands</a>, this trio was known as <code>replace reducer</code> or other ways to lazy load redux logic and side effects.</p><br/>
+<p>In <a href="https://developers.facebook.com/videos/2019/building-the-new-facebookcom-with-react-graphql-and-relay/">some other lands</a>, it is known as <code>"3 Phased" code splitting</code>.</p><br/>
+<blockquote>It's just another separation of concerns, applicable only to cases, where you can defer loading some part of a component, but not another part.</blockquote><p><img src="https://habrastorage.org/r/w780q1/webt/sw/fq/if/swfqifrldpp0n6o7qcfr6osdunk.jpeg" alt="phase 3" data-src="https://habrastorage.org/webt/sw/fq/if/swfqifrldpp0n6o7qcfr6osdunk.jpeg" data-blurred="true"/></p><br/>
+<blockquote>image from <a href="https://developers.facebook.com/videos/2019/building-the-new-facebookcom-with-react-graphql-and-relay/">Building the New facebook.com with React, GraphQL and Relay</a>, where <code>importForInteractions</code>, or <code>importAfter</code> <strong>are the <code>sidecar</code></strong>.</blockquote><p>And there is an <strong>interesting</strong> observation — while <code>Batman</code> is more valuable for a customer, as long as it's something customer might <em>see</em>, he is always in shape… While <code>Robin</code>, you know, he might be a bit <em>overweight</em>, and require much more bytes for living.</p><br/>
+<p>As a result — Batman alone is something much be bearable for a customer — he provides more value at a lower cost. You are my hero Bat!</p><br/>
+<h2 id="what-could-be-moved-to-a-sidecar">What could be moved to a sidecar:</h2><br/>
+<ul>
+<li>majority of <code>useEffect</code>, <code>componentDidMount</code> and friends.</li>
+<li>like all <em>Modal</em> effects. Ie <code>focus</code> and <code>scroll</code> locks. You might first display a modal, and <strong>only then</strong> make Modal <em>modal</em>, ie "lock" customer's attention.</li>
+<li>Forms. Move all logic and validations to a sidecar, and block form submission until that logic is loaded. The customer could start filling the form, not knowing that it's only <code>Batman</code>.</li>
+<li>Some animations. A whole <code>react-spring</code> in my case.</li>
+<li>Some visual stuff. Like <a href="https://github.com/theKashey/React-stroller">Custom scrollbars</a>, which might display fancy scroll-bars a second later.</li>
+</ul><br/>
+<p>Also, don't forget — Every piece of code, offloaded to a sidecar, also offload things like core-js poly- and ponyfills, used by the removed code.</p><br/>
+<p>Code Splitting can be smarter than it is in our apps today. We must realize there is 2 kinds of <em>code</em> to split: 1) visual aspects 2) interactive aspects. The latter can come a few moments later. <code>Sidecar</code> makes it seamless to split the two tasks, giving the <em>perception that everything loaded faster</em>. And it will.</p><br/>
+<h2 id="the-oldest-way-to-code-split">The oldest way to code split</h2><br/>
+<p>While it may still not be quite clear when and what a <code>sidecar</code> is, I'll give a simple explanation: </p><br/>
+<blockquote><code>Sidecar</code> is <strong>ALL YOUR SCRIPTS</strong>. Sidecar is the way we <em>codesplit</em> before all that frontend stuff we got today.</blockquote><p>I am talking about Server Side Rendering(<strong>SSR</strong>), or just plain <strong>HTML</strong>, we all were used to just yesterday. <code>Sidecar</code> makes things as easy as they used to be when pages contained HTML and logic lived separately in embeddable external scripts (separation of concerns).</p><br/>
+<p>We had HTML, <strong>plus</strong> CSS, <strong>plus</strong> some scripts inlined, <strong>plus</strong> the rest of the scripts extracted to a <code>.js</code> files.</p><br/>
+<p><code>HTML</code>+<code>CSS</code>+<code>inlined-js</code> were <code>Batman</code>, while external scripts were <code>Robin</code>, and the site was able to function without Robin, and, honestly, partially without Batman (he will continue the fight with both legs(inlined scripts) broken). That was just yesterday, and many "non modern and cool" sites are the same today.</p><br/>
+<hr/><br/>
+<p>If your application supports SSR — try to <strong>disable js</strong> and make it work without it. Then it would be clear what could be moved to a sidecar.<br/>
+If your application is a client-side only SPA — try to imagine how it would work, if SSR existed.</p><br/>
+<blockquote>For example — <a href="https://theurge.com/">theurge.com</a>, written in React, is fully functional <strong>without any js enabled</strong>.</blockquote><p>There is a lot of things you may offload to a sidecar. For example:</p><br/>
+<ul>
+<li>comments. You might ship code to <code>display</code> comments, but not <code>answer</code>, as long as it might require more code(including WYSIWYG editor), which is not required initially. It's better to delay a <em>commenting box</em>, or even just hide code loading behind animation, than delay a whole page. </li>
+<li>video player. Ship "video" without "controls". Load them a second later, them customer might try to interact with it.</li>
+<li>image gallery, like <code>slick</code>. It's not a big deal to <strong>draw</strong> it, but much harder to animate and manage. It's clear what could be moved to a sidecar.</li>
+</ul><br/>
+<blockquote>Just think what is essential for your application, and what is not quite...</blockquote><br/>
+<h1 id="implementation-details">Implementation details</h1><br/>
+<h2 id="di-component-code-splitting">(DI) Component code splitting</h2><br/>
+<p>The simplest form of <code>sidecar</code> is easy to implement — just move everything to a sub component, you may code split using an "old" ways. It's almost a separation between Smart and Dumb components, but this time Smart is not <em>contaniting</em> a Dumb one — it's opposite.</p><br/>
+<pre><code class="javascript">const SmartComponent = React.lazy( () => import('./SmartComponent'));
+
+class DumbComponent extends React.Component {
+  render() {
+    return (
+      &lt;React.Fragment>
+       &lt;SmartComponent ref={this} /> // &lt;-- move smart one inside
+       &lt;TheActualMarkup />           // &lt;-- the "real" stuff is here
+      &lt;/React.Fragment>
+  } 
+}</code></pre><br/>
+<p>That also requires moving <em>initialization</em> code to a Dumb one, but you are still able to code-split the <em>heaviest</em> part of a code.</p><br/>
+<blockquote>Can you see a <code>parallel</code> or <code>vertical</code> code splitting pattern now?</blockquote><br/>
+<h2 id="usesidecar">useSidecar</h2><br/>
+<p><a href="https://developers.facebook.com/videos/2019/building-the-new-facebookcom-with-react-graphql-and-relay/">Building the New facebook.com with React, GraphQL and Relay</a>, I've already mentioned here, had a concept of <code>loadAfter</code> or <code>importForInteractivity</code>, which is quite alike sidecar concept.</p><br/>
+<p>In the same time, I would not recommend creating something like <code>useSidecar</code> as long you might intentionally try to use <code>hooks</code> inside, but code splitting in this form would break <em>rule of hooks</em>.</p><br/>
+<p>Please prefer a more declarative component way. And you might use <code>hooks</code> inside <code>SideCar</code> component.</p><br/>
+<pre><code class="javascript">const Controller = React.lazy( () => import('./Controller'));
+const DumbComponent = () => {
+ const ref = useRef();
+ const state = useState();
+
+ return (
+  &lt;>
+   &lt;Controller componentRef={ref} state={state} />
+   &lt;TheRealStuff ref={ref} state={state[0]} />
+  &lt;/>
+ )
+}</code></pre><br/>
+<h2 id="prefetching">Prefetching</h2><br/>
+<p>Dont forget — you might use <a href="https://medium.com/webpack/link-rel-prefetch-preload-in-webpack-51a52358f84c">loading priority hinting</a> to preload or prefetch <code>sidecar</code> and make it shipping more transparent and invisible.</p><br/>
+<p>Important stuff — prefetching scripts would load it via <strong>network</strong>, but not execute (and spend CPU) unless it actually required.</p><br/>
+<h2 id="ssr">SSR</h2><br/>
+<p>Unlike <em>normal</em> code splitting, no special action is required for SSR. <code>Sidecar</code> might not be a part of the SSR process and not required before <code>hydration</code> step. It's could be postponed "by design".</p><br/>
+<p>Thus — feel free to use <code>React.lazy</code>(ideally something <strong>without</strong> <code>Suspense</code>, you don't need any failback(loading) indicators here), or any other library, with, but better without SSR support to <em>skip</em> sidecar chunks during SSR process.</p><br/>
+<h1 id="the-bad-parts">The bad parts</h1><br/>
+<p>But there are a few bad parts of this idea</p><br/>
+<h2 id="batman-is-not-a-production-name">Batman is not a production name</h2><br/>
+<p>While <code>Batman</code>/<code>Robin</code> might be a good mind concept, and <code>sidecar</code> is a perfect match for the technology itself — there is no "good" name for the <code>maincar</code>. There is no such thing as a <code>maincar</code>, and obviously <code>Batman</code>, <code>Lonely Wolf</code>, <code>Solitude</code>, <code>Driver</code> and <code>Solo</code> shall not be used to name a non-a-sidecar part.</p><br/>
+<p>Facebook have used <code>display</code> and <code>interactivity</code>, and that might be the best option for all of us.</p><br/>
+<blockquote>If you have a good name for me — leave it in the comments</blockquote><br/>
+<h2 id="tree-shaking">Tree shaking</h2><br/>
+<p>It's more about the separation of concerns from <em>bundler</em> point of view. Let's imagine you have <code>Batman</code> and <code>Robin</code>. And <code>stuff.js</code></p><br/>
+<ul>
+<li><code>stuff.js</code><br/>
+<pre><code class="javascript">export * from `./batman.js`
+export * from `./robin.js`</code></pre></li>
+</ul><br/>
+<p>Then you might try <em>component based</em> code splitting to implement a sidecar</p><br/>
+<ul>
+<li><p><code>main.js</code></p><br/>
+<pre><code class="javascript">import {batman} from './stuff.js'
+const Robin = React.lazy( () => import('./sidecar.js'));
+export const Component = () => (
+&lt;>
+&lt;Robin />  // sidecar
+&lt;Batman /> // main content
+&lt;/>
+)</code></pre><br/>
+</li>
+<li><p><code>sidecar.js</code></p><br/>
+<pre><code class="javascript">// and sidecar.js... that's another chunk as long as we `import` it
+import {robin} from './stuff.js'
+.....</code></pre><br/>
+</li>
+</ul><br/>
+<p>In short — the code above would work, but will not do "the job".</p><br/>
+<ul>
+<li>if you are using only <code>batman</code> from <code>stuff.js</code> — tree shaking would keep only it.</li>
+<li>if you are using only <code>robin</code> from <code>stuff.js</code> — tree shaking would keep only it.</li>
+<li><strong>but</strong> if you are using both, even in different chunks — both will be bundled in a <strong>first</strong> occurrence of <code>stuff.js</code>, ie the <strong>main bundle</strong>.</li>
+</ul><br/>
+<blockquote>Tree shaking is not code-splitting friendly. You have to separate concerns by files.</blockquote><br/>
+<h2 id="un-import">Un-import</h2><br/>
+<p>Another thing, forgotten by everybody, is the cost of javascript. It was quite common in the jQuery era, the era of <code>jsonp</code> payload to load the script(with <code>json</code> payload), get the payload, and <strong>remove</strong> the script.</p><br/>
+<blockquote>Nowadays we all <code>import</code> script, and it will be forever imported, even if no longer needed.</blockquote><p>As I said before — there is too much JS, and sooner or later, with <em>continuous navigation</em> you will load all of it. We should find a way to un-import no longer need chunk, clearing all internal caches and freeing memory to make web more reliable, and not to crush application with out of memory exceptions.</p><br/>
+<p>Probably the ability to <code>un-import</code> (webpack <a href="https://github.com/theKashey/wipeWebpackCache">could do it</a>) is one of the reasons we should stick with <em>component-based</em> API, as long as it gives us an ability to handle <code>unmount</code>.</p><br/>
+<p>So far — ESM modules standards have nothing about stuff like this — nor about cache control, nor about reversing import action.</p><br/>
+<h2 id="creating-a-sidecar-enabled-library">Creating a sidecar-enabled Library</h2><br/>
+<p>By today there is only one way to create a <code>sidecar</code>-enabled library:</p><br/>
+<ul>
+<li>split your component into parts</li>
+<li>expose a <code>main</code> part and <code>connected</code> part(not to break API) via <code>index</code></li>
+<li>expose a <code>sidecar</code> via a separated entry point.</li>
+<li>in the target code — import the <code>main</code> part and the <code>sidecar</code> — tree shaking should cut a <code>connected</code> part. </li>
+</ul><br/>
+<p>This time tree shaking should work properly, and the only problem — is how to name the <code>main</code> part.</p><br/>
+<ul>
+<li><code>main.js</code></li>
+</ul><br/>
+<pre><code class="javascript">export const Main = ({sidecar, ...props}) => (
+  &lt;div>
+    {sidecar} 
+    ....
+  &lt;/div>
+);</code></pre><br/>
+<ul>
+<li><code>connected.js</code></li>
+</ul><br/>
+<pre><code class="javascript">import Main from './Component';
+import Sidecar from './Sidecar';
+
+export const Connected = props => (
+  &lt;Main
+    sidecar={&lt;Sidecar />}
+    {...props}
+  />
+);</code></pre><br/>
+<ul>
+<li><code>index.js</code></li>
+</ul><br/>
+<pre><code class="javascript">export * from './Main';
+export * from './Connected';</code></pre><br/>
+<ul>
+<li><code>sidecar.js</code></li>
+</ul><br/>
+<pre><code class="javascript">import * from './Sidecar';</code></pre><br/>
+<p>In short, the change could be represented via a small comparison</p><br/>
+<pre><code class="javascript">//your app BEFORE
+import {Connected} from 'library'; //
+
+// -------------------------
+
+//your app AFTER, compare this core to `connected.js`
+import {Main} from 'library';
+const Sidecar = React.lazy(import( () => import('library/sidecar')));
+// ^ all the difference ^
+
+export SideConnected = props => (
+  &lt;Main
+    sidecar={&lt;Sidecar />}
+    {...props}
+  />
+);
+
+// ^ you will load only Main, Sidecar will arrive later.</code></pre><br/>
+<p>Theoretically <code>dynamic import</code> could be used inside node_modules, making <em>assemble process</em> more transparent.</p><br/>
+<blockquote>Anyway — it's nothing more than <code>children</code>/<code>slot</code> pattern, so common in React.</blockquote><br/>
+<h1 id="the-future">The future</h1><br/>
+<p><code>Facebook</code> proved that the idea is right. If you haven't seen that video — do it right now. I've just explained the same idea from a bit different angle (and started writing this article a week before F8 conference). </p><br/>
+<p>Right now it requires some code changes to be applied to your code base. It requires a more explicit separation of concerns to actually separate them, and let of codesplit not horizontally, but vertically, shipping <em>lesser</em> code for a <em>bigger</em> user experience.</p><br/>
+<p><code>Sidecar</code>, probably, is the only way, except old school SSR, to handle BIG code bases. Last chance to ship a minimal amount of code, when you have a lot of it.</p><br/>
+<blockquote>It could make a BIG application smaller, and a SMALL application even more smaller.</blockquote><p>10 years ago the medium website was "ready" in 300ms, and was <em>really</em> ready a few milliseconds after. Today seconds and even more than 10 seconds are the common numbers. What a shame.</p><br/>
+<p>Let's take a pause, and think — how we could solve the problem, and make UX great again...</p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/8_/5u/7e/8_5u7ehdn7nkcjiaqfv1-rzadfa.jpeg" data-src="https://habrastorage.org/webt/8_/5u/7e/8_5u7ehdn7nkcjiaqfv1-rzadfa.jpeg" data-blurred="true"/></p><br/>
+<h1 id="overall">Overall</h1><br/>
+<ul>
+<li>Component code splitting is a most powerful tool, giving you the ability to <em>completely</em> split something, but it comes with a cost — you might not display anything except a blank page, or a <em>skeleton</em> for a while. That's a horizontal separation.</li>
+<li>Library code splitting could help when component splitting would not. That's a horizontal separation.</li>
+<li>Code, offloaded to a sidecar would complete the picture, and may let you provide a far better user experience. But would also require some engineering effort. That's a vertical separation.</li>
+</ul><br/>
+<p><strong>Let's have a conversation about this</strong>.</p><br/>
+<h2 id="stop-so-what-about-the-problems-you-tried-to-solve">Stop! So what about the problems you tried to solve?</h2><br/>
+<p>Well, that was only the first part. <strong>We are in the endgame now</strong>, it would take a few more weeks to write down the second part of this proposal. Meanwhile… get in the sidecar!</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bcode%20splitting%5D" class="tm-tags-list__link">code splitting</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Btree%20shaking%5D" class="tm-tags-list__link">tree shaking</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bbundling%5D" class="tm-tags-list__link">bundling</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bseparation%20of%20concerns%5D" class="tm-tags-list__link">separation of concerns</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/javascript/" class="tm-hubs-list__link">
+    JavaScript
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/reactjs/" class="tm-hubs-list__link">
+    ReactJS
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 3: ↑3 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 3: ↑3 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+3</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">665</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    0
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/kashey/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/902/c7a/49b/902c7a49be188965de879f924b676efc.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 79 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    53
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Корзунов Антон</span> <a href="/ru/users/kashey/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @kashey
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">javascript, webgl, maps, react, орфография(нет)</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450942/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450942/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450942/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450942":{"id":"450942","timePublished":"2019-05-08T00:52:14+00:00","isCorporative":false,"lang":"en","titleHtml":"Sidecar for a Code splitting","leadData":{"textHtml":"\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fts\u002Fbi\u002Fe4\u002Ftsbie49wsfunvcztrdwhlnik6ge.jpeg\"\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003ECode splitting. Code splitting is everywhere. However, why? Just because there is \u003Cstrong\u003Etoo much of javascript\u003C\u002Fstrong\u003E nowadays, and not all are in use at the same point in time.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EJS is a very \u003Cem\u003Eheavy\u003C\u002Fem\u003E thing. Not for your iPhone Xs or brand new i9 laptop, but for millions(probably billions) of \u003Cem\u003Eslower\u003C\u002Fem\u003E devices owners. Or, at least, for your watches.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003ESo — JS is bad, but what would happen if we \u003Cstrong\u003Ejust disable it\u003C\u002Fstrong\u003E — the problem would be gone… for some sites, and be gone \"with sites\" for the React-based ones. But anyway — there are sites, which could work without JS… and there is something we should learn from them...\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Get in the sidecar!","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":53,"votesCount":79},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"25990","alias":"kashey","fullname":"Корзунов Антон","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F902\u002Fc7a\u002F49b\u002F902c7a49be188965de879f924b676efc.jpg","speciality":"javascript, webgl, maps, react, орфография(нет)"},"statistics":{"commentsCount":0,"favoritesCount":0,"readingCount":665,"score":3,"votesCount":3},"hubs":[{"relatedData":null,"id":"357","alias":"javascript","type":"collective","title":"JavaScript","titleHtml":"JavaScript","isProfiled":true},{"relatedData":null,"id":"19327","alias":"reactjs","type":"collective","title":"ReactJS","titleHtml":"ReactJS","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fts\u002Fbi\u002Fe4\u002Ftsbie49wsfunvcztrdwhlnik6ge.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fts\u002Fbi\u002Fe4\u002Ftsbie49wsfunvcztrdwhlnik6ge.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ECode splitting. Code splitting is everywhere. However, why? Just because there is \u003Cstrong\u003Etoo much of javascript\u003C\u002Fstrong\u003E nowadays, and not all are in use at the same point in time.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EJS is a very \u003Cem\u003Eheavy\u003C\u002Fem\u003E thing. Not for your iPhone Xs or brand new i9 laptop, but for millions(probably billions) of \u003Cem\u003Eslower\u003C\u002Fem\u003E devices owners. Or, at least, for your watches.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESo — JS is bad, but what would happen if we \u003Cstrong\u003Ejust disable it\u003C\u002Fstrong\u003E — the problem would be gone… for some sites, and be gone \"with sites\" for the React-based ones. But anyway — there are sites, which could work without JS… and there is something we should learn from them...\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"code-splitting\"\u003ECode splitting\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EToday we have two ways to go, two ways to make it better, or to not make it worse:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"1-write-less-code\"\u003E1. Write less code\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThat's the best thing you can do. While \u003Ccode\u003EReact Hooks\u003C\u002Fcode\u003E are letting you ship a bit less code, and solutions like \u003Ccode\u003ESvelte\u003C\u002Fcode\u003E let you generate just less code than \u003Cem\u003Eusual\u003C\u002Fem\u003E, that's not so easy to do. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIt's not only about the code, but also about \u003Cem\u003Efunctionality\u003C\u002Fem\u003E — to keep code \"compact\" you have to keep it \"compact\". There is no way to keep application bundle small if it's doing so many things (and got shipped in 20 languages).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThere are ways to write \u003Cem\u003Eshort and sound\u003C\u002Fem\u003E code, and there are ways to write the opposite implementation — \u003Cem\u003Ethe bloody enterprise\u003C\u002Fem\u003E. And, you know, both are legit.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fdz\u002Ffc\u002Fkn\u002Fdzfcknugbqrpbxturkjjae2v2se.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fdz\u002Ffc\u002Fkn\u002Fdzfcknugbqrpbxturkjjae2v2se.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBut the main issue — the code itself. A simple react application could easily bypass \"recommended\" 250kb. And you might spend a month optimizing it and make it smaller. \"Small\" optimizations are well documented and quite useful — just get \u003Ccode\u003Ebundle-analyzer\u003C\u002Fcode\u003E with \u003Ccode\u003Esize-limit\u003C\u002Fcode\u003E and get back in shape.\u003Cbr\u002F\u003E\r\nThere are many libraries, which fight for every byte, trying to keep you in your limits — \u003Ca href=\"https:\u002F\u002Fpreactjs.com\u002F\"\u003Epreact\u003C\u002Fa\u003E and \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fstoreon\u002Fstoreon\"\u003Estoreon\u003C\u002Fa\u003E, to name a few. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBut our application is a bit beyond 200kb. It's closer to \u003Cstrong\u003E100Mb\u003C\u002Fstrong\u003E. Removing kilobytes makes no sense. Even removing megabytes makes no sense.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EAfter some moment it's impossible to keep your application small. It will grow bigger in time.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"2-ship-less-code\"\u003E2. Ship less code\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAlternatively, \u003Ccode\u003Ecode split\u003C\u002Fcode\u003E. In other words — \u003Cstrong\u003Esurrender\u003C\u002Fstrong\u003E. Take your 100mb bundle, and make twenty 5mb bundles from it. Honestly — that's the only possible way to handle your application if it got big — create a pack of smaller apps from it.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBut there is one thing you should know right now: whatever option you choose, it's an implementation detail, while we are looking for something more reliable.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"the-truth-about-code-splitting\"\u003EThe Truth about Code Splitting\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe truth about code splitting is that it's nature is \u003Cstrong\u003ETIME SEPARATION\u003C\u002Fstrong\u003E. You are not just \u003Cem\u003Esplitting\u003C\u002Fem\u003E your code, you are splitting it in a way where you will \u003Cstrong\u003Euse\u003C\u002Fstrong\u003E as little as possible in a single point of time.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EJust don't ship the code you don't need right now. Get rid of it.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fpy\u002Feg\u002Fmi\u002Fpyegmilj0w2cshkxcj8nwqxhpg0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpy\u002Feg\u002Fmi\u002Fpyegmilj0w2cshkxcj8nwqxhpg0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EEasy to say, hard to do. I have a few heavy, but not adequately split applications, where any page loads like 50% of everything. Sometimes \u003Ccode\u003Ecode splitting\u003C\u002Fcode\u003E becomes \u003Ccode\u003Ecode separation\u003C\u002Fcode\u003E, I mean — you may move the code to the different chunks, but still, use it all. Recal that \u003Cem\u003E\"Just don't ship the code you don't need right now\"\u003C\u002Fem\u003E,– I \u003Cem\u003Eneeded\u003C\u002Fem\u003E 50% of the code, and that was the real problem.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003ESometimes just adding \u003Ccode\u003Eimport\u003C\u002Fcode\u003E here and there is not enough. Till it is not \u003Cstrong\u003Etime\u003C\u002Fstrong\u003E separation, but only \u003Cstrong\u003Espace\u003C\u002Fstrong\u003E separation — it does not matter at all.\u003C\u002Fblockquote\u003E\u003Cp\u003EThere are 3 common ways to code split:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EJust dynamic \u003Ccode\u003Eimport\u003C\u002Fcode\u003E. Barely used alone these days. It's more about issues with tracking a \u003Cem\u003Estate\u003C\u002Fem\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003ELazy\u003C\u002Fcode\u003E Component, when you might postpone rendering and loading of a React Component. Probably 90% of \"react code splitting\" these days.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cem\u003ELazy\u003C\u002Fem\u003E \u003Ccode\u003ELibrary\u003C\u002Fcode\u003E, which is actually \u003Ccode\u003E.1\u003C\u002Fcode\u003E, but you will be given a library code via React render props. Implemented in \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FtheKashey\u002Freact-imported-component#library-level-code-splitting\"\u003Ereact-imported-component\u003C\u002Fa\u003E and \u003Ca href=\"https:\u002F\u002Fwww.smooth-code.com\u002Fopen-source\u002Floadable-components\u002Fdocs\u002Flibrary-splitting\u002F\"\u003Eloadable-components\u003C\u002Fa\u003E. Quite useful, but not well known.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"component-level-code-splitting\"\u003EComponent Level Code Splitting\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis one is the most popular. As a per-route code splitting, or per-component code splitting. It's not so easy to do it and maintain good \u003Cem\u003Eperceptual results\u003C\u002Fem\u003E as a result. It's death from \u003Ccode\u003EFlash of Loading Content\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe good techniques are:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eload \u003Ccode\u003Ejs chunk\u003C\u002Fcode\u003E and \u003Ccode\u003Edata\u003C\u002Fcode\u003E for a route in parallel.\u003C\u002Fli\u003E\r\n\u003Cli\u003Euse a \u003Ccode\u003Eskeleton\u003C\u002Fcode\u003E to display something similar to the page before the page load (like Facebook).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003Eprefetch\u003C\u002Fcode\u003E chunks, you may even use \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fguess-js\u002Fguess\"\u003Eguess-js\u003C\u002Fa\u003E for a better prediction.\u003C\u002Fli\u003E\r\n\u003Cli\u003Euse some delays, loading indicators, \u003Ccode\u003Eanimations\u003C\u002Fcode\u003E and \u003Ccode\u003ESuspense\u003C\u002Fcode\u003E(in the future) to soften transitions.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAnd, you know, that's all about \u003Cem\u003Eperceptual\u003C\u002Fem\u003E performance.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyk\u002F4o\u002Fs1\u002Fyk4os1fia5xv28cfdsoccss6nr0.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EImage from \u003Ca href=\"https:\u002F\u002Fblog.angularindepth.com\u002Fhttps-medium-com-thomasburleson-animated-ghosts-bfc045a51fba\"\u003EImproved UX with Ghost Elements\u003C\u002Fa\u003E\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"that-doesnt-sound-good\"\u003EThat doesn't sound good\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EYou know, I could call myself an expert in code splitting — but I have my own failures.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESometimes I could fail to reduce the bundle size. Sometimes I could fail to improve resulting performance, as long as \u003Ccode\u003Ethe _more_ code splitting you are introducing - the more you spatially split your page - the more time you need to _reassemble_ your page back\u003C\u002Fcode\u003E*. It's called a \u003Cstrong\u003Eloading waves\u003C\u002Fstrong\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Ewithout SSR or pre-rendering. Proper SSR is a game changer at this moment.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ffl\u002Fkn\u002Fhn\u002Fflknhn-kd8_aad9ro7g6fisrpqy.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ffl\u002Fkn\u002Fhn\u002Fflknhn-kd8_aad9ro7g6fisrpqy.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ELast week I've got two failures:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EI've lost in \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fmui-org\u002Fmaterial-ui\u002Fissues\u002F15450\"\u003Eone library comparison\u003C\u002Fa\u003E, as long as my library was better, but MUCH bigger than another one. I have failed to \u003Cstrong\u003E\"1. Write less code\"\u003C\u002Fstrong\u003E. \u003C\u002Fli\u003E\r\n\u003Cli\u003Eoptimize a small site, made in React by my wife. It was using route-based component splitting, but the \u003Ccode\u003Eheader\u003C\u002Fcode\u003E and \u003Ccode\u003Efooter\u003C\u002Fcode\u003E were kept in the main bundle to make transitions more \"acceptable\". Just a few things, \u003Cstrong\u003Etightly coupled\u003C\u002Fstrong\u003E with each other skyrocketed bundle side up to 320kb(before gzip). There was nothing important, and nothing I could really remove. \u003Cstrong\u003EA death by a thousand cuts\u003C\u002Fstrong\u003E. I have failed to \u003Cstrong\u003EShip less code\u003C\u002Fstrong\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EReact-Dom was 20%, core-js was 10%, react-router, jsLingui, react-powerplug… 20% of own code… We are already done.\u003C\u002Fblockquote\u003E\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fec\u002Fzx\u002Fxo\u002Feczxxohgulg4yvyjdeyxvzwi3g0.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"the-solution\"\u003EThe solution\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EI've started to think about how to solve my problem, and why \u003Cem\u003Ecommon solutions\u003C\u002Fem\u003E are not working properly for my use case.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EWhat did I do? I've listed all crucial location, without which application would not work at all, and tried to understand why I have the rest.\u003C\u002Fblockquote\u003E\u003Cp\u003EIt was a surprise. But my problem was in CSS. In vanilla CSS transition.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EHere is the code\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Ea \u003Cem\u003Econtrol\u003C\u002Fem\u003E variable — \u003Ccode\u003EcomponentControl\u003C\u002Fcode\u003E, eventually would be set to something \u003Ccode\u003EDisplayData\u003C\u002Fcode\u003E should display.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eonce value is set — \u003Ccode\u003EDisplayData\u003C\u002Fcode\u003E become visible, changing \u003Ccode\u003EclassName\u003C\u002Fcode\u003E, thus triggering fancy transition. Simultaneusly \u003Ccode\u003EFocusLock\u003C\u002Fcode\u003E become active making \u003Ccode\u003EDisplayData\u003C\u002Fcode\u003E a \u003Cstrong\u003Emodal\u003C\u002Fstrong\u003E.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E&lt;FocusLock\nenabled={componentControl.value} \n\u002F\u002F ^ it's \"disabled\". When it's disabled - it's dead.\n\u003E\n{componentControl.value &amp;&amp; &lt;PageTitle title={componentControl.value.title}\u002F\u003E}\n\u002F\u002F ^ it's does not exists. Also dead\n&lt;DisplayData\ndata={componentControl.value}\nvisible={componentControl.value !== null}\n\u002F\u002F ^ would change a className basing on visible state\n\u002F\u003E\n\u002F\u002F ^ that is just not visible, but NOT dead\n&lt;\u002FFocusLock\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EI would like to code split this piece as a whole, but this is something I could not do, due to two reasons:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003Ethe information should be visible immediately, once required, without any delay. A business requirement.\u003C\u002Fli\u003E\r\n\u003Cli\u003Ethe information \"chrome\" should exist before, to property handle transition.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis problem could be partially solved using \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Freactjs\u002Freact-transition-group\"\u003ECSSTransitionGroup\u003C\u002Fa\u003E or \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FtheKashey\u002Frecondition\"\u003Erecondition\u003C\u002Fa\u003E. But, you know, fixing \u003Cem\u003Eone code\u003C\u002Fem\u003E adding \u003Cem\u003Eanother code\u003C\u002Fem\u003E sounds weird, even if actually \u003Cem\u003Eenought\u003C\u002Fem\u003E. I mean adding more code could help in removing even more code. But… but...\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EThere should be a better way!\u003C\u002Fblockquote\u003E\u003Cp\u003ETL;DR — there are two key points here:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003EDisplayData\u003C\u002Fcode\u003E has to be \u003Cstrong\u003Emounted\u003C\u002Fstrong\u003E, and exists in the DOM prior.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003EFocusLock\u003C\u002Fcode\u003E should also exist prior, not to cause \u003Ccode\u003EDisplayData\u003C\u002Fcode\u003E remount, but it's \u003Cstrong\u003Ebrains are not needed\u003C\u002Fstrong\u003E in the beginning.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Chr\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESo let's change our mental model\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"batman-and-robin\"\u003EBatman and Robin\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ELet assume that our code is Batman and Robin. Batman can handle most the bad guys, but when he can't, his sidekick Robin comes to the rescue..\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EOnce again Batman would engage the battle, Robin will arrive later.\u003C\u002Fblockquote\u003E\u003Cp\u003EThis is Batman:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"diff\"\u003E+&lt;FocusLock\n- enabled={componentControl.value} \n+\u003E\n-  {componentControl.value &amp;&amp; &lt;PageTitle title={componentControl.value.title}\u002F\u003E}\n+  &lt;DisplayData\n+    data={componentControl.value}\n+    visible={componentControl.value !== null}\n+  \u002F\u003E\n+&lt;\u002FFocusLock\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis is his sidekick, Robin::\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"diff\"\u003E-&lt;FocusLock\n+ enabled={componentControl.value} \n-\u003E\n+  {componentControl.value &amp;&amp; &lt;PageTitle title={componentControl.value.title}\u002F\u003E}\n-  &lt;DisplayData\n-    data={componentControl.value}\n-    visible={componentControl.value !== null}\n-  \u002F\u003E\n-&lt;\u002FFocusLock\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBatman and Robin could form a \u003Cem\u003ETEAM\u003C\u002Fem\u003E, but they actually, are two different persons.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAnd don't forget — we are still talking about \u003Cstrong\u003Ecode splitting\u003C\u002Fstrong\u003E. And, in terms of code splitting, where is the sidekick? Where is Robin?\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fm3\u002F3a\u002Ffu\u002Fm33afuxsi_rirx3uwjusiprzj94.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fm3\u002F3a\u002Ffu\u002Fm33afuxsi_rirx3uwjusiprzj94.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003Ein a sidecar. Robin is waiting in a \u003Cstrong\u003Esidecar chunk\u003C\u002Fstrong\u003E.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"sidecar\"\u003ESidecar\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003EBatman\u003C\u002Fcode\u003E here is all visual stuff your customer must see as soon as possible. Ideally instantly.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003ERobin\u003C\u002Fcode\u003E here is all logic, and fancy interactive features, which may be available a second after, but not in the very beginning.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIt would be better to call this a \u003Cstrong\u003Evertical code splitting\u003C\u002Fstrong\u003E where code branches exist in a parallel, in opposite to a common \u003Cstrong\u003Ehorizontal code splitting\u003C\u002Fstrong\u003E where code branches are \u003Cem\u003Ecut\u003C\u002Fem\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Frespond-framework\u002Frudy\"\u003Esome lands\u003C\u002Fa\u003E, this trio was known as \u003Ccode\u003Ereplace reducer\u003C\u002Fcode\u003E or other ways to lazy load redux logic and side effects.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn \u003Ca href=\"https:\u002F\u002Fdevelopers.facebook.com\u002Fvideos\u002F2019\u002Fbuilding-the-new-facebookcom-with-react-graphql-and-relay\u002F\"\u003Esome other lands\u003C\u002Fa\u003E, it is known as \u003Ccode\u003E\"3 Phased\" code splitting\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EIt's just another separation of concerns, applicable only to cases, where you can defer loading some part of a component, but not another part.\u003C\u002Fblockquote\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fsw\u002Ffq\u002Fif\u002Fswfqifrldpp0n6o7qcfr6osdunk.jpeg\" alt=\"phase 3\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fsw\u002Ffq\u002Fif\u002Fswfqifrldpp0n6o7qcfr6osdunk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003Eimage from \u003Ca href=\"https:\u002F\u002Fdevelopers.facebook.com\u002Fvideos\u002F2019\u002Fbuilding-the-new-facebookcom-with-react-graphql-and-relay\u002F\"\u003EBuilding the New facebook.com with React, GraphQL and Relay\u003C\u002Fa\u003E, where \u003Ccode\u003EimportForInteractions\u003C\u002Fcode\u003E, or \u003Ccode\u003EimportAfter\u003C\u002Fcode\u003E \u003Cstrong\u003Eare the \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E\u003C\u002Fstrong\u003E.\u003C\u002Fblockquote\u003E\u003Cp\u003EAnd there is an \u003Cstrong\u003Einteresting\u003C\u002Fstrong\u003E observation — while \u003Ccode\u003EBatman\u003C\u002Fcode\u003E is more valuable for a customer, as long as it's something customer might \u003Cem\u003Esee\u003C\u002Fem\u003E, he is always in shape… While \u003Ccode\u003ERobin\u003C\u002Fcode\u003E, you know, he might be a bit \u003Cem\u003Eoverweight\u003C\u002Fem\u003E, and require much more bytes for living.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAs a result — Batman alone is something much be bearable for a customer — he provides more value at a lower cost. You are my hero Bat!\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"what-could-be-moved-to-a-sidecar\"\u003EWhat could be moved to a sidecar:\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Emajority of \u003Ccode\u003EuseEffect\u003C\u002Fcode\u003E, \u003Ccode\u003EcomponentDidMount\u003C\u002Fcode\u003E and friends.\u003C\u002Fli\u003E\r\n\u003Cli\u003Elike all \u003Cem\u003EModal\u003C\u002Fem\u003E effects. Ie \u003Ccode\u003Efocus\u003C\u002Fcode\u003E and \u003Ccode\u003Escroll\u003C\u002Fcode\u003E locks. You might first display a modal, and \u003Cstrong\u003Eonly then\u003C\u002Fstrong\u003E make Modal \u003Cem\u003Emodal\u003C\u002Fem\u003E, ie \"lock\" customer's attention.\u003C\u002Fli\u003E\r\n\u003Cli\u003EForms. Move all logic and validations to a sidecar, and block form submission until that logic is loaded. The customer could start filling the form, not knowing that it's only \u003Ccode\u003EBatman\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003ESome animations. A whole \u003Ccode\u003Ereact-spring\u003C\u002Fcode\u003E in my case.\u003C\u002Fli\u003E\r\n\u003Cli\u003ESome visual stuff. Like \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FtheKashey\u002FReact-stroller\"\u003ECustom scrollbars\u003C\u002Fa\u003E, which might display fancy scroll-bars a second later.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAlso, don't forget — Every piece of code, offloaded to a sidecar, also offload things like core-js poly- and ponyfills, used by the removed code.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ECode Splitting can be smarter than it is in our apps today. We must realize there is 2 kinds of \u003Cem\u003Ecode\u003C\u002Fem\u003E to split: 1) visual aspects 2) interactive aspects. The latter can come a few moments later. \u003Ccode\u003ESidecar\u003C\u002Fcode\u003E makes it seamless to split the two tasks, giving the \u003Cem\u003Eperception that everything loaded faster\u003C\u002Fem\u003E. And it will.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"the-oldest-way-to-code-split\"\u003EThe oldest way to code split\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EWhile it may still not be quite clear when and what a \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E is, I'll give a simple explanation: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Ccode\u003ESidecar\u003C\u002Fcode\u003E is \u003Cstrong\u003EALL YOUR SCRIPTS\u003C\u002Fstrong\u003E. Sidecar is the way we \u003Cem\u003Ecodesplit\u003C\u002Fem\u003E before all that frontend stuff we got today.\u003C\u002Fblockquote\u003E\u003Cp\u003EI am talking about Server Side Rendering(\u003Cstrong\u003ESSR\u003C\u002Fstrong\u003E), or just plain \u003Cstrong\u003EHTML\u003C\u002Fstrong\u003E, we all were used to just yesterday. \u003Ccode\u003ESidecar\u003C\u002Fcode\u003E makes things as easy as they used to be when pages contained HTML and logic lived separately in embeddable external scripts (separation of concerns).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EWe had HTML, \u003Cstrong\u003Eplus\u003C\u002Fstrong\u003E CSS, \u003Cstrong\u003Eplus\u003C\u002Fstrong\u003E some scripts inlined, \u003Cstrong\u003Eplus\u003C\u002Fstrong\u003E the rest of the scripts extracted to a \u003Ccode\u003E.js\u003C\u002Fcode\u003E files.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003EHTML\u003C\u002Fcode\u003E+\u003Ccode\u003ECSS\u003C\u002Fcode\u003E+\u003Ccode\u003Einlined-js\u003C\u002Fcode\u003E were \u003Ccode\u003EBatman\u003C\u002Fcode\u003E, while external scripts were \u003Ccode\u003ERobin\u003C\u002Fcode\u003E, and the site was able to function without Robin, and, honestly, partially without Batman (he will continue the fight with both legs(inlined scripts) broken). That was just yesterday, and many \"non modern and cool\" sites are the same today.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Chr\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIf your application supports SSR — try to \u003Cstrong\u003Edisable js\u003C\u002Fstrong\u003E and make it work without it. Then it would be clear what could be moved to a sidecar.\u003Cbr\u002F\u003E\r\nIf your application is a client-side only SPA — try to imagine how it would work, if SSR existed.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EFor example — \u003Ca href=\"https:\u002F\u002Ftheurge.com\u002F\"\u003Etheurge.com\u003C\u002Fa\u003E, written in React, is fully functional \u003Cstrong\u003Ewithout any js enabled\u003C\u002Fstrong\u003E.\u003C\u002Fblockquote\u003E\u003Cp\u003EThere is a lot of things you may offload to a sidecar. For example:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Ecomments. You might ship code to \u003Ccode\u003Edisplay\u003C\u002Fcode\u003E comments, but not \u003Ccode\u003Eanswer\u003C\u002Fcode\u003E, as long as it might require more code(including WYSIWYG editor), which is not required initially. It's better to delay a \u003Cem\u003Ecommenting box\u003C\u002Fem\u003E, or even just hide code loading behind animation, than delay a whole page. \u003C\u002Fli\u003E\r\n\u003Cli\u003Evideo player. Ship \"video\" without \"controls\". Load them a second later, them customer might try to interact with it.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eimage gallery, like \u003Ccode\u003Eslick\u003C\u002Fcode\u003E. It's not a big deal to \u003Cstrong\u003Edraw\u003C\u002Fstrong\u003E it, but much harder to animate and manage. It's clear what could be moved to a sidecar.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EJust think what is essential for your application, and what is not quite...\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"implementation-details\"\u003EImplementation details\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"di-component-code-splitting\"\u003E(DI) Component code splitting\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThe simplest form of \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E is easy to implement — just move everything to a sub component, you may code split using an \"old\" ways. It's almost a separation between Smart and Dumb components, but this time Smart is not \u003Cem\u003Econtaniting\u003C\u002Fem\u003E a Dumb one — it's opposite.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst SmartComponent = React.lazy( () =\u003E import('.\u002FSmartComponent'));\n\nclass DumbComponent extends React.Component {\n  render() {\n    return (\n      &lt;React.Fragment\u003E\n       &lt;SmartComponent ref={this} \u002F\u003E \u002F\u002F &lt;-- move smart one inside\n       &lt;TheActualMarkup \u002F\u003E           \u002F\u002F &lt;-- the \"real\" stuff is here\n      &lt;\u002FReact.Fragment\u003E\n  } \n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThat also requires moving \u003Cem\u003Einitialization\u003C\u002Fem\u003E code to a Dumb one, but you are still able to code-split the \u003Cem\u003Eheaviest\u003C\u002Fem\u003E part of a code.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003ECan you see a \u003Ccode\u003Eparallel\u003C\u002Fcode\u003E or \u003Ccode\u003Evertical\u003C\u002Fcode\u003E code splitting pattern now?\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"usesidecar\"\u003EuseSidecar\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ca href=\"https:\u002F\u002Fdevelopers.facebook.com\u002Fvideos\u002F2019\u002Fbuilding-the-new-facebookcom-with-react-graphql-and-relay\u002F\"\u003EBuilding the New facebook.com with React, GraphQL and Relay\u003C\u002Fa\u003E, I've already mentioned here, had a concept of \u003Ccode\u003EloadAfter\u003C\u002Fcode\u003E or \u003Ccode\u003EimportForInteractivity\u003C\u002Fcode\u003E, which is quite alike sidecar concept.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn the same time, I would not recommend creating something like \u003Ccode\u003EuseSidecar\u003C\u002Fcode\u003E as long you might intentionally try to use \u003Ccode\u003Ehooks\u003C\u002Fcode\u003E inside, but code splitting in this form would break \u003Cem\u003Erule of hooks\u003C\u002Fem\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EPlease prefer a more declarative component way. And you might use \u003Ccode\u003Ehooks\u003C\u002Fcode\u003E inside \u003Ccode\u003ESideCar\u003C\u002Fcode\u003E component.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst Controller = React.lazy( () =\u003E import('.\u002FController'));\nconst DumbComponent = () =\u003E {\n const ref = useRef();\n const state = useState();\n\n return (\n  &lt;\u003E\n   &lt;Controller componentRef={ref} state={state} \u002F\u003E\n   &lt;TheRealStuff ref={ref} state={state[0]} \u002F\u003E\n  &lt;\u002F\u003E\n )\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"prefetching\"\u003EPrefetching\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EDont forget — you might use \u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fwebpack\u002Flink-rel-prefetch-preload-in-webpack-51a52358f84c\"\u003Eloading priority hinting\u003C\u002Fa\u003E to preload or prefetch \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E and make it shipping more transparent and invisible.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EImportant stuff — prefetching scripts would load it via \u003Cstrong\u003Enetwork\u003C\u002Fstrong\u003E, but not execute (and spend CPU) unless it actually required.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"ssr\"\u003ESSR\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EUnlike \u003Cem\u003Enormal\u003C\u002Fem\u003E code splitting, no special action is required for SSR. \u003Ccode\u003ESidecar\u003C\u002Fcode\u003E might not be a part of the SSR process and not required before \u003Ccode\u003Ehydration\u003C\u002Fcode\u003E step. It's could be postponed \"by design\".\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThus — feel free to use \u003Ccode\u003EReact.lazy\u003C\u002Fcode\u003E(ideally something \u003Cstrong\u003Ewithout\u003C\u002Fstrong\u003E \u003Ccode\u003ESuspense\u003C\u002Fcode\u003E, you don't need any failback(loading) indicators here), or any other library, with, but better without SSR support to \u003Cem\u003Eskip\u003C\u002Fem\u003E sidecar chunks during SSR process.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"the-bad-parts\"\u003EThe bad parts\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBut there are a few bad parts of this idea\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"batman-is-not-a-production-name\"\u003EBatman is not a production name\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EWhile \u003Ccode\u003EBatman\u003C\u002Fcode\u003E\u002F\u003Ccode\u003ERobin\u003C\u002Fcode\u003E might be a good mind concept, and \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E is a perfect match for the technology itself — there is no \"good\" name for the \u003Ccode\u003Emaincar\u003C\u002Fcode\u003E. There is no such thing as a \u003Ccode\u003Emaincar\u003C\u002Fcode\u003E, and obviously \u003Ccode\u003EBatman\u003C\u002Fcode\u003E, \u003Ccode\u003ELonely Wolf\u003C\u002Fcode\u003E, \u003Ccode\u003ESolitude\u003C\u002Fcode\u003E, \u003Ccode\u003EDriver\u003C\u002Fcode\u003E and \u003Ccode\u003ESolo\u003C\u002Fcode\u003E shall not be used to name a non-a-sidecar part.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EFacebook have used \u003Ccode\u003Edisplay\u003C\u002Fcode\u003E and \u003Ccode\u003Einteractivity\u003C\u002Fcode\u003E, and that might be the best option for all of us.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EIf you have a good name for me — leave it in the comments\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"tree-shaking\"\u003ETree shaking\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIt's more about the separation of concerns from \u003Cem\u003Ebundler\u003C\u002Fem\u003E point of view. Let's imagine you have \u003Ccode\u003EBatman\u003C\u002Fcode\u003E and \u003Ccode\u003ERobin\u003C\u002Fcode\u003E. And \u003Ccode\u003Estuff.js\u003C\u002Fcode\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Estuff.js\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eexport * from `.\u002Fbatman.js`\nexport * from `.\u002Frobin.js`\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThen you might try \u003Cem\u003Ecomponent based\u003C\u002Fem\u003E code splitting to implement a sidecar\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Ccode\u003Emain.js\u003C\u002Fcode\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport {batman} from '.\u002Fstuff.js'\nconst Robin = React.lazy( () =\u003E import('.\u002Fsidecar.js'));\nexport const Component = () =\u003E (\n&lt;\u003E\n&lt;Robin \u002F\u003E  \u002F\u002F sidecar\n&lt;Batman \u002F\u003E \u002F\u002F main content\n&lt;\u002F\u003E\n)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Ccode\u003Esidecar.js\u003C\u002Fcode\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u002F\u002F and sidecar.js... that's another chunk as long as we `import` it\nimport {robin} from '.\u002Fstuff.js'\n.....\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn short — the code above would work, but will not do \"the job\".\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eif you are using only \u003Ccode\u003Ebatman\u003C\u002Fcode\u003E from \u003Ccode\u003Estuff.js\u003C\u002Fcode\u003E — tree shaking would keep only it.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eif you are using only \u003Ccode\u003Erobin\u003C\u002Fcode\u003E from \u003Ccode\u003Estuff.js\u003C\u002Fcode\u003E — tree shaking would keep only it.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Ebut\u003C\u002Fstrong\u003E if you are using both, even in different chunks — both will be bundled in a \u003Cstrong\u003Efirst\u003C\u002Fstrong\u003E occurrence of \u003Ccode\u003Estuff.js\u003C\u002Fcode\u003E, ie the \u003Cstrong\u003Emain bundle\u003C\u002Fstrong\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003ETree shaking is not code-splitting friendly. You have to separate concerns by files.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"un-import\"\u003EUn-import\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAnother thing, forgotten by everybody, is the cost of javascript. It was quite common in the jQuery era, the era of \u003Ccode\u003Ejsonp\u003C\u002Fcode\u003E payload to load the script(with \u003Ccode\u003Ejson\u003C\u002Fcode\u003E payload), get the payload, and \u003Cstrong\u003Eremove\u003C\u002Fstrong\u003E the script.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003ENowadays we all \u003Ccode\u003Eimport\u003C\u002Fcode\u003E script, and it will be forever imported, even if no longer needed.\u003C\u002Fblockquote\u003E\u003Cp\u003EAs I said before — there is too much JS, and sooner or later, with \u003Cem\u003Econtinuous navigation\u003C\u002Fem\u003E you will load all of it. We should find a way to un-import no longer need chunk, clearing all internal caches and freeing memory to make web more reliable, and not to crush application with out of memory exceptions.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EProbably the ability to \u003Ccode\u003Eun-import\u003C\u002Fcode\u003E (webpack \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FtheKashey\u002FwipeWebpackCache\"\u003Ecould do it\u003C\u002Fa\u003E) is one of the reasons we should stick with \u003Cem\u003Ecomponent-based\u003C\u002Fem\u003E API, as long as it gives us an ability to handle \u003Ccode\u003Eunmount\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ESo far — ESM modules standards have nothing about stuff like this — nor about cache control, nor about reversing import action.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"creating-a-sidecar-enabled-library\"\u003ECreating a sidecar-enabled Library\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EBy today there is only one way to create a \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E-enabled library:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Esplit your component into parts\u003C\u002Fli\u003E\r\n\u003Cli\u003Eexpose a \u003Ccode\u003Emain\u003C\u002Fcode\u003E part and \u003Ccode\u003Econnected\u003C\u002Fcode\u003E part(not to break API) via \u003Ccode\u003Eindex\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003Eexpose a \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E via a separated entry point.\u003C\u002Fli\u003E\r\n\u003Cli\u003Ein the target code — import the \u003Ccode\u003Emain\u003C\u002Fcode\u003E part and the \u003Ccode\u003Esidecar\u003C\u002Fcode\u003E — tree shaking should cut a \u003Ccode\u003Econnected\u003C\u002Fcode\u003E part. \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EThis time tree shaking should work properly, and the only problem — is how to name the \u003Ccode\u003Emain\u003C\u002Fcode\u003E part.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Emain.js\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eexport const Main = ({sidecar, ...props}) =\u003E (\n  &lt;div\u003E\n    {sidecar} \n    ....\n  &lt;\u002Fdiv\u003E\n);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Econnected.js\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport Main from '.\u002FComponent';\nimport Sidecar from '.\u002FSidecar';\n\nexport const Connected = props =\u003E (\n  &lt;Main\n    sidecar={&lt;Sidecar \u002F\u003E}\n    {...props}\n  \u002F\u003E\n);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Eindex.js\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eexport * from '.\u002FMain';\nexport * from '.\u002FConnected';\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Esidecar.js\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport * from '.\u002FSidecar';\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EIn short, the change could be represented via a small comparison\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u002F\u002Fyour app BEFORE\nimport {Connected} from 'library'; \u002F\u002F\n\n\u002F\u002F -------------------------\n\n\u002F\u002Fyour app AFTER, compare this core to `connected.js`\nimport {Main} from 'library';\nconst Sidecar = React.lazy(import( () =\u003E import('library\u002Fsidecar')));\n\u002F\u002F ^ all the difference ^\n\nexport SideConnected = props =\u003E (\n  &lt;Main\n    sidecar={&lt;Sidecar \u002F\u003E}\n    {...props}\n  \u002F\u003E\n);\n\n\u002F\u002F ^ you will load only Main, Sidecar will arrive later.\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ETheoretically \u003Ccode\u003Edynamic import\u003C\u002Fcode\u003E could be used inside node_modules, making \u003Cem\u003Eassemble process\u003C\u002Fem\u003E more transparent.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EAnyway — it's nothing more than \u003Ccode\u003Echildren\u003C\u002Fcode\u003E\u002F\u003Ccode\u003Eslot\u003C\u002Fcode\u003E pattern, so common in React.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"the-future\"\u003EThe future\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003EFacebook\u003C\u002Fcode\u003E proved that the idea is right. If you haven't seen that video — do it right now. I've just explained the same idea from a bit different angle (and started writing this article a week before F8 conference). \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ERight now it requires some code changes to be applied to your code base. It requires a more explicit separation of concerns to actually separate them, and let of codesplit not horizontally, but vertically, shipping \u003Cem\u003Elesser\u003C\u002Fem\u003E code for a \u003Cem\u003Ebigger\u003C\u002Fem\u003E user experience.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003ESidecar\u003C\u002Fcode\u003E, probably, is the only way, except old school SSR, to handle BIG code bases. Last chance to ship a minimal amount of code, when you have a lot of it.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EIt could make a BIG application smaller, and a SMALL application even more smaller.\u003C\u002Fblockquote\u003E\u003Cp\u003E10 years ago the medium website was \"ready\" in 300ms, and was \u003Cem\u003Ereally\u003C\u002Fem\u003E ready a few milliseconds after. Today seconds and even more than 10 seconds are the common numbers. What a shame.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ELet's take a pause, and think — how we could solve the problem, and make UX great again...\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F8_\u002F5u\u002F7e\u002F8_5u7ehdn7nkcjiaqfv1-rzadfa.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8_\u002F5u\u002F7e\u002F8_5u7ehdn7nkcjiaqfv1-rzadfa.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"overall\"\u003EOverall\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EComponent code splitting is a most powerful tool, giving you the ability to \u003Cem\u003Ecompletely\u003C\u002Fem\u003E split something, but it comes with a cost — you might not display anything except a blank page, or a \u003Cem\u003Eskeleton\u003C\u002Fem\u003E for a while. That's a horizontal separation.\u003C\u002Fli\u003E\r\n\u003Cli\u003ELibrary code splitting could help when component splitting would not. That's a horizontal separation.\u003C\u002Fli\u003E\r\n\u003Cli\u003ECode, offloaded to a sidecar would complete the picture, and may let you provide a far better user experience. But would also require some engineering effort. That's a vertical separation.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003ELet's have a conversation about this\u003C\u002Fstrong\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"stop-so-what-about-the-problems-you-tried-to-solve\"\u003EStop! So what about the problems you tried to solve?\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EWell, that was only the first part. \u003Cstrong\u003EWe are in the endgame now\u003C\u002Fstrong\u003E, it would take a few more weeks to write down the second part of this proposal. Meanwhile… get in the sidecar!\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"code splitting"},{"titleHtml":"tree shaking"},{"titleHtml":"bundling"},{"titleHtml":"separation of concerns"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450942\u002F1ec3e3f0fa5c5f5b8c388dd10d8e9738\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450942\u002F1ec3e3f0fa5c5f5b8c388dd10d8e9738\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fpost\\\u002F450942\\\u002F\"},\"headline\":\"Sidecar for a Code splitting\",\"datePublished\":\"2019-05-08T03:52:14+03:00\",\"dateModified\":\"2019-05-08T10:37:27+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Корзунов Антон\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fen\\\u002Fpost\\\u002F450942\\\u002F#post-content-body\",\"about\":[\"h_javascript\",\"h_reactjs\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fts\\\u002Fbi\\\u002Fe4\\\u002Ftsbie49wsfunvcztrdwhlnik6ge.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fdz\\\u002Ffc\\\u002Fkn\\\u002Fdzfcknugbqrpbxturkjjae2v2se.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpy\\\u002Feg\\\u002Fmi\\\u002Fpyegmilj0w2cshkxcj8nwqxhpg0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyk\\\u002F4o\\\u002Fs1\\\u002Fyk4os1fia5xv28cfdsoccss6nr0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ffl\\\u002Fkn\\\u002Fhn\\\u002Fflknhn-kd8_aad9ro7g6fisrpqy.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fec\\\u002Fzx\\\u002Fxo\\\u002Feczxxohgulg4yvyjdeyxvzwi3g0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fm3\\\u002F3a\\\u002Ffu\\\u002Fm33afuxsi_rirx3uwjusiprzj94.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fsw\\\u002Ffq\\\u002Fif\\\u002Fswfqifrldpp0n6o7qcfr6osdunk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8_\\\u002F5u\\\u002F7e\\\u002F8_5u7ehdn7nkcjiaqfv1-rzadfa.jpeg\"]}","metaDescription":"Code splitting. Code splitting is everywhere. However, why? Just because there is too much of javascript nowadays, and not all are in use at the same point in time.\r\nJS is a very heavy thing. Not...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"javascript,reactjs"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

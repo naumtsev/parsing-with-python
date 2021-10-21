@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>AnyStub, библиотека заглушек соединений в Java / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450958\/"},"headline":"AnyStub, библиотека заглушек соединений в Java","datePublished":"2019-05-08T09:58:59+03:00","dateModified":"2019-05-11T21:48:41+03:00","author":{"@type":"Person","name":"feech1"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock...","url":"https:\/\/habr.com\/ru\/post\/450958\/#post-content-body","about":["h_java","f_develop"],"image":["https:\/\/habr.com\/share\/publication\/450958\/4ec7ca581c8dfde3aca11ab312cae1dc\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="AnyStub, библиотека заглушек соединений в Java" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="AnyStub, библиотека заглушек соединений в Java" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="AnyStub, библиотека заглушек соединений в Java" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450958/4ec7ca581c8dfde3aca11ab312cae1dc/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450958/4ec7ca581c8dfde3aca11ab312cae1dc/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450958/4ec7ca581c8dfde3aca11ab312cae1dc/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450958/4ec7ca581c8dfde3aca11ab312cae1dc/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450958/4ec7ca581c8dfde3aca11ab312cae1dc/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450958" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-08T06:58:59.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450958/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450958/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450958/4ec7ca581c8dfde3aca11ab312cae1dc/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/feech1/" title="feech1" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_blue"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/feech1/" class="tm-user-info__username">
+      feech1
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-08T06:58:59.000Z" title="2019-05-08, 09:58">8  мая  2019 в 09:58</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>AnyStub, библиотека заглушек соединений в Java</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/java/" class="tm-article-snippet__hubs-item-link"><span>Java</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие разработчики в тестах используют Mockito для описания поведения объектов, DataJpaTest с локальной h2 базой данных, Cucumber тесты. Сегодня вы познакомитесь с легковесной альтернативной, которая поможет справиться с разными проблемами, с которыми вы могли сталкиваться используя эти подходы. В частности, anyStub пытается решить следующие проблемы:</p><br/>
+<ul>
+<li>упростить кофигурацию тестового окружения</li>
+<li>автоматизировать сбор данных для тестов</li>
+<li>остаться в тестировании вашего проложения и избежать тестирования чего-то ещё</li>
+</ul><a name="habracut"></a><br/>
+<h2 id="chto-takoe-anystub-i-kak-eto-rabotaet">Что такое anyStub и как это работает</h2><br/>
+<p><a href="https://anystub-guides.github.io/">AnyStub</a> оборачивает вызовы функций, пытается найти совпадающие вызовы, которые были уже записанны. Две вещи могут произойти при этом:</p><br/>
+<ul>
+<li>если существует совпадающий вызов, anyStub восстановит записанный результат, ассоциированный с этим вызовом и вернет его</li>
+<li>если нет совпадающего вызова и обращение во внешнюю систему разрешено, anyStub выполнит этот вызов, запишет этот результат и вернет его</li>
+</ul><br/>
+<p>Из коробки anyStub предоставляет обертки для http-клиента из Apache HttpClient для создания заглушек http запросов и несколько интерфейсов из javax.sql.* для DB-соединений. Также вам предоставляется API для создания заглушек других соединений.</p><br/>
+<p>AnyStub это простая библиотека классов и не требует специальной настройки вашего окружения. Эта библиотека нацелена на работу со spring-boot приложениями и вы получите максимум выгоды следуя этому пути. Вы можете исползовать её вне Spring, в plain Java приложениях, но определённо вам придется выполнить дополнительную работу. Дальнейшее описание ориентировано на тестирование spring-boot приложений.</p><br/>
+<p>Давайте посмотрим на интеграционное тестирование. Это наиболее захватывающий и всесторонний способ протестировать вашу систему. На самом деле, spring-boot и JUnit делают почти всё за вас когда вы напишите магические аннотации:</p><br/>
+<pre><code class="java">@RunWith(SpringRunner.class)
+@SpringBootTest</code></pre><br/>
+<p>В настоящее время интеграционные тесты недооценены и используются ограничено, а некоторые разработчики избегают их. В основном это происходит из-за трудоёмкой подготовки и сопровождения тестов или необходимости специальной конфигурации окружения на билд-серверах.</p><br/>
+<p>С anyStub вам не надо калечить spring-contex. Вместо этого, сохранение контекста близким к production конфигурации простое и прямолинейное. </p><br/>
+<p>В этом примере мы посмотрим, как подключить anyStub к <a href="https://spring.io/guides/gs/consuming-rest/">Consuming a RESTful Web Service</a> из руководства от Pivotal.</p><br/>
+<p>Подключение библиотеки через pom.xml</p><br/>
+<pre><code class="java">    &lt;dependency>
+        &lt;groupId>org.anystub&lt;/groupId>
+        &lt;artifactId>anystub&lt;/artifactId>
+        &lt;version>0.2.27&lt;/version>
+        &lt;scope>test&lt;/scope>
+    &lt;/dependency></code></pre><br/>
+<p>Следующий шаг — это модификация spring контекста. </p><br/>
+<pre><code class="java">package hello;
+
+import org.anystub.http.StubHttpClient;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class TestConfiguration {
+
+    @Bean
+    public RestTemplateBuilder builder() {
+
+        RestTemplateCustomizer restTemplateCustomizer = new RestTemplateCustomizer() {
+            @Override
+            public void customize(RestTemplate restTemplate) {
+                HttpClient real = HttpClientBuilder.create().build();
+                StubHttpClient stubHttpClient = new StubHttpClient(real);
+                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+                requestFactory.setHttpClient(stubHttpClient);
+                restTemplate.setRequestFactory(requestFactory);
+            }
+        };
+
+        return new RestTemplateBuilder(restTemplateCustomizer);
+    }
+}</code></pre><br/>
+<p>Эта модификация не меняет взаимосвязей компонентов в приложении, а только заменяет реализацию одного интерфейса. Это отправляет нас к <a href="https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%B8%D0%BD%D1%86%D0%B8%D0%BF_%D0%BF%D0%BE%D0%B4%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B8_%D0%91%D0%B0%D1%80%D0%B1%D0%B0%D1%80%D1%8B_%D0%9B%D0%B8%D1%81%D0%BA%D0%BE%D0%B2">Принципу подстановки Барбары Лисков</a>. Если дизайн вашего приложения его не нарушает, то и эта подстановка не нарушит функциональность. </p><br/>
+<p>Всё готово. Этот проект уже включает тест.</p><br/>
+<pre><code class="java">@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ApplicationTest {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Test
+    public void contextLoads() {
+        assertThat(restTemplate).isNotNull();
+    }
+
+}</code></pre><br/>
+<p>Этот тест пустой, но он уже запускает контекст приложения. <strong>Самое интересное начинается здесь</strong>. Как мы говорили выше, контекст приложения в тесте совпадает с рабочим контекстом, в котором создается CommandLineRunner, в котором выполняется http-запрос к внешней системе. </p><br/>
+<pre><code class="java">@SpringBootApplication
+public class Application {
+
+    private static final Logger log = LoggerFactory.getLogger(Application.class);
+
+    public static void main(String args[]) {
+        SpringApplication.run(Application.class);
+    }
+
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
+
+    @Bean
+    public CommandLineRunner run(RestTemplate restTemplate) throws Exception {
+        return args -> {
+            Quote quote = restTemplate.getForObject(
+                    "https://gturnquist-quoters.cfapps.io/api/random", Quote.class);
+            log.info(quote.toString());
+        };
+    }
+}</code></pre><br/>
+<p>Это достаточно для демонстрации работы библиотеки. После первого запуска тестов вы найдете новый файл <code>complete/src/test/resources/anystub/stub.yml</code>.</p><br/>
+<pre><code class="plaintext">request0:
+  exception: []
+  keys: [GET, HTTP/1.1, 'https://gturnquist-quoters.cfapps.io/api/random']
+  values: [HTTP/1.1, '200', OK, 'Content-Type: application/json;charset=UTF-8', 'Date:
+      Thu, 25 Apr 2019 23:04:49 GMT', 'X-Vcap-Request-Id: 5ffce9f3-d972-4e95-6b5c-f88f9b0ae29b',
+    'Content-Length: 177', 'Connection: keep-alive', '{"type":"success","value":{"id":3,"quote":"Spring
+      has come quite a ways in addressing developer enjoyment and ease of use since
+      the last time I built an application using it."}}']</code></pre><br/>
+<p>Что произошло? spring-boot встроил RestTemplateBuilder из тестовой конфигурации в приложение. Это привело к работе приложения через stub-реализацию http-клиента. StubHttpClient перехватил запрос, не нашел файл заглушки, выполнил запрос, сохранил результат в файле и вернул восстановленный из файла результат.</p><br/>
+<p>С этого момента, вы можете запускать этот тест без интернет подключения и этот запрос будет выполнятся успешно. <code>restTemplate.getForObject()</code> будет возвращать одинаковый результат. Вы можете полагаться на этот факт в ваших будущих тестах. </p><br/>
+<p>Все описанные изменения вы можете найти на <a href="https://github.com/anystub-guides/gs-consuming-rest/commit/0dd943f6495e87684f3392387b9a5a5e2a846263">GitHub</a>.</p><br/>
+<p>На самом деле мы все еще не создали ни одного теста. Перед написанием тестов давайте посмотрим как это работает с базами данных.</p><br/>
+<p>В этом примере мы добавим интеграционной тест к <a href="https://spring.io/guides/gs/relational-data-access/">Accessing Relational Data using JDBC with Spring</a> из руководства от Pivotal.</p><br/>
+<p>Тестовая конфигурация для этого случая выглядит так:</p><br/>
+<pre><code class="java">package hello;
+
+import org.anystub.jdbc.StubDataSource;
+import org.h2.jdbcx.JdbcDataSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
+
+@Configuration
+public class TestConfiguration {
+
+    @Bean
+    public DataSource dataSource() {
+
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL("jdbc:h2:./test");
+        return new StubDataSource(ds);
+    }
+
+}</code></pre><br/>
+<p>Здесь создается обычный datasource к внешней базе данных и оборачивается stub-реализацией — класс StubDataSource. Spring-boot встраивает его в контекст. Ещё нам необходимо создать хотя бы один тест для запуска spring-контекста в тесте.</p><br/>
+<pre><code class="java">package hello;
+
+import org.anystub.AnyStubId;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.*;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ApplicationTest {
+
+    @Test
+    @AnyStubId
+    public void test() {
+
+    }
+
+}</code></pre><br/>
+<p>Это опять пустой тест — его единственная задача запустить контекст приложения. Здесь мы видим очень важную аннотацию <code>@AnystubId</code>, но она пока не будет задействована.</p><br/>
+<p>После первого запуска вы найдете новый файл <code>src/test/resources/anystub/stub.yml</code>, который включает все обращения к базе данных. Вы будете удивлены как spring работает за сценой с базами данных. Отметим что, новые запуски теста не приведут к реальному обращению к базе данных. Если вы удалите test.mv.db он не появится после повторных запусков тестов. Полный набор изменений можно посмотреть на <a href="https://github.com/anystub-guides/gs-relational-data-access/commit/1724f93e61963ba4af2a8fdea7f7372fba6e3ed1">GitHub</a>.</p><br/>
+<p>Подведем итоги. с anyStub:</p><br/>
+<ul>
+<li>вам не надо специально настраивать тестовое окружение</li>
+<li>тестирование проводится с реальными данными</li>
+<li>первый запуск тестов доказывает ваши предположения и сохраняет тестовые данные, последующие — проверяют, что система не деградировала</li>
+</ul><br/>
+<p>Вероятно, у вас есть вопросы: как это покрывает случаи, когда база данных еще не существует, что делать с негативным тестированием и обработкой исключений. Мы вернемся к этому, но сначала разберемся с написанием простых тестов.</p><br/>
+<p>Сейчас мы по-экспериментируем над <a href="https://spring.io/guides/gs/consuming-rest/">Consuming a RESTful Web Service</a>. Этот проект не содержит компонент, которые могут быть протестированы. Ниже создаются два класса, которые должны изобразить два слоя какого-то дизайна архитектуры.</p><br/>
+<pre><code class="java">package hello;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+@Component
+public class DataProvider {
+    private final RestTemplate restTemplate;
+
+    public DataProvider(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    Quote provideData() {
+        return restTemplate.getForObject(
+                "https://gturnquist-quoters.cfapps.io/api/random", Quote.class);
+    }
+}</code></pre><br/>
+<p>DataProvider обеспечивает доступ к данным в <del>изменчивой</del> внешней системе.</p><br/>
+<pre><code class="java">package hello;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class DataProcessor {
+
+    private final DataProvider dataProvider;
+
+    public DataProcessor(DataProvider dataProvider) {
+        this.dataProvider = dataProvider;
+    }
+
+    int processData() {
+        return dataProvider.provideData().getValue().getQuote().length();
+    }
+}</code></pre><br/>
+<p>DataProcessor выполнят обработку данных из внешней системы.</p><br/>
+<p>Мы намерены протестировать <code>DataProcessor</code>. Необходимо протестировать корректность алгоритма обработки и защитить систему от деградации от изменений в будущем.</p><br/>
+<p>Чтобы достичь этих целей вы можете подумать о создании мок-объекта DataProvider с набором данных и его передачи в конструктор DataProcessor в тестах. Другой способ может состоять в декомпозиции DataProcessor, чтобы выделить алгоритм обработки класса Quote. Затем, такой класс легко протестировать с помощью юнит-тестов (Наверняка, это рекомендуемый способ в уважаемых книжках про чистый код). Попробуем избежать изменений кода и изобретения тестовых данных и просто напишем тест.</p><br/>
+<pre><code class="java">@RunWith(SpringRunner.class)
+@SpringBootTest
+public class DataProcessorTest {
+
+    @Autowired
+    private DataProcessor dataProcessor;
+
+    @Test
+    @AnyStubId(filename = "stub")
+    public void processDataTest() {
+        assertEquals(131, dataProcessor.processData());
+    }
+
+}</code></pre><br/>
+<p>Время рассказать об аннотации @AnystubId. Эта аннотация помогает управлять и контролировать stub-файлы в тестах. Её можно использовать с тест-классом или его методом. Эта аннотация устанавливает индивидуальный stub-файл для соответствующей области. Если какая-то область одновременно покрыта аннотациями уровня класса и метода — аннотация метода имеет приоритет. Эта аннотация имеет пераметр filename, который определяет имя stub-файла. расширение ".yml" добавляется автоматически, если пропущено. Запустив этот тест вы <strong>не</strong> обнаружите новый файл. Файл <code>src/test/resources/anystub/stub.yml</code> уже был создан ранее и этот тест его переиспользует. Число 131 мы получили из этой заглушки, проанализировав результат запроса.</p><br/>
+<pre><code class="java"> @Test
+    @AnyStubId
+    public void processDataTest2() {
+        assertEquals(131, dataProcessor.processData());
+
+        Base base = getStub();
+
+        assertEquals(1, base.times("GET"));
+        assertTrue(base.history().findFirst().get().matchEx_to(null, null, ".*gturnquist-quoters.cfapps.io.*"));
+    }</code></pre><br/>
+<p>В этом тесте аннотация @AnyStubId появляется без параметра filename. В этом случае используется файл <code>src/test/resources/anystubprocessDataTest2.yml</code>. Имя файла строится из имени функции (класса) + ".yml". Раз anyStub создает новый файл для этого теста необходимо выполнить реальный вызов системы. И это наша удача, что новая цитата имеет такую-же длину. Две последних проверки показывают как проверить поведение приложения. Вам доступно: выбор запросов по параметрам или части параметров и подсчет количества запросов. Есть несколько вариантов функций times<em> and match</em>, с которыми можно ознакомиться в <a href="https://static.javadoc.io/org.anystub/anystub/0.2.27/org/anystub/Base.html">документации</a>.</p><br/>
+<pre><code class="java">  @Test
+    @AnyStubId(requestMode = RequestMode.rmTrack)
+    public void processDataTest3() {
+        assertEquals(79, dataProcessor.processData());
+        assertEquals(79, dataProcessor.processData());
+        assertEquals(168, dataProcessor.processData());
+        assertEquals(79, dataProcessor.processData());
+
+        Base base = getStub();
+
+        assertEquals(4, base.times("GET"));
+
+    }</code></pre><br/>
+<p>В этом тесте @AnyStubId появляется с новым параметром requestMode. Он позволяет управлять разрешениями дла stub-файлов. Существует два аспекта для управления: поиск по файлу и разрешение на вызов внешней системы.</p><br/>
+<p><code>RequestMode.rmTrack</code> устанавливает следующие правила: если файл только что создан все запросы отправляются во внешнюю систему и записываются в файл вместе с ответами не зависимо от того есть ли в файле идентичный запрос (дубликаты в файле допускаются). Если перед запуском тестов stub-файл существует запросы во внешнюю систему запрещены. Вызовы ожидаются точно в той же последовательности. Если очередной запрос не совпадает с запросом в файле, генерируется исключение.</p><br/>
+<p><code>RequestMode.rmNew</code> этот режим активируется по-умолчанию. Каждый запрос ищется в stub-файле. Если совпадающий запрос найден — соответствующий результат восстанавливается из файла, запрос во внешнюю систему откладывается. Если запрос не найден — осуществляется запрос внешней системы, результат сохраняется в файле. Дубликаты запросов в файле — не возникают.</p><br/>
+<p><code>RequestMode.rmNone</code> Каждый запрос ищется в stub-файле. Если совпадающий запрос найден — его результат восстанавливается из файла. Если тест формирует запрос, отсутствующий в файле — то генерируется исключение.</p><br/>
+<p><code>RequestMode.rmAll</code> перед первым запросом stub-файл отчищается. Все запросы записываются в файл (дубликаты в файле допускаются). Вы можете использовать этот режим, если хотите понаблюдать за работой соединения.</p><br/>
+<p><code>RequestMode.rmPassThrough</code> все запросы напрямую отправляются во внешнюю систему обходя stub реализации.</p><br/>
+<p>Эти изменения доступны на <a href="https://github.com/anystub-guides/gs-consuming-rest/commit/3410a778d74ed0c4d5821df50475782cc34be7d9">GitHub</a></p><br/>
+<h1 id="chto-eschyo">Что ещё?</h1><br/>
+<p>Мы увидели как anyStub сохраняет ответы. Если при обращении к внешней системе будет сгенерировано исключение — anyStub сохранит его, а при последующих запросах будет его воспроизводить.</p><br/>
+<p>Часто исключения генерируются классами верхнего уровня, при этом классы соединений получают допустимый ответ (Вероятно, с кодом ошибки). В этом случае anyStub ответственный за воспроизведение того самого ответа с кодом ошибки, а классы верхних уровней будут так же генерировать исключения для ваших тестов.</p><br/>
+<p>Добавляйте файлы заглушек в репоситорий.</p><br/>
+<p>Не бойтесь удалять и перезаписывать файлы заглушек.</p><br/>
+<p>Управляйте файлами заглушек разумно. Вы можете переиспользовать один файл в нескольких тестах или обеспечить индивидуальный файл для каждого теста. Пользуйтесь этой возможностью для ваших потребностей. Но обычно использование одного файла с разными режимами доступа — плохая идея.</p><br/>
+<p>Это все главные возможности anyStub.</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">тестирование</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F%20%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F%5D" class="tm-tags-list__link">автоматизация тестирования</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Btesting%5D" class="tm-tags-list__link">testing</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/java/" class="tm-hubs-list__link">
+    Java
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 7: ↑7 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 7: ↑7 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+7</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">3.6K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    37
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/feech1/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_blue"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 5 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/feech1/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @feech1
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450958/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 14 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450958/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450958/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450958":{"id":"450958","timePublished":"2019-05-08T06:58:59+00:00","isCorporative":false,"lang":"ru","titleHtml":"AnyStub, библиотека заглушек соединений в Java","leadData":{"textHtml":"\u003Cp\u003EВ отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие разработчики в тестах используют Mockito для описания поведения объектов, DataJpaTest с локальной h2 базой данных, Cucumber тесты. Сегодня вы познакомитесь с легковесной альтернативной, которая поможет справиться с разными проблемами, с которыми вы могли сталкиваться используя эти подходы. В частности, anyStub пытается решить следующие проблемы:\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eупростить кофигурацию тестового окружения\u003C\u002Fli\u003E\r\n\u003Cli\u003Eавтоматизировать сбор данных для тестов\u003C\u002Fli\u003E\r\n\u003Cli\u003Eостаться в тестировании вашего проложения и избежать тестирования чего-то ещё\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null},{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":5,"votesCount":5},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1069122","alias":"feech1","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":14,"favoritesCount":37,"readingCount":3585,"score":7,"votesCount":7},"hubs":[{"relatedData":null,"id":"375","alias":"java","type":"collective","title":"Java","titleHtml":"Java","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EВ отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие разработчики в тестах используют Mockito для описания поведения объектов, DataJpaTest с локальной h2 базой данных, Cucumber тесты. Сегодня вы познакомитесь с легковесной альтернативной, которая поможет справиться с разными проблемами, с которыми вы могли сталкиваться используя эти подходы. В частности, anyStub пытается решить следующие проблемы:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eупростить кофигурацию тестового окружения\u003C\u002Fli\u003E\r\n\u003Cli\u003Eавтоматизировать сбор данных для тестов\u003C\u002Fli\u003E\r\n\u003Cli\u003Eостаться в тестировании вашего проложения и избежать тестирования чего-то ещё\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"chto-takoe-anystub-i-kak-eto-rabotaet\"\u003EЧто такое anyStub и как это работает\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ca href=\"https:\u002F\u002Fanystub-guides.github.io\u002F\"\u003EAnyStub\u003C\u002Fa\u003E оборачивает вызовы функций, пытается найти совпадающие вызовы, которые были уже записанны. Две вещи могут произойти при этом:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eесли существует совпадающий вызов, anyStub восстановит записанный результат, ассоциированный с этим вызовом и вернет его\u003C\u002Fli\u003E\r\n\u003Cli\u003Eесли нет совпадающего вызова и обращение во внешнюю систему разрешено, anyStub выполнит этот вызов, запишет этот результат и вернет его\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИз коробки anyStub предоставляет обертки для http-клиента из Apache HttpClient для создания заглушек http запросов и несколько интерфейсов из javax.sql.* для DB-соединений. Также вам предоставляется API для создания заглушек других соединений.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EAnyStub это простая библиотека классов и не требует специальной настройки вашего окружения. Эта библиотека нацелена на работу со spring-boot приложениями и вы получите максимум выгоды следуя этому пути. Вы можете исползовать её вне Spring, в plain Java приложениях, но определённо вам придется выполнить дополнительную работу. Дальнейшее описание ориентировано на тестирование spring-boot приложений.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДавайте посмотрим на интеграционное тестирование. Это наиболее захватывающий и всесторонний способ протестировать вашу систему. На самом деле, spring-boot и JUnit делают почти всё за вас когда вы напишите магические аннотации:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@RunWith(SpringRunner.class)\n@SpringBootTest\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ настоящее время интеграционные тесты недооценены и используются ограничено, а некоторые разработчики избегают их. В основном это происходит из-за трудоёмкой подготовки и сопровождения тестов или необходимости специальной конфигурации окружения на билд-серверах.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EС anyStub вам не надо калечить spring-contex. Вместо этого, сохранение контекста близким к production конфигурации простое и прямолинейное. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этом примере мы посмотрим, как подключить anyStub к \u003Ca href=\"https:\u002F\u002Fspring.io\u002Fguides\u002Fgs\u002Fconsuming-rest\u002F\"\u003EConsuming a RESTful Web Service\u003C\u002Fa\u003E из руководства от Pivotal.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПодключение библиотеки через pom.xml\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E    &lt;dependency\u003E\n        &lt;groupId\u003Eorg.anystub&lt;\u002FgroupId\u003E\n        &lt;artifactId\u003Eanystub&lt;\u002FartifactId\u003E\n        &lt;version\u003E0.2.27&lt;\u002Fversion\u003E\n        &lt;scope\u003Etest&lt;\u002Fscope\u003E\n    &lt;\u002Fdependency\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСледующий шаг — это модификация spring контекста. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epackage hello;\n\nimport org.anystub.http.StubHttpClient;\nimport org.apache.http.client.HttpClient;\nimport org.apache.http.impl.client.HttpClientBuilder;\nimport org.springframework.boot.web.client.RestTemplateBuilder;\nimport org.springframework.boot.web.client.RestTemplateCustomizer;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.http.client.HttpComponentsClientHttpRequestFactory;\nimport org.springframework.web.client.RestTemplate;\n\n@Configuration\npublic class TestConfiguration {\n\n    @Bean\n    public RestTemplateBuilder builder() {\n\n        RestTemplateCustomizer restTemplateCustomizer = new RestTemplateCustomizer() {\n            @Override\n            public void customize(RestTemplate restTemplate) {\n                HttpClient real = HttpClientBuilder.create().build();\n                StubHttpClient stubHttpClient = new StubHttpClient(real);\n                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();\n                requestFactory.setHttpClient(stubHttpClient);\n                restTemplate.setRequestFactory(requestFactory);\n            }\n        };\n\n        return new RestTemplateBuilder(restTemplateCustomizer);\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭта модификация не меняет взаимосвязей компонентов в приложении, а только заменяет реализацию одного интерфейса. Это отправляет нас к \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002F%D0%9F%D1%80%D0%B8%D0%BD%D1%86%D0%B8%D0%BF_%D0%BF%D0%BE%D0%B4%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B8_%D0%91%D0%B0%D1%80%D0%B1%D0%B0%D1%80%D1%8B_%D0%9B%D0%B8%D1%81%D0%BA%D0%BE%D0%B2\"\u003EПринципу подстановки Барбары Лисков\u003C\u002Fa\u003E. Если дизайн вашего приложения его не нарушает, то и эта подстановка не нарушит функциональность. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВсё готово. Этот проект уже включает тест.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@RunWith(SpringRunner.class)\n@SpringBootTest\npublic class ApplicationTest {\n\n    @Autowired\n    private RestTemplate restTemplate;\n\n    @Test\n    public void contextLoads() {\n        assertThat(restTemplate).isNotNull();\n    }\n\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭтот тест пустой, но он уже запускает контекст приложения. \u003Cstrong\u003EСамое интересное начинается здесь\u003C\u002Fstrong\u003E. Как мы говорили выше, контекст приложения в тесте совпадает с рабочим контекстом, в котором создается CommandLineRunner, в котором выполняется http-запрос к внешней системе. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@SpringBootApplication\npublic class Application {\n\n    private static final Logger log = LoggerFactory.getLogger(Application.class);\n\n    public static void main(String args[]) {\n        SpringApplication.run(Application.class);\n    }\n\n    @Bean\n    public RestTemplate restTemplate(RestTemplateBuilder builder) {\n        return builder.build();\n    }\n\n    @Bean\n    public CommandLineRunner run(RestTemplate restTemplate) throws Exception {\n        return args -\u003E {\n            Quote quote = restTemplate.getForObject(\n                    \"https:\u002F\u002Fgturnquist-quoters.cfapps.io\u002Fapi\u002Frandom\", Quote.class);\n            log.info(quote.toString());\n        };\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭто достаточно для демонстрации работы библиотеки. После первого запуска тестов вы найдете новый файл \u003Ccode\u003Ecomplete\u002Fsrc\u002Ftest\u002Fresources\u002Fanystub\u002Fstub.yml\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Erequest0:\n  exception: []\n  keys: [GET, HTTP\u002F1.1, 'https:\u002F\u002Fgturnquist-quoters.cfapps.io\u002Fapi\u002Frandom']\n  values: [HTTP\u002F1.1, '200', OK, 'Content-Type: application\u002Fjson;charset=UTF-8', 'Date:\n      Thu, 25 Apr 2019 23:04:49 GMT', 'X-Vcap-Request-Id: 5ffce9f3-d972-4e95-6b5c-f88f9b0ae29b',\n    'Content-Length: 177', 'Connection: keep-alive', '{\"type\":\"success\",\"value\":{\"id\":3,\"quote\":\"Spring\n      has come quite a ways in addressing developer enjoyment and ease of use since\n      the last time I built an application using it.\"}}']\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЧто произошло? spring-boot встроил RestTemplateBuilder из тестовой конфигурации в приложение. Это привело к работе приложения через stub-реализацию http-клиента. StubHttpClient перехватил запрос, не нашел файл заглушки, выполнил запрос, сохранил результат в файле и вернул восстановленный из файла результат.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EС этого момента, вы можете запускать этот тест без интернет подключения и этот запрос будет выполнятся успешно. \u003Ccode\u003ErestTemplate.getForObject()\u003C\u002Fcode\u003E будет возвращать одинаковый результат. Вы можете полагаться на этот факт в ваших будущих тестах. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВсе описанные изменения вы можете найти на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fanystub-guides\u002Fgs-consuming-rest\u002Fcommit\u002F0dd943f6495e87684f3392387b9a5a5e2a846263\"\u003EGitHub\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа самом деле мы все еще не создали ни одного теста. Перед написанием тестов давайте посмотрим как это работает с базами данных.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этом примере мы добавим интеграционной тест к \u003Ca href=\"https:\u002F\u002Fspring.io\u002Fguides\u002Fgs\u002Frelational-data-access\u002F\"\u003EAccessing Relational Data using JDBC with Spring\u003C\u002Fa\u003E из руководства от Pivotal.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТестовая конфигурация для этого случая выглядит так:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epackage hello;\n\nimport org.anystub.jdbc.StubDataSource;\nimport org.h2.jdbcx.JdbcDataSource;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\nimport javax.sql.DataSource;\n\n@Configuration\npublic class TestConfiguration {\n\n    @Bean\n    public DataSource dataSource() {\n\n        JdbcDataSource ds = new JdbcDataSource();\n        ds.setURL(\"jdbc:h2:.\u002Ftest\");\n        return new StubDataSource(ds);\n    }\n\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗдесь создается обычный datasource к внешней базе данных и оборачивается stub-реализацией — класс StubDataSource. Spring-boot встраивает его в контекст. Ещё нам необходимо создать хотя бы один тест для запуска spring-контекста в тесте.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epackage hello;\n\nimport org.anystub.AnyStubId;\nimport org.junit.Test;\nimport org.junit.runner.RunWith;\nimport org.springframework.boot.test.context.SpringBootTest;\nimport org.springframework.test.context.junit4.SpringRunner;\n\nimport static org.junit.Assert.*;\n\n@RunWith(SpringRunner.class)\n@SpringBootTest\npublic class ApplicationTest {\n\n    @Test\n    @AnyStubId\n    public void test() {\n\n    }\n\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭто опять пустой тест — его единственная задача запустить контекст приложения. Здесь мы видим очень важную аннотацию \u003Ccode\u003E@AnystubId\u003C\u002Fcode\u003E, но она пока не будет задействована.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле первого запуска вы найдете новый файл \u003Ccode\u003Esrc\u002Ftest\u002Fresources\u002Fanystub\u002Fstub.yml\u003C\u002Fcode\u003E, который включает все обращения к базе данных. Вы будете удивлены как spring работает за сценой с базами данных. Отметим что, новые запуски теста не приведут к реальному обращению к базе данных. Если вы удалите test.mv.db он не появится после повторных запусков тестов. Полный набор изменений можно посмотреть на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fanystub-guides\u002Fgs-relational-data-access\u002Fcommit\u002F1724f93e61963ba4af2a8fdea7f7372fba6e3ed1\"\u003EGitHub\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПодведем итоги. с anyStub:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eвам не надо специально настраивать тестовое окружение\u003C\u002Fli\u003E\r\n\u003Cli\u003Eтестирование проводится с реальными данными\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпервый запуск тестов доказывает ваши предположения и сохраняет тестовые данные, последующие — проверяют, что система не деградировала\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВероятно, у вас есть вопросы: как это покрывает случаи, когда база данных еще не существует, что делать с негативным тестированием и обработкой исключений. Мы вернемся к этому, но сначала разберемся с написанием простых тестов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСейчас мы по-экспериментируем над \u003Ca href=\"https:\u002F\u002Fspring.io\u002Fguides\u002Fgs\u002Fconsuming-rest\u002F\"\u003EConsuming a RESTful Web Service\u003C\u002Fa\u003E. Этот проект не содержит компонент, которые могут быть протестированы. Ниже создаются два класса, которые должны изобразить два слоя какого-то дизайна архитектуры.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epackage hello;\n\nimport org.springframework.stereotype.Component;\nimport org.springframework.web.client.RestTemplate;\n\n@Component\npublic class DataProvider {\n    private final RestTemplate restTemplate;\n\n    public DataProvider(RestTemplate restTemplate) {\n        this.restTemplate = restTemplate;\n    }\n\n    Quote provideData() {\n        return restTemplate.getForObject(\n                \"https:\u002F\u002Fgturnquist-quoters.cfapps.io\u002Fapi\u002Frandom\", Quote.class);\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EDataProvider обеспечивает доступ к данным в \u003Cdel\u003Eизменчивой\u003C\u002Fdel\u003E внешней системе.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epackage hello;\n\nimport org.springframework.stereotype.Component;\n\n@Component\npublic class DataProcessor {\n\n    private final DataProvider dataProvider;\n\n    public DataProcessor(DataProvider dataProvider) {\n        this.dataProvider = dataProvider;\n    }\n\n    int processData() {\n        return dataProvider.provideData().getValue().getQuote().length();\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EDataProcessor выполнят обработку данных из внешней системы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы намерены протестировать \u003Ccode\u003EDataProcessor\u003C\u002Fcode\u003E. Необходимо протестировать корректность алгоритма обработки и защитить систему от деградации от изменений в будущем.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЧтобы достичь этих целей вы можете подумать о создании мок-объекта DataProvider с набором данных и его передачи в конструктор DataProcessor в тестах. Другой способ может состоять в декомпозиции DataProcessor, чтобы выделить алгоритм обработки класса Quote. Затем, такой класс легко протестировать с помощью юнит-тестов (Наверняка, это рекомендуемый способ в уважаемых книжках про чистый код). Попробуем избежать изменений кода и изобретения тестовых данных и просто напишем тест.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@RunWith(SpringRunner.class)\n@SpringBootTest\npublic class DataProcessorTest {\n\n    @Autowired\n    private DataProcessor dataProcessor;\n\n    @Test\n    @AnyStubId(filename = \"stub\")\n    public void processDataTest() {\n        assertEquals(131, dataProcessor.processData());\n    }\n\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВремя рассказать об аннотации @AnystubId. Эта аннотация помогает управлять и контролировать stub-файлы в тестах. Её можно использовать с тест-классом или его методом. Эта аннотация устанавливает индивидуальный stub-файл для соответствующей области. Если какая-то область одновременно покрыта аннотациями уровня класса и метода — аннотация метода имеет приоритет. Эта аннотация имеет пераметр filename, который определяет имя stub-файла. расширение \".yml\" добавляется автоматически, если пропущено. Запустив этот тест вы \u003Cstrong\u003Eне\u003C\u002Fstrong\u003E обнаружите новый файл. Файл \u003Ccode\u003Esrc\u002Ftest\u002Fresources\u002Fanystub\u002Fstub.yml\u003C\u002Fcode\u003E уже был создан ранее и этот тест его переиспользует. Число 131 мы получили из этой заглушки, проанализировав результат запроса.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E @Test\n    @AnyStubId\n    public void processDataTest2() {\n        assertEquals(131, dataProcessor.processData());\n\n        Base base = getStub();\n\n        assertEquals(1, base.times(\"GET\"));\n        assertTrue(base.history().findFirst().get().matchEx_to(null, null, \".*gturnquist-quoters.cfapps.io.*\"));\n    }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этом тесте аннотация @AnyStubId появляется без параметра filename. В этом случае используется файл \u003Ccode\u003Esrc\u002Ftest\u002Fresources\u002FanystubprocessDataTest2.yml\u003C\u002Fcode\u003E. Имя файла строится из имени функции (класса) + \".yml\". Раз anyStub создает новый файл для этого теста необходимо выполнить реальный вызов системы. И это наша удача, что новая цитата имеет такую-же длину. Две последних проверки показывают как проверить поведение приложения. Вам доступно: выбор запросов по параметрам или части параметров и подсчет количества запросов. Есть несколько вариантов функций times\u003Cem\u003E and match\u003C\u002Fem\u003E, с которыми можно ознакомиться в \u003Ca href=\"https:\u002F\u002Fstatic.javadoc.io\u002Forg.anystub\u002Fanystub\u002F0.2.27\u002Forg\u002Fanystub\u002FBase.html\"\u003Eдокументации\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E  @Test\n    @AnyStubId(requestMode = RequestMode.rmTrack)\n    public void processDataTest3() {\n        assertEquals(79, dataProcessor.processData());\n        assertEquals(79, dataProcessor.processData());\n        assertEquals(168, dataProcessor.processData());\n        assertEquals(79, dataProcessor.processData());\n\n        Base base = getStub();\n\n        assertEquals(4, base.times(\"GET\"));\n\n    }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этом тесте @AnyStubId появляется с новым параметром requestMode. Он позволяет управлять разрешениями дла stub-файлов. Существует два аспекта для управления: поиск по файлу и разрешение на вызов внешней системы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003ERequestMode.rmTrack\u003C\u002Fcode\u003E устанавливает следующие правила: если файл только что создан все запросы отправляются во внешнюю систему и записываются в файл вместе с ответами не зависимо от того есть ли в файле идентичный запрос (дубликаты в файле допускаются). Если перед запуском тестов stub-файл существует запросы во внешнюю систему запрещены. Вызовы ожидаются точно в той же последовательности. Если очередной запрос не совпадает с запросом в файле, генерируется исключение.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003ERequestMode.rmNew\u003C\u002Fcode\u003E этот режим активируется по-умолчанию. Каждый запрос ищется в stub-файле. Если совпадающий запрос найден — соответствующий результат восстанавливается из файла, запрос во внешнюю систему откладывается. Если запрос не найден — осуществляется запрос внешней системы, результат сохраняется в файле. Дубликаты запросов в файле — не возникают.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003ERequestMode.rmNone\u003C\u002Fcode\u003E Каждый запрос ищется в stub-файле. Если совпадающий запрос найден — его результат восстанавливается из файла. Если тест формирует запрос, отсутствующий в файле — то генерируется исключение.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003ERequestMode.rmAll\u003C\u002Fcode\u003E перед первым запросом stub-файл отчищается. Все запросы записываются в файл (дубликаты в файле допускаются). Вы можете использовать этот режим, если хотите понаблюдать за работой соединения.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003ERequestMode.rmPassThrough\u003C\u002Fcode\u003E все запросы напрямую отправляются во внешнюю систему обходя stub реализации.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭти изменения доступны на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fanystub-guides\u002Fgs-consuming-rest\u002Fcommit\u002F3410a778d74ed0c4d5821df50475782cc34be7d9\"\u003EGitHub\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"chto-eschyo\"\u003EЧто ещё?\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы увидели как anyStub сохраняет ответы. Если при обращении к внешней системе будет сгенерировано исключение — anyStub сохранит его, а при последующих запросах будет его воспроизводить.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЧасто исключения генерируются классами верхнего уровня, при этом классы соединений получают допустимый ответ (Вероятно, с кодом ошибки). В этом случае anyStub ответственный за воспроизведение того самого ответа с кодом ошибки, а классы верхних уровней будут так же генерировать исключения для ваших тестов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДобавляйте файлы заглушек в репоситорий.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНе бойтесь удалять и перезаписывать файлы заглушек.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EУправляйте файлами заглушек разумно. Вы можете переиспользовать один файл в нескольких тестах или обеспечить индивидуальный файл для каждого теста. Пользуйтесь этой возможностью для ваших потребностей. Но обычно использование одного файла с разными режимами доступа — плохая идея.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭто все главные возможности anyStub.\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"тестирование"},{"titleHtml":"автоматизация тестирования"},{"titleHtml":"testing"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450958\u002F4ec7ca581c8dfde3aca11ab312cae1dc\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450958\u002F4ec7ca581c8dfde3aca11ab312cae1dc\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450958\\\u002F\"},\"headline\":\"AnyStub, библиотека заглушек соединений в Java\",\"datePublished\":\"2019-05-08T09:58:59+03:00\",\"dateModified\":\"2019-05-11T21:48:41+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"feech1\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450958\\\u002F#post-content-body\",\"about\":[\"h_java\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450958\\\u002F4ec7ca581c8dfde3aca11ab312cae1dc\\\u002F\"]}","metaDescription":"В отличие от множества платформ Java страдает от недостатка библиотек заглушек соединений. Если вы давно в этом мире, то наверняка должны быть знакомы с WireMock, Betamax или даже Spock. Многие...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"java"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

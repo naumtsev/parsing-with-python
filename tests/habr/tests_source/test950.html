@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Основы Dart Streams / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450950\/"},"headline":"Основы Dart Streams","datePublished":"2019-05-08T08:50:38+03:00","dateModified":"2019-05-12T10:14:54+03:00","author":{"@type":"Person","name":"Валерий"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Это вторая часть моей серии по поводу Flutter Architecture:  Введение   Основы Dart Streams (этот пост) RxDart: магические трансформации потоков Основы RxVMS: Rx...","url":"https:\/\/habr.com\/ru\/post\/450950\/#post-content-body","about":["h_dart","h_flutter","f_develop"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/266\/3a1\/04f\/2663a104fc0e4c1ad735881ef36fe32c.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/dd3\/331\/b2f\/dd3331b2fa9036bee28628d563f3ceb7.gif"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Основы Dart Streams" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Основы Dart Streams" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Основы Dart Streams" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Это вторая часть моей серии по поводу Flutter Architecture:
+
+Введение  
+Основы Dart Streams (этот пост)
+RxDart: магические трансформации потоков
+Основы RxVMS: RxCommand и GetIt
+RxVMS: Службы и..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Это вторая часть моей серии по поводу Flutter Architecture:
+
+Введение  
+Основы Dart Streams (этот пост)
+RxDart: магические трансформации потоков
+Основы RxVMS: RxCommand и GetIt
+RxVMS: Службы и..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Это вторая часть моей серии по поводу Flutter Architecture:
+
+Введение  
+Основы Dart Streams (этот пост)
+RxDart: магические трансформации потоков
+Основы RxVMS: RxCommand и GetIt
+RxVMS: Службы и..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Это вторая часть моей серии по поводу Flutter Architecture:
+
+Введение  
+Основы Dart Streams (этот пост)
+RxDart: магические трансформации потоков
+Основы RxVMS: RxCommand и GetIt
+RxVMS: Службы и..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Это вторая часть моей серии по поводу Flutter Architecture:
+
+Введение  
+Основы Dart Streams (этот пост)
+RxDart: магические трансформации потоков
+Основы RxVMS: RxCommand и GetIt
+RxVMS: Службы и..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450950/7f49524cd4b0f51e92580f3adc3ad397/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450950/7f49524cd4b0f51e92580f3adc3ad397/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450950/7f49524cd4b0f51e92580f3adc3ad397/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450950/7f49524cd4b0f51e92580f3adc3ad397/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450950/7f49524cd4b0f51e92580f3adc3ad397/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450950" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-08T05:50:38.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450950/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450950/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450950/7f49524cd4b0f51e92580f3adc3ad397/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/rookie_cruekie/" title="rookie_cruekie" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/47f/d4d/f50/47fd4df50c501c2de6c8e6f0a64fb8b0.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/rookie_cruekie/" class="tm-user-info__username">
+      rookie_cruekie
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-08T05:50:38.000Z" title="2019-05-08, 08:50">8  мая  2019 в 08:50</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Основы Dart Streams</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/dart/" class="tm-article-snippet__hubs-item-link"><span>Dart</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/flutter/" class="tm-article-snippet__hubs-item-link"><span>Flutter</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://www.burkharts.net/apps/blog/fundamentals-of-dart-streams/" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Thomas Burkhart
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>Это вторая часть моей серии по поводу Flutter Architecture:</p><br/>
+<ul>
+<li><a href="https://habr.com/ru/post/448776/">Введение </a> </li>
+<li><strong>Основы Dart Streams (этот пост)</strong></li>
+<li><a href="https://habr.com/ru/post/451292/">RxDart: магические трансформации потоков</a></li>
+<li><a href="https://habr.com/ru/post/449872/">Основы RxVMS: RxCommand и GetIt</a></li>
+<li>RxVMS: Службы и Менеджеры</li>
+<li>RxVMS: самодостаточные виджеты</li>
+<li>Аутентификация пользователя посредством RxVMS</li>
+</ul><br/>
+<p>Потоки являются основным строительным блоком <strong>RxVMS</strong>, их понимание является абсолютно необходимым условием для работы с этой библиотекой, так что мы подробнее остановимся на них в этом посте. </p><br/>
+<p>Оказалось, что включение Rx в этот пост сделало бы его слишком длинным, поэтому я разделил его на две части.</p><br/>
+<h2 id="pust-techet">Пусть течет</h2><br/>
+<p>Я читаю множество комментов, что дескать потоки, и особенно Rx, слишком сложны для понимания и, как следствие, для использования.</p><br/>
+<p>Мне бы хотелось, чтобы вы знали, что я не считаю себя гуру Rx. Освоить всю мощь его нелегко, и я признаю, что продолжаю учиться. Но позвольте мне с самого начала исправить одно заблуждение: <strong>вам не нужно быть волшебником Rx, чтобы начать получать массу преимуществ от использования потоков и этой технологии</strong>. Я приложу максимум усилий, чтобы объяснить вам потоки наиболее доступным образом.</p><a name="habracut"></a><br/>
+<h2 id="chto-takoe-potoki">Что такое потоки?</h2><br/>
+<p>На мой взгляд наилучшей аналогией потоков является лента конвейера. Вы можете положить что-либо на один его конец и это "что-либо" автоматически перенесется на другой. В отличие от физического конвейера потоки манипулируют объектами данных, перенося их автоматически от начала — но куда? Как и в реальном конвейере, если нет ничего такого, что бы уловило данные на другом конце, они просто "упадут" и исчезнут (это, конечно не вполне верно для Dart Streams, но лучше всего обращаться с потоками, как будто это именно так).</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/266/3a1/04f/2663a104fc0e4c1ad735881ef36fe32c.gif"/> </p><br/>
+<p>Дабы избежать потери данных, вы можете установить "ловушку" на выходе потока. Так вы сможете улавливать данные и производить нужные манипуляции с ними всякий раз, когда объекты данных будут достигать конца потока.</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/dd3/331/b2f/dd3331b2fa9036bee28628d563f3ceb7.gif"/> </p><br/>
+<p><strong>Помните:</strong></p><br/>
+<ul>
+<li>Если ловушка не установлена, данные просто пропадут навсегда и не будет способа получить их снова (опять же, не совсем так с Dart Streams, но вам лучше притворяться, что это так)</li>
+<li>После отправки данных в поток вам не нужно приостанавливать выполнение программы и ждать, пока они достигнут конца, все это происходит в фоне.</li>
+<li>Ловушка может принять данные в любое время, совсем необязательно сразу после отправки (но волноваться не следует, потоки на самом деле очень быстрые). Представьте, что вы не знаете, как быстро или как долго движется "ремень конвейера". Это означает, что помещение чего-либо в поток полностью отделено от реакции на элемент на другом конце. Ваша ловушка сработает и поймает предмет, когда он попадет туда. (Некоторые из вас уже могут понять, что это хорошо вписывается в реактивный способ, которым Flutter обновляет свои виджеты)</li>
+<li>Вы можете установить ловушку задолго до того, как начнется работа и появится первый элемент</li>
+<li>Поток работает по принципу FIFO. Данные всегда приходят в порядке их размещения в поток.</li>
+</ul><br/>
+<h2 id="a-chto-takoe-rx">А что такое Rx?</h2><br/>
+<p>Rx, сокращенно от Reactive Extensions (реактивные расширения), — это потоки "на стероидах". Это концепция, очень похожая на Streams, которая была изобретена для .Net framework командой Microsoft. Так как .Net уже имел тип Stream, который используется для файлового ввода-вывода, они назвали Rx-потоки <strong>Observables</strong> и создали множество функций для манипулирования данными, проходящими через них. Dart имеет Streams, встроенные в его языковую спецификацию, которые уже предлагают большую часть этой функциональности, но не все. Вот почему был разработан пакет RxDart; он основан на Dart Streams, но расширяет их функциональность. Я рассмотрю Rx и RxDart в следующей части этой серии.</p><br/>
+<h2 id="nemnogo-terminov">Немного терминов</h2><br/>
+<p>Dart Streams и Rx используют некоторую терминологию, которая может выглядеть страшновато, поэтому вот перевод. Сначала идет термин Dart, потом Rx.</p><br/>
+<ul>
+<li><strong>Stream/Observable</strong>. Это "конвейер", описанный ранее. Stream может быть преобразован в Observable и везде, где ожидается Stream, можно присваивать Observable. Так что не путайтесь, если я буду смешивать эти термины в процессе объяснения</li>
+<li><strong>listen/subscribe</strong> — установка ловушки-<strong>слушателя</strong></li>
+<li><strong>StreamController/Subject</strong>. "Левая" сторона конвейерной ленты, где вы помещаете данные в Stream. Они немного отличаются по своим свойствам и характеристикам, но служат одной и той же цели</li>
+<li><strong>Emitting an item/data</strong>. Момент, когда данные появляются на выходе из "конвейера"</li>
+</ul><br/>
+<h2 id="sozdanie-potoka">Создание потока</h2><br/>
+<p>Если вы собираетесь продолжать изучать тему, пожалуйста, <a href="https://github.com/escamoteur/stream_rx_tutorial">клонируйте этот проект</a> с примерами. Я буду использовать систему тестов Dart/Flutter.</p><br/>
+<p>Для создания потока вы создаете <a href="https://api.dartlang.org/dev/2.0.0-dev.69.5/dart-async/StreamController-class.html">StreamController</a> </p><br/>
+<pre><code class="cpp">var controller = new StreamController&lt;String>();
+
+controller.add("Item1"); // Отправляем первый элемент в поток</code></pre><br/>
+<p>Шаблонный тип (в данном случае String) передаваемый при создании StreamController определяет тип объектов, которые мы можем отправлять в поток. Это может быть ЛЮБОЙ тип! Вы можете создать при желании <code>StreamController&lt;List&lt;MyObject>>()</code> и поток будет передавать лист целиком вместо одного объекта.</p><br/>
+<h2 id="ustanovka-lovushki">Установка ловушки</h2><br/>
+<p>Если вы запускали указанный тест, то ничего не смогли увидеть, ведь ничто не отловило нашу строку на выходе потока. Теперь установим ловушку:</p><br/>
+<pre><code class="cpp">var controller = new StreamController&lt;String>();
+
+controller.stream.listen((item) => print(item)); // ловушка
+
+controller.add("Item1");
+controller.add("Item2");
+controller.add("Item3");</code></pre><br/>
+<p>Теперь ловушка установлена, используя метод <code>.listen()</code>. Запись выглядит <code>controller.stream.listen</code>, но если вы прокрутите это задом наперед, словно какой-нибудь альбом из 60-х, то проявится истинный смысл написанного: "слушать поток данного контроллера"</p><br/>
+<p>Вам необходимо передать в метод <code>.listen()</code> некию функцию, чтобы как-то манипулировать с пришедшими данными. Функция должна принимать параметр типа, указанного при создании StreamController, в данном случае это String.</p><br/>
+<p>Если вы запустите вышеуказанный код, то увидите</p><br/>
+<pre><code class="cpp">Item1
+Item2
+Item3</code></pre><br/>
+<p>По моему, наибольшей проблемой для новичков в Streams является то, что можно определить реакцию для испускаемого элемента задолго до того, как первый элемент будет помещен в поток, запуская вызов этой реакции.</p><br/>
+<h2 id="zavershenie-proslushivaniya">Завершение прослушивания</h2><br/>
+<p>Код выше упустил маленькую, но важную часть. <code>listen()</code> возвращает <code>StreamSubscription</code> — объект подписки на поток. Вызов его метода <code>.cancel()</code> завершает подписку, освобождая ресурсы, и предупреждая вызов вашей прослушивающей функции после того, как это стало ненужным.</p><br/>
+<pre><code class="cpp">var controller = new StreamController&lt;String>();
+
+StreamSubscription subscription = controller.stream.listen((item) => print(item)); // This is the Trap
+
+controller.add("Item1");
+controller.add("Item2");
+controller.add("Item3");
+
+// Это сделано для того, чтобы среда тестирования не убила этот процесс  
+// до того, как все объекты из Stream были обработаны
+await Future.delayed(Duration(milliseconds: 500));
+
+subscription.cancel;</code></pre><br/>
+<h2 id="podrobnosti-o-slushatelyah">Подробности о слушателях</h2><br/>
+<p>Функция для <code>listen()</code> может быть как лямбдой, так и простой функцией. </p><br/>
+<pre><code class="cpp">void myPrint(String message) {
+  print(message);
+}
+
+StreamSubscription subscription = controller.stream.listen((item) => print(item)); // использование лямбда-функции
+
+StreamSubscription subscription2 = controller.stream.listen(myPrint); // использование обычной функции
+
+StreamSubscription subscription3 = controller.stream.listen((item) {
+    print(item);
+    print(item.toUpperCase);
+}); // лямбда-блок</code></pre><br/>
+<p><strong>Важное замечание: большинство Dart-потоков позволяют только разовую подписку, то есть на них нельзя подписываться повторно после завершения подписки — это вызовет исключение. Это их отличие от других реализаций Rx.</strong></p><br/>
+<p>Полная сигнатура <code>listen()</code> выглядит так:</p><br/>
+<pre><code class="cpp"> /* excerpt from the API doc
+   * The [onError] callback must be of type `void onError(error)` or
+   * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
+   * two arguments it is called with the error object and the stack trace
+   * (which could be `null` if the stream itself received an error without
+   * stack trace).
+   * Otherwise it is called with just the error object.
+   * If [onError] is omitted, any errors on the stream are considered unhandled,
+   * and will be passed to the current [Zone]'s error handler.
+   * By default unhandled async errors are treated
+   * as if they were uncaught top-level errors.
+   *
+   * If this stream closes and sends a done event, the [onDone] handler is
+   * called. If [onDone] is `null`, nothing happens.
+   *
+   * If [cancelOnError] is true, the subscription is automatically canceled
+   * when the first error event is delivered. The default is `false`.
+    */
+  StreamSubscription&lt;T> listen(void onData(T event),
+      {Function onError, void onDone(), bool cancelOnError});</code></pre><br/>
+<p>Это означает, что вы можете сделать больше, чем просто передать один обработчик для отправленных данных. Вы также можете иметь обработчик для ошибок, и другой для закрытия потока со стороны контроллера (<code>onDone</code>). Исключения, которые вызываются изнутри Stream, будут вызывать <code>onError()</code>, если вы его предоставите, <strong>в противном случае они просто проглатываются, и вы никогда не узнаете, что что-то пошло не так.</strong></p><br/>
+<h2 id="primer-flutter-potokov">Пример Flutter-потоков</h2><br/>
+<p><em>Чтобы облегчить понимание следующих глав, я сделал отдельную ветку репозитория.</em><br/>
+<a href="https://github.com/escamoteur/stream_rx_tutorial/tree/counter_stream">Пожалуйста, склонируйте ее</a> </p><br/>
+<p>В качестве первого примера я взял хорошо известное приложение-счетчик, которое вы получаете при создании нового проекта Flutter, и немного его реорганизовал. Я добавил класс модели для хранения состояния приложения, которое в основном является значением счетчика:</p><br/>
+<pre><code class="cpp">class Model {
+    int _counter = 0;
+    StreamController _streamController = new StreamController&lt;int>();
+
+    Stream&lt;int> get counterUpdates => _streamController.stream;
+
+    void incrementCounter() {
+        _counter++;
+        _streamController.add(_counter);
+    }
+}</code></pre><br/>
+<p>здесь вы можете увидеть очень типичный шаблон: вместо публикации всего StreamController, мы просто публикуем его свойство Stream.</p><br/>
+<p>Чтобы сделать Модель доступной для UI, я сделал ее статическим полем в объекте App, потому что не хотел вводить InheritedWidget или ServiceLocator. Для простого примера это сойдет с рук, но я бы не стал делать это в настоящем приложении!</p><br/>
+<p>Добавим в <code>main.dart</code>:</p><br/>
+<pre><code class="cpp">class _MyHomePageState extends State&lt;MyHomePage> {
+  int _counter = 0;
+  StreamSubscription streamSubscription;
+
+  @override
+  void initState() {
+    streamSubscription = MyApp.model.counterUpdates.listen((newVal) => setState(() {
+          _counter = newVal;
+        }));
+
+    super.initState();
+  }
+
+  // Хотя этот State не будет уничтожен, пока приложение работает, 
+  // хороший стиль требует освобождать подписки явно
+  @override
+  void dispose() {
+      streamSubscription?.cancel();
+      super.dispose();
+    }</code></pre><br/>
+<p><code>initState()</code> хорошее место для установки слушателя, и, будучи добропорядочными гражданами Darts, мы всегда освобождаем подписку в <code>dispose()</code>, верно?</p><br/>
+<p>В дереве виджетов нам просто нужно адаптировать обработчик onPressed кнопки FAB (кнопка с плавающим действием).</p><br/>
+<pre><code class="cpp">floatingActionButton: new FloatingActionButton(
+            onPressed: MyApp.model.incrementCounter,
+    tooltip: 'Increment',
+    child: new Icon(Icons.add),
+    ),</code></pre><br/>
+<p>Этим способом мы создали чистое разделение между View и Model, используя Stream.</p><br/>
+<h2 id="primenyaem-streambuilder">Применяем StreamBuilder</h2><br/>
+<p><a href="https://github.com/escamoteur/stream_rx_tutorial/tree/streambuilder">Источник</a> </p><br/>
+<p>Вместо использования <code>initState()</code> и <code>setState()</code> для наших нужд Flutter поставляется с удобным виджетом <code>StreamBuilder</code>. Как вы уже догадались, он принимает функцию Stream и метод-строитель, вызывающийся всякий раз, когда Stream выдает новое значение. И теперь нам не нужны явные инициализация и освобождение:</p><br/>
+<pre><code class="cpp">body: new Center(
+  child: new Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: &lt;Widget>[
+      new Text(
+        'You have pushed the button this many times:',
+      ),
+      StreamBuilder&lt;int>(
+          initialData: 0,
+          stream: MyApp.model.counterUpdates,
+          builder: (context, snappShot) {
+            String valueAsString = 'NoData';
+
+            if (snappShot != null &amp;&amp; snappShot.hasData) {
+              valueAsString = snappShot.data.toString();
+            }
+
+            return Text(
+              valueAsString,
+              style: Theme.of(context).textTheme.display1,
+            );
+          }),
+    ],
+  ),
+),</code></pre><br/>
+<p>Мы почти закончили, обещаю. Вот три вещи, которые полезно знать:</p><br/>
+<ul>
+<li>большое преимущество использования StreamBuilder по сравнению с первым решением состоит в том, что вызов <code>setState()</code> в <code>listen()</code> всегда перестраивает всю страницу, тогда как StreamBuilder будет вызывать только свой <code>builder</code></li>
+<li>Переменная <code>snapShot</code> содержит самые последние данные, полученные из Stream. Всегда проверяйте, что она содержит действительные данные, прежде чем ее использовать</li>
+<li><p>Исходя из принципов инициализации во время, StreamBuilder не может получить значение во время самого первого кадра. Чтобы обойти это, мы передаем значение для <code>initialData</code>, которое используется для первой сборки, то есть для первого кадра экрана. Если мы не передадим <code>initialData</code>, наш билдер в первый раз будет вызван с недопустимыми данными. Альтернативой использованию <code>initialData</code> является возврат виджета- плейсхолдера, если <code>snapShot</code> невалиден, который отображается до тех пор, пока мы не получим действительные данные, например:</p><br/>
+<pre><code class="cpp">// Предположим, что наш поток базируется на некотором обновлении в базе данных
+StreamBuilder&lt;int>(
+stream: MyApp.model.databaseUpdates,
+builder: (context, snappShot) {
+
+if (snappShot != null &amp;&amp; snappShot.hasData) {
+    return Text(
+      snappShot.data.toString(),
+      style: Theme.of(context).textTheme.display1,
+    );
+}
+
+// Пока мы не получим действительные данные, мы крутим Spinner
+return CircularProgressIndicator ();
+})</code></pre><br/>
+</li>
+</ul><br/>
+<p>В следующем посте мы рассмотрим, как преобразовать данные в наших потоках и сделать это на лету. Большое спасибо <a href="https://twitter.com/scottstoll2017">Scott Stoll</a> за чтение корректуры и важные отзывы.</p><br/>
+<hr/></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdart%5D" class="tm-tags-list__link">dart</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bflutter%5D" class="tm-tags-list__link">flutter</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B0%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F%5D" class="tm-tags-list__link">практика программирования</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/dart/" class="tm-hubs-list__link">
+    Dart
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/flutter/" class="tm-hubs-list__link">
+    Flutter
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 5: ↑5 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 5: ↑5 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+5</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">24K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    51
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/rookie_cruekie/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/47f/d4d/f50/47fd4df50c501c2de6c8e6f0a64fb8b0.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 20 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    16
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Валерий</span> <a href="/ru/users/rookie_cruekie/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @rookie_cruekie
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Программист</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450950/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 6 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450950/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450950/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450950":{"id":"450950","timePublished":"2019-05-08T05:50:38+00:00","isCorporative":false,"lang":"ru","titleHtml":"Основы Dart Streams","leadData":{"textHtml":"\u003Cp\u003EЭто вторая часть моей серии по поводу Flutter Architecture:\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448776\u002F\"\u003EВведение \u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EОсновы Dart Streams (этот пост)\u003C\u002Fstrong\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F451292\u002F\"\u003ERxDart: магические трансформации потоков\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449872\u002F\"\u003EОсновы RxVMS: RxCommand и GetIt\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003ERxVMS: Службы и Менеджеры\u003C\u002Fli\u003E\r\n\u003Cli\u003ERxVMS: самодостаточные виджеты\u003C\u002Fli\u003E\r\n\u003Cli\u003EАутентификация пользователя посредством RxVMS\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u003E\r\n\u003Cp\u003EПотоки являются основным строительным блоком \u003Cstrong\u003ERxVMS\u003C\u002Fstrong\u003E, их понимание является абсолютно необходимым условием для работы с этой библиотекой, так что мы подробнее остановимся на них в этом посте. \u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EОказалось, что включение Rx в этот пост сделало бы его слишком длинным, поэтому я разделил его на две части.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Ch2 id=\"pust-techet\"\u003EПусть течет\u003C\u002Fh2\u003E\u003Cbr\u003E\r\n\u003Cp\u003EЯ читаю множество комментов, что дескать потоки, и особенно Rx, слишком сложны для понимания и, как следствие, для использования.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EМне бы хотелось, чтобы вы знали, что я не считаю себя гуру Rx. Освоить всю мощь его нелегко, и я признаю, что продолжаю учиться. Но позвольте мне с самого начала исправить одно заблуждение: \u003Cstrong\u003Eвам не нужно быть волшебником Rx, чтобы начать получать массу преимуществ от использования потоков и этой технологии\u003C\u002Fstrong\u003E. Я приложу максимум усилий, чтобы объяснить вам потоки наиболее доступным образом.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Thomas Burkhart","originalUrl":"https:\u002F\u002Fwww.burkharts.net\u002Fapps\u002Fblog\u002Ffundamentals-of-dart-streams\u002F"}}],"author":{"scoreStats":{"score":16,"votesCount":20},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1319778","alias":"rookie_cruekie","fullname":"Валерий","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F47f\u002Fd4d\u002Ff50\u002F47fd4df50c501c2de6c8e6f0a64fb8b0.jpg","speciality":"Программист"},"statistics":{"commentsCount":6,"favoritesCount":51,"readingCount":23760,"score":5,"votesCount":5},"hubs":[{"relatedData":null,"id":"17712","alias":"dart","type":"collective","title":"Dart","titleHtml":"Dart","isProfiled":true},{"relatedData":null,"id":"22176","alias":"flutter","type":"collective","title":"Flutter","titleHtml":"Flutter","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EЭто вторая часть моей серии по поводу Flutter Architecture:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448776\u002F\"\u003EВведение \u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EОсновы Dart Streams (этот пост)\u003C\u002Fstrong\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F451292\u002F\"\u003ERxDart: магические трансформации потоков\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449872\u002F\"\u003EОсновы RxVMS: RxCommand и GetIt\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003ERxVMS: Службы и Менеджеры\u003C\u002Fli\u003E\r\n\u003Cli\u003ERxVMS: самодостаточные виджеты\u003C\u002Fli\u003E\r\n\u003Cli\u003EАутентификация пользователя посредством RxVMS\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПотоки являются основным строительным блоком \u003Cstrong\u003ERxVMS\u003C\u002Fstrong\u003E, их понимание является абсолютно необходимым условием для работы с этой библиотекой, так что мы подробнее остановимся на них в этом посте. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОказалось, что включение Rx в этот пост сделало бы его слишком длинным, поэтому я разделил его на две части.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"pust-techet\"\u003EПусть течет\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЯ читаю множество комментов, что дескать потоки, и особенно Rx, слишком сложны для понимания и, как следствие, для использования.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМне бы хотелось, чтобы вы знали, что я не считаю себя гуру Rx. Освоить всю мощь его нелегко, и я признаю, что продолжаю учиться. Но позвольте мне с самого начала исправить одно заблуждение: \u003Cstrong\u003Eвам не нужно быть волшебником Rx, чтобы начать получать массу преимуществ от использования потоков и этой технологии\u003C\u002Fstrong\u003E. Я приложу максимум усилий, чтобы объяснить вам потоки наиболее доступным образом.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"chto-takoe-potoki\"\u003EЧто такое потоки?\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа мой взгляд наилучшей аналогией потоков является лента конвейера. Вы можете положить что-либо на один его конец и это \"что-либо\" автоматически перенесется на другой. В отличие от физического конвейера потоки манипулируют объектами данных, перенося их автоматически от начала — но куда? Как и в реальном конвейере, если нет ничего такого, что бы уловило данные на другом конце, они просто \"упадут\" и исчезнут (это, конечно не вполне верно для Dart Streams, но лучше всего обращаться с потоками, как будто это именно так).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F266\u002F3a1\u002F04f\u002F2663a104fc0e4c1ad735881ef36fe32c.gif\"\u002F\u003E \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДабы избежать потери данных, вы можете установить \"ловушку\" на выходе потока. Так вы сможете улавливать данные и производить нужные манипуляции с ними всякий раз, когда объекты данных будут достигать конца потока.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fdd3\u002F331\u002Fb2f\u002Fdd3331b2fa9036bee28628d563f3ceb7.gif\"\u002F\u003E \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EПомните:\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EЕсли ловушка не установлена, данные просто пропадут навсегда и не будет способа получить их снова (опять же, не совсем так с Dart Streams, но вам лучше притворяться, что это так)\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосле отправки данных в поток вам не нужно приостанавливать выполнение программы и ждать, пока они достигнут конца, все это происходит в фоне.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЛовушка может принять данные в любое время, совсем необязательно сразу после отправки (но волноваться не следует, потоки на самом деле очень быстрые). Представьте, что вы не знаете, как быстро или как долго движется \"ремень конвейера\". Это означает, что помещение чего-либо в поток полностью отделено от реакции на элемент на другом конце. Ваша ловушка сработает и поймает предмет, когда он попадет туда. (Некоторые из вас уже могут понять, что это хорошо вписывается в реактивный способ, которым Flutter обновляет свои виджеты)\u003C\u002Fli\u003E\r\n\u003Cli\u003EВы можете установить ловушку задолго до того, как начнется работа и появится первый элемент\u003C\u002Fli\u003E\r\n\u003Cli\u003EПоток работает по принципу FIFO. Данные всегда приходят в порядке их размещения в поток.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"a-chto-takoe-rx\"\u003EА что такое Rx?\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003ERx, сокращенно от Reactive Extensions (реактивные расширения), — это потоки \"на стероидах\". Это концепция, очень похожая на Streams, которая была изобретена для .Net framework командой Microsoft. Так как .Net уже имел тип Stream, который используется для файлового ввода-вывода, они назвали Rx-потоки \u003Cstrong\u003EObservables\u003C\u002Fstrong\u003E и создали множество функций для манипулирования данными, проходящими через них. Dart имеет Streams, встроенные в его языковую спецификацию, которые уже предлагают большую часть этой функциональности, но не все. Вот почему был разработан пакет RxDart; он основан на Dart Streams, но расширяет их функциональность. Я рассмотрю Rx и RxDart в следующей части этой серии.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"nemnogo-terminov\"\u003EНемного терминов\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EDart Streams и Rx используют некоторую терминологию, которая может выглядеть страшновато, поэтому вот перевод. Сначала идет термин Dart, потом Rx.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EStream\u002FObservable\u003C\u002Fstrong\u003E. Это \"конвейер\", описанный ранее. Stream может быть преобразован в Observable и везде, где ожидается Stream, можно присваивать Observable. Так что не путайтесь, если я буду смешивать эти термины в процессе объяснения\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Elisten\u002Fsubscribe\u003C\u002Fstrong\u003E — установка ловушки-\u003Cstrong\u003Eслушателя\u003C\u002Fstrong\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EStreamController\u002FSubject\u003C\u002Fstrong\u003E. \"Левая\" сторона конвейерной ленты, где вы помещаете данные в Stream. Они немного отличаются по своим свойствам и характеристикам, но служат одной и той же цели\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EEmitting an item\u002Fdata\u003C\u002Fstrong\u003E. Момент, когда данные появляются на выходе из \"конвейера\"\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"sozdanie-potoka\"\u003EСоздание потока\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕсли вы собираетесь продолжать изучать тему, пожалуйста, \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fescamoteur\u002Fstream_rx_tutorial\"\u003Eклонируйте этот проект\u003C\u002Fa\u003E с примерами. Я буду использовать систему тестов Dart\u002FFlutter.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля создания потока вы создаете \u003Ca href=\"https:\u002F\u002Fapi.dartlang.org\u002Fdev\u002F2.0.0-dev.69.5\u002Fdart-async\u002FStreamController-class.html\"\u003EStreamController\u003C\u002Fa\u003E \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evar controller = new StreamController&lt;String\u003E();\n\ncontroller.add(\"Item1\"); \u002F\u002F Отправляем первый элемент в поток\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EШаблонный тип (в данном случае String) передаваемый при создании StreamController определяет тип объектов, которые мы можем отправлять в поток. Это может быть ЛЮБОЙ тип! Вы можете создать при желании \u003Ccode\u003EStreamController&lt;List&lt;MyObject\u003E\u003E()\u003C\u002Fcode\u003E и поток будет передавать лист целиком вместо одного объекта.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"ustanovka-lovushki\"\u003EУстановка ловушки\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕсли вы запускали указанный тест, то ничего не смогли увидеть, ведь ничто не отловило нашу строку на выходе потока. Теперь установим ловушку:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evar controller = new StreamController&lt;String\u003E();\n\ncontroller.stream.listen((item) =\u003E print(item)); \u002F\u002F ловушка\n\ncontroller.add(\"Item1\");\ncontroller.add(\"Item2\");\ncontroller.add(\"Item3\");\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь ловушка установлена, используя метод \u003Ccode\u003E.listen()\u003C\u002Fcode\u003E. Запись выглядит \u003Ccode\u003Econtroller.stream.listen\u003C\u002Fcode\u003E, но если вы прокрутите это задом наперед, словно какой-нибудь альбом из 60-х, то проявится истинный смысл написанного: \"слушать поток данного контроллера\"\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВам необходимо передать в метод \u003Ccode\u003E.listen()\u003C\u002Fcode\u003E некию функцию, чтобы как-то манипулировать с пришедшими данными. Функция должна принимать параметр типа, указанного при создании StreamController, в данном случае это String.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕсли вы запустите вышеуказанный код, то увидите\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EItem1\nItem2\nItem3\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПо моему, наибольшей проблемой для новичков в Streams является то, что можно определить реакцию для испускаемого элемента задолго до того, как первый элемент будет помещен в поток, запуская вызов этой реакции.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"zavershenie-proslushivaniya\"\u003EЗавершение прослушивания\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКод выше упустил маленькую, но важную часть. \u003Ccode\u003Elisten()\u003C\u002Fcode\u003E возвращает \u003Ccode\u003EStreamSubscription\u003C\u002Fcode\u003E — объект подписки на поток. Вызов его метода \u003Ccode\u003E.cancel()\u003C\u002Fcode\u003E завершает подписку, освобождая ресурсы, и предупреждая вызов вашей прослушивающей функции после того, как это стало ненужным.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evar controller = new StreamController&lt;String\u003E();\n\nStreamSubscription subscription = controller.stream.listen((item) =\u003E print(item)); \u002F\u002F This is the Trap\n\ncontroller.add(\"Item1\");\ncontroller.add(\"Item2\");\ncontroller.add(\"Item3\");\n\n\u002F\u002F Это сделано для того, чтобы среда тестирования не убила этот процесс  \n\u002F\u002F до того, как все объекты из Stream были обработаны\nawait Future.delayed(Duration(milliseconds: 500));\n\nsubscription.cancel;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"podrobnosti-o-slushatelyah\"\u003EПодробности о слушателях\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EФункция для \u003Ccode\u003Elisten()\u003C\u002Fcode\u003E может быть как лямбдой, так и простой функцией. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid myPrint(String message) {\n  print(message);\n}\n\nStreamSubscription subscription = controller.stream.listen((item) =\u003E print(item)); \u002F\u002F использование лямбда-функции\n\nStreamSubscription subscription2 = controller.stream.listen(myPrint); \u002F\u002F использование обычной функции\n\nStreamSubscription subscription3 = controller.stream.listen((item) {\n    print(item);\n    print(item.toUpperCase);\n}); \u002F\u002F лямбда-блок\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EВажное замечание: большинство Dart-потоков позволяют только разовую подписку, то есть на них нельзя подписываться повторно после завершения подписки — это вызовет исключение. Это их отличие от других реализаций Rx.\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолная сигнатура \u003Ccode\u003Elisten()\u003C\u002Fcode\u003E выглядит так:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E \u002F* excerpt from the API doc\n   * The [onError] callback must be of type `void onError(error)` or\n   * `void onError(error, StackTrace stackTrace)`. If [onError] accepts\n   * two arguments it is called with the error object and the stack trace\n   * (which could be `null` if the stream itself received an error without\n   * stack trace).\n   * Otherwise it is called with just the error object.\n   * If [onError] is omitted, any errors on the stream are considered unhandled,\n   * and will be passed to the current [Zone]'s error handler.\n   * By default unhandled async errors are treated\n   * as if they were uncaught top-level errors.\n   *\n   * If this stream closes and sends a done event, the [onDone] handler is\n   * called. If [onDone] is `null`, nothing happens.\n   *\n   * If [cancelOnError] is true, the subscription is automatically canceled\n   * when the first error event is delivered. The default is `false`.\n    *\u002F\n  StreamSubscription&lt;T\u003E listen(void onData(T event),\n      {Function onError, void onDone(), bool cancelOnError});\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭто означает, что вы можете сделать больше, чем просто передать один обработчик для отправленных данных. Вы также можете иметь обработчик для ошибок, и другой для закрытия потока со стороны контроллера (\u003Ccode\u003EonDone\u003C\u002Fcode\u003E). Исключения, которые вызываются изнутри Stream, будут вызывать \u003Ccode\u003EonError()\u003C\u002Fcode\u003E, если вы его предоставите, \u003Cstrong\u003Eв противном случае они просто проглатываются, и вы никогда не узнаете, что что-то пошло не так.\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"primer-flutter-potokov\"\u003EПример Flutter-потоков\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cem\u003EЧтобы облегчить понимание следующих глав, я сделал отдельную ветку репозитория.\u003C\u002Fem\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fescamoteur\u002Fstream_rx_tutorial\u002Ftree\u002Fcounter_stream\"\u003EПожалуйста, склонируйте ее\u003C\u002Fa\u003E \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ качестве первого примера я взял хорошо известное приложение-счетчик, которое вы получаете при создании нового проекта Flutter, и немного его реорганизовал. Я добавил класс модели для хранения состояния приложения, которое в основном является значением счетчика:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eclass Model {\n    int _counter = 0;\n    StreamController _streamController = new StreamController&lt;int\u003E();\n\n    Stream&lt;int\u003E get counterUpdates =\u003E _streamController.stream;\n\n    void incrementCounter() {\n        _counter++;\n        _streamController.add(_counter);\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003Eздесь вы можете увидеть очень типичный шаблон: вместо публикации всего StreamController, мы просто публикуем его свойство Stream.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЧтобы сделать Модель доступной для UI, я сделал ее статическим полем в объекте App, потому что не хотел вводить InheritedWidget или ServiceLocator. Для простого примера это сойдет с рук, но я бы не стал делать это в настоящем приложении!\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДобавим в \u003Ccode\u003Emain.dart\u003C\u002Fcode\u003E:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Eclass _MyHomePageState extends State&lt;MyHomePage\u003E {\n  int _counter = 0;\n  StreamSubscription streamSubscription;\n\n  @override\n  void initState() {\n    streamSubscription = MyApp.model.counterUpdates.listen((newVal) =\u003E setState(() {\n          _counter = newVal;\n        }));\n\n    super.initState();\n  }\n\n  \u002F\u002F Хотя этот State не будет уничтожен, пока приложение работает, \n  \u002F\u002F хороший стиль требует освобождать подписки явно\n  @override\n  void dispose() {\n      streamSubscription?.cancel();\n      super.dispose();\n    }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003EinitState()\u003C\u002Fcode\u003E хорошее место для установки слушателя, и, будучи добропорядочными гражданами Darts, мы всегда освобождаем подписку в \u003Ccode\u003Edispose()\u003C\u002Fcode\u003E, верно?\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ дереве виджетов нам просто нужно адаптировать обработчик onPressed кнопки FAB (кнопка с плавающим действием).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003EfloatingActionButton: new FloatingActionButton(\n            onPressed: MyApp.model.incrementCounter,\n    tooltip: 'Increment',\n    child: new Icon(Icons.add),\n    ),\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭтим способом мы создали чистое разделение между View и Model, используя Stream.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"primenyaem-streambuilder\"\u003EПрименяем StreamBuilder\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fescamoteur\u002Fstream_rx_tutorial\u002Ftree\u002Fstreambuilder\"\u003EИсточник\u003C\u002Fa\u003E \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВместо использования \u003Ccode\u003EinitState()\u003C\u002Fcode\u003E и \u003Ccode\u003EsetState()\u003C\u002Fcode\u003E для наших нужд Flutter поставляется с удобным виджетом \u003Ccode\u003EStreamBuilder\u003C\u002Fcode\u003E. Как вы уже догадались, он принимает функцию Stream и метод-строитель, вызывающийся всякий раз, когда Stream выдает новое значение. И теперь нам не нужны явные инициализация и освобождение:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Ebody: new Center(\n  child: new Column(\n    mainAxisAlignment: MainAxisAlignment.center,\n    children: &lt;Widget\u003E[\n      new Text(\n        'You have pushed the button this many times:',\n      ),\n      StreamBuilder&lt;int\u003E(\n          initialData: 0,\n          stream: MyApp.model.counterUpdates,\n          builder: (context, snappShot) {\n            String valueAsString = 'NoData';\n\n            if (snappShot != null &amp;&amp; snappShot.hasData) {\n              valueAsString = snappShot.data.toString();\n            }\n\n            return Text(\n              valueAsString,\n              style: Theme.of(context).textTheme.display1,\n            );\n          }),\n    ],\n  ),\n),\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы почти закончили, обещаю. Вот три вещи, которые полезно знать:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eбольшое преимущество использования StreamBuilder по сравнению с первым решением состоит в том, что вызов \u003Ccode\u003EsetState()\u003C\u002Fcode\u003E в \u003Ccode\u003Elisten()\u003C\u002Fcode\u003E всегда перестраивает всю страницу, тогда как StreamBuilder будет вызывать только свой \u003Ccode\u003Ebuilder\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПеременная \u003Ccode\u003EsnapShot\u003C\u002Fcode\u003E содержит самые последние данные, полученные из Stream. Всегда проверяйте, что она содержит действительные данные, прежде чем ее использовать\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EИсходя из принципов инициализации во время, StreamBuilder не может получить значение во время самого первого кадра. Чтобы обойти это, мы передаем значение для \u003Ccode\u003EinitialData\u003C\u002Fcode\u003E, которое используется для первой сборки, то есть для первого кадра экрана. Если мы не передадим \u003Ccode\u003EinitialData\u003C\u002Fcode\u003E, наш билдер в первый раз будет вызван с недопустимыми данными. Альтернативой использованию \u003Ccode\u003EinitialData\u003C\u002Fcode\u003E является возврат виджета- плейсхолдера, если \u003Ccode\u003EsnapShot\u003C\u002Fcode\u003E невалиден, который отображается до тех пор, пока мы не получим действительные данные, например:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E\u002F\u002F Предположим, что наш поток базируется на некотором обновлении в базе данных\nStreamBuilder&lt;int\u003E(\nstream: MyApp.model.databaseUpdates,\nbuilder: (context, snappShot) {\n\nif (snappShot != null &amp;&amp; snappShot.hasData) {\n    return Text(\n      snappShot.data.toString(),\n      style: Theme.of(context).textTheme.display1,\n    );\n}\n\n\u002F\u002F Пока мы не получим действительные данные, мы крутим Spinner\nreturn CircularProgressIndicator ();\n})\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ следующем посте мы рассмотрим, как преобразовать данные в наших потоках и сделать это на лету. Большое спасибо \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Fscottstoll2017\"\u003EScott Stoll\u003C\u002Fa\u003E за чтение корректуры и важные отзывы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Chr\u002F\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"dart"},{"titleHtml":"flutter"},{"titleHtml":"практика программирования"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450950\u002F7f49524cd4b0f51e92580f3adc3ad397\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450950\u002F7f49524cd4b0f51e92580f3adc3ad397\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450950\\\u002F\"},\"headline\":\"Основы Dart Streams\",\"datePublished\":\"2019-05-08T08:50:38+03:00\",\"dateModified\":\"2019-05-12T10:14:54+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Валерий\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Это вторая часть моей серии по поводу Flutter Architecture:  Введение   Основы Dart Streams (этот пост) RxDart: магические трансформации потоков Основы RxVMS: Rx...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450950\\\u002F#post-content-body\",\"about\":[\"h_dart\",\"h_flutter\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F266\\\u002F3a1\\\u002F04f\\\u002F2663a104fc0e4c1ad735881ef36fe32c.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fdd3\\\u002F331\\\u002Fb2f\\\u002Fdd3331b2fa9036bee28628d563f3ceb7.gif\"]}","metaDescription":"Это вторая часть моей серии по поводу Flutter Architecture:\r\n\r\nВведение  \r\nОсновы Dart Streams (этот пост)\r\nRxDart: магические трансформации потоков\r\nОсновы RxVMS: RxCommand и GetIt\r\nRxVMS: Службы и...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"dart,flutter"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

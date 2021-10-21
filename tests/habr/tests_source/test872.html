@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Руководство по аннотациям TestNG для Selenium WebDriver / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/otus\/blog\/450872\/"},"headline":"Руководство по аннотациям TestNG для Selenium WebDriver","datePublished":"2019-05-07T17:43:48+03:00","dateModified":"2019-05-07T20:07:47+03:00","author":{"@type":"Person","name":"OTUS"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набор...","url":"https:\/\/habr.com\/ru\/company\/otus\/blog\/450872\/#post-content-body","about":["c_otus","h_it_testing","h_java","h_mobile_testing","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/vu\/e6\/zn\/vue6znp5zttccw5jrralrrmebio.png","https:\/\/habrastorage.org\/webt\/pj\/d6\/au\/pjd6au6djyfvivcs_i7wr0la27e.png","https:\/\/habrastorage.org\/webt\/wl\/hp\/q7\/wlhpq7jyhsicqjcnnoacyfcprgc.png","https:\/\/habrastorage.org\/webt\/gc\/kj\/6q\/gckj6q794ndtxycqcrdh2ilp5-a.png","https:\/\/habrastorage.org\/webt\/gt\/xu\/1n\/gtxu1nrsp1cujpjnzhkgm5pxz54.png","https:\/\/habrastorage.org\/webt\/py\/qn\/gb\/pyqngbhabzco-kango305k5kmxo.png","https:\/\/habrastorage.org\/webt\/n5\/3n\/x8\/n53nx8resy4_sah_zyj_pjyuzfs.png","https:\/\/habrastorage.org\/webt\/lv\/um\/_4\/lvum_4fgxohotna2rm2fwhd2dfw.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Руководство по аннотациям TestNG для Selenium WebDriver" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Руководство по аннотациям TestNG для Selenium WebDriver" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Руководство по аннотациям TestNG для Selenium WebDriver" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс «Java QA Engineer», запуск..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс «Java QA Engineer», запуск..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс «Java QA Engineer», запуск..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс «Java QA Engineer», запуск..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс «Java QA Engineer», запуск..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450872/ef5e446b0c017ad1500925eb7c28fd2b/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450872/ef5e446b0c017ad1500925eb7c28fd2b/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450872/ef5e446b0c017ad1500925eb7c28fd2b/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450872/ef5e446b0c017ad1500925eb7c28fd2b/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450872/ef5e446b0c017ad1500925eb7c28fd2b/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450872" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T14:43:48.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450872/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/otus/blog/450872/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450872/ef5e446b0c017ad1500925eb7c28fd2b/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="otus" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/otus/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/968/422/761/968422761136a38a89fc391fd927f903.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">396.96</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/otus/profile/" class="tm-company-card__name">
+        OTUS
+      </a> <div class="tm-company-card__description">Цифровые навыки от ведущих экспертов</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/MaxRokatansky/" title="MaxRokatansky" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/b9f/baf/5f9/b9fbaf5f96ae52973706a0716bd9216e.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/MaxRokatansky/" class="tm-user-info__username">
+      MaxRokatansky
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T14:43:48.000Z" title="2019-05-07, 17:43">7  мая  2019 в 17:43</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Руководство по аннотациям TestNG для Selenium WebDriver</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/otus/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании OTUS</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование IT-систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/java/" class="tm-article-snippet__hubs-item-link"><span>Java</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/mobile_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование мобильных приложений</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://www.lambdatest.com/blog/complete-guide-on-testng-annotations-for-selenium-webdriver/" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Sadhvi Singh
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс <a href="https://otus.pw/IiTF/">«Java QA Engineer»</a>, запуск которого запланирован на 28 мая. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/vu/e6/zn/vue6znp5zttccw5jrralrrmebio.png"/><br/>
+<br/>
+<b>TestNG — это тестовый фреймворк, созданный Cédric Beust</b>, он помогает нам удовлетворить многие наши потребности в тестировании. TestNG широко используется вместе с Selenium. Хотите знать, что означает NG? Это значит <b>“Next Generation”</b> (“Следующее поколение”). TestNG похож на JUnit, но он более мощный, когда дело касается управления потоком выполнения вашей программы. Архитектура фреймворка помогает нам сделать тесты более структурированными и обеспечить лучшие точки валидации.<a name="habracut"></a><br/>
+<br/>
+Некоторые особенности TestNG, заслуживающие внимания:<br/>
+<br/>
+<ul>
+<li>Мощные и разнообразные аннотации для поддержки ваших тест-кейсов.</li>
+<li>Параллельное выполнение тестов, использование зависимостей между тестами.</li>
+<li>Гибкость выполнения ваших тестов на разных наборах данных, через файл TestNG.xml или через концепцию поставщиков данных (data-provider).</li>
+<li>Группировка и приоритизация тест-кейсов.</li>
+<li>Генерация HTML-отчётов, настройка с помощью различных плагинов.</li>
+<li>Генерация логов выполнения тестов.</li>
+<li>Лёгкая интеграция с Eclipse, Maven, Jenkins и др.</li>
+</ul><br/>
+Обычно процесс тестирования с использованием TestNG включает в себя следующие этапы:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/pj/d6/au/pjd6au6djyfvivcs_i7wr0la27e.png"/><br/>
+<br/>
+Перед тем как перейти к аннотациям TestNG для Selenium, обозначим предварительные требования для настройки TestNG.<br/>
+<br/>
+Предварительные условия:<br/>
+<br/>
+<ul>
+<li>Java Development Kit</li>
+<li>Eclipse или любая другая IDE</li>
+<li>Установленный TestNG в Eclipse или в вашу IDE</li>
+</ul><br/>
+Примечание: Java-аннотации могут быть использованы только с Java версии 1.5 и выше.<br/>
+<br/>
+Если вы новичок с TestNG, то посмотрите статью о том, как запустить <a href="https://www.lambdatest.com/blog/a-complete-guide-for-your-first-testng-automation-script/">первый скрипт автоматизации с TestNG</a>.<br/>
+<br/>
+<b>Итак, что такое аннотация?</b><br/>
+<br/>
+<blockquote>Аннотация — это метка, которая предоставляет дополнительную информацию о классе или методе (<i>Примечание переводчика: в java аннотации могут применяться не только для классов и методов, но также и для других элементов</i>). Для аннотаций используется префикс «@». TestNG использует аннотации, чтобы помочь в создании надёжной структуры тестов. Давайте посмотрим на аннотации TestNG, используемые для автоматизации тестирования с Selenium.</blockquote><br/>
+<br/>
+<code><b>@Test</b></code><br/>
+<br/>
+<b>Это самая важная аннотация в TestNG, в которой находится основная логика теста</b>. Все автоматизируемые функции находятся в методе с аннотацией <code>@Test</code>. Она имеет различные атрибуты, с помощью которых может быть настроен запуск метода.<br/>
+<br/>
+Пример кода ниже, проверяет переход по url: <br/>
+ <br/>
+<pre><code class="java">@Test
+public void testCurrentUrl() throws InterruptedException {
+   driver.findElement(By.xpath("//*[@id='app']/header/aside/ul/li[4]/a"))
+     .click();
+   String currentUrl = driver.getCurrentUrl();
+   assertEquals(
+     currentUrl,
+     "https://automation.lambdatest.com/timeline/?viewType=build&amp;page=1", 
+     "url did not matched");
+}</code></pre><br/>
+<code><b>@BeforeTest</b></code><br/>
+<br/>
+<b>Метод с этой аннотацией запускается перед запуском первого метода с аннотацией <code>@Test</code>.</b> <i>(Примечание переводчика: в рамках теста, определенного в разделе <code>test</code> в xml-файле конфигурации)</i>. Вы можете использовать эту аннотацию в TestNG с Selenium для настройки браузера. Например, запустить браузер и развернуть его на весь экран, установить специфичные настройки браузера и т.д.<br/>
+<br/>
+Ниже приведён пример для BeforeTest, в котором браузер разворачивается на весь экран:<br/>
+<br/>
+<pre><code class="java">@BeforeTest
+public void profileSetup() {
+   driver.manage().window().maximize();
+}</code></pre><br/>
+<code><b>@AfterTest</b></code><br/>
+<br/>
+<b>Методы, помеченные этой аннотацией, запускаются после всех <code>@Test</code>-методов вашего теста.</b> (<i>Примечание переводчика: в рамках теста, определенного в разделе <code>test</code> в xml-файле конфигурации, в оригинале не совсем корректно написано “текущего класса”</i>). Это полезная аннотация, которая пригодится для предоставления результатов выполнения тестов. Вы можете использовать эту аннотацию, чтобы создать отчёт о ваших тестах и отправить его заинтересованным сторонам по электронной почте.<br/>
+<br/>
+Пример кода:<br/>
+<br/>
+<pre><code class="java">@AfterTest
+public void reportReady() {
+   System.out.println("Report is ready to be shared, with screenshots of tests");
+}</code></pre><br/>
+<code><b>@BeforeMethod</b></code><br/>
+<br/>
+<b>Методы с этой аннотацией запускаются перед каждым <code>@Test</code>-методом</b>. Вы можете использовать её, чтобы перед выполнением теста проверить соединение с базой данных. Или, например, при тестировании функциональности, зависимой от логина пользователя, поместить сюда код для входа в систему.<br/>
+Ниже приведён фрагмент кода, демонстрирующий вход в LambdaTest:<br/>
+ <br/>
+<pre><code class="java">@BeforeMethod
+public void checkLogin() {
+   driver.get("https://accounts.lambdatest.com/login");
+   driver.findElement(By.xpath("//input[@name='email']")).sendKeys("sadhvisingh24@gmail.com");
+   driver.findElement(By.xpath("//input[@name='password']")).sendKeys("activa9049");
+   driver.findElement(By.xpath("//*[@id='app']/section/form/div/div/button")).click();
+}</code></pre><br/>
+<code><b>@AfterMethod</b></code><br/>
+<br/>
+<b>Методы с этой аннотацией запускаются после каждого <code>@Test</code>-метода</b>. Эту аннотацию можно использовать для создания скриншотов при каждом выполнении теста.<br/>
+Ниже приведён фрагмент кода, демонстрирующий получение скриншота:<br/>
+ <br/>
+<pre><code class="java">@AfterMethod
+public void screenShot() throws IOException {
+   TakesScreenshot scr = ((TakesScreenshot) driver);
+   File file1 = scr.getScreenshotAs(OutputType.FILE);
+   FileUtils.copyFile(file1, new File("С:\\test-output\\test1.PNG"));
+}</code></pre><br/>
+<code><b>@BeforeClass</b></code><br/>
+<br/>
+<b>Метод с этой аннотацией выполнится перед первым тестовым методом в текущем классе.</b> Эту аннотацию можно использовать для настройки свойств браузера, инициализации драйвера, открытия браузера с нужным URL-адресом и т.д.<br/>
+<br/>
+Пример кода для BeforeClass:<br/>
+<br/>
+<pre><code class="java">@BeforeClass
+public void appSetup() {
+   driver.get(url);
+}</code></pre><br/>
+<code><b>@AfterClass</b></code><br/>
+<br/>
+<b>Метод с этой аннотацией выполнится после последнего тестового метода в текущем классе.</b> Эта аннотация в TestNG может использоваться для выполнения действий по очистке ресурсов после выполнения теста, таких как закрытие драйвера и т.п.<br/>
+Ниже приведён пример фрагмента кода, показывающего закрытие драйвера:<br/>
+<br/>
+<pre><code class="java">@AfterClass
+public void closeUp() {
+   driver.close();
+}</code></pre><br/>
+<code><b>@BeforeSuite</b></code><br/>
+<br/>
+Набор тестов (suite) может состоять из нескольких классов, эта аннотация запускается перед всеми тестовыми методами всех классов. <b>Эта аннотация помечает точку входа при запуске.</b> Аннотацию <code>@BeforeSuite</code> в TestNG можно использовать для выполнения общих функций, таких как настройка и запуск Selenium или удалённых веб-драйверов и т.д.<br/>
+Пример аннотации <code>@BeforeSuite</code> в TestNG, демонстрирующий настройку драйвера:<br/>
+ <br/>
+<pre><code class="java">@BeforeSuite
+public void setUp() {
+   System.setProperty(
+           "webdriver.chrome.driver",
+           "С:\\selenium\\chromedriver.exe");
+   driver = new ChromeDriver();
+}</code></pre><br/>
+<code><b>@AfterSuite</b></code><br/>
+<br/>
+<b>Эта аннотация в TestNG запускается после запуска всех методов тестирования во всех классах.</b> Эта аннотация может использоваться для очистки перед завершением тестов, когда у вас используется несколько классов, например, закрытие драйверов и т. д.<br/>
+Ниже приведён фрагмент кода для аннотации <code>@AfterSuite</code> в TestNG для Selenium:<br/>
+ <br/>
+<pre><code class="java">@AfterSuite
+public void cleanUp() {
+   System.out.println("All close up activities completed");
+}</code></pre><br/>
+<code><b>@BeforeGroups</b></code><br/>
+<br/>
+TestNG может объединять тесты в группы с помощью атрибута group в аннотации <code>@Test</code>. Например, если вы хотите, чтобы все схожие функции, связанные с управлением пользователями, были объединены вместе, вы можете пометить тесты, такие как dashboard (панель пользователя), profile (профиль), transactions (транзакции) и тому подобное, в одну группу, такую как “user_management”. Аннотация <code>@BeforeGroups</code> в TestNG помогает запустить определённые действия перед указанной группой тестов. Эту аннотацию можно использовать, если группа фокусируется на одной функциональности, как указано в приведённом выше примере. Аннотация <code>@BeforeGroup</code> может содержать функцию входа в систему, которая требуется для запуска тестов в группе, например, тестирование панели пользователя, профиля пользователя и т.д.<br/>
+<br/>
+Пример использования <code>@BeforeGroups</code>:<br/>
+<br/>
+<pre><code class="java">@BeforeGroups("urlValidation")
+public void setUpSecurity() {
+   System.out.println("url validation test starting");
+}</code></pre><br/>
+<code><b>@AfterGroups</b></code><br/>
+<br/>
+<b>Эта аннотация запускается после выполнения всех тестовых методов указанной группы.</b><br/>
+<br/>
+Пример кода для аннотации <code>@AfterGroups</code> в TestNG для Selenium:<br/>
+ <br/>
+<pre><code class="java">@AfterGroups("urlValidation")
+public void tearDownSecurity() {
+   System.out.println("url validation test finished");
+}</code></pre><br/>
+<i><b>Пример</b></i><br/>
+<br/>
+В приведённом ниже коде показаны примеры использования всех аннотаций, рассмотренных выше:<br/>
+<br/>
+<pre><code class="java">import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import static org.testng.Assert.assertEquals;
+
+public class AnnotationsTestNG {
+   private WebDriver driver;
+   private String url = "https://www.lambdatest.com/";
+
+   @BeforeSuite
+   public void setUp() {
+       System.setProperty(
+               "webdriver.chrome.driver",
+               "С:\\selenium\\chromedriver.exe");
+       driver = new ChromeDriver();
+       driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+       System.out.println("The setup process is completed");
+   }
+
+   @BeforeTest
+   public void profileSetup() {
+       driver.manage().window().maximize();
+       System.out.println("The profile setup process is completed");
+   }
+
+   @BeforeClass
+   public void appSetup() {
+       driver.get(url);
+       System.out.println("The app setup process is completed");
+   }
+
+   @BeforeMethod
+   public void checkLogin() {
+       driver.get("https://accounts.lambdatest.com/login");
+       driver.findElement(By.xpath("//input[@name='email']")).sendKeys("sadhvisingh24@gmail.com");
+       driver.findElement(By.xpath("//input[@name='password']")).sendKeys("activa9049");
+       driver.findElement(By.xpath("//*[@id='app']/section/form/div/div/button")).click();
+       System.out.println("The login process on lamdatest is completed");
+   }
+
+   @Test(groups = "urlValidation")
+   public void testCurrentUrl() throws InterruptedException {
+       driver.findElement(By.xpath("//*[@id='app']/header/aside/ul/li[4]/a")).click();
+       Thread.sleep(6000);
+       String currentUrl = driver.getCurrentUrl();
+       assertEquals(currentUrl, "https://automation.lambdatest.com/timeline/?viewType=build&amp;page=1", "url did not matched");
+       System.out.println("The url validation test is completed");
+   }
+
+   @AfterMethod
+   public void screenShot() throws IOException {
+       TakesScreenshot scr = ((TakesScreenshot) driver);
+       File file1 = scr.getScreenshotAs(OutputType.FILE);
+
+       FileUtils.copyFile(file1, new File("С:\\test-output\\test1.PNG"));
+       System.out.println("Screenshot of the test is taken");
+   }
+
+   @AfterClass
+   public void closeUp() {
+       driver.close();
+       System.out.println("The close_up process is completed");
+   }
+
+   @AfterTest
+   public void reportReady() {
+       System.out.println("Report is ready to be shared, with screenshots of tests");
+   }
+
+   @AfterSuite
+   public void cleanUp() {
+       System.out.println("All close up activities completed");
+   }
+
+   @BeforeGroups("urlValidation")
+   public void setUpSecurity() {
+       System.out.println("url validation test starting");
+   }
+
+   @AfterGroups("urlValidation")
+   public void tearDownSecurity() {
+       System.out.println("url validation test finished");
+   }
+}	</code></pre><br/>
+<b>Отчёт TestNG Report:</b><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/wl/hp/q7/wlhpq7jyhsicqjcnnoacyfcprgc.png"/><br/>
+<br/>
+<b>Вывод в консоли:</b><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gc/kj/6q/gckj6q794ndtxycqcrdh2ilp5-a.png"/><br/>
+<br/>
+<blockquote><b><i>Примечание переводчика:</i></b> <br/>
+<br/>
+<ul>
+<li>для запуска теста измените в методе setUp() путь к chromedriver.exe, а в методе screenShot() путь к папке со скриншотом. Также для успешного выполнения теста в методе checkLogin() должны быть валидные логин и пароль.</li>
+<li>Используемые maven-зависимости:</li>
+</ul><br/>
+<pre><code class="java">&lt;dependencies>
+   &lt;dependency>
+       &lt;groupId>org.testng&lt;/groupId>
+       &lt;artifactId>testng&lt;/artifactId>
+       &lt;version>6.14.3&lt;/version>
+       &lt;scope>test&lt;/scope>
+   &lt;/dependency>
+
+   &lt;dependency>
+       &lt;groupId>org.seleniumhq.selenium&lt;/groupId>
+       &lt;artifactId>selenium-chrome-driver&lt;/artifactId>
+       &lt;version>3.141.59&lt;/version>
+       &lt;scope>test&lt;/scope>
+   &lt;/dependency>
+
+   &lt;dependency>
+       &lt;groupId>commons-io&lt;/groupId>
+       &lt;artifactId>commons-io&lt;/artifactId>
+       &lt;version>2.6&lt;/version>
+       &lt;scope>test&lt;/scope>
+   &lt;/dependency>
+&lt;/dependencies></code></pre></blockquote> <b>Последовательность выполнения аннотаций в TestNG для Selenium</b><br/>
+<br/>
+Аннотации, описанные выше, выполняются в рантайме в следующем порядке:<br/>
+<br/>
+<ul>
+<li>BeforeSuite</li>
+<li>BeforeTest</li>
+<li>BeforeClass</li>
+<li>BeforeGroups</li>
+<li>BeforeMethod</li>
+<li>Test</li>
+<li>AfterMethod</li>
+<li>AfterGroups</li>
+<li>AfterClass</li>
+<li>AfterTest</li>
+<li>AfterSuite</li>
+</ul><br/>
+Вот порядок их выполнения:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gt/xu/1n/gtxu1nrsp1cujpjnzhkgm5pxz54.png"/><br/>
+<br/>
+<b>Атрибуты, используемые с аннотациями в TestNG</b><br/>
+<br/>
+У аннотаций в TestNG есть атрибуты, которые можно использовать для настройки. Они помогают настроить порядок выполнения тестовых методов.<br/>
+<br/>
+Вот эти атрибуты:<br/>
+<br/>
+<ul>
+<li><b>description</b>: можно указать описание тестового метода. <br/>
+ Например, <code>@Test</code>(description=”этот тест проверяет вход в систему”).</li>
+<li><b>alwaysRun</b>: этот атрибут гарантирует, что тестовый метод будет выполнен всегда, даже в случае падения тестов, от которых он зависит. Когда значение атрибута true, этот метод будет запускаться всегда.<br/>
+ Например, <code>@Test</code>(alwaysRun= true).</li>
+<li><b>dataProvider</b>: задаёт имя поставщика данных (data provider) для тестового метода. Предположим, что вы собираетесь запускать свои тесты в нескольких браузерах, тогда в тестовом методе с атрибутом dataProvider, можно добавить параметры для браузера и его версии, которые будут передаваться в метод поставщиком данных. В этом случае тест, содержащий этот атрибут, будет использовать эти входные данные для запуска тестов в нескольких браузерах.<br/>
+ Например, <code>@Test</code>(dataProvider=”cross-browser-testing”).</li>
+<li><b>dependsOnMethods</b>: предоставляет информацию о порядке выполнения тестов. Тест с этим атрибутом будет выполнен, только если успешно выполниться тест, от которого он зависит. Если тест, от которого зависит метод, падает, то тест не запускается.<br/>
+ Например, <code>@Test</code> (depenOnmethod = “login”).</li>
+<li><b>groups</b>: помогает сгруппировать ваши тестовые методы, ориентированные на одну функциональность, в одну группу.<br/>
+ Например, <code>@Test</code>(groups=”Payment_Module”).<br/>
+ Этот атрибут также позволяет управлять тем, какие тесты запускать. При запуске тестов можно игнорировать какие-то группы или, наоборот, запустить только некоторые группы. Всё, что нужно сделать, это указать нужные группы в файле TestNG.xml. В теге <code>include</code> указать группы, которые необходимо запустить, а в теге <code>exclude</code>, которые надо игнорировать.</li>
+<li><b>dependsOnGroups</b>: выполняет функции двух, вышеупомянутых атрибутов, то есть определяет зависимость тестового метода от указанной группы. Этот тестовый метод будет запущен только после того, как указанная группа тестов будет выполнена.<br/>
+ Например, <code>@Test</code> (depenOnMethods = «Payment_Module»).</li>
+<li><b>priority</b>: помогает нам определить приоритет тестовых методов. Когда TestNG выполняет тестовые методы, он может делать это в произвольном порядке. В сценарии, где вы хотите, чтобы ваши тесты выполнялись в нужном порядке, вы можете использовать атрибут priority. Приоритет по умолчанию для всех тестовых методов равен 0. Сначала выполняются тесты с меньшим значением priority. <br/>
+Например, <code>@Test</code> (priority = 1), <code>@Test</code> (priority = 2). В этом случае сначала будет выполнен тест с приоритетом, равным единице, а потом тест с приоритетом два.</li>
+<li><b>enabled</b>: этот атрибут используется, когда вам нужно игнорировать и не запускать определённый тест. Всё, что вам нужно сделать, это установить его в false.<br/>
+ Например, <code>@Test</code>(enabled= false).</li>
+<li><b>timeout</b>: определяет время, за которое должен выполниться тест. Если выполнение теста превышает время, определённое атрибутом, то тест завершится с ошибкой с выбросом исключения org.testng.internal.thread.ThreadTimeoutException<br/>
+ Например, <code>@Test</code>(timeOut= 500). <b>Обратите внимание, что время указывается в миллисекундах</b>.</li>
+<li><b>invocationCount</b>: работает точно так же, как цикл. Тест будет запущен столько раз, сколько указано в invocationCount. <br/>
+Например, <code>@Test</code>(invocationCount = 5), будет запущен 5 раз.</li>
+<li><b>invocationTimeOut</b>: используется вместе с вышеуказанным атрибутом invocationCount. Значение этого атрибута вместе с invocationCount указывает на то, что тест будет запущен столько раз, сколько указано в invocationCount, и в течение времени, указанного в атрибуте invocationTimeOut.<br/>
+ Например, <code>@Test</code>(invocationCount = 5, invocationTimeOut = 20).</li>
+<li><b>expectedExceptions</b>: помогает обрабатывать исключения, выброс которых ожидается в тестовом методе. Если исключение, указанное в атрибуте, выброшено тестовым методом, то тест прошёл успешно. В противном случае, отсутствие исключения или выброс другого исключения, не указанного в атрибуте, провалит тест.<br/>
+ Например, <code>@Test</code>(expectedExceptions = {ArithmeticException.class }).</li>
+</ul><br/>
+Выше описаны атрибуты, используемые с аннотациями в TestNG c Selenium. Ниже приведён фрагмент кода, демонстрирующий использование вышеуказанных атрибутов:<br/>
+<br/>
+<pre><code class="java">import static org.testng.Assert.assertEquals;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterGroups;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeGroups;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+
+public class AnnotationsTest {
+   private WebDriver driver;
+   private String url = "https://www.lambdatest.com/";
+
+   @BeforeSuite
+   public void setUp() {
+       System.setProperty(
+               "webdriver.chrome.driver",
+               "С:\\selenium\\chromedriver.exe");
+       driver = new ChromeDriver();
+       System.out.println("The setup process is completed");
+   }
+
+   @BeforeTest
+   public void profileSetup() {
+       driver.manage().window().maximize();
+       System.out.println("The profile setup process is completed");
+   }
+
+   @BeforeClass
+   public void appSetup() {
+       driver.get(url);
+       System.out.println("The app setup process is completed");
+   }
+
+   @Test(priority = 2)
+   public void checkLogin() {
+       driver.get("https://accounts.lambdatest.com/login");
+       driver.findElement(By.xpath("//input[@name='email']")).sendKeys("sadhvisingh24@gmail.com");
+       driver.findElement(By.xpath("//input[@name='password']")).sendKeys("xxxxx");
+       driver.findElement(By.xpath("//*[@id='app']/section/form/div/div/button")).click();
+       System.out.println("The login process on lamdatest is completed");
+   }
+
+   @Test(priority = 0, description = "this test validates the sign-up test")
+   public void signUp() throws InterruptedException {
+       WebElement link = driver.findElement(By.xpath("//a[text()='Free Sign Up']"));
+       link.click();
+       WebElement organization = driver.findElement(By.xpath("//input[@name='organization_name']"));
+       organization.sendKeys("LambdaTest");
+       WebElement firstName = driver.findElement(By.xpath("//input[@name='name']"));
+       firstName.sendKeys("Test");
+       WebElement email = driver.findElement(By.xpath("//input[@name='email']"));
+       email.sendKeys("User622@gmail.com");
+       WebElement password = driver.findElement(By.xpath("//input[@name='password']"));
+       password.sendKeys("TestUser123");
+       WebElement phoneNumber = driver.findElement(By.xpath("//input[@name='phone']"));
+       phoneNumber.sendKeys("9412262090");
+       WebElement termsOfService = driver.findElement(By.xpath("//input[@name='terms_of_service']"));
+       termsOfService.click();
+       WebElement button = driver.findElement(By.xpath("//button[text()='Signup']"));
+       button.click();
+   }
+
+   @Test(priority = 3,
+           alwaysRun = true,
+           dependsOnMethods = "check_login",
+           description = "this test validates the URL post logging in",
+           groups = "url_validation")
+   public void testCurrentUrl() throws InterruptedException {
+       driver.findElement(By.xpath("//*[@id='app']/header/aside/ul/li[4]/a")).click();
+       String currentUrl = driver.getCurrentUrl();
+       assertEquals(
+               currentUrl,
+               "https://automation.lambdatest.com/timeline/?viewType=build&amp;page=1",
+               "url did not matched");
+       System.out.println("The url validation test is completed");
+   }
+
+   @Test(priority = 1,
+           description = "this test validates the logout functionality",
+           timeOut = 25000)
+   public void logout() throws InterruptedException {
+       Thread.sleep(6500);
+       driver.findElement(By.xpath("//*[@id='userName']")).click();
+       driver.findElement(By.xpath("//*[@id='navbarSupportedContent']/ul[2]/li/div/a[5]")).click();
+   }
+
+   @Test(enabled = false)
+   public void skipMethod() {
+       System.out.println("this method will be skipped from the test run using the attribute enabled=false");
+   }
+
+   @Test(priority = 6, invocationCount = 5, invocationTimeOut = 20)
+   public void invocationcountShowCaseMethod() {
+       System.out.println("this method will be executed by 5 times");
+   }
+
+   @AfterMethod()
+   public void screenshot() throws IOException {
+       TakesScreenshot scr = ((TakesScreenshot) driver);
+       File file1 = scr.getScreenshotAs(OutputType.FILE);
+
+       FileUtils.copyFile(file1, new File("С:\\test-output\\test1.PNG"));
+       System.out.println("Screenshot of the test is taken");
+   }
+
+   @AfterClass
+   public void closeUp() {
+       driver.close();
+       System.out.println("The close_up process is completed");
+   }
+
+   @AfterTest
+   public void reportReady() {
+       System.out.println("Report is ready to be shared, with screenshots of tests");
+   }
+
+   @AfterSuite
+   public void cleanUp() {
+
+       System.out.println("All close up activities completed");
+   }
+
+   @BeforeGroups("urlValidation")
+   public void setUpSecurity() {
+       System.out.println("url validation test starting");
+   }
+
+   @AfterGroups("urlValidation")
+   public void tearDownSecurity() {
+       System.out.println("url validation test finished");
+   }
+}
+</code></pre><br/>
+<b>Вывод в консоль:</b><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/py/qn/gb/pyqngbhabzco-kango305k5kmxo.png"/><br/>
+<br/>
+<b>Отчёт TestNG:</b><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/n5/3n/x8/n53nx8resy4_sah_zyj_pjyuzfs.png"/><br/>
+<br/>
+<b>Дополнительные аннотации в TestNG</b> <br/>
+<br/>
+Есть еще несколько полезных аннотаций, которые помогут нам достигнуть желаемых целей.<br/>
+<br/>
+<code><b>@DataProvider</b></code><br/>
+<br/>
+Метод с этой аннотацией используется для предоставления данных тестовому методу, в котором задан атрибут dataProvider. Этот метод помогает в создании тестов, управляемых данными, в которые может передаваться несколько наборов входных значений. Метод должен возвращать двумерный массив или объект.<br/>
+<br/>
+У аннотации <code>@DataProvider</code> есть два атрибута:<br/>
+<br/>
+<ul>
+<li><b>name </b>— этот атрибут используется для указания имени поставщика данных. Если не указано, то по умолчанию используется название метода.</li>
+<li><b>parallel </b>— этот атрибут позволяет запускать тесты параллельно с разными данными. Наличие этого атрибута является одним из преимуществ TestNG перед Junit. По умолчанию false.</li>
+</ul><br/>
+ Пример ниже показывает использование аннотации <code>@DataProvider</code> с заданными атрибутами name и parallel.<br/>
+<br/>
+<pre><code class="java">@DataProvider(name = "SetEnvironment", parallel = true)
+public Object[][] getData() {
+   Object[][] browserProperty = new Object[][]{
+           {Platform.WIN8, "chrome", "70.0"},
+           {Platform.WIN8, "chrome", "71.0"}
+   };
+
+   return browserProperty;
+}	</code></pre><br/>
+<code><b>@Factory</b></code><br/>
+<br/>
+Эта аннотация помогает запускать несколько тестовых классов через один тестовый класс. Проще говоря, она определяет и создаёт тесты динамически.<br/>
+<br/>
+Приведённый ниже фрагмент кода показывает использование аннотации <code>@Factory</code>, которая помогает вызывать методы тестового класса.<br/>
+<br/>
+<pre><code class="java">import org.testng.annotations.Test;
+import org.testng.annotations.Factory;
+
+class FactorySimplyTest1 {
+   @Test
+   public void testMethod1() {
+       System.out.println("This is to test for method 1 for Factor Annotation");
+   }
+}
+
+class FactorySimpleTest2 {
+   @Test
+   public void testMethod2() {
+       System.out.println("This is to test for method 2 for Factor Annotation");
+   }
+}
+
+public class FactoryAnnotation {
+   @Factory()
+   @Test
+   public Object[] getTestFactoryMethod() {
+       Object[] factoryTest = new Object[2];
+       factoryTest[0] = new FactorySimplyTest1();
+       factoryTest[1] = new FactorySimpleTest2();
+       return factoryTest;
+   }
+}</code></pre><br/>
+<b>Вывод консоли:</b><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/lv/um/_4/lvum_4fgxohotna2rm2fwhd2dfw.png"/><br/>
+<br/>
+<code><b>@Parameters</b></code><br/>
+<br/>
+Эта аннотация позволяет вам передавать параметры в ваши тесты через файл TestNG.xml. Это удобно, когда нужно передать ограниченное количество данных в ваши тесты. В случае сложных и больших наборов данных лучше использовать аннотацию <code>@DataProvider</code> или Excel.<br/>
+<br/>
+Пример использования:<br/>
+<br/>
+<pre><code class="java">@Parameters({"username", "password"})
+@Test()
+public void checkLogin(String username, String password) {
+   driver.get("https://accounts.lambdatest.com/login");
+   driver.findElement(By.xpath("//input[@name='email']")).sendKeys(username);
+   driver.findElement(By.xpath("//input[@name='password']")).sendKeys(password);
+   driver.findElement(By.xpath("//*[@id='app']/section/form/div/div/button")).click();
+   System.out.println("The login process on lamdatest is completed");
+}</code></pre><br/>
+В файле TestNG.xml параметры определяются следующим образом:<br/>
+<br/>
+<pre><code class="java">&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+&lt;suite name="Suite">
+   &lt;test thread-count="5" name="Annotations">
+
+       &lt;parameter name="username"  value="sadhvisingh24@gmail.com" />
+       &lt;parameter name="password"  value="XXXXX" />
+
+       &lt;classes>
+           &lt;class name="Parameter_annotation"/>
+       &lt;/classes>
+
+   &lt;/test> &lt;!-- Annotations -->
+&lt;/suite> &lt;!-- Suite --></code></pre><br/>
+<code><b>@Listener</b></code><br/>
+<br/>
+Эта аннотация помогает при логировании и подготовке отчётов. Есть несколько “слушателей” (Listener):<br/>
+<br/>
+<ul>
+<li>IExecutionListener</li>
+<li>IAnnotationTransformer</li>
+<li>ISuiteListener</li>
+<li>ITestListener</li>
+</ul><br/>
+Но описание этих слушателей и их использование оставим для другой статьи.<br/>
+<br/>
+<b>Вот и всё!</b><br/>
+<br/>
+Ключевой момент, который следует учитывать при работе со всеми этими аннотациями и атрибутами, заключается в том, что нужно использовать Java версии 1.5 или выше, поскольку аннотации не поддерживаются в более ранних версиях java.<br/>
+<br/>
+Все вышеупомянутые аннотации и атрибуты TestNG помогают улучшить структуру и читаемость кода. Это помогает предоставлять подробные отчёты, что делает отчёты о состоянии проще и полезнее. Использование этих аннотаций в TestNG для Selenium полностью зависит от ваших бизнес-требований. Следовательно, выбор правильных аннотаций и их правильное использование имеет важное значение. Вы можете попробовать эти аннотации в <a href="https://www.lambdatest.com/support/docs/testng-with-selenium-running-java-automation-scripts-on-lambdatest-selenium-grid/">TestNG на LambdaTest Selenium Grid</a> прямо сейчас!<br/>
+<br/>
+Тех, кто дочитал до конца приглашаем на бесплатный <a href="https://otus.pw/H9nV/">открытый вебинар</a>, который уже 14 мая проедет наш преподаватель — <a href="https://otus.pw/zIJq/">Дмитрий Еремин</a>. Ну и по устоявшейся традиции ждём ваши комментарии, друзья.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BTestNG%5D" class="tm-tags-list__link">TestNG</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjava%20qa%5D" class="tm-tags-list__link">java qa</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bselenium-webdriver%5D" class="tm-tags-list__link">selenium-webdriver</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/otus/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании OTUS
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/it_testing/" class="tm-hubs-list__link">
+    Тестирование IT-систем
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/java/" class="tm-hubs-list__link">
+    Java
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/mobile_testing/" class="tm-hubs-list__link">
+    Тестирование мобильных приложений
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 11: ↑9 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 11: ↑9 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+7</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">43K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    48
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/otus/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/968/422/761/968422761136a38a89fc391fd927f903.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/otus/profile/" class="tm-company-snippet__title">OTUS</a> <div class="tm-company-snippet__description">Цифровые навыки от ведущих экспертов</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://otus.ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://facebook.com/otus.ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://vk.com/club145052891" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://telegram.me/Otusjava" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/MaxRokatansky/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/b9f/baf/5f9/b9fbaf5f96ae52973706a0716bd9216e.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 660 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    25.7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">-34.8</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">OTUS</span> <a href="/ru/users/MaxRokatansky/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @MaxRokatansky
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Редактор</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/otus/blog/450872/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2017-03-31T21:00:00.000Z" title="2017-04-01, 00:00">1  апреля  2017</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://otus.ru" target="_blank" class="tm-company-basic-info__link">
+      otus.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    51–100 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2017-03-22T08:17:26.000Z" title="2017-03-22, 11:17">22  марта  2017</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/MaxRokatansky/" class="tm-company-basic-info__link">
+      OTUS
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/otus/blog/450872/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/otus/blog/450872/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450872":{"id":"450872","timePublished":"2019-05-07T14:43:48+00:00","isCorporative":true,"lang":"ru","titleHtml":"Руководство по аннотациям TestNG для Selenium WebDriver","leadData":{"textHtml":"Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс \u003Ca href=\"https:\u002F\u002Fotus.pw\u002FIiTF\u002F\"\u003E«Java QA Engineer»\u003C\u002Fa\u003E, запуск которого запланирован на 28 мая. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvu\u002Fe6\u002Fzn\u002Fvue6znp5zttccw5jrralrrmebio.png\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cb\u003ETestNG — это тестовый фреймворк, созданный Cédric Beust\u003C\u002Fb\u003E, он помогает нам удовлетворить многие наши потребности в тестировании. TestNG широко используется вместе с Selenium. Хотите знать, что означает NG? Это значит \u003Cb\u003E“Next Generation”\u003C\u002Fb\u003E (“Следующее поколение”). TestNG похож на JUnit, но он более мощный, когда дело касается управления потоком выполнения вашей программы. Архитектура фреймворка помогает нам сделать тесты более структурированными и обеспечить лучшие точки валидации.","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Sadhvi Singh","originalUrl":"https:\u002F\u002Fwww.lambdatest.com\u002Fblog\u002Fcomplete-guide-on-testng-annotations-for-selenium-webdriver\u002F"}}],"author":{"scoreStats":{"score":25.7,"votesCount":660},"rating":-34.8,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1547287","alias":"MaxRokatansky","fullname":"OTUS","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fb9f\u002Fbaf\u002F5f9\u002Fb9fbaf5f96ae52973706a0716bd9216e.jpg","speciality":"Редактор"},"statistics":{"commentsCount":0,"favoritesCount":48,"readingCount":43037,"score":7,"votesCount":11},"hubs":[{"relatedData":null,"id":"21052","alias":"otus","type":"corporative","title":"Блог компании OTUS","titleHtml":"Блог компании OTUS","isProfiled":false},{"relatedData":null,"id":"210","alias":"it_testing","type":"collective","title":"Тестирование IT-систем","titleHtml":"Тестирование IT-систем","isProfiled":true},{"relatedData":null,"id":"375","alias":"java","type":"collective","title":"Java","titleHtml":"Java","isProfiled":true},{"relatedData":null,"id":"19281","alias":"mobile_testing","type":"collective","title":"Тестирование мобильных приложений","titleHtml":"Тестирование мобильных приложений","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EМир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс \u003Ca href=\"https:\u002F\u002Fotus.pw\u002FIiTF\u002F\"\u003E«Java QA Engineer»\u003C\u002Fa\u003E, запуск которого запланирован на 28 мая. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fvu\u002Fe6\u002Fzn\u002Fvue6znp5zttccw5jrralrrmebio.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETestNG — это тестовый фреймворк, созданный Cédric Beust\u003C\u002Fb\u003E, он помогает нам удовлетворить многие наши потребности в тестировании. TestNG широко используется вместе с Selenium. Хотите знать, что означает NG? Это значит \u003Cb\u003E“Next Generation”\u003C\u002Fb\u003E (“Следующее поколение”). TestNG похож на JUnit, но он более мощный, когда дело касается управления потоком выполнения вашей программы. Архитектура фреймворка помогает нам сделать тесты более структурированными и обеспечить лучшие точки валидации.\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНекоторые особенности TestNG, заслуживающие внимания:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EМощные и разнообразные аннотации для поддержки ваших тест-кейсов.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПараллельное выполнение тестов, использование зависимостей между тестами.\u003C\u002Fli\u003E\r\n\u003Cli\u003EГибкость выполнения ваших тестов на разных наборах данных, через файл TestNG.xml или через концепцию поставщиков данных (data-provider).\u003C\u002Fli\u003E\r\n\u003Cli\u003EГруппировка и приоритизация тест-кейсов.\u003C\u002Fli\u003E\r\n\u003Cli\u003EГенерация HTML-отчётов, настройка с помощью различных плагинов.\u003C\u002Fli\u003E\r\n\u003Cli\u003EГенерация логов выполнения тестов.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЛёгкая интеграция с Eclipse, Maven, Jenkins и др.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nОбычно процесс тестирования с использованием TestNG включает в себя следующие этапы:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpj\u002Fd6\u002Fau\u002Fpjd6au6djyfvivcs_i7wr0la27e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПеред тем как перейти к аннотациям TestNG для Selenium, обозначим предварительные требования для настройки TestNG.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПредварительные условия:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EJava Development Kit\u003C\u002Fli\u003E\r\n\u003Cli\u003EEclipse или любая другая IDE\u003C\u002Fli\u003E\r\n\u003Cli\u003EУстановленный TestNG в Eclipse или в вашу IDE\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПримечание: Java-аннотации могут быть использованы только с Java версии 1.5 и выше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли вы новичок с TestNG, то посмотрите статью о том, как запустить \u003Ca href=\"https:\u002F\u002Fwww.lambdatest.com\u002Fblog\u002Fa-complete-guide-for-your-first-testng-automation-script\u002F\"\u003Eпервый скрипт автоматизации с TestNG\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EИтак, что такое аннотация?\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EАннотация — это метка, которая предоставляет дополнительную информацию о классе или методе (\u003Ci\u003EПримечание переводчика: в java аннотации могут применяться не только для классов и методов, но также и для других элементов\u003C\u002Fi\u003E). Для аннотаций используется префикс «@». TestNG использует аннотации, чтобы помочь в создании надёжной структуры тестов. Давайте посмотрим на аннотации TestNG, используемые для автоматизации тестирования с Selenium.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@Test\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЭто самая важная аннотация в TestNG, в которой находится основная логика теста\u003C\u002Fb\u003E. Все автоматизируемые функции находятся в методе с аннотацией \u003Ccode\u003E@Test\u003C\u002Fcode\u003E. Она имеет различные атрибуты, с помощью которых может быть настроен запуск метода.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример кода ниже, проверяет переход по url: \u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@Test\npublic void testCurrentUrl() throws InterruptedException {\n   driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fheader\u002Faside\u002Ful\u002Fli[4]\u002Fa\"))\n     .click();\n   String currentUrl = driver.getCurrentUrl();\n   assertEquals(\n     currentUrl,\n     \"https:\u002F\u002Fautomation.lambdatest.com\u002Ftimeline\u002F?viewType=build&amp;page=1\", \n     \"url did not matched\");\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@BeforeTest\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМетод с этой аннотацией запускается перед запуском первого метода с аннотацией \u003Ccode\u003E@Test\u003C\u002Fcode\u003E.\u003C\u002Fb\u003E \u003Ci\u003E(Примечание переводчика: в рамках теста, определенного в разделе \u003Ccode\u003Etest\u003C\u002Fcode\u003E в xml-файле конфигурации)\u003C\u002Fi\u003E. Вы можете использовать эту аннотацию в TestNG с Selenium для настройки браузера. Например, запустить браузер и развернуть его на весь экран, установить специфичные настройки браузера и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНиже приведён пример для BeforeTest, в котором браузер разворачивается на весь экран:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@BeforeTest\npublic void profileSetup() {\n   driver.manage().window().maximize();\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@AfterTest\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМетоды, помеченные этой аннотацией, запускаются после всех \u003Ccode\u003E@Test\u003C\u002Fcode\u003E-методов вашего теста.\u003C\u002Fb\u003E (\u003Ci\u003EПримечание переводчика: в рамках теста, определенного в разделе \u003Ccode\u003Etest\u003C\u002Fcode\u003E в xml-файле конфигурации, в оригинале не совсем корректно написано “текущего класса”\u003C\u002Fi\u003E). Это полезная аннотация, которая пригодится для предоставления результатов выполнения тестов. Вы можете использовать эту аннотацию, чтобы создать отчёт о ваших тестах и отправить его заинтересованным сторонам по электронной почте.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример кода:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@AfterTest\npublic void reportReady() {\n   System.out.println(\"Report is ready to be shared, with screenshots of tests\");\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@BeforeMethod\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМетоды с этой аннотацией запускаются перед каждым \u003Ccode\u003E@Test\u003C\u002Fcode\u003E-методом\u003C\u002Fb\u003E. Вы можете использовать её, чтобы перед выполнением теста проверить соединение с базой данных. Или, например, при тестировании функциональности, зависимой от логина пользователя, поместить сюда код для входа в систему.\u003Cbr\u002F\u003E\r\nНиже приведён фрагмент кода, демонстрирующий вход в LambdaTest:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@BeforeMethod\npublic void checkLogin() {\n   driver.get(\"https:\u002F\u002Faccounts.lambdatest.com\u002Flogin\");\n   driver.findElement(By.xpath(\"\u002F\u002Finput[@name='email']\")).sendKeys(\"sadhvisingh24@gmail.com\");\n   driver.findElement(By.xpath(\"\u002F\u002Finput[@name='password']\")).sendKeys(\"activa9049\");\n   driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fsection\u002Fform\u002Fdiv\u002Fdiv\u002Fbutton\")).click();\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@AfterMethod\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМетоды с этой аннотацией запускаются после каждого \u003Ccode\u003E@Test\u003C\u002Fcode\u003E-метода\u003C\u002Fb\u003E. Эту аннотацию можно использовать для создания скриншотов при каждом выполнении теста.\u003Cbr\u002F\u003E\r\nНиже приведён фрагмент кода, демонстрирующий получение скриншота:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@AfterMethod\npublic void screenShot() throws IOException {\n   TakesScreenshot scr = ((TakesScreenshot) driver);\n   File file1 = scr.getScreenshotAs(OutputType.FILE);\n   FileUtils.copyFile(file1, new File(\"С:\\\\test-output\\\\test1.PNG\"));\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@BeforeClass\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМетод с этой аннотацией выполнится перед первым тестовым методом в текущем классе.\u003C\u002Fb\u003E Эту аннотацию можно использовать для настройки свойств браузера, инициализации драйвера, открытия браузера с нужным URL-адресом и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример кода для BeforeClass:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@BeforeClass\npublic void appSetup() {\n   driver.get(url);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@AfterClass\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EМетод с этой аннотацией выполнится после последнего тестового метода в текущем классе.\u003C\u002Fb\u003E Эта аннотация в TestNG может использоваться для выполнения действий по очистке ресурсов после выполнения теста, таких как закрытие драйвера и т.п.\u003Cbr\u002F\u003E\r\nНиже приведён пример фрагмента кода, показывающего закрытие драйвера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@AfterClass\npublic void closeUp() {\n   driver.close();\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@BeforeSuite\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНабор тестов (suite) может состоять из нескольких классов, эта аннотация запускается перед всеми тестовыми методами всех классов. \u003Cb\u003EЭта аннотация помечает точку входа при запуске.\u003C\u002Fb\u003E Аннотацию \u003Ccode\u003E@BeforeSuite\u003C\u002Fcode\u003E в TestNG можно использовать для выполнения общих функций, таких как настройка и запуск Selenium или удалённых веб-драйверов и т.д.\u003Cbr\u002F\u003E\r\nПример аннотации \u003Ccode\u003E@BeforeSuite\u003C\u002Fcode\u003E в TestNG, демонстрирующий настройку драйвера:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@BeforeSuite\npublic void setUp() {\n   System.setProperty(\n           \"webdriver.chrome.driver\",\n           \"С:\\\\selenium\\\\chromedriver.exe\");\n   driver = new ChromeDriver();\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@AfterSuite\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЭта аннотация в TestNG запускается после запуска всех методов тестирования во всех классах.\u003C\u002Fb\u003E Эта аннотация может использоваться для очистки перед завершением тестов, когда у вас используется несколько классов, например, закрытие драйверов и т. д.\u003Cbr\u002F\u003E\r\nНиже приведён фрагмент кода для аннотации \u003Ccode\u003E@AfterSuite\u003C\u002Fcode\u003E в TestNG для Selenium:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@AfterSuite\npublic void cleanUp() {\n   System.out.println(\"All close up activities completed\");\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@BeforeGroups\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nTestNG может объединять тесты в группы с помощью атрибута group в аннотации \u003Ccode\u003E@Test\u003C\u002Fcode\u003E. Например, если вы хотите, чтобы все схожие функции, связанные с управлением пользователями, были объединены вместе, вы можете пометить тесты, такие как dashboard (панель пользователя), profile (профиль), transactions (транзакции) и тому подобное, в одну группу, такую как “user_management”. Аннотация \u003Ccode\u003E@BeforeGroups\u003C\u002Fcode\u003E в TestNG помогает запустить определённые действия перед указанной группой тестов. Эту аннотацию можно использовать, если группа фокусируется на одной функциональности, как указано в приведённом выше примере. Аннотация \u003Ccode\u003E@BeforeGroup\u003C\u002Fcode\u003E может содержать функцию входа в систему, которая требуется для запуска тестов в группе, например, тестирование панели пользователя, профиля пользователя и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример использования \u003Ccode\u003E@BeforeGroups\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@BeforeGroups(\"urlValidation\")\npublic void setUpSecurity() {\n   System.out.println(\"url validation test starting\");\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@AfterGroups\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЭта аннотация запускается после выполнения всех тестовых методов указанной группы.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример кода для аннотации \u003Ccode\u003E@AfterGroups\u003C\u002Fcode\u003E в TestNG для Selenium:\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@AfterGroups(\"urlValidation\")\npublic void tearDownSecurity() {\n   System.out.println(\"url validation test finished\");\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EПример\u003C\u002Fb\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ приведённом ниже коде показаны примеры использования всех аннотаций, рассмотренных выше:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Eimport org.apache.commons.io.FileUtils;\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.OutputType;\nimport org.openqa.selenium.TakesScreenshot;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.testng.annotations.*;\n\nimport java.io.File;\nimport java.io.IOException;\nimport java.util.concurrent.TimeUnit;\n\nimport static org.testng.Assert.assertEquals;\n\npublic class AnnotationsTestNG {\n   private WebDriver driver;\n   private String url = \"https:\u002F\u002Fwww.lambdatest.com\u002F\";\n\n   @BeforeSuite\n   public void setUp() {\n       System.setProperty(\n               \"webdriver.chrome.driver\",\n               \"С:\\\\selenium\\\\chromedriver.exe\");\n       driver = new ChromeDriver();\n       driver.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);\n       System.out.println(\"The setup process is completed\");\n   }\n\n   @BeforeTest\n   public void profileSetup() {\n       driver.manage().window().maximize();\n       System.out.println(\"The profile setup process is completed\");\n   }\n\n   @BeforeClass\n   public void appSetup() {\n       driver.get(url);\n       System.out.println(\"The app setup process is completed\");\n   }\n\n   @BeforeMethod\n   public void checkLogin() {\n       driver.get(\"https:\u002F\u002Faccounts.lambdatest.com\u002Flogin\");\n       driver.findElement(By.xpath(\"\u002F\u002Finput[@name='email']\")).sendKeys(\"sadhvisingh24@gmail.com\");\n       driver.findElement(By.xpath(\"\u002F\u002Finput[@name='password']\")).sendKeys(\"activa9049\");\n       driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fsection\u002Fform\u002Fdiv\u002Fdiv\u002Fbutton\")).click();\n       System.out.println(\"The login process on lamdatest is completed\");\n   }\n\n   @Test(groups = \"urlValidation\")\n   public void testCurrentUrl() throws InterruptedException {\n       driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fheader\u002Faside\u002Ful\u002Fli[4]\u002Fa\")).click();\n       Thread.sleep(6000);\n       String currentUrl = driver.getCurrentUrl();\n       assertEquals(currentUrl, \"https:\u002F\u002Fautomation.lambdatest.com\u002Ftimeline\u002F?viewType=build&amp;page=1\", \"url did not matched\");\n       System.out.println(\"The url validation test is completed\");\n   }\n\n   @AfterMethod\n   public void screenShot() throws IOException {\n       TakesScreenshot scr = ((TakesScreenshot) driver);\n       File file1 = scr.getScreenshotAs(OutputType.FILE);\n\n       FileUtils.copyFile(file1, new File(\"С:\\\\test-output\\\\test1.PNG\"));\n       System.out.println(\"Screenshot of the test is taken\");\n   }\n\n   @AfterClass\n   public void closeUp() {\n       driver.close();\n       System.out.println(\"The close_up process is completed\");\n   }\n\n   @AfterTest\n   public void reportReady() {\n       System.out.println(\"Report is ready to be shared, with screenshots of tests\");\n   }\n\n   @AfterSuite\n   public void cleanUp() {\n       System.out.println(\"All close up activities completed\");\n   }\n\n   @BeforeGroups(\"urlValidation\")\n   public void setUpSecurity() {\n       System.out.println(\"url validation test starting\");\n   }\n\n   @AfterGroups(\"urlValidation\")\n   public void tearDownSecurity() {\n       System.out.println(\"url validation test finished\");\n   }\n}\t\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EОтчёт TestNG Report:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fwl\u002Fhp\u002Fq7\u002Fwlhpq7jyhsicqjcnnoacyfcprgc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВывод в консоли:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgc\u002Fkj\u002F6q\u002Fgckj6q794ndtxycqcrdh2ilp5-a.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Cb\u003E\u003Ci\u003EПримечание переводчика:\u003C\u002Fi\u003E\u003C\u002Fb\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eдля запуска теста измените в методе setUp() путь к chromedriver.exe, а в методе screenShot() путь к папке со скриншотом. Также для успешного выполнения теста в методе checkLogin() должны быть валидные логин и пароль.\u003C\u002Fli\u003E\r\n\u003Cli\u003EИспользуемые maven-зависимости:\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E&lt;dependencies\u003E\n   &lt;dependency\u003E\n       &lt;groupId\u003Eorg.testng&lt;\u002FgroupId\u003E\n       &lt;artifactId\u003Etestng&lt;\u002FartifactId\u003E\n       &lt;version\u003E6.14.3&lt;\u002Fversion\u003E\n       &lt;scope\u003Etest&lt;\u002Fscope\u003E\n   &lt;\u002Fdependency\u003E\n\n   &lt;dependency\u003E\n       &lt;groupId\u003Eorg.seleniumhq.selenium&lt;\u002FgroupId\u003E\n       &lt;artifactId\u003Eselenium-chrome-driver&lt;\u002FartifactId\u003E\n       &lt;version\u003E3.141.59&lt;\u002Fversion\u003E\n       &lt;scope\u003Etest&lt;\u002Fscope\u003E\n   &lt;\u002Fdependency\u003E\n\n   &lt;dependency\u003E\n       &lt;groupId\u003Ecommons-io&lt;\u002FgroupId\u003E\n       &lt;artifactId\u003Ecommons-io&lt;\u002FartifactId\u003E\n       &lt;version\u003E2.6&lt;\u002Fversion\u003E\n       &lt;scope\u003Etest&lt;\u002Fscope\u003E\n   &lt;\u002Fdependency\u003E\n&lt;\u002Fdependencies\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fblockquote\u003E \u003Cb\u003EПоследовательность выполнения аннотаций в TestNG для Selenium\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАннотации, описанные выше, выполняются в рантайме в следующем порядке:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EBeforeSuite\u003C\u002Fli\u003E\r\n\u003Cli\u003EBeforeTest\u003C\u002Fli\u003E\r\n\u003Cli\u003EBeforeClass\u003C\u002Fli\u003E\r\n\u003Cli\u003EBeforeGroups\u003C\u002Fli\u003E\r\n\u003Cli\u003EBeforeMethod\u003C\u002Fli\u003E\r\n\u003Cli\u003ETest\u003C\u002Fli\u003E\r\n\u003Cli\u003EAfterMethod\u003C\u002Fli\u003E\r\n\u003Cli\u003EAfterGroups\u003C\u002Fli\u003E\r\n\u003Cli\u003EAfterClass\u003C\u002Fli\u003E\r\n\u003Cli\u003EAfterTest\u003C\u002Fli\u003E\r\n\u003Cli\u003EAfterSuite\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВот порядок их выполнения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgt\u002Fxu\u002F1n\u002Fgtxu1nrsp1cujpjnzhkgm5pxz54.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EАтрибуты, используемые с аннотациями в TestNG\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ аннотаций в TestNG есть атрибуты, которые можно использовать для настройки. Они помогают настроить порядок выполнения тестовых методов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот эти атрибуты:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Edescription\u003C\u002Fb\u003E: можно указать описание тестового метода. \u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(description=”этот тест проверяет вход в систему”).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EalwaysRun\u003C\u002Fb\u003E: этот атрибут гарантирует, что тестовый метод будет выполнен всегда, даже в случае падения тестов, от которых он зависит. Когда значение атрибута true, этот метод будет запускаться всегда.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(alwaysRun= true).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EdataProvider\u003C\u002Fb\u003E: задаёт имя поставщика данных (data provider) для тестового метода. Предположим, что вы собираетесь запускать свои тесты в нескольких браузерах, тогда в тестовом методе с атрибутом dataProvider, можно добавить параметры для браузера и его версии, которые будут передаваться в метод поставщиком данных. В этом случае тест, содержащий этот атрибут, будет использовать эти входные данные для запуска тестов в нескольких браузерах.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(dataProvider=”cross-browser-testing”).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EdependsOnMethods\u003C\u002Fb\u003E: предоставляет информацию о порядке выполнения тестов. Тест с этим атрибутом будет выполнен, только если успешно выполниться тест, от которого он зависит. Если тест, от которого зависит метод, падает, то тест не запускается.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E (depenOnmethod = “login”).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Egroups\u003C\u002Fb\u003E: помогает сгруппировать ваши тестовые методы, ориентированные на одну функциональность, в одну группу.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(groups=”Payment_Module”).\u003Cbr\u002F\u003E\r\n Этот атрибут также позволяет управлять тем, какие тесты запускать. При запуске тестов можно игнорировать какие-то группы или, наоборот, запустить только некоторые группы. Всё, что нужно сделать, это указать нужные группы в файле TestNG.xml. В теге \u003Ccode\u003Einclude\u003C\u002Fcode\u003E указать группы, которые необходимо запустить, а в теге \u003Ccode\u003Eexclude\u003C\u002Fcode\u003E, которые надо игнорировать.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EdependsOnGroups\u003C\u002Fb\u003E: выполняет функции двух, вышеупомянутых атрибутов, то есть определяет зависимость тестового метода от указанной группы. Этот тестовый метод будет запущен только после того, как указанная группа тестов будет выполнена.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E (depenOnMethods = «Payment_Module»).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Epriority\u003C\u002Fb\u003E: помогает нам определить приоритет тестовых методов. Когда TestNG выполняет тестовые методы, он может делать это в произвольном порядке. В сценарии, где вы хотите, чтобы ваши тесты выполнялись в нужном порядке, вы можете использовать атрибут priority. Приоритет по умолчанию для всех тестовых методов равен 0. Сначала выполняются тесты с меньшим значением priority. \u003Cbr\u002F\u003E\r\nНапример, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E (priority = 1), \u003Ccode\u003E@Test\u003C\u002Fcode\u003E (priority = 2). В этом случае сначала будет выполнен тест с приоритетом, равным единице, а потом тест с приоритетом два.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Eenabled\u003C\u002Fb\u003E: этот атрибут используется, когда вам нужно игнорировать и не запускать определённый тест. Всё, что вам нужно сделать, это установить его в false.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(enabled= false).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Etimeout\u003C\u002Fb\u003E: определяет время, за которое должен выполниться тест. Если выполнение теста превышает время, определённое атрибутом, то тест завершится с ошибкой с выбросом исключения org.testng.internal.thread.ThreadTimeoutException\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(timeOut= 500). \u003Cb\u003EОбратите внимание, что время указывается в миллисекундах\u003C\u002Fb\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EinvocationCount\u003C\u002Fb\u003E: работает точно так же, как цикл. Тест будет запущен столько раз, сколько указано в invocationCount. \u003Cbr\u002F\u003E\r\nНапример, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(invocationCount = 5), будет запущен 5 раз.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EinvocationTimeOut\u003C\u002Fb\u003E: используется вместе с вышеуказанным атрибутом invocationCount. Значение этого атрибута вместе с invocationCount указывает на то, что тест будет запущен столько раз, сколько указано в invocationCount, и в течение времени, указанного в атрибуте invocationTimeOut.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(invocationCount = 5, invocationTimeOut = 20).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EexpectedExceptions\u003C\u002Fb\u003E: помогает обрабатывать исключения, выброс которых ожидается в тестовом методе. Если исключение, указанное в атрибуте, выброшено тестовым методом, то тест прошёл успешно. В противном случае, отсутствие исключения или выброс другого исключения, не указанного в атрибуте, провалит тест.\u003Cbr\u002F\u003E\r\n Например, \u003Ccode\u003E@Test\u003C\u002Fcode\u003E(expectedExceptions = {ArithmeticException.class }).\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВыше описаны атрибуты, используемые с аннотациями в TestNG c Selenium. Ниже приведён фрагмент кода, демонстрирующий использование вышеуказанных атрибутов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Eimport static org.testng.Assert.assertEquals;\n\nimport java.io.File;\nimport java.io.IOException;\n\nimport org.apache.commons.io.FileUtils;\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.OutputType;\nimport org.openqa.selenium.TakesScreenshot;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.testng.annotations.AfterClass;\nimport org.testng.annotations.AfterGroups;\nimport org.testng.annotations.AfterMethod;\nimport org.testng.annotations.AfterSuite;\nimport org.testng.annotations.AfterTest;\nimport org.testng.annotations.BeforeClass;\nimport org.testng.annotations.BeforeGroups;\nimport org.testng.annotations.BeforeSuite;\nimport org.testng.annotations.BeforeTest;\nimport org.testng.annotations.Test;\n\npublic class AnnotationsTest {\n   private WebDriver driver;\n   private String url = \"https:\u002F\u002Fwww.lambdatest.com\u002F\";\n\n   @BeforeSuite\n   public void setUp() {\n       System.setProperty(\n               \"webdriver.chrome.driver\",\n               \"С:\\\\selenium\\\\chromedriver.exe\");\n       driver = new ChromeDriver();\n       System.out.println(\"The setup process is completed\");\n   }\n\n   @BeforeTest\n   public void profileSetup() {\n       driver.manage().window().maximize();\n       System.out.println(\"The profile setup process is completed\");\n   }\n\n   @BeforeClass\n   public void appSetup() {\n       driver.get(url);\n       System.out.println(\"The app setup process is completed\");\n   }\n\n   @Test(priority = 2)\n   public void checkLogin() {\n       driver.get(\"https:\u002F\u002Faccounts.lambdatest.com\u002Flogin\");\n       driver.findElement(By.xpath(\"\u002F\u002Finput[@name='email']\")).sendKeys(\"sadhvisingh24@gmail.com\");\n       driver.findElement(By.xpath(\"\u002F\u002Finput[@name='password']\")).sendKeys(\"xxxxx\");\n       driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fsection\u002Fform\u002Fdiv\u002Fdiv\u002Fbutton\")).click();\n       System.out.println(\"The login process on lamdatest is completed\");\n   }\n\n   @Test(priority = 0, description = \"this test validates the sign-up test\")\n   public void signUp() throws InterruptedException {\n       WebElement link = driver.findElement(By.xpath(\"\u002F\u002Fa[text()='Free Sign Up']\"));\n       link.click();\n       WebElement organization = driver.findElement(By.xpath(\"\u002F\u002Finput[@name='organization_name']\"));\n       organization.sendKeys(\"LambdaTest\");\n       WebElement firstName = driver.findElement(By.xpath(\"\u002F\u002Finput[@name='name']\"));\n       firstName.sendKeys(\"Test\");\n       WebElement email = driver.findElement(By.xpath(\"\u002F\u002Finput[@name='email']\"));\n       email.sendKeys(\"User622@gmail.com\");\n       WebElement password = driver.findElement(By.xpath(\"\u002F\u002Finput[@name='password']\"));\n       password.sendKeys(\"TestUser123\");\n       WebElement phoneNumber = driver.findElement(By.xpath(\"\u002F\u002Finput[@name='phone']\"));\n       phoneNumber.sendKeys(\"9412262090\");\n       WebElement termsOfService = driver.findElement(By.xpath(\"\u002F\u002Finput[@name='terms_of_service']\"));\n       termsOfService.click();\n       WebElement button = driver.findElement(By.xpath(\"\u002F\u002Fbutton[text()='Signup']\"));\n       button.click();\n   }\n\n   @Test(priority = 3,\n           alwaysRun = true,\n           dependsOnMethods = \"check_login\",\n           description = \"this test validates the URL post logging in\",\n           groups = \"url_validation\")\n   public void testCurrentUrl() throws InterruptedException {\n       driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fheader\u002Faside\u002Ful\u002Fli[4]\u002Fa\")).click();\n       String currentUrl = driver.getCurrentUrl();\n       assertEquals(\n               currentUrl,\n               \"https:\u002F\u002Fautomation.lambdatest.com\u002Ftimeline\u002F?viewType=build&amp;page=1\",\n               \"url did not matched\");\n       System.out.println(\"The url validation test is completed\");\n   }\n\n   @Test(priority = 1,\n           description = \"this test validates the logout functionality\",\n           timeOut = 25000)\n   public void logout() throws InterruptedException {\n       Thread.sleep(6500);\n       driver.findElement(By.xpath(\"\u002F\u002F*[@id='userName']\")).click();\n       driver.findElement(By.xpath(\"\u002F\u002F*[@id='navbarSupportedContent']\u002Ful[2]\u002Fli\u002Fdiv\u002Fa[5]\")).click();\n   }\n\n   @Test(enabled = false)\n   public void skipMethod() {\n       System.out.println(\"this method will be skipped from the test run using the attribute enabled=false\");\n   }\n\n   @Test(priority = 6, invocationCount = 5, invocationTimeOut = 20)\n   public void invocationcountShowCaseMethod() {\n       System.out.println(\"this method will be executed by 5 times\");\n   }\n\n   @AfterMethod()\n   public void screenshot() throws IOException {\n       TakesScreenshot scr = ((TakesScreenshot) driver);\n       File file1 = scr.getScreenshotAs(OutputType.FILE);\n\n       FileUtils.copyFile(file1, new File(\"С:\\\\test-output\\\\test1.PNG\"));\n       System.out.println(\"Screenshot of the test is taken\");\n   }\n\n   @AfterClass\n   public void closeUp() {\n       driver.close();\n       System.out.println(\"The close_up process is completed\");\n   }\n\n   @AfterTest\n   public void reportReady() {\n       System.out.println(\"Report is ready to be shared, with screenshots of tests\");\n   }\n\n   @AfterSuite\n   public void cleanUp() {\n\n       System.out.println(\"All close up activities completed\");\n   }\n\n   @BeforeGroups(\"urlValidation\")\n   public void setUpSecurity() {\n       System.out.println(\"url validation test starting\");\n   }\n\n   @AfterGroups(\"urlValidation\")\n   public void tearDownSecurity() {\n       System.out.println(\"url validation test finished\");\n   }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВывод в консоль:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpy\u002Fqn\u002Fgb\u002Fpyqngbhabzco-kango305k5kmxo.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EОтчёт TestNG:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fn5\u002F3n\u002Fx8\u002Fn53nx8resy4_sah_zyj_pjyuzfs.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EДополнительные аннотации в TestNG\u003C\u002Fb\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть еще несколько полезных аннотаций, которые помогут нам достигнуть желаемых целей.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@DataProvider\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМетод с этой аннотацией используется для предоставления данных тестовому методу, в котором задан атрибут dataProvider. Этот метод помогает в создании тестов, управляемых данными, в которые может передаваться несколько наборов входных значений. Метод должен возвращать двумерный массив или объект.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ аннотации \u003Ccode\u003E@DataProvider\u003C\u002Fcode\u003E есть два атрибута:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Ename \u003C\u002Fb\u003E— этот атрибут используется для указания имени поставщика данных. Если не указано, то по умолчанию используется название метода.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Eparallel \u003C\u002Fb\u003E— этот атрибут позволяет запускать тесты параллельно с разными данными. Наличие этого атрибута является одним из преимуществ TestNG перед Junit. По умолчанию false.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n Пример ниже показывает использование аннотации \u003Ccode\u003E@DataProvider\u003C\u002Fcode\u003E с заданными атрибутами name и parallel.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@DataProvider(name = \"SetEnvironment\", parallel = true)\npublic Object[][] getData() {\n   Object[][] browserProperty = new Object[][]{\n           {Platform.WIN8, \"chrome\", \"70.0\"},\n           {Platform.WIN8, \"chrome\", \"71.0\"}\n   };\n\n   return browserProperty;\n}\t\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@Factory\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта аннотация помогает запускать несколько тестовых классов через один тестовый класс. Проще говоря, она определяет и создаёт тесты динамически.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПриведённый ниже фрагмент кода показывает использование аннотации \u003Ccode\u003E@Factory\u003C\u002Fcode\u003E, которая помогает вызывать методы тестового класса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Eimport org.testng.annotations.Test;\nimport org.testng.annotations.Factory;\n\nclass FactorySimplyTest1 {\n   @Test\n   public void testMethod1() {\n       System.out.println(\"This is to test for method 1 for Factor Annotation\");\n   }\n}\n\nclass FactorySimpleTest2 {\n   @Test\n   public void testMethod2() {\n       System.out.println(\"This is to test for method 2 for Factor Annotation\");\n   }\n}\n\npublic class FactoryAnnotation {\n   @Factory()\n   @Test\n   public Object[] getTestFactoryMethod() {\n       Object[] factoryTest = new Object[2];\n       factoryTest[0] = new FactorySimplyTest1();\n       factoryTest[1] = new FactorySimpleTest2();\n       return factoryTest;\n   }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВывод консоли:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flv\u002Fum\u002F_4\u002Flvum_4fgxohotna2rm2fwhd2dfw.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@Parameters\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта аннотация позволяет вам передавать параметры в ваши тесты через файл TestNG.xml. Это удобно, когда нужно передать ограниченное количество данных в ваши тесты. В случае сложных и больших наборов данных лучше использовать аннотацию \u003Ccode\u003E@DataProvider\u003C\u002Fcode\u003E или Excel.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПример использования:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E@Parameters({\"username\", \"password\"})\n@Test()\npublic void checkLogin(String username, String password) {\n   driver.get(\"https:\u002F\u002Faccounts.lambdatest.com\u002Flogin\");\n   driver.findElement(By.xpath(\"\u002F\u002Finput[@name='email']\")).sendKeys(username);\n   driver.findElement(By.xpath(\"\u002F\u002Finput[@name='password']\")).sendKeys(password);\n   driver.findElement(By.xpath(\"\u002F\u002F*[@id='app']\u002Fsection\u002Fform\u002Fdiv\u002Fdiv\u002Fbutton\")).click();\n   System.out.println(\"The login process on lamdatest is completed\");\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ файле TestNG.xml параметры определяются следующим образом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003E&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?\u003E\n&lt;!DOCTYPE suite SYSTEM \"http:\u002F\u002Ftestng.org\u002Ftestng-1.0.dtd\"\u003E\n&lt;suite name=\"Suite\"\u003E\n   &lt;test thread-count=\"5\" name=\"Annotations\"\u003E\n\n       &lt;parameter name=\"username\"  value=\"sadhvisingh24@gmail.com\" \u002F\u003E\n       &lt;parameter name=\"password\"  value=\"XXXXX\" \u002F\u003E\n\n       &lt;classes\u003E\n           &lt;class name=\"Parameter_annotation\"\u002F\u003E\n       &lt;\u002Fclasses\u003E\n\n   &lt;\u002Ftest\u003E &lt;!-- Annotations --\u003E\n&lt;\u002Fsuite\u003E &lt;!-- Suite --\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cb\u003E@Listener\u003C\u002Fb\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта аннотация помогает при логировании и подготовке отчётов. Есть несколько “слушателей” (Listener):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EIExecutionListener\u003C\u002Fli\u003E\r\n\u003Cli\u003EIAnnotationTransformer\u003C\u002Fli\u003E\r\n\u003Cli\u003EISuiteListener\u003C\u002Fli\u003E\r\n\u003Cli\u003EITestListener\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nНо описание этих слушателей и их использование оставим для другой статьи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВот и всё!\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКлючевой момент, который следует учитывать при работе со всеми этими аннотациями и атрибутами, заключается в том, что нужно использовать Java версии 1.5 или выше, поскольку аннотации не поддерживаются в более ранних версиях java.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВсе вышеупомянутые аннотации и атрибуты TestNG помогают улучшить структуру и читаемость кода. Это помогает предоставлять подробные отчёты, что делает отчёты о состоянии проще и полезнее. Использование этих аннотаций в TestNG для Selenium полностью зависит от ваших бизнес-требований. Следовательно, выбор правильных аннотаций и их правильное использование имеет важное значение. Вы можете попробовать эти аннотации в \u003Ca href=\"https:\u002F\u002Fwww.lambdatest.com\u002Fsupport\u002Fdocs\u002Ftestng-with-selenium-running-java-automation-scripts-on-lambdatest-selenium-grid\u002F\"\u003ETestNG на LambdaTest Selenium Grid\u003C\u002Fa\u003E прямо сейчас!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТех, кто дочитал до конца приглашаем на бесплатный \u003Ca href=\"https:\u002F\u002Fotus.pw\u002FH9nV\u002F\"\u003Eоткрытый вебинар\u003C\u002Fa\u003E, который уже 14 мая проедет наш преподаватель — \u003Ca href=\"https:\u002F\u002Fotus.pw\u002FzIJq\u002F\"\u003EДмитрий Еремин\u003C\u002Fa\u003E. Ну и по устоявшейся традиции ждём ваши комментарии, друзья.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"TestNG"},{"titleHtml":"java qa"},{"titleHtml":"selenium-webdriver"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450872\u002Fef5e446b0c017ad1500925eb7c28fd2b\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450872\u002Fef5e446b0c017ad1500925eb7c28fd2b\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fotus\\\u002Fblog\\\u002F450872\\\u002F\"},\"headline\":\"Руководство по аннотациям TestNG для Selenium WebDriver\",\"datePublished\":\"2019-05-07T17:43:48+03:00\",\"dateModified\":\"2019-05-07T20:07:47+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"OTUS\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набор...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fotus\\\u002Fblog\\\u002F450872\\\u002F#post-content-body\",\"about\":[\"c_otus\",\"h_it_testing\",\"h_java\",\"h_mobile_testing\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fvu\\\u002Fe6\\\u002Fzn\\\u002Fvue6znp5zttccw5jrralrrmebio.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpj\\\u002Fd6\\\u002Fau\\\u002Fpjd6au6djyfvivcs_i7wr0la27e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fwl\\\u002Fhp\\\u002Fq7\\\u002Fwlhpq7jyhsicqjcnnoacyfcprgc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgc\\\u002Fkj\\\u002F6q\\\u002Fgckj6q794ndtxycqcrdh2ilp5-a.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgt\\\u002Fxu\\\u002F1n\\\u002Fgtxu1nrsp1cujpjnzhkgm5pxz54.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpy\\\u002Fqn\\\u002Fgb\\\u002Fpyqngbhabzco-kango305k5kmxo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fn5\\\u002F3n\\\u002Fx8\\\u002Fn53nx8resy4_sah_zyj_pjyuzfs.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flv\\\u002Fum\\\u002F_4\\\u002Flvum_4fgxohotna2rm2fwhd2dfw.png\"]}","metaDescription":"Мир, труд, май, хабровчане! Для тех, кто также как и мы ворвался в межпраздничную рабочую неделю, мы подготовили перевод, который хотим приурочить к старту набора на курс «Java QA Engineer», запуск...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"otus":{"alias":"otus","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F968\u002F422\u002F761\u002F968422761136a38a89fc391fd927f903.jpg","titleHtml":"OTUS","descriptionHtml":"Цифровые навыки от ведущих экспертов","relatedData":null,"statistics":{"postsCount":1479,"newsCount":2,"vacanciesCount":1,"employeesCount":46,"careerRating":null,"subscribersCount":66536,"rating":396.96,"invest":null},"foundationDate":{"year":"2017","month":"04","day":"01"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fotus.ru","staffNumber":"51–100 человек","registrationDate":"2017-03-22T08:17:26+00:00","representativeUser":{"alias":"MaxRokatansky","fullname":"OTUS"},"contacts":[{"title":"Сайт","url":"https:\u002F\u002Fotus.ru"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fotus.ru"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fclub145052891"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002FOtusjava"}],"settings":{"analyticsSettings":[],"branding":null,"status":"active"},"metadata":{"titleHtml":"OTUS, Москва - Цифровые навыки от ведущих экспертов с 1 апреля 2017 г.","title":"OTUS, Москва - Цифровые навыки от ведущих экспертов с 1 апреля 2017 г.","keywords":["Программирование","Python","Java","Информационная безопасность","JavaScript"],"descriptionHtml":"1 479 статей от авторов компании OTUS","description":"1 479 статей от авторов компании OTUS"},"aDeskSettings":null,"careerAlias":"otus","maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

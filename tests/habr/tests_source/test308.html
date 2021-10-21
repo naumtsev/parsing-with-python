@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Трассировка лучей на GPU в Unity — Часть 3 / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450308\/"},"headline":"Трассировка лучей на GPU в Unity — Часть 3","datePublished":"2019-05-02T14:20:36+03:00","dateModified":"2019-05-02T15:41:04+03:00","author":{"@type":"Person","name":"PatientZero"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"[Первая и вторая части.]   Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали...","url":"https:\/\/habr.com\/ru\/post\/450308\/#post-content-body","about":["h_3d_graphics","h_gamedev","h_algorithms","h_unity","f_develop","f_design"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/f9f\/a8a\/4f2\/f9fa8a4f2a79b8c394636de6a128d0d5.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b29\/65a\/a84\/b2965aa84ae9d882e6c26f7f44da2af7.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/c80\/1d4\/40e\/c801d440e5a0a21f660b5a7e82e1b368.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/0da\/860\/bb4\/0da860bb41d9465f2dc21d649a509a66.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a76\/bb1\/a64\/a76bb1a642d620929ecd250f92e1ef1f.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/7ef\/196\/a4f\/7ef196a4f818b366b4838f2b1e4148f5.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Трассировка лучей на GPU в Unity — Часть 3" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Трассировка лучей на GPU в Unity — Часть 3" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Трассировка лучей на GPU в Unity — Часть 3" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="[Первая и вторая части.]
+
+
+Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="[Первая и вторая части.]
+
+
+Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="[Первая и вторая части.]
+
+
+Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="[Первая и вторая части.]
+
+
+Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="[Первая и вторая части.]
+
+
+Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450308/d3308b022f3dddbdc48bb9f85f8c39e0/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450308/d3308b022f3dddbdc48bb9f85f8c39e0/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450308/d3308b022f3dddbdc48bb9f85f8c39e0/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450308/d3308b022f3dddbdc48bb9f85f8c39e0/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450308/d3308b022f3dddbdc48bb9f85f8c39e0/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450308" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-02T11:20:36.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450308/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450308/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450308/d3308b022f3dddbdc48bb9f85f8c39e0/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/PatientZero/" title="PatientZero" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/8de/9c5/34a/8de9c534a18a6cb8693270a2b528d4c0.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/PatientZero/" class="tm-user-info__username">
+      PatientZero
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-02T11:20:36.000Z" title="2019-05-02, 14:20">2  мая  2019 в 14:20</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Трассировка лучей на GPU в Unity — Часть 3</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/3d_graphics/" class="tm-article-snippet__hubs-item-link"><span>Работа с 3D-графикой</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/gamedev/" class="tm-article-snippet__hubs-item-link"><span>Разработка игр</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/algorithms/" class="tm-article-snippet__hubs-item-link"><span>Алгоритмы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/unity/" class="tm-article-snippet__hubs-item-link"><span>Unity</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="http://blog.three-eyed-games.com/2019/03/18/gpu-path-tracing-in-unity-part-3/" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  David Kuri
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">[<a href="https://habr.com/ru/post/355018/">Первая</a> и <a href="https://habr.com/ru/post/412685/">вторая</a> части.]<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/f9f/a8a/4f2/f9fa8a4f2a79b8c394636de6a128d0d5.png"/></div><br/>
+Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю суть современной компьютерной графики, элемент, из которого состоят все виртуальные миры. Если вы хотите продолжить с того, чем мы закончили в прошлый раз, то воспользуйтесь <a href="https://bitbucket.org/Daerst/gpu-ray-tracing-in-unity/src/Tutorial_Pt2/">кодом из части 2</a>. Готовый код того, что мы будем делать сегодня, выложен <a href="https://bitbucket.org/Daerst/gpu-ray-tracing-in-unity/src/Tutorial_Pt3/">здесь</a>. Давайте приступим!<br/>
+<br/>
+<h2>Треугольники</h2><br/>
+<em>Треугольник</em> — это всего лишь список трёх соединённых <em>вершин</em>, каждая из которых хранит свою позицию, а иногда и нормаль. Порядок обхода вершин с вашей точки обзора определяет, на что мы смотрим — на переднюю или заднюю грань треугольника. Традиционно «передом» считается порядок обхода против часовой стрелки.<br/>
+<br/>
+Во-первых, нам нужно иметь возможность определять, пересекает ли луч треугольник, и если да, то в какой точке. Очень популярный (но совершенно точно <a href="http://www.realtimerendering.com/intersections.html">не единственный</a>) алгоритм для определения пересечений луча с треугольником был предложен в 1997 году джентльменами <a href="https://twitter.com/inversepixel">Томасом Акенин-Меллером</a> и Беном Трембором. Подробно о нём можно прочитать в их статье «Fast, Minimum Storage Ray-Triangle Intersection» <a href="http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/pubs/raytri_tam.pdf">здесь</a>.<br/>
+<a name="habracut"></a><br/>
+Код из статьи легко можно портировать в код шейдера на HLSL:<br/>
+<br/>
+<pre><code class="cpp">static const float EPSILON = 1e-8;
+
+bool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,
+    inout float t, inout float u, inout float v)
+{
+    // find vectors for two edges sharing vert0
+    float3 edge1 = vert1 - vert0;
+    float3 edge2 = vert2 - vert0;
+
+    // begin calculating determinant - also used to calculate U parameter
+    float3 pvec = cross(ray.direction, edge2);
+
+    // if determinant is near zero, ray lies in plane of triangle
+    float det = dot(edge1, pvec);
+
+    // use backface culling
+    if (det &lt; EPSILON)
+        return false;
+    float inv_det = 1.0f / det;
+
+    // calculate distance from vert0 to ray origin
+    float3 tvec = ray.origin - vert0;
+
+    // calculate U parameter and test bounds
+    u = dot(tvec, pvec) * inv_det;
+    if (u &lt; 0.0 || u > 1.0f)
+        return false;
+
+    // prepare to test V parameter
+    float3 qvec = cross(tvec, edge1);
+
+    // calculate V parameter and test bounds
+    v = dot(ray.direction, qvec) * inv_det;
+    if (v &lt; 0.0 || u + v > 1.0f)
+        return false;
+
+    // calculate t, ray intersects triangle
+    t = dot(edge2, qvec) * inv_det;
+
+    return true;
+}</code></pre><br/>
+Чтобы воспользоваться этой функцией, нам нужен луч и три вершины треугольника. Возвращаемое значение сообщает нам, произошло ли пересечение треугольника. В случае пересечения вычисляются три дополнительных значения: <code>t</code> описывает расстояние вдоль луча до точки пересечения, а <code>u</code> / <code>v</code> — это две из трёх барицентрических координат, определяющих местоположение точки пересечения на треугольнике (последнюю координату можно вычислить как <code>w = 1 - u - v</code>). Если вы пока не знакомы с барицентрическими координатами, то прочитайте их превосходное объяснение на <a href="https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates">Scratchapixel</a>.<br/>
+<br/>
+Без лишних промедлений давайте оттрассируем один треугольник с указанными в коде вершинами! Найдите в шейдере функцию <code>Trace</code> и добавьте в неё следующий фрагмент кода:<br/>
+<br/>
+<pre><code class="cpp">// Trace single triangle
+float3 v0 = float3(-150, 0, -150);
+float3 v1 = float3(150, 0, -150);
+float3 v2 = float3(0, 150 * sqrt(2), -150);
+float t, u, v;
+if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))
+{
+    if (t > 0 &amp;&amp; t &lt; bestHit.distance)
+    {
+        bestHit.distance = t;
+        bestHit.position = ray.origin + t * ray.direction;
+        bestHit.normal = normalize(cross(v1 - v0, v2 - v0));
+        bestHit.albedo = 0.00f;
+        bestHit.specular = 0.65f * float3(1, 0.4f, 0.2f);
+        bestHit.smoothness = 0.9f;
+        bestHit.emission = 0.0f;
+    }
+}</code></pre><br/>
+Как я и говорил, <code>t</code> хранит расстояние вдоль луча, и мы можем напрямую использовать это значение для вычисления точки пересечения. Нормаль, которая важна для вычисления правильного отражения, может быть вычислена с помощью векторного произведения любых двух рёбер треугольника. Запустите режим игры и полюбуйтесь своим первым оттрассированным треугольником:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/b29/65a/a84/b2965aa84ae9d882e6c26f7f44da2af7.png"/></div><br/>
+<strong>Упражнение:</strong> попробуйте вычислить позицию с помощью барицентрических координат, а не расстояния. Если вы всё сделаете правильно, то блестящий треугольник будет выглядеть в точности как раньше.<br/>
+<br/>
+<h2>Меши из треугольников</h2><br/>
+Мы преодолели первое препятствие, но трассировка целых мешей из треугольников — это совершенно другая история. Сначала нам нужно узнать базовые сведения о мешах. Если вы их знаете, то можете спокойно пропустить следующий абзац.<br/>
+<br/>
+В компьютерной графике меш задаётся несколькими буферами, самыми важными из которых являются буферы <em>вершин</em> и <em>индексов</em>. <em>Буфер вершин</em> — это список 3D-векторов, описывающий позицию каждой вершины в <em>пространстве объекта</em> (это значит, что такие значения не нужно изменять при переносе, повороте или масштабировании объекта — они преобразуются из <em>пространства объекта</em> в <em>мировое пространство</em> на лету, с помощью матричного умножения). <em>Буфер индексов</em> — это список целочисленных значений, являющихся <em>индексами</em>, указывающими на буфер вершин. Каждые три индекса составляют треугольник. Например, если буфер индексов имеет вид [0, 1, 2, 0, 2, 3], то в нём есть два треугольника: первый треугольник состоит из первой, второй и третьей вершин в буфере вершин, а второй треугольник состоит из первой, третьей и четвёртой вершин. Следовательно, буфер индексов также определяет вышеупомянутый порядок обхода. Кроме буферов вершин и индексов могут существовать дополнительные буферы, добавляющие к каждой вершине другую информацию. Самые часто встречающиеся дополнительные буферы хранят <em>нормали</em>, <em>координаты текстур</em> (которые называются <em>texcoords</em> или просто <em>UV</em>), а также <em>цвета вершин</em>.<br/>
+<br/>
+<h2>Использование GameObjects</h2><br/>
+В первую очередь нам нужно узнать, какие GameObjects должны стать частью процесса трассировки лучей. Наивным решением было бы просто воспользоваться <code>FindObjectOfType&lt;MeshRenderer>()</code>, но сделаем нечто более гибкое и быстрое. Давайте добавим новый компонент <code>RayTracingObject</code>:<br/>
+<br/>
+<pre><code class="cs">using UnityEngine;
+
+[RequireComponent(typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshFilter))]
+public class RayTracingObject : MonoBehaviour
+{
+    private void OnEnable()
+    {
+        RayTracingMaster.RegisterObject(this);
+    }
+
+    private void OnDisable()
+    {
+        RayTracingMaster.UnregisterObject(this);
+    }
+}</code></pre><br/>
+Этот компонент добавляется к каждому объекту, который мы хотим использовать для трассировки лучей и занимается их регистрацией с помощью <code>RayTracingMaster</code>. Добавим в мастер следующие функции:<br/>
+<br/>
+<pre><code class="cs">private static bool _meshObjectsNeedRebuilding = false;
+private static List&lt;RayTracingObject> _rayTracingObjects = new List&lt;RayTracingObject>();
+
+public static void RegisterObject(RayTracingObject obj)
+{
+    _rayTracingObjects.Add(obj);
+    _meshObjectsNeedRebuilding = true;
+}
+
+public static void UnregisterObject(RayTracingObject obj)
+{
+    _rayTracingObjects.Remove(obj);
+    _meshObjectsNeedRebuilding = true;
+}</code></pre><br/>
+Всё идёт хорошо — теперь мы знаем, какие объекты нужно трассировать. Но далее идёт сложная часть: мы собираемся собрать все данные от мешей Unity (матрица, буферы вершин и индексы — помните о них?), записать их в собственные структуры данных и загрузить их в GPU, чтобы ими мог воспользоваться шейдер. Давайте начнём с задания структур данных и буферов на стороне C#, в мастере:<br/>
+<br/>
+<pre><code class="cs">struct MeshObject
+{
+    public Matrix4x4 localToWorldMatrix;
+    public int indices_offset;
+    public int indices_count;
+}
+
+private static List&lt;MeshObject> _meshObjects = new List&lt;MeshObject>();
+private static List&lt;Vector3> _vertices = new List&lt;Vector3>();
+private static List&lt;int> _indices = new List&lt;int>();
+private ComputeBuffer _meshObjectBuffer;
+private ComputeBuffer _vertexBuffer;
+private ComputeBuffer _indexBuffer;</code></pre><br/>
+… а теперь давайте сделаем то же самое в шейдере. Вы ведь к этому уже привыкли?<br/>
+<br/>
+<pre><code class="cpp">struct MeshObject
+{
+    float4x4 localToWorldMatrix;
+    int indices_offset;
+    int indices_count;
+};
+
+StructuredBuffer&lt;MeshObject> _MeshObjects;
+StructuredBuffer&lt;float3> _Vertices;
+StructuredBuffer&lt;int> _Indices;</code></pre><br/>
+Структуры данных готовы, и мы можем заполнить их настоящими данными. Мы собираем все вершины всех мешей в один большой <code>List&lt;Vector3></code>, а все индексы в большой <code>List&lt;int></code>. С вершинами никаких проблем не возникает, но индексы нужно изменить так, чтобы они продолжали указывать на верную вершину в нашем большом буфере. Представьте, что мы уже добавили объекты с 1000 вершин, а теперь добавляем простой меш-куб. Первый треугольник может состоять из индексов [0, 1, 2], но так как у нас в буфере уже было 1000 вершин, то перед добавлением вершин куба нужно сместить индексы. То есть они превратятся в [1000, 1001, 1002]. Вот как это выглядит в коде:<br/>
+<br/>
+<pre><code class="cs">private void RebuildMeshObjectBuffers()
+{
+    if (!_meshObjectsNeedRebuilding)
+    {
+        return;
+    }
+
+    _meshObjectsNeedRebuilding = false;
+    _currentSample = 0;
+
+    // Clear all lists
+    _meshObjects.Clear();
+    _vertices.Clear();
+    _indices.Clear();
+
+    // Loop over all objects and gather their data
+    foreach (RayTracingObject obj in _rayTracingObjects)
+    {
+        Mesh mesh = obj.GetComponent&lt;MeshFilter>().sharedMesh;
+
+        // Add vertex data
+        int firstVertex = _vertices.Count;
+        _vertices.AddRange(mesh.vertices);
+
+        // Add index data - if the vertex buffer wasn't empty before, the
+        // indices need to be offset
+        int firstIndex = _indices.Count;
+        var indices = mesh.GetIndices(0);
+        _indices.AddRange(indices.Select(index => index + firstVertex));
+
+        // Add the object itself
+        _meshObjects.Add(new MeshObject()
+        {
+            localToWorldMatrix = obj.transform.localToWorldMatrix,
+            indices_offset = firstIndex,
+            indices_count = indices.Length
+        });
+    }
+
+    CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects, 72);
+    CreateComputeBuffer(ref _vertexBuffer, _vertices, 12);
+    CreateComputeBuffer(ref _indexBuffer, _indices, 4);
+}</code></pre><br/>
+Вызовем <code>RebuildMeshObjectBuffers</code> в функции <code>OnRenderImage</code>, и не забудем освободить новые буферы в <code>OnDisable</code>. Вот две вспомогательные функции, которые я использовал в показанном выше коде, чтобы немного упростить обработку буферов:<br/>
+<br/>
+<pre><code class="cs">private static void CreateComputeBuffer&lt;T>(ref ComputeBuffer buffer, List&lt;T> data, int stride)
+    where T : struct
+{
+    // Do we already have a compute buffer?
+    if (buffer != null)
+    {
+        // If no data or buffer doesn't match the given criteria, release it
+        if (data.Count == 0 || buffer.count != data.Count || buffer.stride != stride)
+        {
+            buffer.Release();
+            buffer = null;
+        }
+    }
+
+    if (data.Count != 0)
+    {
+        // If the buffer has been released or wasn't there to
+        // begin with, create it
+        if (buffer == null)
+        {
+            buffer = new ComputeBuffer(data.Count, stride);
+        }
+
+        // Set data on the buffer
+        buffer.SetData(data);
+    }
+}
+
+private void SetComputeBuffer(string name, ComputeBuffer buffer)
+{
+    if (buffer != null)
+    {
+        RayTracingShader.SetBuffer(0, name, buffer);
+    }
+}</code></pre><br/>
+Отлично, мы создали буферы и они заполнены нужными данными! Теперь нам просто нужно сообщить об этом шейдеру. Добавим в <code>SetShaderParameters</code> следующий код (и благодаря новым вспомогательным функциям мы можем сократить код буфера сфер):<br/>
+<br/>
+<pre><code class="cs">SetComputeBuffer("_Spheres", _sphereBuffer);
+SetComputeBuffer("_MeshObjects", _meshObjectBuffer);
+SetComputeBuffer("_Vertices", _vertexBuffer);
+SetComputeBuffer("_Indices", _indexBuffer);</code></pre><br/>
+Итак, работа скучноватая, но давайте посмотрим, что мы только что сделали: мы собрали все внутренние данные мешей (матрицу, вершины и индексы), поместили их в удобную и простую структуру, а затем отправили в GPU, который теперь с нетерпением ждёт, когда их можно будет использовать.<br/>
+<br/>
+<h2>Трассировка мешей</h2><br/>
+Давайте не будем заставлять его ждать. В шейдере у нас уже есть код трассировки отдельного треугольника, а меш — это, по сути, просто множество треугольников. Единственный новый аспект здесь заключается в том, что мы используем матрицу для преобразования вершин из пространства объекта в мировое пространство с помощью встроенной функции <code>mul</code> (сокращение от multiply). Матрица содержит перенос, поворот и масштаб объекта. Она имеет размер 4×4, поэтому для умножения нам понадобится 4d-вектор. Первые три компонента (x, y, z) берутся из буфера вершин. Четвёртому компоненту (w) мы задаём значение 1, потому что имеем дело с точкой. Если бы это было направление, то мы бы записали в него 0, чтобы игнорировать все переносы и масштаб в матрице. Вас это сбивает с толку? Тогда прочитайте не меньше восьми раз <a href="http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/">этот туториал</a>. Вот код шейдера:<br/>
+<br/>
+<pre><code class="cpp">void IntersectMeshObject(Ray ray, inout RayHit bestHit, MeshObject meshObject)
+{
+    uint offset = meshObject.indices_offset;
+    uint count = offset + meshObject.indices_count;
+    for (uint i = offset; i &lt; count; i += 3)
+    {
+        float3 v0 = (mul(meshObject.localToWorldMatrix, float4(_Vertices[_Indices[i]], 1))).xyz;
+        float3 v1 = (mul(meshObject.localToWorldMatrix, float4(_Vertices[_Indices[i + 1]], 1))).xyz;
+        float3 v2 = (mul(meshObject.localToWorldMatrix, float4(_Vertices[_Indices[i + 2]], 1))).xyz;
+
+        float t, u, v;
+        if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))
+        {
+            if (t > 0 &amp;&amp; t &lt; bestHit.distance)
+            {
+                bestHit.distance = t;
+                bestHit.position = ray.origin + t * ray.direction;
+                bestHit.normal = normalize(cross(v1 - v0, v2 - v0));
+                bestHit.albedo = 0.0f;
+                bestHit.specular = 0.65f;
+                bestHit.smoothness = 0.99f;
+                bestHit.emission = 0.0f;
+            }
+        }
+    }
+}</code></pre><br/>
+Мы всего в одном шаге от того, чтобы увидеть всё это в действии. Давайте немного реструктурируем функцию <code>Trace</code> и добавим трассировку объектов-мешей:<br/>
+<br/>
+<pre><code class="cpp">RayHit Trace(Ray ray)
+{
+    RayHit bestHit = CreateRayHit();
+    uint count, stride, i;
+
+    // Trace ground plane
+    IntersectGroundPlane(ray, bestHit);
+
+    // Trace spheres
+    _Spheres.GetDimensions(count, stride);
+    for (i = 0; i &lt; count; i++)
+    {
+    	IntersectSphere(ray, bestHit, _Spheres[i]);
+    }
+
+    // Trace mesh objects
+    _MeshObjects.GetDimensions(count, stride);
+    for (i = 0; i &lt; count; i++)
+    {
+    	IntersectMeshObject(ray, bestHit, _MeshObjects[i]);
+    }
+
+    return bestHit;
+}</code></pre><br/>
+<h2>Результаты</h2><br/>
+Вот и всё! Давайте добавим несколько простых мешей (вполне подойдут примитивы Unity), дадим им компонент <code>RayTracingObject</code> и понаблюдаем за магией. <strong>Не используйте</strong> пока детализированных мешей (больше нескольких сотен треугольников)! Нашему шейдеру не хватает оптимизации, и если перестараться, то для трассировки хотя бы одного сэмпла на пиксель могут уйти секунды или даже минуты. В результате система остановит драйвер GPU, движок Unity может вылететь, а компьютеру потребуется перезагрузка.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/c80/1d4/40e/c801d440e5a0a21f660b5a7e82e1b368.png"/></div><br/>
+Заметьте, что наши меши имеют не плавное, а плоское затенение. Так как мы пока не загрузили в буфер нормали вершин, для получения нормали вершины каждого треугольника нужно выполнять векторное произведение. Кроме того, мы не можем интерполировать по площади треугольника. Мы займёмся этой проблемой в следующей части туториала.<br/>
+<br/>
+Ради интереса я скачал стэнфордского кролика (Stanford Bunny) из <a href="https://casual-effects.com/g3d/data10/index.html#mesh3">архива Моргана Макгвайра</a> и с помощью модификатора decimate пакета <a href="https://www.blender.org/">Blender</a> снизил количество вершин до 431. Вы можете поэспериментировать с параметрами освещения и жёстко прописанным материалом в функции шейдера <code>IntersectMeshObject</code>. Вот диэлектрический кролик с красивыми мягкими тенями и небольшим рассеянным глобальным освещением в <a href="https://hdrihaven.com/hdri/?h=graffiti_shelter">Grafitti Shelter</a>:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/0da/860/bb4/0da860bb41d9465f2dc21d649a509a66.png"/></div><br/>
+… а вот металлический кролик под сильным направленным освещением <a href="https://hdrihaven.com/hdri/?h=cape_hill">Cape Hill</a>, отбрасывающий на плоскость пола дискотечные блики:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/a76/bb1/a64/a76bb1a642d620929ecd250f92e1ef1f.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/a76/bb1/a64/a76bb1a642d620929ecd250f92e1ef1f.jpg" data-blurred="true"/></div><br/>
+… а вот два маленьких кролика, прячущихся под большой каменной Сюзанной под голубым небом <a href="https://hdrihaven.com/hdri/?h=kiara_9_dusk">Kiara 9 Dusk</a> (я прописал альтернативный материал для второго объекта, проверяя, равно ли смещение индексов нулю):<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/7ef/196/a4f/7ef196a4f818b366b4838f2b1e4148f5.png"/></div><br/>
+<h2>Что дальше?</h2><br/>
+Очень здорово впервые видеть реальный меш в собственном трейсере, правда? Сегодня мы обработали кое-какие данные, узнали о пересечении по алгоритму Меллера-Трэмбора и собрали всё так, чтобы сразу же можно было использовать GameObjects движка Unity. Кроме того, мы увидели одно из преимуществ трассировки лучей: как только ты добавляешь в код новое пересечение, все красивые эффекты (мягкие тени, отражённое и рассеянное глобальное освещение, и так далее) сразу начинают работать.<br/>
+<br/>
+Рендеринг блестящего кролика занял кучу времени, и мне всё равно пришлось использовать немного фильтрации, чтобы избавиться от самого очевидного шума. Для решения этой проблемы сцена обычно записывается в пространственную структуру, например, в сетку, K-мерное дерево или иерархию ограничивающих объёмов, что значительно повышает скорость рендеринга крупных сцен.<br/>
+<br/>
+Но нужно двигаться по порядку: дальше мы устраним проблему с нормалями, чтобы наши меши (даже низкополигональные) выглядели более гладкими, чем сейчас. Также неплохо было бы автоматически обновлять матрицы при перемещении объектов и напрямую ссылаться на материалы Unity, а не просто прописывать их в коде. Этим мы и займёмся в следующей части серии туториалов. Спасибо за чтение, и до встречи в части 4!</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B5%D0%BD%D0%B4%D0%B5%D1%80%D0%B8%D0%BD%D0%B3%5D" class="tm-tags-list__link">рендеринг</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D1%80%D0%B0%D1%81%D1%81%D0%B8%D1%80%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%BB%D1%83%D1%87%D0%B5%D0%B9%5D" class="tm-tags-list__link">трассировка лучей</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bray%20tracing%5D" class="tm-tags-list__link">ray tracing</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgpu%20programming%5D" class="tm-tags-list__link">gpu programming</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%88%D0%B5%D0%B9%D0%B4%D0%B5%D1%80%D1%8B%5D" class="tm-tags-list__link">шейдеры</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/3d_graphics/" class="tm-hubs-list__link">
+    Работа с 3D-графикой
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/gamedev/" class="tm-hubs-list__link">
+    Разработка игр
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/algorithms/" class="tm-hubs-list__link">
+    Алгоритмы
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/unity/" class="tm-hubs-list__link">
+    Unity
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 18: ↑18 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 18: ↑18 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+18</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">7K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    82
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/PatientZero/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/8de/9c5/34a/8de9c534a18a6cb8693270a2b528d4c0.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 1325 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    1197
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">82</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/PatientZero/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @PatientZero
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Переводчик-фрилансер</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450308/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 3 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450308/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450308/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450308":{"id":"450308","timePublished":"2019-05-02T11:20:36+00:00","isCorporative":false,"lang":"ru","titleHtml":"Трассировка лучей на GPU в Unity — Часть 3","leadData":{"textHtml":"[\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F355018\u002F\"\u003EПервая\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F412685\u002F\"\u003Eвторая\u003C\u002Fa\u003E части.]\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff9f\u002Fa8a\u002F4f2\u002Ff9fa8a4f2a79b8c394636de6a128d0d5.png\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\nСегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю суть современной компьютерной графики, элемент, из которого состоят все виртуальные миры. Если вы хотите продолжить с того, чем мы закончили в прошлый раз, то воспользуйтесь \u003Ca href=\"https:\u002F\u002Fbitbucket.org\u002FDaerst\u002Fgpu-ray-tracing-in-unity\u002Fsrc\u002FTutorial_Pt2\u002F\"\u003Eкодом из части 2\u003C\u002Fa\u003E. Готовый код того, что мы будем делать сегодня, выложен \u003Ca href=\"https:\u002F\u002Fbitbucket.org\u002FDaerst\u002Fgpu-ray-tracing-in-unity\u002Fsrc\u002FTutorial_Pt3\u002F\"\u003Eздесь\u003C\u002Fa\u003E. Давайте приступим!\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Ch2\u003EТреугольники\u003C\u002Fh2\u003E\u003Cbr\u003E\r\n\u003Cem\u003EТреугольник\u003C\u002Fem\u003E — это всего лишь список трёх соединённых \u003Cem\u003Eвершин\u003C\u002Fem\u003E, каждая из которых хранит свою позицию, а иногда и нормаль. Порядок обхода вершин с вашей точки обзора определяет, на что мы смотрим — на переднюю или заднюю грань треугольника. Традиционно «передом» считается порядок обхода против часовой стрелки.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВо-первых, нам нужно иметь возможность определять, пересекает ли луч треугольник, и если да, то в какой точке. Очень популярный (но совершенно точно \u003Ca href=\"http:\u002F\u002Fwww.realtimerendering.com\u002Fintersections.html\"\u003Eне единственный\u003C\u002Fa\u003E) алгоритм для определения пересечений луча с треугольником был предложен в 1997 году джентльменами \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Finversepixel\"\u003EТомасом Акенин-Меллером\u003C\u002Fa\u003E и Беном Трембором. Подробно о нём можно прочитать в их статье «Fast, Minimum Storage Ray-Triangle Intersection» \u003Ca href=\"http:\u002F\u002Ffileadmin.cs.lth.se\u002Fcs\u002FPersonal\u002FTomas_Akenine-Moller\u002Fpubs\u002Fraytri_tam.pdf\"\u003Eздесь\u003C\u002Fa\u003E.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"David Kuri","originalUrl":"http:\u002F\u002Fblog.three-eyed-games.com\u002F2019\u002F03\u002F18\u002Fgpu-path-tracing-in-unity-part-3\u002F"}}],"author":{"scoreStats":{"score":1197,"votesCount":1325},"rating":82,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410013829899665","paymentPayPalMe":"vadimivshin","paymentWebmoney":null},"id":"78894","alias":"PatientZero","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F8de\u002F9c5\u002F34a\u002F8de9c534a18a6cb8693270a2b528d4c0.png","speciality":"Переводчик-фрилансер"},"statistics":{"commentsCount":3,"favoritesCount":82,"readingCount":6967,"score":18,"votesCount":18},"hubs":[{"relatedData":null,"id":"643","alias":"3d_graphics","type":"collective","title":"Работа с 3D-графикой","titleHtml":"Работа с 3D-графикой","isProfiled":true},{"relatedData":null,"id":"7773","alias":"gamedev","type":"collective","title":"Разработка игр","titleHtml":"Разработка игр","isProfiled":true},{"relatedData":null,"id":"8000","alias":"algorithms","type":"collective","title":"Алгоритмы","titleHtml":"Алгоритмы","isProfiled":true},{"relatedData":null,"id":"17831","alias":"unity","type":"collective","title":"Unity","titleHtml":"Unity","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"2","alias":"design","title":"Дизайн"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E[\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F355018\u002F\"\u003EПервая\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F412685\u002F\"\u003Eвторая\u003C\u002Fa\u003E части.]\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff9f\u002Fa8a\u002F4f2\u002Ff9fa8a4f2a79b8c394636de6a128d0d5.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nСегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю суть современной компьютерной графики, элемент, из которого состоят все виртуальные миры. Если вы хотите продолжить с того, чем мы закончили в прошлый раз, то воспользуйтесь \u003Ca href=\"https:\u002F\u002Fbitbucket.org\u002FDaerst\u002Fgpu-ray-tracing-in-unity\u002Fsrc\u002FTutorial_Pt2\u002F\"\u003Eкодом из части 2\u003C\u002Fa\u003E. Готовый код того, что мы будем делать сегодня, выложен \u003Ca href=\"https:\u002F\u002Fbitbucket.org\u002FDaerst\u002Fgpu-ray-tracing-in-unity\u002Fsrc\u002FTutorial_Pt3\u002F\"\u003Eздесь\u003C\u002Fa\u003E. Давайте приступим!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EТреугольники\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EТреугольник\u003C\u002Fem\u003E — это всего лишь список трёх соединённых \u003Cem\u003Eвершин\u003C\u002Fem\u003E, каждая из которых хранит свою позицию, а иногда и нормаль. Порядок обхода вершин с вашей точки обзора определяет, на что мы смотрим — на переднюю или заднюю грань треугольника. Традиционно «передом» считается порядок обхода против часовой стрелки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВо-первых, нам нужно иметь возможность определять, пересекает ли луч треугольник, и если да, то в какой точке. Очень популярный (но совершенно точно \u003Ca href=\"http:\u002F\u002Fwww.realtimerendering.com\u002Fintersections.html\"\u003Eне единственный\u003C\u002Fa\u003E) алгоритм для определения пересечений луча с треугольником был предложен в 1997 году джентльменами \u003Ca href=\"https:\u002F\u002Ftwitter.com\u002Finversepixel\"\u003EТомасом Акенин-Меллером\u003C\u002Fa\u003E и Беном Трембором. Подробно о нём можно прочитать в их статье «Fast, Minimum Storage Ray-Triangle Intersection» \u003Ca href=\"http:\u002F\u002Ffileadmin.cs.lth.se\u002Fcs\u002FPersonal\u002FTomas_Akenine-Moller\u002Fpubs\u002Fraytri_tam.pdf\"\u003Eздесь\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nКод из статьи легко можно портировать в код шейдера на HLSL:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estatic const float EPSILON = 1e-8;\n\nbool IntersectTriangle_MT97(Ray ray, float3 vert0, float3 vert1, float3 vert2,\n    inout float t, inout float u, inout float v)\n{\n    \u002F\u002F find vectors for two edges sharing vert0\n    float3 edge1 = vert1 - vert0;\n    float3 edge2 = vert2 - vert0;\n\n    \u002F\u002F begin calculating determinant - also used to calculate U parameter\n    float3 pvec = cross(ray.direction, edge2);\n\n    \u002F\u002F if determinant is near zero, ray lies in plane of triangle\n    float det = dot(edge1, pvec);\n\n    \u002F\u002F use backface culling\n    if (det &lt; EPSILON)\n        return false;\n    float inv_det = 1.0f \u002F det;\n\n    \u002F\u002F calculate distance from vert0 to ray origin\n    float3 tvec = ray.origin - vert0;\n\n    \u002F\u002F calculate U parameter and test bounds\n    u = dot(tvec, pvec) * inv_det;\n    if (u &lt; 0.0 || u \u003E 1.0f)\n        return false;\n\n    \u002F\u002F prepare to test V parameter\n    float3 qvec = cross(tvec, edge1);\n\n    \u002F\u002F calculate V parameter and test bounds\n    v = dot(ray.direction, qvec) * inv_det;\n    if (v &lt; 0.0 || u + v \u003E 1.0f)\n        return false;\n\n    \u002F\u002F calculate t, ray intersects triangle\n    t = dot(edge2, qvec) * inv_det;\n\n    return true;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЧтобы воспользоваться этой функцией, нам нужен луч и три вершины треугольника. Возвращаемое значение сообщает нам, произошло ли пересечение треугольника. В случае пересечения вычисляются три дополнительных значения: \u003Ccode\u003Et\u003C\u002Fcode\u003E описывает расстояние вдоль луча до точки пересечения, а \u003Ccode\u003Eu\u003C\u002Fcode\u003E \u002F \u003Ccode\u003Ev\u003C\u002Fcode\u003E — это две из трёх барицентрических координат, определяющих местоположение точки пересечения на треугольнике (последнюю координату можно вычислить как \u003Ccode\u003Ew = 1 - u - v\u003C\u002Fcode\u003E). Если вы пока не знакомы с барицентрическими координатами, то прочитайте их превосходное объяснение на \u003Ca href=\"https:\u002F\u002Fwww.scratchapixel.com\u002Flessons\u002F3d-basic-rendering\u002Fray-tracing-rendering-a-triangle\u002Fbarycentric-coordinates\"\u003EScratchapixel\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБез лишних промедлений давайте оттрассируем один треугольник с указанными в коде вершинами! Найдите в шейдере функцию \u003Ccode\u003ETrace\u003C\u002Fcode\u003E и добавьте в неё следующий фрагмент кода:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E\u002F\u002F Trace single triangle\nfloat3 v0 = float3(-150, 0, -150);\nfloat3 v1 = float3(150, 0, -150);\nfloat3 v2 = float3(0, 150 * sqrt(2), -150);\nfloat t, u, v;\nif (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))\n{\n    if (t \u003E 0 &amp;&amp; t &lt; bestHit.distance)\n    {\n        bestHit.distance = t;\n        bestHit.position = ray.origin + t * ray.direction;\n        bestHit.normal = normalize(cross(v1 - v0, v2 - v0));\n        bestHit.albedo = 0.00f;\n        bestHit.specular = 0.65f * float3(1, 0.4f, 0.2f);\n        bestHit.smoothness = 0.9f;\n        bestHit.emission = 0.0f;\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКак я и говорил, \u003Ccode\u003Et\u003C\u002Fcode\u003E хранит расстояние вдоль луча, и мы можем напрямую использовать это значение для вычисления точки пересечения. Нормаль, которая важна для вычисления правильного отражения, может быть вычислена с помощью векторного произведения любых двух рёбер треугольника. Запустите режим игры и полюбуйтесь своим первым оттрассированным треугольником:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb29\u002F65a\u002Fa84\u002Fb2965aa84ae9d882e6c26f7f44da2af7.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EУпражнение:\u003C\u002Fstrong\u003E попробуйте вычислить позицию с помощью барицентрических координат, а не расстояния. Если вы всё сделаете правильно, то блестящий треугольник будет выглядеть в точности как раньше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EМеши из треугольников\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nМы преодолели первое препятствие, но трассировка целых мешей из треугольников — это совершенно другая история. Сначала нам нужно узнать базовые сведения о мешах. Если вы их знаете, то можете спокойно пропустить следующий абзац.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ компьютерной графике меш задаётся несколькими буферами, самыми важными из которых являются буферы \u003Cem\u003Eвершин\u003C\u002Fem\u003E и \u003Cem\u003Eиндексов\u003C\u002Fem\u003E. \u003Cem\u003EБуфер вершин\u003C\u002Fem\u003E — это список 3D-векторов, описывающий позицию каждой вершины в \u003Cem\u003Eпространстве объекта\u003C\u002Fem\u003E (это значит, что такие значения не нужно изменять при переносе, повороте или масштабировании объекта — они преобразуются из \u003Cem\u003Eпространства объекта\u003C\u002Fem\u003E в \u003Cem\u003Eмировое пространство\u003C\u002Fem\u003E на лету, с помощью матричного умножения). \u003Cem\u003EБуфер индексов\u003C\u002Fem\u003E — это список целочисленных значений, являющихся \u003Cem\u003Eиндексами\u003C\u002Fem\u003E, указывающими на буфер вершин. Каждые три индекса составляют треугольник. Например, если буфер индексов имеет вид [0, 1, 2, 0, 2, 3], то в нём есть два треугольника: первый треугольник состоит из первой, второй и третьей вершин в буфере вершин, а второй треугольник состоит из первой, третьей и четвёртой вершин. Следовательно, буфер индексов также определяет вышеупомянутый порядок обхода. Кроме буферов вершин и индексов могут существовать дополнительные буферы, добавляющие к каждой вершине другую информацию. Самые часто встречающиеся дополнительные буферы хранят \u003Cem\u003Eнормали\u003C\u002Fem\u003E, \u003Cem\u003Eкоординаты текстур\u003C\u002Fem\u003E (которые называются \u003Cem\u003Etexcoords\u003C\u002Fem\u003E или просто \u003Cem\u003EUV\u003C\u002Fem\u003E), а также \u003Cem\u003Eцвета вершин\u003C\u002Fem\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EИспользование GameObjects\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ первую очередь нам нужно узнать, какие GameObjects должны стать частью процесса трассировки лучей. Наивным решением было бы просто воспользоваться \u003Ccode\u003EFindObjectOfType&lt;MeshRenderer\u003E()\u003C\u002Fcode\u003E, но сделаем нечто более гибкое и быстрое. Давайте добавим новый компонент \u003Ccode\u003ERayTracingObject\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Eusing UnityEngine;\n\n[RequireComponent(typeof(MeshRenderer))]\n[RequireComponent(typeof(MeshFilter))]\npublic class RayTracingObject : MonoBehaviour\n{\n    private void OnEnable()\n    {\n        RayTracingMaster.RegisterObject(this);\n    }\n\n    private void OnDisable()\n    {\n        RayTracingMaster.UnregisterObject(this);\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭтот компонент добавляется к каждому объекту, который мы хотим использовать для трассировки лучей и занимается их регистрацией с помощью \u003Ccode\u003ERayTracingMaster\u003C\u002Fcode\u003E. Добавим в мастер следующие функции:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Eprivate static bool _meshObjectsNeedRebuilding = false;\nprivate static List&lt;RayTracingObject\u003E _rayTracingObjects = new List&lt;RayTracingObject\u003E();\n\npublic static void RegisterObject(RayTracingObject obj)\n{\n    _rayTracingObjects.Add(obj);\n    _meshObjectsNeedRebuilding = true;\n}\n\npublic static void UnregisterObject(RayTracingObject obj)\n{\n    _rayTracingObjects.Remove(obj);\n    _meshObjectsNeedRebuilding = true;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВсё идёт хорошо — теперь мы знаем, какие объекты нужно трассировать. Но далее идёт сложная часть: мы собираемся собрать все данные от мешей Unity (матрица, буферы вершин и индексы — помните о них?), записать их в собственные структуры данных и загрузить их в GPU, чтобы ими мог воспользоваться шейдер. Давайте начнём с задания структур данных и буферов на стороне C#, в мастере:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Estruct MeshObject\n{\n    public Matrix4x4 localToWorldMatrix;\n    public int indices_offset;\n    public int indices_count;\n}\n\nprivate static List&lt;MeshObject\u003E _meshObjects = new List&lt;MeshObject\u003E();\nprivate static List&lt;Vector3\u003E _vertices = new List&lt;Vector3\u003E();\nprivate static List&lt;int\u003E _indices = new List&lt;int\u003E();\nprivate ComputeBuffer _meshObjectBuffer;\nprivate ComputeBuffer _vertexBuffer;\nprivate ComputeBuffer _indexBuffer;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n… а теперь давайте сделаем то же самое в шейдере. Вы ведь к этому уже привыкли?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Estruct MeshObject\n{\n    float4x4 localToWorldMatrix;\n    int indices_offset;\n    int indices_count;\n};\n\nStructuredBuffer&lt;MeshObject\u003E _MeshObjects;\nStructuredBuffer&lt;float3\u003E _Vertices;\nStructuredBuffer&lt;int\u003E _Indices;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nСтруктуры данных готовы, и мы можем заполнить их настоящими данными. Мы собираем все вершины всех мешей в один большой \u003Ccode\u003EList&lt;Vector3\u003E\u003C\u002Fcode\u003E, а все индексы в большой \u003Ccode\u003EList&lt;int\u003E\u003C\u002Fcode\u003E. С вершинами никаких проблем не возникает, но индексы нужно изменить так, чтобы они продолжали указывать на верную вершину в нашем большом буфере. Представьте, что мы уже добавили объекты с 1000 вершин, а теперь добавляем простой меш-куб. Первый треугольник может состоять из индексов [0, 1, 2], но так как у нас в буфере уже было 1000 вершин, то перед добавлением вершин куба нужно сместить индексы. То есть они превратятся в [1000, 1001, 1002]. Вот как это выглядит в коде:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Eprivate void RebuildMeshObjectBuffers()\n{\n    if (!_meshObjectsNeedRebuilding)\n    {\n        return;\n    }\n\n    _meshObjectsNeedRebuilding = false;\n    _currentSample = 0;\n\n    \u002F\u002F Clear all lists\n    _meshObjects.Clear();\n    _vertices.Clear();\n    _indices.Clear();\n\n    \u002F\u002F Loop over all objects and gather their data\n    foreach (RayTracingObject obj in _rayTracingObjects)\n    {\n        Mesh mesh = obj.GetComponent&lt;MeshFilter\u003E().sharedMesh;\n\n        \u002F\u002F Add vertex data\n        int firstVertex = _vertices.Count;\n        _vertices.AddRange(mesh.vertices);\n\n        \u002F\u002F Add index data - if the vertex buffer wasn't empty before, the\n        \u002F\u002F indices need to be offset\n        int firstIndex = _indices.Count;\n        var indices = mesh.GetIndices(0);\n        _indices.AddRange(indices.Select(index =\u003E index + firstVertex));\n\n        \u002F\u002F Add the object itself\n        _meshObjects.Add(new MeshObject()\n        {\n            localToWorldMatrix = obj.transform.localToWorldMatrix,\n            indices_offset = firstIndex,\n            indices_count = indices.Length\n        });\n    }\n\n    CreateComputeBuffer(ref _meshObjectBuffer, _meshObjects, 72);\n    CreateComputeBuffer(ref _vertexBuffer, _vertices, 12);\n    CreateComputeBuffer(ref _indexBuffer, _indices, 4);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВызовем \u003Ccode\u003ERebuildMeshObjectBuffers\u003C\u002Fcode\u003E в функции \u003Ccode\u003EOnRenderImage\u003C\u002Fcode\u003E, и не забудем освободить новые буферы в \u003Ccode\u003EOnDisable\u003C\u002Fcode\u003E. Вот две вспомогательные функции, которые я использовал в показанном выше коде, чтобы немного упростить обработку буферов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Eprivate static void CreateComputeBuffer&lt;T\u003E(ref ComputeBuffer buffer, List&lt;T\u003E data, int stride)\n    where T : struct\n{\n    \u002F\u002F Do we already have a compute buffer?\n    if (buffer != null)\n    {\n        \u002F\u002F If no data or buffer doesn't match the given criteria, release it\n        if (data.Count == 0 || buffer.count != data.Count || buffer.stride != stride)\n        {\n            buffer.Release();\n            buffer = null;\n        }\n    }\n\n    if (data.Count != 0)\n    {\n        \u002F\u002F If the buffer has been released or wasn't there to\n        \u002F\u002F begin with, create it\n        if (buffer == null)\n        {\n            buffer = new ComputeBuffer(data.Count, stride);\n        }\n\n        \u002F\u002F Set data on the buffer\n        buffer.SetData(data);\n    }\n}\n\nprivate void SetComputeBuffer(string name, ComputeBuffer buffer)\n{\n    if (buffer != null)\n    {\n        RayTracingShader.SetBuffer(0, name, buffer);\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nОтлично, мы создали буферы и они заполнены нужными данными! Теперь нам просто нужно сообщить об этом шейдеру. Добавим в \u003Ccode\u003ESetShaderParameters\u003C\u002Fcode\u003E следующий код (и благодаря новым вспомогательным функциям мы можем сократить код буфера сфер):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003ESetComputeBuffer(\"_Spheres\", _sphereBuffer);\nSetComputeBuffer(\"_MeshObjects\", _meshObjectBuffer);\nSetComputeBuffer(\"_Vertices\", _vertexBuffer);\nSetComputeBuffer(\"_Indices\", _indexBuffer);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИтак, работа скучноватая, но давайте посмотрим, что мы только что сделали: мы собрали все внутренние данные мешей (матрицу, вершины и индексы), поместили их в удобную и простую структуру, а затем отправили в GPU, который теперь с нетерпением ждёт, когда их можно будет использовать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EТрассировка мешей\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДавайте не будем заставлять его ждать. В шейдере у нас уже есть код трассировки отдельного треугольника, а меш — это, по сути, просто множество треугольников. Единственный новый аспект здесь заключается в том, что мы используем матрицу для преобразования вершин из пространства объекта в мировое пространство с помощью встроенной функции \u003Ccode\u003Emul\u003C\u002Fcode\u003E (сокращение от multiply). Матрица содержит перенос, поворот и масштаб объекта. Она имеет размер 4×4, поэтому для умножения нам понадобится 4d-вектор. Первые три компонента (x, y, z) берутся из буфера вершин. Четвёртому компоненту (w) мы задаём значение 1, потому что имеем дело с точкой. Если бы это было направление, то мы бы записали в него 0, чтобы игнорировать все переносы и масштаб в матрице. Вас это сбивает с толку? Тогда прочитайте не меньше восьми раз \u003Ca href=\"http:\u002F\u002Fwww.opengl-tutorial.org\u002Fbeginners-tutorials\u002Ftutorial-3-matrices\u002F\"\u003Eэтот туториал\u003C\u002Fa\u003E. Вот код шейдера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Evoid IntersectMeshObject(Ray ray, inout RayHit bestHit, MeshObject meshObject)\n{\n    uint offset = meshObject.indices_offset;\n    uint count = offset + meshObject.indices_count;\n    for (uint i = offset; i &lt; count; i += 3)\n    {\n        float3 v0 = (mul(meshObject.localToWorldMatrix, float4(_Vertices[_Indices[i]], 1))).xyz;\n        float3 v1 = (mul(meshObject.localToWorldMatrix, float4(_Vertices[_Indices[i + 1]], 1))).xyz;\n        float3 v2 = (mul(meshObject.localToWorldMatrix, float4(_Vertices[_Indices[i + 2]], 1))).xyz;\n\n        float t, u, v;\n        if (IntersectTriangle_MT97(ray, v0, v1, v2, t, u, v))\n        {\n            if (t \u003E 0 &amp;&amp; t &lt; bestHit.distance)\n            {\n                bestHit.distance = t;\n                bestHit.position = ray.origin + t * ray.direction;\n                bestHit.normal = normalize(cross(v1 - v0, v2 - v0));\n                bestHit.albedo = 0.0f;\n                bestHit.specular = 0.65f;\n                bestHit.smoothness = 0.99f;\n                bestHit.emission = 0.0f;\n            }\n        }\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМы всего в одном шаге от того, чтобы увидеть всё это в действии. Давайте немного реструктурируем функцию \u003Ccode\u003ETrace\u003C\u002Fcode\u003E и добавим трассировку объектов-мешей:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003ERayHit Trace(Ray ray)\n{\n    RayHit bestHit = CreateRayHit();\n    uint count, stride, i;\n\n    \u002F\u002F Trace ground plane\n    IntersectGroundPlane(ray, bestHit);\n\n    \u002F\u002F Trace spheres\n    _Spheres.GetDimensions(count, stride);\n    for (i = 0; i &lt; count; i++)\n    {\n    \tIntersectSphere(ray, bestHit, _Spheres[i]);\n    }\n\n    \u002F\u002F Trace mesh objects\n    _MeshObjects.GetDimensions(count, stride);\n    for (i = 0; i &lt; count; i++)\n    {\n    \tIntersectMeshObject(ray, bestHit, _MeshObjects[i]);\n    }\n\n    return bestHit;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EРезультаты\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВот и всё! Давайте добавим несколько простых мешей (вполне подойдут примитивы Unity), дадим им компонент \u003Ccode\u003ERayTracingObject\u003C\u002Fcode\u003E и понаблюдаем за магией. \u003Cstrong\u003EНе используйте\u003C\u002Fstrong\u003E пока детализированных мешей (больше нескольких сотен треугольников)! Нашему шейдеру не хватает оптимизации, и если перестараться, то для трассировки хотя бы одного сэмпла на пиксель могут уйти секунды или даже минуты. В результате система остановит драйвер GPU, движок Unity может вылететь, а компьютеру потребуется перезагрузка.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fc80\u002F1d4\u002F40e\u002Fc801d440e5a0a21f660b5a7e82e1b368.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЗаметьте, что наши меши имеют не плавное, а плоское затенение. Так как мы пока не загрузили в буфер нормали вершин, для получения нормали вершины каждого треугольника нужно выполнять векторное произведение. Кроме того, мы не можем интерполировать по площади треугольника. Мы займёмся этой проблемой в следующей части туториала.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРади интереса я скачал стэнфордского кролика (Stanford Bunny) из \u003Ca href=\"https:\u002F\u002Fcasual-effects.com\u002Fg3d\u002Fdata10\u002Findex.html#mesh3\"\u003Eархива Моргана Макгвайра\u003C\u002Fa\u003E и с помощью модификатора decimate пакета \u003Ca href=\"https:\u002F\u002Fwww.blender.org\u002F\"\u003EBlender\u003C\u002Fa\u003E снизил количество вершин до 431. Вы можете поэспериментировать с параметрами освещения и жёстко прописанным материалом в функции шейдера \u003Ccode\u003EIntersectMeshObject\u003C\u002Fcode\u003E. Вот диэлектрический кролик с красивыми мягкими тенями и небольшим рассеянным глобальным освещением в \u003Ca href=\"https:\u002F\u002Fhdrihaven.com\u002Fhdri\u002F?h=graffiti_shelter\"\u003EGrafitti Shelter\u003C\u002Fa\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F0da\u002F860\u002Fbb4\u002F0da860bb41d9465f2dc21d649a509a66.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n… а вот металлический кролик под сильным направленным освещением \u003Ca href=\"https:\u002F\u002Fhdrihaven.com\u002Fhdri\u002F?h=cape_hill\"\u003ECape Hill\u003C\u002Fa\u003E, отбрасывающий на плоскость пола дискотечные блики:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa76\u002Fbb1\u002Fa64\u002Fa76bb1a642d620929ecd250f92e1ef1f.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa76\u002Fbb1\u002Fa64\u002Fa76bb1a642d620929ecd250f92e1ef1f.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n… а вот два маленьких кролика, прячущихся под большой каменной Сюзанной под голубым небом \u003Ca href=\"https:\u002F\u002Fhdrihaven.com\u002Fhdri\u002F?h=kiara_9_dusk\"\u003EKiara 9 Dusk\u003C\u002Fa\u003E (я прописал альтернативный материал для второго объекта, проверяя, равно ли смещение индексов нулю):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F7ef\u002F196\u002Fa4f\u002F7ef196a4f818b366b4838f2b1e4148f5.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЧто дальше?\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nОчень здорово впервые видеть реальный меш в собственном трейсере, правда? Сегодня мы обработали кое-какие данные, узнали о пересечении по алгоритму Меллера-Трэмбора и собрали всё так, чтобы сразу же можно было использовать GameObjects движка Unity. Кроме того, мы увидели одно из преимуществ трассировки лучей: как только ты добавляешь в код новое пересечение, все красивые эффекты (мягкие тени, отражённое и рассеянное глобальное освещение, и так далее) сразу начинают работать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРендеринг блестящего кролика занял кучу времени, и мне всё равно пришлось использовать немного фильтрации, чтобы избавиться от самого очевидного шума. Для решения этой проблемы сцена обычно записывается в пространственную структуру, например, в сетку, K-мерное дерево или иерархию ограничивающих объёмов, что значительно повышает скорость рендеринга крупных сцен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо нужно двигаться по порядку: дальше мы устраним проблему с нормалями, чтобы наши меши (даже низкополигональные) выглядели более гладкими, чем сейчас. Также неплохо было бы автоматически обновлять матрицы при перемещении объектов и напрямую ссылаться на материалы Unity, а не просто прописывать их в коде. Этим мы и займёмся в следующей части серии туториалов. Спасибо за чтение, и до встречи в части 4!\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"рендеринг"},{"titleHtml":"трассировка лучей"},{"titleHtml":"ray tracing"},{"titleHtml":"gpu programming"},{"titleHtml":"шейдеры"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450308\u002Fd3308b022f3dddbdc48bb9f85f8c39e0\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450308\u002Fd3308b022f3dddbdc48bb9f85f8c39e0\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450308\\\u002F\"},\"headline\":\"Трассировка лучей на GPU в Unity — Часть 3\",\"datePublished\":\"2019-05-02T14:20:36+03:00\",\"dateModified\":\"2019-05-02T15:41:04+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"PatientZero\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"[Первая и вторая части.]   Сегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450308\\\u002F#post-content-body\",\"about\":[\"h_3d_graphics\",\"h_gamedev\",\"h_algorithms\",\"h_unity\",\"f_develop\",\"f_design\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ff9f\\\u002Fa8a\\\u002F4f2\\\u002Ff9fa8a4f2a79b8c394636de6a128d0d5.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb29\\\u002F65a\\\u002Fa84\\\u002Fb2965aa84ae9d882e6c26f7f44da2af7.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fc80\\\u002F1d4\\\u002F40e\\\u002Fc801d440e5a0a21f660b5a7e82e1b368.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F0da\\\u002F860\\\u002Fbb4\\\u002F0da860bb41d9465f2dc21d649a509a66.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa76\\\u002Fbb1\\\u002Fa64\\\u002Fa76bb1a642d620929ecd250f92e1ef1f.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F7ef\\\u002F196\\\u002Fa4f\\\u002F7ef196a4f818b366b4838f2b1e4148f5.png\"]}","metaDescription":"[Первая и вторая части.]\r\n\r\n\r\nСегодня мы совершим большой скачок. Мы отойдём от исключительно сферических конструкций и бесконечной плоскости, которые трассировали ранее, и добавим треугольники — всю...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":true}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"3d_graphics,gamedev,algorithms,unity"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

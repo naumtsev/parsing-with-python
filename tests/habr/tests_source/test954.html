@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как мы учились эксплуатировать Java в Docker / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/hh\/blog\/450954\/"},"headline":"Как мы учились эксплуатировать Java в Docker","datePublished":"2019-05-31T15:03:19+03:00","dateModified":"2019-05-31T19:54:54+03:00","author":{"@type":"Person","name":"Андрей Сумин"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Под капотом hh.ru &mdash; большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных...","url":"https:\/\/habr.com\/ru\/company\/hh\/blog\/450954\/#post-content-body","about":["c_hh","h_java","h_microservices","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/gc\/69\/bo\/gc69boghbrkf2wmxiuioszq5qgg.png","https:\/\/habrastorage.org\/webt\/jk\/zq\/lo\/jkzqlo_pqiu4xppzbe-itkjvviy.png","https:\/\/habrastorage.org\/webt\/pg\/ue\/fx\/pguefx_0kisoyxg8mna7dxlmimo.png","https:\/\/habrastorage.org\/webt\/t_\/5d\/kn\/t_5dkncjh0wrn9qmftrp3wgwg2w.png","https:\/\/habrastorage.org\/webt\/tf\/nd\/pb\/tfndpbg7mtpaylny7-cflvrukzg.png","https:\/\/habrastorage.org\/webt\/nc\/d0\/_n\/ncd0_ndoybiyy42wzrh68ppj-_0.png","https:\/\/habrastorage.org\/webt\/1r\/aw\/q7\/1rawq7kjvmrjznko2781or7kzdm.png","https:\/\/habrastorage.org\/webt\/qz\/bs\/pj\/qzbspjvpdjfhjjtbwrn6et55wns.png","https:\/\/habrastorage.org\/webt\/ni\/ig\/ji\/niigjizzguoke8dcfdz2ssqnqa8.png","https:\/\/habrastorage.org\/webt\/n9\/iw\/vs\/n9iwvsjan7hxeo-xsksaggthrqy.png","https:\/\/habrastorage.org\/webt\/qr\/ry\/wh\/qrrywh-id3u5lbk7ldms8n-n_ck.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как мы учились эксплуатировать Java в Docker" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как мы учились эксплуатировать Java в Docker" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как мы учились эксплуатировать Java в Docker" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450954/966dd71ce7707a1d05862c744c50a595/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450954/966dd71ce7707a1d05862c744c50a595/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450954/966dd71ce7707a1d05862c744c50a595/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450954/966dd71ce7707a1d05862c744c50a595/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450954/966dd71ce7707a1d05862c744c50a595/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450954" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-31T12:03:19.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450954/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/hh/blog/450954/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450954/966dd71ce7707a1d05862c744c50a595/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="hh" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://www.youtube.com/channel/UCWztYdpQS3v9Gjno8bBZcNA"><img src="//habrastorage.org/getpro/habr/branding/2f5/e83/c30/2f5e83c30f413a6dcbddafbffc2df3e7.jpg" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/hh/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/fc5/967/06f/fc596706fd933f4fdbf8bb4ac5435f5d.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">170.11</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/hh/profile/" class="tm-company-card__name">
+        HeadHunter
+      </a> <div class="tm-company-card__description">HR Digital</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Montmorency/" title="Montmorency" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/Montmorency/" class="tm-user-info__username">
+      Montmorency
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-31T12:03:19.000Z" title="2019-05-31, 15:03">31  мая  2019 в 15:03</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как мы учились эксплуатировать Java в Docker</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/hh/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании HeadHunter</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/java/" class="tm-article-snippet__hubs-item-link"><span>Java</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/microservices/" class="tm-article-snippet__hubs-item-link"><span>Микросервисы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы докопаться до решения приходилось долго гуглить, читать исходники OpenJDK и даже профилировать сервисы на продакшене. В этой статье я постараюсь передать квинтэссенцию полученного в процессе знания.<br/>
+<br/>
+<ul>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#cpu">CPU лимиты</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#server-class">Docker и server class machine</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#malloc">CPU лимиты (да, опять) и фрагментация памяти</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#oom">Обрабатываем Java-OOM</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#opt-mem">Оптимизируем потребление памяти</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#lim-mem-1">Ограничиваем потребление памяти: heap, non-heap, direct memory</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#lim-mem-2">Ограничиваем потребление памяти: Native Memory Tracking</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#disks">Java и диски</a></li>
+<li><a href="https://habr.com/ru/company/hh/blog/450954#monitor">Как за всем уследить?</a></li>
+</ul><br/>
+<a name="habracut"></a><a name="cpu"></a><h4>CPU лимиты</h4><br/>
+Раньше мы жили в kvm-виртуалках с ограничениями CPU и памяти и, переезжая в Docker, выставили похожие ограничения в cgroups. И первой неувязкой, с которой мы столкнулись, были именно CPU лимиты. Сразу скажу, что эта проблема уже не актуальна для свежих версий Java 8 и Java ≥ 10. Если вы идёте в ногу со временем, можете смело пропускать этот раздел.<br/>
+<br/>
+Итак, мы запускаем небольшой сервис в контейнере и видим, что он плодит огромное количество тредов. Или потребляет CPU гораздо больше, чем ожидалось, таймаутится почём зря. Или вот ещё реальная ситуация: на одной машине сервис нормально запускается, а на другой, с теми же настройками — падает, прибитый OOM-киллером.<br/>
+<br/>
+Разгадка оказывается очень простой — просто Java не видит ограничений <code>--cpus</code>, выставленных в докере и считает, что ей доступны все ядра хост-машины. А их может быть очень много (в нашем стандартном сетапе — 80).<br/>
+Библиотеки подстраивают размеры тред-пулов под количество доступных процессоров — отсюда огромное количество тредов.<br/>
+Сама Java таким же образом масштабирует количество тредов GC, отсюда потребление CPU и таймауты — сервис начинает тратить большое количество ресурсов на сборку мусора, используя львиную долю отпущенной ему квоты.<br/>
+Также библиотеки (в частности Netty) могут в определённых случаях подстраивать размеры офф-хип памяти под количество CPU, что приводит к большой вероятности выхода за выставленные контейнеру лимиты при запуске на более мощном железе.<br/>
+<br/>
+Сначала, по мере проявления этой проблемы, мы пытались использовать следующие воркэраунды:<br/>
+— пробовали использовать в паре сервисов <a href="https://github.com/dekobon/libnumcpus">libnumcpus</a> — библиотеку, которая позволяет «обмануть» Java, задав иное число доступных процессоров;<br/>
+— явно указывали количество GC-тредов,<br/>
+— явно задавали лимиты на использование direct byte buffers.<br/>
+<br/>
+Но, конечно же, с такими костылями передвигаться не очень удобно, и настоящим решением стал переезд на Java 10 (а затем и Java 11), в котором все эти проблемы <a href="https://bugs.openjdk.java.net/browse/JDK-8146115">отсутствуют</a>. Справедливости ради, стоит сказать, что в восьмёрке тоже всё стало хорошо с <a href="https://www.oracle.com/technetwork/java/javase/8u191-relnotes-5032181.html#JDK-8146115">апдейта 191</a>, выпущенного в октябре 2018 года. К тому времени для нас это было уже неактуально, чего и вам желаю.<br/>
+<br/>
+Это один из примеров, когда обновление версии Java даёт не только моральное удовлетворение, но и реальный ощутимый профит в виде упрощения эксплуатации и повышения производительности сервиса.<br/>
+<br/>
+<a name="server-class"></a><h4>Docker и server class machine</h4><br/>
+Итак, в Java 10 появились (и были бекпортированы в Java 8) опции <code>-XX:ActiveProcessorCount</code> и <code>-XX:+UseContainerSupport</code>, учитывающие по умолчанию лимиты cgroups. Теперь-то всё стало замечательно. Или нет?<br/>
+<br/>
+Через некоторое время после того как мы пересели на Java 10 / 11, мы стали замечать некоторые странности. Почему-то в некоторых сервисах графики GC выглядели так, будто в них не использовался G1:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gc/69/bo/gc69boghbrkf2wmxiuioszq5qgg.png"/></div><br/>
+<br/>
+Это было, мягко говоря, немного неожиданно, так как мы точно знали, что G1 является дефолтным коллектором, начиная с Java 9. При этом в каких-то сервисах этой проблемы нет — включается G1, как и ожидалось.<br/>
+<br/>
+Начинаем разбираться и натыкаемся на <a href="https://github.com/AdoptOpenJDK/openjdk-jdk11/blob/999dbd4192d0f819cb5224f26e9e7fa75ca6f289/src/hotspot/share/runtime/os.cpp#L1627">интересную вещь</a>. Оказывается, если Java запущена меньше чем на 3 процессорах и с лимитом памяти меньше 2 ГБ, то она считает себя клиентской и не даёт использовать ничего, кроме SerialGC.<br/>
+<br/>
+К слову, это затрагивает только <a href="https://github.com/AdoptOpenJDK/openjdk-jdk11/blob/8dba7453f0628759b83d77df87690b95047295a8/src/hotspot/share/gc/shared/gcConfig.cpp#L103">выбор GC</a> и никак не связано с параметрами -client / -server и JIT-компиляцией.<br/>
+<br/>
+Очевидно, когда мы пользовались Java 8, она не учитывала лимиты докера и считала, что у неё много процессоров и памяти. После обновления на Java 10 многие сервисы, у которых лимиты выставлены ниже, внезапно стали использовать SerialGC. К счастью, лечится это очень просто — явным выставлением опции <code>-XX:+AlwaysActAsServerClassMachine</code>.<br/>
+<br/>
+<a name="malloc"></a><h4>CPU лимиты (да, опять) и фрагментация памяти</h4><br/>
+Рассматривая графики в мониторинге, мы как-то заметили, что Resident Set Size контейнера чересчур большой — аж в три раза больше чем максимальный размер хипа. Не может ли здесь быть дело в каком-то очередном хитром механизме, который масштабируется по числу процессоров в системе и не знает об ограничениях докера?<br/>
+<br/>
+Оказывается, механизм вовсе не хитрый — это всем хорошо известный malloc из glibc. Если коротко, то в glibc для выделения памяти используются так называемые арены. При создании каждому треду присваивается одна из арен. Когда тред с помощью glibc хочет выделить определённое количество памяти в нативном хипе под свои нужды и вызывает malloc, то память выделяется в присвоенной ему арене. Если арена обслуживает несколько тредов, то эти треды будут за неё конкурировать. Чем больше арен, тем меньше конкуренции, но тем больше фрагментации, так как у каждой арены свой список свободных областей.<br/>
+<br/>
+На 64-битных системах количество арен по умолчанию выставляется в 8 * количество CPU. Очевидно, для нас это огромный оверхед, потому что контейнеру доступны не все CPU. Более того, для Java-приложений конкуренция за арены не так актуальна, так как большинство аллокаций делается в Java-хипе, память под который можно целиком выделить при старте.<br/>
+<br/>
+Эта особенность malloc известна уже <a href="https://www.ibm.com/developerworks/community/blogs/kevgrig/entry/linux_glibc_2_10_rhel_6_malloc_may_show_excessive_virtual_memory_usage?lang=en">очень</a> <a href="https://devcenter.heroku.com/articles/tuning-glibc-memory-behavior#what-value-to-choose-for-malloc_arena_max">давно</a>, как и её решение — использовать переменную окружения <code>MALLOC_ARENA_MAX</code> для явного указания числа арен. Это очень легко сделать для любого контейнера. Вот эффект от указания <code>MALLOC_ARENA_MAX = 4</code> для нашего основного бэкенда:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/jk/zq/lo/jkzqlo_pqiu4xppzbe-itkjvviy.png"/></div><br/>
+<br/>
+На графике RSS двух инстансов: в одном (синий) включаем <code>MALLOC_ARENA_MAX</code>, другой (красный) просто рестартуем. Разница очевидна.<br/>
+<br/>
+Но после этого возникает резонное желание разобраться, на что Java вообще тратит память. Можно ли запустить на Java микросервис с лимитом памяти в 300-400 мегабайт и не бояться, что он упадёт с Java-OOM или не будет прибит системным OOM-киллером?<br/>
+<br/>
+<a name="oom"></a><h4>Обрабатываем Java-OOM</h4><br/>
+Прежде всего, надо подготовиться к тому, что OOM неизбежны, и надо их правильно обрабатывать — как минимум сохранять хип-дампы. Как ни странно, даже в этой простой затее есть свои нюансы. К примеру, хип-дампы не перезаписываются — если уже сохранён хип-дамп с тем же именем, то новый просто не будет создан.<br/>
+<br/>
+Java умеет <a href="https://github.com/AdoptOpenJDK/openjdk-jdk11/blob/999dbd4192d0f819cb5224f26e9e7fa75ca6f289/src/hotspot/share/services/heapDumper.cpp#L2028">автоматически добавлять</a> порядковый номер дампа и process id в название файла, но это нам ничем не поможет. Порядковый номер не пригодится, потому что это OOM, а не штатно запрошенный хипдамп — приложение после него рестартует, обнуляя счётчик. А process id не подходит, так как в докере он всегда одинаковый (чаще всего 1).<br/>
+<br/>
+Поэтому мы пришли к такому варианту:<br/>
+<br/>
+<code>-XX:+HeapDumpOnOutOfMemoryError<br/>
+-XX:+ExitOnOutOfMemoryError<br/>
+-XX:HeapDumpPath=/var/crash/java.hprof<br/>
+-XX:OnOutOfMemoryError="mv /var/crash/java.hprof /var/crash/heapdump.hprof"</code><br/>
+<br/>
+Он довольно прост и при некоторых доработках можно даже научить хранить его не только последний хипдамп, но для наших нужд и этого более чем достаточно.<br/>
+<br/>
+Java OOM — это не единственное, с чем нам придётся столкнуться. У каждого контейнера есть ограничение на занимаемую им память, и оно может быть превышено. Если так происходит, то контейнер убивается системным OOM-киллером и рестартует (мы используем <code>restart_policy: always</code>). Естественно, это нежелательно, и мы хотим научиться правильно выставлять лимиты на используемые JVM ресурсы.<br/>
+<br/>
+<a name="opt-mem"></a><h4>Оптимизируем потребление памяти</h4><br/>
+Но прежде чем настраивать лимиты, нужно убедиться, что JVM не тратит ресурсы впустую. Мы уже сумели сократить потребление памяти с помощью лимита на количество CPU и переменной <code>MALLOC_ARENA_MAX</code>. Есть ли ещё какие-то «почти бесплатные» способы это сделать?<br/>
+<br/>
+Оказывается, есть ещё пара трюков, которые позволят сэкономить немного памяти.<br/>
+<br/>
+Первый — это использование опции <code>-Xss</code> (или <code>-XX:ThreadStackSize</code>), контролирующей размер стека для тредов. По умолчанию для 64-битной JVM это 1 МБ. Мы выяснили, что нам хватает и 512 КБ. StackOverflowException пока из-за этого ни разу не ловили, но допускаю, что подойдёт это далеко не всем. Да и профит от этого совсем небольшой.<br/>
+<br/>
+Второй — флаг <code>-XX:+UseStringDeduplication</code> (при включённом G1 GC). Он позволяет сэкономить на памяти, схлопнув дублирующиеся строки за счёт дополнительной нагрузки на процессор. Трейдоф между памятью и CPU зависит только от конкретного приложения и настройки самого механизма дедупликации. Читайте <a href="http://openjdk.java.net/jeps/192">доку</a> и тестируйте в своих сервисах, у нас эта опция пока не нашла своего применения.<br/>
+<br/>
+И, наконец, способ, который тоже подойдёт не всем (но нам зашло) — использовать <a href="http://jemalloc.net/">jemalloc</a> вместо родного malloc. Эта имплементация заточена на уменьшение фрагментации памяти и лучшую поддержку многопоточности по сравнению с malloc из glibc. Для наших сервисов jemalloc дал немного больше выигрыша по памяти, чем malloc с <code>MALLOC_ARENA_MAX=4</code>, при этом не сказавшись сколько-нибудь заметно на производительности.<br/>
+<br/>
+Остальные варианты, в том числе описанные у Алексея Шипилёва в <a href="https://shipilev.net/jvm/anatomy-quarks/12-native-memory-tracking/">JVM Anatomy Quark #12: Native Memory Tracking</a>, показались довольно опасными либо приводили к заметной деградации производительности. Тем не менее, в образовательных целях рекомендую прочесть эту статью.<br/>
+<br/>
+А пока двинемся к следующей теме и, наконец, попробуем научиться ограничивать потребление памяти и подбирать правильные лимиты.<br/>
+<br/>
+<a name="lim-mem-1"></a><h4>Ограничиваем потребление памяти: heap, non-heap, direct memory</h4><br/>
+Чтобы всё правильно сделать, надо вспомнить, из чего вообще состоит память в Java. Для начала посмотрим на пулы, состояние которых можно замониторить через JMX.<br/>
+<br/>
+Первое, само собой, <b>хип</b>. Тут всё просто: задаём <code>-Xmx</code>, но как сделать это правильно? К сожалению, универсального рецепта тут нет, всё зависит от приложения и профиля нагрузки. Для новых сервисов мы начинаем с относительно разумного размера хипа (128 Мб) и при необходимости увеличиваем или уменьшаем его. Для поддержки уже существующих есть мониторинг с графиками потребления памяти и метриками GC.<br/>
+<br/>
+Одновременно с <code>-Xmx</code> мы выставляем <code>-Xms == -Xmx</code>. У нас нет оверселлинга памяти, поэтому в наших интересах, чтобы сервис по максимуму использовал те ресурсы, которые мы ему выдали. В дополнение, в рядовых сервисах мы включаем <code>-XX:+AlwaysPreTouch</code> и механизм Transparent Huge Pages: <code>-XX:+UseTransparentHugePages -XX:+UseLargePagesInMetaspace</code>. Однако, прежде чем включать THP, внимательно прочитайте <a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/transhuge.html">документацию</a> и протестируйте, как сервисы ведут себя с этой опцией в течение длительного времени. Не исключены сюрпризы на машинах с недостаточным запасом оперативной памяти (к примеру, нам пришлось выключить THP на тестовых стендах).<br/>
+<br/>
+Далее — <b>non-heap</b>. В non-heap память входят:<br/>
+— Metaspace и Compressed Class Space,<br/>
+— Code Cache.<br/>
+<br/>
+Рассмотрим эти пулы по порядку.<br/>
+<br/>
+Про <b>Metaspace</b>, конечно же, все слышали, не буду подробно про него рассказывать. В нём хранятся метаданные классов, байткод методов и так далее. По сути, использование Metaspace напрямую зависит от числа и размера загруженных классов и определить его можно, как и хип, только запустив приложение и сняв метрики через JMX. По умолчанию Metaspace ничем не ограничен, но сделать это довольно легко с помощью опции <code>-XX:MaxMetaspaceSize</code>.<br/>
+<br/>
+<b>Compressed Class Space</b> входит в состав Metaspace и появляется, когда включена опция <code>-XX:+UseCompressedClassPointers</code> (включена по умолчанию для хипов меньше 32 ГБ, то есть когда она может дать реальный выигрыш по памяти). Размер этого пула можно ограничить опцией <code>-XX:CompressedClassSpaceSize</code>, но особого смысла в этом нет, так как Compressed Class Space включается в Metaspace и суммарный объём закоммиченной памяти для Metaspace и Compressed Class Space в итоге ограничивается одной опцией <code>-XX:MaxMetaspaceSize</code>.<br/>
+<br/>
+Кстати, если смотреть на показания JMX, то там объём non-heap памяти всегда рассчитывается как <a href="https://github.com/AdoptOpenJDK/openjdk-jdk11/blob/999dbd4192d0f819cb5224f26e9e7fa75ca6f289/src/hotspot/share/services/management.cpp#L724">сумма</a> Metaspace, Compressed Class Space и Code Cache. На самом деле надо суммировать только Metaspace и CodeCache.<br/>
+<br/>
+Итак, в non-heap остался только <b>Code Cache</b> — хранилище скомпилированного JIT-компилятором кода. По умолчанию его максимальный размер выставлен в 240 МБ и для небольших сервисов это в несколько раз больше, чем нужно. Размер Code Cache можно выставить опцией <code>-XX:ReservedCodeCacheSize</code>. Правильный размер можно определить, только запустив приложение и проследив за ним под типичным профилем нагрузки.<br/>
+<br/>
+Тут важно не ошибиться, так как недостаточный размер Code Cache приводит к удалению из кеша холодного и старого кода (опция <code>-XX:+UseCodeCacheFlushing</code> включена по умолчанию), а это, в свою очередь, может привести к более высокому потреблению CPU и к деградации производительности. Было бы здорово, если можно было кидать OOM при переполнении Code Cache, для этого даже есть флаг <code>-XX:+ExitOnFullCodeCache</code>, но, к сожалению, он доступен только в <a href="https://github.com/AdoptOpenJDK/openjdk-jdk11/blob/999dbd4192d0f819cb5224f26e9e7fa75ca6f289/src/hotspot/share/runtime/globals.hpp#L1944">девелоперской версии</a> JVM.<br/>
+<br/>
+Последний пул, о котором есть информация в JMX, — <b>direct memory</b>. По умолчанию его размер не ограничен, поэтому важно задать ему какой-то лимит — как минимум на него будут ориентироваться библиотеки вроде Netty, активно использующие direct byte-буфферы. Задать лимит несложно при помощи флага <code>-XX:MaxDirectMemorySize</code>, а в определении правильного значения нам, опять же, поможет только мониторинг.<br/>
+<br/>
+Итак, что у нас пока получается?<br/>
+<br/>
+<pre>Java process memory = 
+    Heap + Metaspace + Code Cache + Direct Memory =
+        -Xmx +
+        -XX:MaxMetaspaceSize +
+        -XX:ReservedCodeCacheSize +
+        -XX:MaxDirectMemorySize</pre><br/>
+<br/>
+Давайте попробуем нарисовать всё на графике и сравнить с RSS докер-контейнера.<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/pg/ue/fx/pguefx_0kisoyxg8mna7dxlmimo.png"/></div><br/>
+<br/>
+Линия сверху — это RSS контейнера и он раза в полтора больше, чем потребление памяти JVM, которое мы можем замониторить через JMX.<br/>
+<br/>
+Копаем дальше!<br/>
+<br/>
+<a name="lim-mem-2"></a><h4>Ограничиваем потребление памяти: Native Memory Tracking</h4><br/>
+Разумеется, помимо heap, non-heap и direct memory, JVM использует целую кучу других пулов памяти. Разобраться с ними нам поможет флаг <code>-XX:NativeMemoryTracking=summary</code>. Включив эту опцию, мы сможем получать информацию о пулах, известных JVM, но недоступных в JMX. Подробнее об использовании этой опции можно почитать в <a href="https://docs.oracle.com/en/java/javase/12/troubleshoot/diagnostic-tools.html#GUID-FB0581EA-2F91-4093-B2FA-46687F7AB081">документации</a>.<br/>
+<br/>
+Начнём с самого очевидного — памяти, занимаемой <b>стеками тредов</b>. NMT выдаёт для нашего сервиса примерно следующее:<br/>
+<br/>
+<pre>Thread (reserved=32166KB, committed=5358KB)
+    (thread #52)
+    (stack: reserved=31920KB, committed=5112KB)
+    (malloc=185KB #270) 
+    (arena=61KB #102)</pre><br/>
+Кстати, её размер можно узнать и без Native Memory Tracking, воспользовавшись jstack и немного поковырявшись в <code>/proc/&lt;pid>/smaps</code>. Андрей Паньгин выкладывал <a href="https://github.com/apangin/jstackmem">специальную утилиту</a> для этого.<br/>
+<br/>
+Размер <b>Shared Class Space</b> оценить ещё проще:<br/>
+<br/>
+<pre>Shared class space (reserved=17084KB, committed=17084KB)
+    (mmap: reserved=17084KB, committed=17084KB)</pre><br/>
+Это механизм Class Data Sharing, включаемый опциями <code>-Xshare</code> и <code>-XX:+UseAppCDS</code>. В Java 11 опция <code>-Xshare</code> по умолчанию выставлена в auto, а это значит, что если у вас есть архив <code>$JAVA_HOME/lib/server/classes.jsa</code> (в официальном докер-образе OpenJDK он есть), то он будет загружаться memory map-ом при старте JVM, ускоряя время запуска. Соответственно, размер Shared Class Space легко определить, если вы знаете размер jsa-архивов.<br/>
+<br/>
+Далее идут нативные структуры <b>сборщика мусора</b>:<br/>
+<br/>
+<pre>GC (reserved=42137KB, committed=41801KB)
+    (malloc=5705KB #9460) 
+    (mmap: reserved=36432KB, committed=36096KB)</pre><br/>
+У Алексея Шипилёва в уже упомянутом руководстве по Native Memory Tracking <a href="https://shipilev.net/jvm/anatomy-quarks/12-native-memory-tracking/#_slimdown_sane_parts">сказано</a>, что они занимают примерно 4-5% от размера хипа, но в нашем сетапе для небольших хипов (до нескольких сотен мегабайт) оверхед доходил до 50% от размера хипа.<br/>
+<br/>
+Довольно много места могут занимать <b>таблицы символов</b>:<br/>
+<br/>
+<pre>Symbol (reserved=16421KB, committed=16421KB)
+    (malloc=15261KB #203089) 
+    (arena=1159KB #1)</pre><br/>
+В них хранятся названия методов, сигнатуры, а также ссылки на интернированные строки. К сожалению, оценить размер таблицы символов представляется возможным только пост-фактум, с помощью Native Memory Tracking.<br/>
+<br/>
+Что остаётся? Согласно Native Memory Tracking довольно много всего:<br/>
+<br/>
+<pre>Compiler (reserved=509KB, committed=509KB)
+Internal (reserved=1647KB, committed=1647KB)
+Other (reserved=2110KB, committed=2110KB)
+Arena Chunk (reserved=1712KB, committed=1712KB)
+Logging (reserved=6KB, committed=6KB)
+Arguments (reserved=19KB, committed=19KB)
+Module (reserved=227KB, committed=227KB)
+Unknown (reserved=32KB, committed=32KB)</pre><br/>
+Но на всё это уходит довольно мало места.<br/>
+<br/>
+К сожалению, многие из упомянутых областей памяти нельзя ни ограничить, ни контролировать, а если и можно было бы, то конфигурация превратилась бы в сущий ад. Даже наблюдение за их состоянием — нетривиальная задача, так как включение Native Memory Tracking немного просаживает производительность приложения и включать его на продакшене в критичном сервисе — не лучшая идея.<br/>
+<br/>
+Всё же, ради интереса попробуем отразить на графике всё, о чём сообщает Native Memory Tracking:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/t_/5d/kn/t_5dkncjh0wrn9qmftrp3wgwg2w.png"/></div><br/>
+<br/>
+Неплохо! Оставшаяся разница — это оверхед на фрагментацию / аллокацию памяти (он совсем небольшой, так как мы используем jemalloc) или память, которую выделили нативные либы. Мы как раз пользуемся одной такой для эффективного хранения префиксного дерева.<br/>
+<br/>
+Итак, для наших нужд достаточно ограничить то, что можно: Heap, Metaspace, Code Cache, Direct Memory. На всё остальное мы оставляем некий разумный задел, определяемый по результатам практических замеров.<br/>
+<br/>
+Разобравшись с CPU и памятью, переходим к следующему ресурсу, за который могут конкурировать приложения — к дискам.<br/>
+<br/>
+<a name="disks"></a><h4>Java и диски</h4><br/>
+И с ними всё очень плохо: они медленные и могут приводить к ощутимым затупам приложения. Поэтому мы максимально отвязываем Java от дисков:<br/>
+<br/>
+<ul>
+<li>Все логи приложения мы пишем в локальный сислог по UDP. Это оставляет некоторую вероятность, что нужные логи потеряются где-то по пути, но, как показала практика, такие случаи очень редки.</li>
+<li>Логи JVM будем писать в tmpfs, для этого нужно всего лишь подмонтировать в докере в нужное место волюмом <code>/dev/shm</code>.</li>
+</ul><br/>
+<br/>
+Если мы пишем логи в сислог или в tmpfs, а само приложение ничего, кроме хип-дампов, на диск не пишет, то выходит, что на этом историю с дисками можно считать закрытой?<br/>
+<br/>
+Конечно же, нет.<br/>
+<br/>
+Обращаем внимание на график длительности stop-the-world пауз и видим печальную картину — Stop-The-World-паузы на хостах по сотням миллисекунд, а на одном хосте вообще могут доходить до секунды:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/tf/nd/pb/tfndpbg7mtpaylny7-cflvrukzg.png"/></div><br/>
+<br/>
+Надо ли говорить, что это негативно сказывается на работе приложения? Вот, к примеру, график, отражающий время ответа сервиса по мнению клиентов:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/nc/d0/_n/ncd0_ndoybiyy42wzrh68ppj-_0.png"/></div><br/>
+<br/>
+Это очень простой сервис, по большей части отдающий закешированные ответы, так откуда там такие запредельные тайминги, начиная с 95 персентили? В других сервисах аналогичная картина, к тому же с завидным постоянством сыпятся таймауты при взятии коннекшена из пула соединений к базе, при выполнении запросов и так далее.<br/>
+<br/>
+При чём же тут диски? — спросите вы. Оказывается, очень даже при чём.<br/>
+Детальный разбор проблемы показал, что долгие STW-паузы возникают из-за того, что треды долго идут до сейфпойнта. Почитав код JVM, мы поняли, что во время синхронизации тредов на сейфпойнте JVM может записывать через memory map файл <code>/tmp/hsperfdata*</code>, в который она экспортирует некоторую статистику. Этой статистикой пользуются утилиты типа <code>jstat</code> и <code>jps</code>.<br/>
+<br/>
+Отключаем её на одной машине опцией <code>-XX:+PerfDisableSharedMem</code> и…<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/1r/aw/q7/1rawq7kjvmrjznko2781or7kzdm.png"/></div><br/>
+<br/>
+Метрики тредпула Jetty стабилизируются:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/qz/bs/pj/qzbspjvpdjfhjjtbwrn6et55wns.png"/></div><br/>
+<br/>
+А персентили времени ответа начинают приходить в норму (повторюсь, это эффект от включения опции только на одной машине):<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ni/ig/ji/niigjizzguoke8dcfdz2ssqnqa8.png"/></div><br/>
+<br/>
+Таким образом, благодаря выключению одной опции мы сумели снизить количество таймаутов, количество ретраев, и даже поправить общие персентили времени ответа сайта.<br/>
+<br/>
+<a name="monitor"></a><h4>Как за всем уследить?</h4><br/>
+Для того чтобы поддерживать Java-сервисы в докере, нужно, прежде всего, научиться за ними следить.<br/>
+<br/>
+Мы запускаем свои сервисы на базе собственного фреймворка <a href="https://github.com/hhru/nuts-and-bolts">Nuts and Bolts</a>, и поэтому можем обвесить все критичные места нужными нам метриками. В дальнейшем это очень сильно помогает при расследовании инцидентов и вообще в понимании того, как сервис живёт на продакшене. Метрики мы посылаем в статсд, на практике это оказывается более удобно, чем JMX.<br/>
+<br/>
+По метрикам мы стараемся строить графики, отражающие внутреннее состояние сервиса и позволяющие быстро диагностировать причины аномалий. Некоторые из подобных графиков я уже приводил в пример выше.<br/>
+<br/>
+Мы также отправляем в statsd и внутренние метрики JVM, например потребление памяти (heap, верно посчитанный non-heap и общую картину):<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/n9/iw/vs/n9iwvsjan7hxeo-xsksaggthrqy.png"/></div><br/>
+<br/>
+В частности, это позволяет нам понимать, какие лимиты выставлять для каждого конкретного сервиса.<br/>
+<br/>
+Ну и напоследок — как на постоянной основе следить за тем, что лимиты выставлены грамотно, а сервисы, живущие на одном хосте, не мешают друг другу? В этом нам сильно помогает ежедневное нагрузочное тестирование. Так как у нас (пока) два дата-центра, то нагрузочное тестирование настроено так, чтобы увеличивать RPS на сайте вдвое.<br/>
+<br/>
+Механизм нагрузочного тестирования очень прост: утром запускается крон, который парсит логи за предыдущий час и формирует из них профиль типичной анонимной нагрузки. К анонимной нагрузке добавляется ряд работодательских и соискательских страниц. После этого профиль нагрузки экспортируется в формат ammo-файлов для <a href="https://github.com/yandex/yandex-tank">Яндекс.Танка</a>. В заданное время Яндекс.Танк стартует:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/qr/ry/wh/qrrywh-id3u5lbk7ldms8n-n_ck.png"/></div><br/>
+<br/>
+Нагрузка автоматически останавливается при превышении небольшого порога пятисоток.<br/>
+<br/>
+За время своего существования нагрузочное тестирование позволило нам выявить целый ряд проблем ещё до того, как они зааффектили реальных пользователей. Кроме того, оно даёт нам уверенность в том, что при выпадении одного дата-центра другой, оставшийся в живых, выдержит всю нагрузку.<br/>
+<br/>
+<h4>В заключение</h4><br/>
+Наш опыт показывает, что Java в Docker — это не только удобно, но и в итоге довольно экономично. Надо только научиться их готовить.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjava%5D" class="tm-tags-list__link">java</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjava%208%5D" class="tm-tags-list__link">java 8</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjava%2011%5D" class="tm-tags-list__link">java 11</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bdocker%5D" class="tm-tags-list__link">docker</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B4%D0%BE%D0%BA%D0%B5%D1%80%5D" class="tm-tags-list__link">докер</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bhighload%5D" class="tm-tags-list__link">highload</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B8%D0%BA%D1%80%D0%BE%D1%81%D0%B5%D1%80%D0%B2%D0%B8%D1%81%D1%8B%5D" class="tm-tags-list__link">микросервисы</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/hh/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании HeadHunter
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/java/" class="tm-hubs-list__link">
+    Java
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/microservices/" class="tm-hubs-list__link">
+    Микросервисы
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 56: ↑53 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 56: ↑53 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+50</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">29K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    266
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/hh/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/fc5/967/06f/fc596706fd933f4fdbf8bb4ac5435f5d.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/hh/profile/" class="tm-company-snippet__title">HeadHunter</a> <div class="tm-company-snippet__description">HR Digital</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/headhuntergroup" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://twitter.com/hh_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/headhunter" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://github.com/hhru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Github
+    </a><a href="https://instagram.com/hh_ru" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Instagram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Montmorency/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 48 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    34
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Андрей Сумин</span> <a href="/ru/users/Montmorency/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Montmorency
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Руководитель группы бэкенд-разработки @ hh.ru</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/hh/blog/450954/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 23 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2000-05-22T20:00:00.000Z" title="2000-05-23, 00:00">23  мая  2000</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://hh.ru" target="_blank" class="tm-company-basic-info__link">
+      hh.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    501–1 000 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2008-08-09T07:42:43.000Z" title="2008-08-09, 11:42">9  августа  2008</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/hh/blog/450954/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/hh/blog/450954/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450954":{"id":"450954","timePublished":"2019-05-31T12:03:19+00:00","isCorporative":true,"lang":"ru","titleHtml":"Как мы учились эксплуатировать Java в Docker","leadData":{"textHtml":"Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы докопаться до решения приходилось долго гуглить, читать исходники OpenJDK и даже профилировать сервисы на продакшене. В этой статье я постараюсь передать квинтэссенцию полученного в процессе знания.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#cpu\"\u003ECPU лимиты\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#server-class\"\u003EDocker и server class machine\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#malloc\"\u003ECPU лимиты (да, опять) и фрагментация памяти\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#oom\"\u003EОбрабатываем Java-OOM\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#opt-mem\"\u003EОптимизируем потребление памяти\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#lim-mem-1\"\u003EОграничиваем потребление памяти: heap, non-heap, direct memory\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#lim-mem-2\"\u003EОграничиваем потребление памяти: Native Memory Tracking\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#disks\"\u003EJava и диски\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#monitor\"\u003EКак за всем уследить?\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":34,"votesCount":48},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410012199113245","paymentPayPalMe":null,"paymentWebmoney":null},"id":"50812","alias":"Montmorency","fullname":"Андрей Сумин","avatarUrl":null,"speciality":"Руководитель группы бэкенд-разработки @ hh.ru"},"statistics":{"commentsCount":23,"favoritesCount":266,"readingCount":29374,"score":50,"votesCount":56},"hubs":[{"relatedData":null,"id":"5073","alias":"hh","type":"corporative","title":"Блог компании HeadHunter","titleHtml":"Блог компании HeadHunter","isProfiled":false},{"relatedData":null,"id":"375","alias":"java","type":"collective","title":"Java","titleHtml":"Java","isProfiled":true},{"relatedData":null,"id":"22115","alias":"microservices","type":"collective","title":"Микросервисы","titleHtml":"Микросервисы","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EПод капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы докопаться до решения приходилось долго гуглить, читать исходники OpenJDK и даже профилировать сервисы на продакшене. В этой статье я постараюсь передать квинтэссенцию полученного в процессе знания.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#cpu\"\u003ECPU лимиты\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#server-class\"\u003EDocker и server class machine\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#malloc\"\u003ECPU лимиты (да, опять) и фрагментация памяти\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#oom\"\u003EОбрабатываем Java-OOM\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#opt-mem\"\u003EОптимизируем потребление памяти\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#lim-mem-1\"\u003EОграничиваем потребление памяти: heap, non-heap, direct memory\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#lim-mem-2\"\u003EОграничиваем потребление памяти: Native Memory Tracking\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#disks\"\u003EJava и диски\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fhh\u002Fblog\u002F450954#monitor\"\u003EКак за всем уследить?\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Ca name=\"cpu\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003ECPU лимиты\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nРаньше мы жили в kvm-виртуалках с ограничениями CPU и памяти и, переезжая в Docker, выставили похожие ограничения в cgroups. И первой неувязкой, с которой мы столкнулись, были именно CPU лимиты. Сразу скажу, что эта проблема уже не актуальна для свежих версий Java 8 и Java ≥ 10. Если вы идёте в ногу со временем, можете смело пропускать этот раздел.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, мы запускаем небольшой сервис в контейнере и видим, что он плодит огромное количество тредов. Или потребляет CPU гораздо больше, чем ожидалось, таймаутится почём зря. Или вот ещё реальная ситуация: на одной машине сервис нормально запускается, а на другой, с теми же настройками — падает, прибитый OOM-киллером.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазгадка оказывается очень простой — просто Java не видит ограничений \u003Ccode\u003E--cpus\u003C\u002Fcode\u003E, выставленных в докере и считает, что ей доступны все ядра хост-машины. А их может быть очень много (в нашем стандартном сетапе — 80).\u003Cbr\u002F\u003E\r\nБиблиотеки подстраивают размеры тред-пулов под количество доступных процессоров — отсюда огромное количество тредов.\u003Cbr\u002F\u003E\r\nСама Java таким же образом масштабирует количество тредов GC, отсюда потребление CPU и таймауты — сервис начинает тратить большое количество ресурсов на сборку мусора, используя львиную долю отпущенной ему квоты.\u003Cbr\u002F\u003E\r\nТакже библиотеки (в частности Netty) могут в определённых случаях подстраивать размеры офф-хип памяти под количество CPU, что приводит к большой вероятности выхода за выставленные контейнеру лимиты при запуске на более мощном железе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСначала, по мере проявления этой проблемы, мы пытались использовать следующие воркэраунды:\u003Cbr\u002F\u003E\r\n— пробовали использовать в паре сервисов \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fdekobon\u002Flibnumcpus\"\u003Elibnumcpus\u003C\u002Fa\u003E — библиотеку, которая позволяет «обмануть» Java, задав иное число доступных процессоров;\u003Cbr\u002F\u003E\r\n— явно указывали количество GC-тредов,\u003Cbr\u002F\u003E\r\n— явно задавали лимиты на использование direct byte buffers.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо, конечно же, с такими костылями передвигаться не очень удобно, и настоящим решением стал переезд на Java 10 (а затем и Java 11), в котором все эти проблемы \u003Ca href=\"https:\u002F\u002Fbugs.openjdk.java.net\u002Fbrowse\u002FJDK-8146115\"\u003Eотсутствуют\u003C\u002Fa\u003E. Справедливости ради, стоит сказать, что в восьмёрке тоже всё стало хорошо с \u003Ca href=\"https:\u002F\u002Fwww.oracle.com\u002Ftechnetwork\u002Fjava\u002Fjavase\u002F8u191-relnotes-5032181.html#JDK-8146115\"\u003Eапдейта 191\u003C\u002Fa\u003E, выпущенного в октябре 2018 года. К тому времени для нас это было уже неактуально, чего и вам желаю.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто один из примеров, когда обновление версии Java даёт не только моральное удовлетворение, но и реальный ощутимый профит в виде упрощения эксплуатации и повышения производительности сервиса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"server-class\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EDocker и server class machine\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nИтак, в Java 10 появились (и были бекпортированы в Java 8) опции \u003Ccode\u003E-XX:ActiveProcessorCount\u003C\u002Fcode\u003E и \u003Ccode\u003E-XX:+UseContainerSupport\u003C\u002Fcode\u003E, учитывающие по умолчанию лимиты cgroups. Теперь-то всё стало замечательно. Или нет?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧерез некоторое время после того как мы пересели на Java 10 \u002F 11, мы стали замечать некоторые странности. Почему-то в некоторых сервисах графики GC выглядели так, будто в них не использовался G1:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgc\u002F69\u002Fbo\u002Fgc69boghbrkf2wmxiuioszq5qgg.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто было, мягко говоря, немного неожиданно, так как мы точно знали, что G1 является дефолтным коллектором, начиная с Java 9. При этом в каких-то сервисах этой проблемы нет — включается G1, как и ожидалось.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНачинаем разбираться и натыкаемся на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FAdoptOpenJDK\u002Fopenjdk-jdk11\u002Fblob\u002F999dbd4192d0f819cb5224f26e9e7fa75ca6f289\u002Fsrc\u002Fhotspot\u002Fshare\u002Fruntime\u002Fos.cpp#L1627\"\u003Eинтересную вещь\u003C\u002Fa\u003E. Оказывается, если Java запущена меньше чем на 3 процессорах и с лимитом памяти меньше 2 ГБ, то она считает себя клиентской и не даёт использовать ничего, кроме SerialGC.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК слову, это затрагивает только \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FAdoptOpenJDK\u002Fopenjdk-jdk11\u002Fblob\u002F8dba7453f0628759b83d77df87690b95047295a8\u002Fsrc\u002Fhotspot\u002Fshare\u002Fgc\u002Fshared\u002FgcConfig.cpp#L103\"\u003Eвыбор GC\u003C\u002Fa\u003E и никак не связано с параметрами -client \u002F -server и JIT-компиляцией.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОчевидно, когда мы пользовались Java 8, она не учитывала лимиты докера и считала, что у неё много процессоров и памяти. После обновления на Java 10 многие сервисы, у которых лимиты выставлены ниже, внезапно стали использовать SerialGC. К счастью, лечится это очень просто — явным выставлением опции \u003Ccode\u003E-XX:+AlwaysActAsServerClassMachine\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"malloc\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003ECPU лимиты (да, опять) и фрагментация памяти\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nРассматривая графики в мониторинге, мы как-то заметили, что Resident Set Size контейнера чересчур большой — аж в три раза больше чем максимальный размер хипа. Не может ли здесь быть дело в каком-то очередном хитром механизме, который масштабируется по числу процессоров в системе и не знает об ограничениях докера?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОказывается, механизм вовсе не хитрый — это всем хорошо известный malloc из glibc. Если коротко, то в glibc для выделения памяти используются так называемые арены. При создании каждому треду присваивается одна из арен. Когда тред с помощью glibc хочет выделить определённое количество памяти в нативном хипе под свои нужды и вызывает malloc, то память выделяется в присвоенной ему арене. Если арена обслуживает несколько тредов, то эти треды будут за неё конкурировать. Чем больше арен, тем меньше конкуренции, но тем больше фрагментации, так как у каждой арены свой список свободных областей.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа 64-битных системах количество арен по умолчанию выставляется в 8 * количество CPU. Очевидно, для нас это огромный оверхед, потому что контейнеру доступны не все CPU. Более того, для Java-приложений конкуренция за арены не так актуальна, так как большинство аллокаций делается в Java-хипе, память под который можно целиком выделить при старте.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта особенность malloc известна уже \u003Ca href=\"https:\u002F\u002Fwww.ibm.com\u002Fdeveloperworks\u002Fcommunity\u002Fblogs\u002Fkevgrig\u002Fentry\u002Flinux_glibc_2_10_rhel_6_malloc_may_show_excessive_virtual_memory_usage?lang=en\"\u003Eочень\u003C\u002Fa\u003E \u003Ca href=\"https:\u002F\u002Fdevcenter.heroku.com\u002Farticles\u002Ftuning-glibc-memory-behavior#what-value-to-choose-for-malloc_arena_max\"\u003Eдавно\u003C\u002Fa\u003E, как и её решение — использовать переменную окружения \u003Ccode\u003EMALLOC_ARENA_MAX\u003C\u002Fcode\u003E для явного указания числа арен. Это очень легко сделать для любого контейнера. Вот эффект от указания \u003Ccode\u003EMALLOC_ARENA_MAX = 4\u003C\u002Fcode\u003E для нашего основного бэкенда:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjk\u002Fzq\u002Flo\u002Fjkzqlo_pqiu4xppzbe-itkjvviy.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа графике RSS двух инстансов: в одном (синий) включаем \u003Ccode\u003EMALLOC_ARENA_MAX\u003C\u002Fcode\u003E, другой (красный) просто рестартуем. Разница очевидна.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо после этого возникает резонное желание разобраться, на что Java вообще тратит память. Можно ли запустить на Java микросервис с лимитом памяти в 300-400 мегабайт и не бояться, что он упадёт с Java-OOM или не будет прибит системным OOM-киллером?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"oom\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EОбрабатываем Java-OOM\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nПрежде всего, надо подготовиться к тому, что OOM неизбежны, и надо их правильно обрабатывать — как минимум сохранять хип-дампы. Как ни странно, даже в этой простой затее есть свои нюансы. К примеру, хип-дампы не перезаписываются — если уже сохранён хип-дамп с тем же именем, то новый просто не будет создан.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nJava умеет \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FAdoptOpenJDK\u002Fopenjdk-jdk11\u002Fblob\u002F999dbd4192d0f819cb5224f26e9e7fa75ca6f289\u002Fsrc\u002Fhotspot\u002Fshare\u002Fservices\u002FheapDumper.cpp#L2028\"\u003Eавтоматически добавлять\u003C\u002Fa\u003E порядковый номер дампа и process id в название файла, но это нам ничем не поможет. Порядковый номер не пригодится, потому что это OOM, а не штатно запрошенный хипдамп — приложение после него рестартует, обнуляя счётчик. А process id не подходит, так как в докере он всегда одинаковый (чаще всего 1).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоэтому мы пришли к такому варианту:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E-XX:+HeapDumpOnOutOfMemoryError\u003Cbr\u002F\u003E\r\n-XX:+ExitOnOutOfMemoryError\u003Cbr\u002F\u003E\r\n-XX:HeapDumpPath=\u002Fvar\u002Fcrash\u002Fjava.hprof\u003Cbr\u002F\u003E\r\n-XX:OnOutOfMemoryError=\"mv \u002Fvar\u002Fcrash\u002Fjava.hprof \u002Fvar\u002Fcrash\u002Fheapdump.hprof\"\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОн довольно прост и при некоторых доработках можно даже научить хранить его не только последний хипдамп, но для наших нужд и этого более чем достаточно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nJava OOM — это не единственное, с чем нам придётся столкнуться. У каждого контейнера есть ограничение на занимаемую им память, и оно может быть превышено. Если так происходит, то контейнер убивается системным OOM-киллером и рестартует (мы используем \u003Ccode\u003Erestart_policy: always\u003C\u002Fcode\u003E). Естественно, это нежелательно, и мы хотим научиться правильно выставлять лимиты на используемые JVM ресурсы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"opt-mem\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EОптимизируем потребление памяти\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nНо прежде чем настраивать лимиты, нужно убедиться, что JVM не тратит ресурсы впустую. Мы уже сумели сократить потребление памяти с помощью лимита на количество CPU и переменной \u003Ccode\u003EMALLOC_ARENA_MAX\u003C\u002Fcode\u003E. Есть ли ещё какие-то «почти бесплатные» способы это сделать?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОказывается, есть ещё пара трюков, которые позволят сэкономить немного памяти.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервый — это использование опции \u003Ccode\u003E-Xss\u003C\u002Fcode\u003E (или \u003Ccode\u003E-XX:ThreadStackSize\u003C\u002Fcode\u003E), контролирующей размер стека для тредов. По умолчанию для 64-битной JVM это 1 МБ. Мы выяснили, что нам хватает и 512 КБ. StackOverflowException пока из-за этого ни разу не ловили, но допускаю, что подойдёт это далеко не всем. Да и профит от этого совсем небольшой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВторой — флаг \u003Ccode\u003E-XX:+UseStringDeduplication\u003C\u002Fcode\u003E (при включённом G1 GC). Он позволяет сэкономить на памяти, схлопнув дублирующиеся строки за счёт дополнительной нагрузки на процессор. Трейдоф между памятью и CPU зависит только от конкретного приложения и настройки самого механизма дедупликации. Читайте \u003Ca href=\"http:\u002F\u002Fopenjdk.java.net\u002Fjeps\u002F192\"\u003Eдоку\u003C\u002Fa\u003E и тестируйте в своих сервисах, у нас эта опция пока не нашла своего применения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ, наконец, способ, который тоже подойдёт не всем (но нам зашло) — использовать \u003Ca href=\"http:\u002F\u002Fjemalloc.net\u002F\"\u003Ejemalloc\u003C\u002Fa\u003E вместо родного malloc. Эта имплементация заточена на уменьшение фрагментации памяти и лучшую поддержку многопоточности по сравнению с malloc из glibc. Для наших сервисов jemalloc дал немного больше выигрыша по памяти, чем malloc с \u003Ccode\u003EMALLOC_ARENA_MAX=4\u003C\u002Fcode\u003E, при этом не сказавшись сколько-нибудь заметно на производительности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОстальные варианты, в том числе описанные у Алексея Шипилёва в \u003Ca href=\"https:\u002F\u002Fshipilev.net\u002Fjvm\u002Fanatomy-quarks\u002F12-native-memory-tracking\u002F\"\u003EJVM Anatomy Quark #12: Native Memory Tracking\u003C\u002Fa\u003E, показались довольно опасными либо приводили к заметной деградации производительности. Тем не менее, в образовательных целях рекомендую прочесть эту статью.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА пока двинемся к следующей теме и, наконец, попробуем научиться ограничивать потребление памяти и подбирать правильные лимиты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"lim-mem-1\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EОграничиваем потребление памяти: heap, non-heap, direct memory\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nЧтобы всё правильно сделать, надо вспомнить, из чего вообще состоит память в Java. Для начала посмотрим на пулы, состояние которых можно замониторить через JMX.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервое, само собой, \u003Cb\u003Eхип\u003C\u002Fb\u003E. Тут всё просто: задаём \u003Ccode\u003E-Xmx\u003C\u002Fcode\u003E, но как сделать это правильно? К сожалению, универсального рецепта тут нет, всё зависит от приложения и профиля нагрузки. Для новых сервисов мы начинаем с относительно разумного размера хипа (128 Мб) и при необходимости увеличиваем или уменьшаем его. Для поддержки уже существующих есть мониторинг с графиками потребления памяти и метриками GC.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдновременно с \u003Ccode\u003E-Xmx\u003C\u002Fcode\u003E мы выставляем \u003Ccode\u003E-Xms == -Xmx\u003C\u002Fcode\u003E. У нас нет оверселлинга памяти, поэтому в наших интересах, чтобы сервис по максимуму использовал те ресурсы, которые мы ему выдали. В дополнение, в рядовых сервисах мы включаем \u003Ccode\u003E-XX:+AlwaysPreTouch\u003C\u002Fcode\u003E и механизм Transparent Huge Pages: \u003Ccode\u003E-XX:+UseTransparentHugePages -XX:+UseLargePagesInMetaspace\u003C\u002Fcode\u003E. Однако, прежде чем включать THP, внимательно прочитайте \u003Ca href=\"https:\u002F\u002Fwww.kernel.org\u002Fdoc\u002Fhtml\u002Flatest\u002Fadmin-guide\u002Fmm\u002Ftranshuge.html\"\u003Eдокументацию\u003C\u002Fa\u003E и протестируйте, как сервисы ведут себя с этой опцией в течение длительного времени. Не исключены сюрпризы на машинах с недостаточным запасом оперативной памяти (к примеру, нам пришлось выключить THP на тестовых стендах).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее — \u003Cb\u003Enon-heap\u003C\u002Fb\u003E. В non-heap память входят:\u003Cbr\u002F\u003E\r\n— Metaspace и Compressed Class Space,\u003Cbr\u002F\u003E\r\n— Code Cache.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРассмотрим эти пулы по порядку.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПро \u003Cb\u003EMetaspace\u003C\u002Fb\u003E, конечно же, все слышали, не буду подробно про него рассказывать. В нём хранятся метаданные классов, байткод методов и так далее. По сути, использование Metaspace напрямую зависит от числа и размера загруженных классов и определить его можно, как и хип, только запустив приложение и сняв метрики через JMX. По умолчанию Metaspace ничем не ограничен, но сделать это довольно легко с помощью опции \u003Ccode\u003E-XX:MaxMetaspaceSize\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECompressed Class Space\u003C\u002Fb\u003E входит в состав Metaspace и появляется, когда включена опция \u003Ccode\u003E-XX:+UseCompressedClassPointers\u003C\u002Fcode\u003E (включена по умолчанию для хипов меньше 32 ГБ, то есть когда она может дать реальный выигрыш по памяти). Размер этого пула можно ограничить опцией \u003Ccode\u003E-XX:CompressedClassSpaceSize\u003C\u002Fcode\u003E, но особого смысла в этом нет, так как Compressed Class Space включается в Metaspace и суммарный объём закоммиченной памяти для Metaspace и Compressed Class Space в итоге ограничивается одной опцией \u003Ccode\u003E-XX:MaxMetaspaceSize\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКстати, если смотреть на показания JMX, то там объём non-heap памяти всегда рассчитывается как \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FAdoptOpenJDK\u002Fopenjdk-jdk11\u002Fblob\u002F999dbd4192d0f819cb5224f26e9e7fa75ca6f289\u002Fsrc\u002Fhotspot\u002Fshare\u002Fservices\u002Fmanagement.cpp#L724\"\u003Eсумма\u003C\u002Fa\u003E Metaspace, Compressed Class Space и Code Cache. На самом деле надо суммировать только Metaspace и CodeCache.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, в non-heap остался только \u003Cb\u003ECode Cache\u003C\u002Fb\u003E — хранилище скомпилированного JIT-компилятором кода. По умолчанию его максимальный размер выставлен в 240 МБ и для небольших сервисов это в несколько раз больше, чем нужно. Размер Code Cache можно выставить опцией \u003Ccode\u003E-XX:ReservedCodeCacheSize\u003C\u002Fcode\u003E. Правильный размер можно определить, только запустив приложение и проследив за ним под типичным профилем нагрузки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТут важно не ошибиться, так как недостаточный размер Code Cache приводит к удалению из кеша холодного и старого кода (опция \u003Ccode\u003E-XX:+UseCodeCacheFlushing\u003C\u002Fcode\u003E включена по умолчанию), а это, в свою очередь, может привести к более высокому потреблению CPU и к деградации производительности. Было бы здорово, если можно было кидать OOM при переполнении Code Cache, для этого даже есть флаг \u003Ccode\u003E-XX:+ExitOnFullCodeCache\u003C\u002Fcode\u003E, но, к сожалению, он доступен только в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FAdoptOpenJDK\u002Fopenjdk-jdk11\u002Fblob\u002F999dbd4192d0f819cb5224f26e9e7fa75ca6f289\u002Fsrc\u002Fhotspot\u002Fshare\u002Fruntime\u002Fglobals.hpp#L1944\"\u003Eдевелоперской версии\u003C\u002Fa\u003E JVM.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоследний пул, о котором есть информация в JMX, — \u003Cb\u003Edirect memory\u003C\u002Fb\u003E. По умолчанию его размер не ограничен, поэтому важно задать ему какой-то лимит — как минимум на него будут ориентироваться библиотеки вроде Netty, активно использующие direct byte-буфферы. Задать лимит несложно при помощи флага \u003Ccode\u003E-XX:MaxDirectMemorySize\u003C\u002Fcode\u003E, а в определении правильного значения нам, опять же, поможет только мониторинг.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, что у нас пока получается?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003EJava process memory = \n    Heap + Metaspace + Code Cache + Direct Memory =\n        -Xmx +\n        -XX:MaxMetaspaceSize +\n        -XX:ReservedCodeCacheSize +\n        -XX:MaxDirectMemorySize\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДавайте попробуем нарисовать всё на графике и сравнить с RSS докер-контейнера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpg\u002Fue\u002Ffx\u002Fpguefx_0kisoyxg8mna7dxlmimo.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЛиния сверху — это RSS контейнера и он раза в полтора больше, чем потребление памяти JVM, которое мы можем замониторить через JMX.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКопаем дальше!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"lim-mem-2\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EОграничиваем потребление памяти: Native Memory Tracking\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nРазумеется, помимо heap, non-heap и direct memory, JVM использует целую кучу других пулов памяти. Разобраться с ними нам поможет флаг \u003Ccode\u003E-XX:NativeMemoryTracking=summary\u003C\u002Fcode\u003E. Включив эту опцию, мы сможем получать информацию о пулах, известных JVM, но недоступных в JMX. Подробнее об использовании этой опции можно почитать в \u003Ca href=\"https:\u002F\u002Fdocs.oracle.com\u002Fen\u002Fjava\u002Fjavase\u002F12\u002Ftroubleshoot\u002Fdiagnostic-tools.html#GUID-FB0581EA-2F91-4093-B2FA-46687F7AB081\"\u003Eдокументации\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНачнём с самого очевидного — памяти, занимаемой \u003Cb\u003Eстеками тредов\u003C\u002Fb\u003E. NMT выдаёт для нашего сервиса примерно следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003EThread (reserved=32166KB, committed=5358KB)\n    (thread #52)\n    (stack: reserved=31920KB, committed=5112KB)\n    (malloc=185KB #270) \n    (arena=61KB #102)\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКстати, её размер можно узнать и без Native Memory Tracking, воспользовавшись jstack и немного поковырявшись в \u003Ccode\u003E\u002Fproc\u002F&lt;pid\u003E\u002Fsmaps\u003C\u002Fcode\u003E. Андрей Паньгин выкладывал \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fapangin\u002Fjstackmem\"\u003Eспециальную утилиту\u003C\u002Fa\u003E для этого.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазмер \u003Cb\u003EShared Class Space\u003C\u002Fb\u003E оценить ещё проще:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003EShared class space (reserved=17084KB, committed=17084KB)\n    (mmap: reserved=17084KB, committed=17084KB)\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто механизм Class Data Sharing, включаемый опциями \u003Ccode\u003E-Xshare\u003C\u002Fcode\u003E и \u003Ccode\u003E-XX:+UseAppCDS\u003C\u002Fcode\u003E. В Java 11 опция \u003Ccode\u003E-Xshare\u003C\u002Fcode\u003E по умолчанию выставлена в auto, а это значит, что если у вас есть архив \u003Ccode\u003E$JAVA_HOME\u002Flib\u002Fserver\u002Fclasses.jsa\u003C\u002Fcode\u003E (в официальном докер-образе OpenJDK он есть), то он будет загружаться memory map-ом при старте JVM, ускоряя время запуска. Соответственно, размер Shared Class Space легко определить, если вы знаете размер jsa-архивов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее идут нативные структуры \u003Cb\u003Eсборщика мусора\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003EGC (reserved=42137KB, committed=41801KB)\n    (malloc=5705KB #9460) \n    (mmap: reserved=36432KB, committed=36096KB)\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nУ Алексея Шипилёва в уже упомянутом руководстве по Native Memory Tracking \u003Ca href=\"https:\u002F\u002Fshipilev.net\u002Fjvm\u002Fanatomy-quarks\u002F12-native-memory-tracking\u002F#_slimdown_sane_parts\"\u003Eсказано\u003C\u002Fa\u003E, что они занимают примерно 4-5% от размера хипа, но в нашем сетапе для небольших хипов (до нескольких сотен мегабайт) оверхед доходил до 50% от размера хипа.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДовольно много места могут занимать \u003Cb\u003Eтаблицы символов\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003ESymbol (reserved=16421KB, committed=16421KB)\n    (malloc=15261KB #203089) \n    (arena=1159KB #1)\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ них хранятся названия методов, сигнатуры, а также ссылки на интернированные строки. К сожалению, оценить размер таблицы символов представляется возможным только пост-фактум, с помощью Native Memory Tracking.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто остаётся? Согласно Native Memory Tracking довольно много всего:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003ECompiler (reserved=509KB, committed=509KB)\nInternal (reserved=1647KB, committed=1647KB)\nOther (reserved=2110KB, committed=2110KB)\nArena Chunk (reserved=1712KB, committed=1712KB)\nLogging (reserved=6KB, committed=6KB)\nArguments (reserved=19KB, committed=19KB)\nModule (reserved=227KB, committed=227KB)\nUnknown (reserved=32KB, committed=32KB)\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНо на всё это уходит довольно мало места.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК сожалению, многие из упомянутых областей памяти нельзя ни ограничить, ни контролировать, а если и можно было бы, то конфигурация превратилась бы в сущий ад. Даже наблюдение за их состоянием — нетривиальная задача, так как включение Native Memory Tracking немного просаживает производительность приложения и включать его на продакшене в критичном сервисе — не лучшая идея.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВсё же, ради интереса попробуем отразить на графике всё, о чём сообщает Native Memory Tracking:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ft_\u002F5d\u002Fkn\u002Ft_5dkncjh0wrn9qmftrp3wgwg2w.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНеплохо! Оставшаяся разница — это оверхед на фрагментацию \u002F аллокацию памяти (он совсем небольшой, так как мы используем jemalloc) или память, которую выделили нативные либы. Мы как раз пользуемся одной такой для эффективного хранения префиксного дерева.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, для наших нужд достаточно ограничить то, что можно: Heap, Metaspace, Code Cache, Direct Memory. На всё остальное мы оставляем некий разумный задел, определяемый по результатам практических замеров.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазобравшись с CPU и памятью, переходим к следующему ресурсу, за который могут конкурировать приложения — к дискам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"disks\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EJava и диски\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nИ с ними всё очень плохо: они медленные и могут приводить к ощутимым затупам приложения. Поэтому мы максимально отвязываем Java от дисков:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВсе логи приложения мы пишем в локальный сислог по UDP. Это оставляет некоторую вероятность, что нужные логи потеряются где-то по пути, но, как показала практика, такие случаи очень редки.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЛоги JVM будем писать в tmpfs, для этого нужно всего лишь подмонтировать в докере в нужное место волюмом \u003Ccode\u003E\u002Fdev\u002Fshm\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли мы пишем логи в сислог или в tmpfs, а само приложение ничего, кроме хип-дампов, на диск не пишет, то выходит, что на этом историю с дисками можно считать закрытой?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКонечно же, нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбращаем внимание на график длительности stop-the-world пауз и видим печальную картину — Stop-The-World-паузы на хостах по сотням миллисекунд, а на одном хосте вообще могут доходить до секунды:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftf\u002Fnd\u002Fpb\u002Ftfndpbg7mtpaylny7-cflvrukzg.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНадо ли говорить, что это негативно сказывается на работе приложения? Вот, к примеру, график, отражающий время ответа сервиса по мнению клиентов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnc\u002Fd0\u002F_n\u002Fncd0_ndoybiyy42wzrh68ppj-_0.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто очень простой сервис, по большей части отдающий закешированные ответы, так откуда там такие запредельные тайминги, начиная с 95 персентили? В других сервисах аналогичная картина, к тому же с завидным постоянством сыпятся таймауты при взятии коннекшена из пула соединений к базе, при выполнении запросов и так далее.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри чём же тут диски? — спросите вы. Оказывается, очень даже при чём.\u003Cbr\u002F\u003E\r\nДетальный разбор проблемы показал, что долгие STW-паузы возникают из-за того, что треды долго идут до сейфпойнта. Почитав код JVM, мы поняли, что во время синхронизации тредов на сейфпойнте JVM может записывать через memory map файл \u003Ccode\u003E\u002Ftmp\u002Fhsperfdata*\u003C\u002Fcode\u003E, в который она экспортирует некоторую статистику. Этой статистикой пользуются утилиты типа \u003Ccode\u003Ejstat\u003C\u002Fcode\u003E и \u003Ccode\u003Ejps\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОтключаем её на одной машине опцией \u003Ccode\u003E-XX:+PerfDisableSharedMem\u003C\u002Fcode\u003E и…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1r\u002Faw\u002Fq7\u002F1rawq7kjvmrjznko2781or7kzdm.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМетрики тредпула Jetty стабилизируются:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqz\u002Fbs\u002Fpj\u002Fqzbspjvpdjfhjjtbwrn6et55wns.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА персентили времени ответа начинают приходить в норму (повторюсь, это эффект от включения опции только на одной машине):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fni\u002Fig\u002Fji\u002Fniigjizzguoke8dcfdz2ssqnqa8.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТаким образом, благодаря выключению одной опции мы сумели снизить количество таймаутов, количество ретраев, и даже поправить общие персентили времени ответа сайта.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"monitor\"\u003E\u003C\u002Fa\u003E\u003Ch4\u003EКак за всем уследить?\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДля того чтобы поддерживать Java-сервисы в докере, нужно, прежде всего, научиться за ними следить.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы запускаем свои сервисы на базе собственного фреймворка \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fhhru\u002Fnuts-and-bolts\"\u003ENuts and Bolts\u003C\u002Fa\u003E, и поэтому можем обвесить все критичные места нужными нам метриками. В дальнейшем это очень сильно помогает при расследовании инцидентов и вообще в понимании того, как сервис живёт на продакшене. Метрики мы посылаем в статсд, на практике это оказывается более удобно, чем JMX.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПо метрикам мы стараемся строить графики, отражающие внутреннее состояние сервиса и позволяющие быстро диагностировать причины аномалий. Некоторые из подобных графиков я уже приводил в пример выше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы также отправляем в statsd и внутренние метрики JVM, например потребление памяти (heap, верно посчитанный non-heap и общую картину):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fn9\u002Fiw\u002Fvs\u002Fn9iwvsjan7hxeo-xsksaggthrqy.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ частности, это позволяет нам понимать, какие лимиты выставлять для каждого конкретного сервиса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНу и напоследок — как на постоянной основе следить за тем, что лимиты выставлены грамотно, а сервисы, живущие на одном хосте, не мешают друг другу? В этом нам сильно помогает ежедневное нагрузочное тестирование. Так как у нас (пока) два дата-центра, то нагрузочное тестирование настроено так, чтобы увеличивать RPS на сайте вдвое.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМеханизм нагрузочного тестирования очень прост: утром запускается крон, который парсит логи за предыдущий час и формирует из них профиль типичной анонимной нагрузки. К анонимной нагрузке добавляется ряд работодательских и соискательских страниц. После этого профиль нагрузки экспортируется в формат ammo-файлов для \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fyandex\u002Fyandex-tank\"\u003EЯндекс.Танка\u003C\u002Fa\u003E. В заданное время Яндекс.Танк стартует:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqr\u002Fry\u002Fwh\u002Fqrrywh-id3u5lbk7ldms8n-n_ck.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНагрузка автоматически останавливается при превышении небольшого порога пятисоток.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗа время своего существования нагрузочное тестирование позволило нам выявить целый ряд проблем ещё до того, как они зааффектили реальных пользователей. Кроме того, оно даёт нам уверенность в том, что при выпадении одного дата-центра другой, оставшийся в живых, выдержит всю нагрузку.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EВ заключение\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nНаш опыт показывает, что Java в Docker — это не только удобно, но и в итоге довольно экономично. Надо только научиться их готовить.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"java"},{"titleHtml":"java 8"},{"titleHtml":"java 11"},{"titleHtml":"docker"},{"titleHtml":"докер"},{"titleHtml":"highload"},{"titleHtml":"микросервисы"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450954\u002F966dd71ce7707a1d05862c744c50a595\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450954\u002F966dd71ce7707a1d05862c744c50a595\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fhh\\\u002Fblog\\\u002F450954\\\u002F\"},\"headline\":\"Как мы учились эксплуатировать Java в Docker\",\"datePublished\":\"2019-05-31T15:03:19+03:00\",\"dateModified\":\"2019-05-31T19:54:54+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Андрей Сумин\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Под капотом hh.ru &mdash; большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fhh\\\u002Fblog\\\u002F450954\\\u002F#post-content-body\",\"about\":[\"c_hh\",\"h_java\",\"h_microservices\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgc\\\u002F69\\\u002Fbo\\\u002Fgc69boghbrkf2wmxiuioszq5qgg.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjk\\\u002Fzq\\\u002Flo\\\u002Fjkzqlo_pqiu4xppzbe-itkjvviy.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpg\\\u002Fue\\\u002Ffx\\\u002Fpguefx_0kisoyxg8mna7dxlmimo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ft_\\\u002F5d\\\u002Fkn\\\u002Ft_5dkncjh0wrn9qmftrp3wgwg2w.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftf\\\u002Fnd\\\u002Fpb\\\u002Ftfndpbg7mtpaylny7-cflvrukzg.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnc\\\u002Fd0\\\u002F_n\\\u002Fncd0_ndoybiyy42wzrh68ppj-_0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1r\\\u002Faw\\\u002Fq7\\\u002F1rawq7kjvmrjznko2781or7kzdm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqz\\\u002Fbs\\\u002Fpj\\\u002Fqzbspjvpdjfhjjtbwrn6et55wns.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fni\\\u002Fig\\\u002Fji\\\u002Fniigjizzguoke8dcfdz2ssqnqa8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fn9\\\u002Fiw\\\u002Fvs\\\u002Fn9iwvsjan7hxeo-xsksaggthrqy.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqr\\\u002Fry\\\u002Fwh\\\u002Fqrrywh-id3u5lbk7ldms8n-n_ck.png\"]}","metaDescription":"Под капотом hh.ru — большое количество Java-сервисов, запущенных в докер-контейнерах. За время их эксплуатации мы столкнулись с большим количеством нетривиальных проблем. Во многих случаях чтобы...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"hh":{"alias":"hh","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002Ffc5\u002F967\u002F06f\u002Ffc596706fd933f4fdbf8bb4ac5435f5d.jpg","titleHtml":"HeadHunter","descriptionHtml":"HR Digital","relatedData":null,"statistics":{"postsCount":144,"newsCount":0,"vacanciesCount":0,"employeesCount":62,"careerRating":null,"subscribersCount":3716,"rating":170.11,"invest":null},"foundationDate":{"year":"2000","month":"05","day":"23"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fhh.ru","staffNumber":"501–1 000 человек","registrationDate":"2008-08-09T07:42:43+00:00","representativeUser":null,"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fheadhuntergroup"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Fhh_ru"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fheadhunter"},{"title":"Github","url":"https:\u002F\u002Fgithub.com\u002Fhhru"},{"title":"Instagram","url":"https:\u002F\u002Finstagram.com\u002Fhh_ru"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-39616667-7"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F2f5\u002Fe83\u002Fc30\u002F2f5e83c30f413a6dcbddafbffc2df3e7.jpg","linkUrl":"https:\u002F\u002Fwww.youtube.com\u002Fchannel\u002FUCWztYdpQS3v9Gjno8bBZcNA","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"HeadHunter, Москва - HR Digital с 23 мая 2000 г.","title":"HeadHunter, Москва - HR Digital с 23 мая 2000 г.","keywords":["Разработка мобильных приложений","Разработка под Android","Разработка под iOS","Swift","Тестирование IT-систем"],"descriptionHtml":"144 статьи от авторов компании HeadHunter","description":"144 статьи от авторов компании HeadHunter"},"aDeskSettings":null,"careerAlias":"hh","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

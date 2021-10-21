@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>MU-MIMO: один из алгоритмов реализации / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450948\/"},"headline":"MU-MIMO: один из алгоритмов реализации","datePublished":"2019-05-10T09:13:19+03:00","dateModified":"2020-02-28T16:54:09+03:00","author":{"@type":"Person","name":"Владимир Фадеев"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Предисловие В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта...","url":"https:\/\/habr.com\/ru\/post\/450948\/#post-content-body","about":["h_python","h_algorithms","h_wireless","h_popular_science","f_develop","f_admin","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/e9\/_z\/qn\/e9_zqn34rnhwk7ixk9hlydh_mxc.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/f88\/fd2\/c0b\/f88fd2c0b80cc84d9e51837ad2b7e31a.png","https:\/\/habrastorage.org\/webt\/ap\/dx\/ob\/apdxobgsa7ra3jtliedg_ytixsw.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/9c3\/0b6\/48f\/9c30b648fc88c1ec4ce363e1ecc891b8.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/790\/f98\/5f1\/790f985f11719c2994f91faf218ad311.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a6e\/9e8\/594\/a6e9e859437c975082787943cdc40159.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/741\/9e2\/d40\/7419e2d403012fb705132f6b0c8b9168.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/831\/142\/16b\/83114216b181d6f651fc5b9c134e3b59.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/063\/f95\/1d9\/063f951d9b9243054ca1079628374816.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/8e3\/e70\/7b9\/8e3e707b9436fda0f445419cf63cc47e.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d9b\/f5d\/c43\/d9bf5dc433581efb7926abd8144183bc.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/ed1\/69b\/498\/ed169b49882049787979a184ea53ed24.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/262\/9d2\/195\/2629d21955e2a9cd73b9be24a5a947eb.svg","https:\/\/habrastorage.org\/webt\/ys\/as\/qp\/ysasqppxfvitfyixgyhk7wzog_e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/784\/ead\/8de\/784ead8de6b7cb889f51a977394d8d54.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/1b9\/7b3\/681\/1b97b3681cb3a001ac59c7dc75bd3708.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/adc\/3cb\/754\/adc3cb7542b8c2f8e8f0667b0f05aff9.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/804\/c42\/9d4\/804c429d4bd8e4f2577d467481a193bd.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/57d\/648\/e96\/57d648e96a6434f5a9dd0bbd3ef22523.svg","https:\/\/habrastorage.org\/webt\/8b\/8l\/xs\/8b8lxsezoyeae6oyjb5cukuv4em.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/0ff\/bb3\/69d\/0ffbb369de6cd9c08dca17589635879a.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b57\/757\/33e\/b5775733eee82d78f916b8b2782f0aae.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/969\/b3e\/ca0\/969b3eca0690cc4faecb9acbfaba67f9.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/cd2\/a49\/a17\/cd2a49a1779b4e360712e1013ed124a7.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3e1\/8b6\/055\/3e18b605526c6bc1c6016a607707bbf9.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/bc6\/4af\/2b1\/bc64af2b1ae4fc94cfc7893ef5fef35a.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/be2\/c77\/f1d\/be2c77f1d57d23d62a8c2a0738415152.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/09b\/235\/1e6\/09b2351e6aa0f5bb1fd3adae869dc470.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="MU-MIMO: один из алгоритмов реализации" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="MU-MIMO: один из алгоритмов реализации" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="MU-MIMO: один из алгоритмов реализации" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Предисловие
+В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная статья, где он..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Предисловие
+В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная статья, где он..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Предисловие
+В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная статья, где он..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Предисловие
+В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная статья, где он..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Предисловие
+В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная статья, где он..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450948/58c84427bfd4f14eb8bd2fa9c85d6e15/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450948/58c84427bfd4f14eb8bd2fa9c85d6e15/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450948/58c84427bfd4f14eb8bd2fa9c85d6e15/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450948/58c84427bfd4f14eb8bd2fa9c85d6e15/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450948/58c84427bfd4f14eb8bd2fa9c85d6e15/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450948" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-10T06:13:19.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450948/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450948/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450948/58c84427bfd4f14eb8bd2fa9c85d6e15/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/ritchie_kyoto/" title="ritchie_kyoto" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/44d/280/61e/44d28061e68e0f5823cc661c3a3cb03d.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/ritchie_kyoto/" class="tm-user-info__username">
+      ritchie_kyoto
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-10T06:13:19.000Z" title="2019-05-10, 09:13">10  мая  2019 в 09:13</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>MU-MIMO: один из алгоритмов реализации</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/python/" class="tm-article-snippet__hubs-item-link"><span>Python</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/algorithms/" class="tm-article-snippet__hubs-item-link"><span>Алгоритмы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/wireless/" class="tm-article-snippet__hubs-item-link"><span>Беспроводные технологии</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/popular_science/" class="tm-article-snippet__hubs-item-link"><span>Научно-популярное</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><h1 id="predislovie">Предисловие</h1><br/>
+<p>В качестве дополнения к моей <a href="https://habr.com/ru/post/448570/">недавней статье</a> хотелось бы также поговорить о теме MU (<strong>M</strong>ulti <strong>U</strong>ser) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная <a href="https://www.researchgate.net/publication/3318811_Zero-Forcing_Methods_for_Downlink_Spatial_Multiplexing_in_Multiuser_MIMO_Channels" rel="nofollow">статья</a>, где он вместе со своими коллегами предлагает алгоритм разделения пользователей по нисходящему каналу (Down Link) на основе линейных методов, а именно <em>блоковой диагонализации</em> (Block Diagonalization) канала. Статья имеет внушающее <a href="https://scholar.google.ru/scholar?hl=ru&amp;as_sdt=0%2C5&amp;q=Zero-Forcing+Methods+for+Downlink+Spatial+Multiplexing+in+Multiuser+MIMO+Channels&amp;btnG=" rel="nofollow">количество цитирований</a>, а также является краеугольной публикацией для одного из заданий экзамена. Поэтому почему бы и не разобрать основы предлагаемого алгоритма? </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/e9/_z/qn/e9_zqn34rnhwk7ixk9hlydh_mxc.gif"/></p><a name="habracut"></a><br/>
+<h1 id="postanovka-zadachi">Постановка задачи</h1><br/>
+<p>Во-первых, давайте определимся в какой области в тематике MIMO мы будем сейчас работать.<br/>
+Условно, все методы передачи в рамках MIMO технологии можно разделить на две основные группы: </p><br/>
+<ul>
+<li><strong>Пространственное разнесение</strong> (spatial diversity). </li>
+</ul><br/>
+<p>Основной целью является увеличение помехоустойчивости передачи. Пространственные каналы, если упрощенно, дублируют друг друга, за счет чего мы получаем лучшее <strong>качество</strong> передачи. </p><br/>
+<p>Примеры:<br/>
+ — Блочные коды (например, <a href="https://nbviewer.jupyter.org/github/kirlf/CSP/blob/master/MIMO/Alamouti.ipynb" rel="nofollow">схема Аламути</a>);<br/>
+ — Коды, основанные на алгоритме Витерби.</p><br/>
+<ul>
+<li><strong>Пространственное мультиплексирование</strong> (<a href="https://www.mathworks.com/help/comm/examples/spatial-multiplexing.html" rel="nofollow">spatial multiplexing</a>). </li>
+</ul><br/>
+<p>Основной целью является увеличение <strong>скорости</strong> передачи. Мы уже обсуждали в <a href="https://habr.com/ru/post/448570/">предыдущей статье</a>, что при определенных условиях канал MIMO можно рассматривать как ряд параллельных каналов SISO. Собственно говоря, это и есть центральная идея пространственного мультиплексирования: добиться максимального количества независимых информационных потоков. Главная проблема в данном случае — это подавление <em>межканальной интерференции (inter-channel interference)</em>, для чего существуют несколько классов решений:</p><br/>
+<p> — горизонтальное разделение каналов;<br/>
+ — вертикальное (например, алгоритм V-BLAST);<br/>
+ — диагональное (например, алгоритм D-BLAST).</p><br/>
+<p>Но и это, конечно, не всё.</p><br/>
+<p>Идею пространственного мультиплексирования можно расширить: разделять не только каналы, но и пользователей (SDMA — Space Division Multiple Access). </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/f88/fd2/c0b/f88fd2c0b80cc84d9e51837ad2b7e31a.png"/><br/>
+(<a href="https://wifi-solutions.ru/news/20170912/" rel="nofollow">ссылка на источник иллюстрации</a>)</p><br/>
+<p>Следовательно, и бороться в этом случае уже нужно с интерференцией <strong>межпользовательской (inter-user interference)</strong>. Именно для этого и был предложен алгоритм под названием <strong> Block diagonalization Zero-Forcing</strong>, который мы сегодня и рассматриваем.</p><br/>
+<h1 id="matematicheskoe-opisanie">Математическое описание</h1><br/>
+<p>Начнем, как и прежде, с модели принятого сигнала (received signal). А точнее, покажем на схеме что куда и из чего происходит:</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ap/dx/ob/apdxobgsa7ra3jtliedg_ytixsw.png"/></p><br/>
+<p>Канальная матрица в этом случае имеет вид:</p><br/>
+<p></p><div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/9c3/0b6/48f/9c30b648fc88c1ec4ce363e1ecc891b8.svg" alt="\underset{M_R\times M_T} {\mathbf{H}} = \begin{bmatrix} \underset{M_{R1}\times M_T} {\mathbf{H}_1} \\ \underset{M_{R2}\times M_T} {\mathbf{H}_2} \\ . \\ . \\ . \\ \underset{M_{RK}\times M_T} {\mathbf{H}_K} \end{bmatrix} \qquad (1)"/></div><br/>
+<p>при общем числе передающих антенн <img src="https://habrastorage.org/getpro/habr/post_images/790/f98/5f1/790f985f11719c2994f91faf218ad311.svg" alt="M_T"/>, и общем числе приёмных антенн <img src="https://habrastorage.org/getpro/habr/post_images/a6e/9e8/594/a6e9e859437c975082787943cdc40159.svg" alt="M_R  = \sum_{k=1}^K M_{Rk}"/>.</p><br/>
+<blockquote><strong>Важно</strong>:<br/>
+Данный алгоритм может быть применён только при условии того, что количество передающих антенн больше или равно общему количеству приёмных антенн:<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/741/9e2/d40/7419e2d403012fb705132f6b0c8b9168.svg" alt="M_R \leq  M_T"/></div><br/>
+<br/>
+Это условие напрямую влияет на свойства диагонализации.</blockquote><p>Итак, модель принятых символов (сигналов) можно записать в векторном виде как:</p><br/>
+<p></p><div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/831/142/16b/83114216b181d6f651fc5b9c134e3b59.svg" alt="\mathbf{r} = \mathbf{D} \left( \mathbf{H} \mathbf{F} \mathbf{s} + \mathbf{n}\right) \qquad(2)"/></div><br/>
+<p>Однако, интереснее посмотреть на формулу для конкретного пользователя:</p><br/>
+<p></p><div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/063/f95/1d9/063f951d9b9243054ca1079628374816.svg" alt="r_k = \mathbf{D}_k\left(\mathbf{H}_k \mathbf{F}_k s_k + \mathbf{H}_k \sum_{i=1, i\neq k}^K \mathbf{F}_i s_i + n_k \right) \qquad (3)"/></div><br/>
+<p>Собственно говоря:</p><br/>
+<ul>
+<li><p><img src="https://habrastorage.org/getpro/habr/post_images/8e3/e70/7b9/8e3e707b9436fda0f445419cf63cc47e.svg" alt="\mathbf{H}_k \mathbf{F}_k s_k"/> — это полезный сигнал для k-ого пользователя,</p><br/>
+</li>
+<li><p><img src="https://habrastorage.org/getpro/habr/post_images/d9b/f5d/c43/d9bf5dc433581efb7926abd8144183bc.svg" alt="\mathbf{H}_k \sum_{i=1, i\neq k}^K \mathbf{F}_i s_i"/> — это интерференция от других пользователей, </p><br/>
+</li>
+</ul><br/>
+<ul>
+<li><img src="https://habrastorage.org/getpro/habr/post_images/ed1/69b/498/ed169b49882049787979a184ea53ed24.svg" alt="n_k"/> — аддитивный шум.</li>
+</ul><br/>
+<p>Вот мы и подошли к формулировке главной задачи:</p><br/>
+<blockquote>Можно ведь найти такие матрицы <img src="https://habrastorage.org/getpro/habr/post_images/262/9d2/195/2629d21955e2a9cd73b9be24a5a947eb.svg" alt="\mathbf{F}"/>, чтобы интерференционная часть обращалась в ноль!</blockquote><p>Этим мы и займемся.</p><br/>
+<h1 id="opisanie-algoritma">Описание алгоритма</h1><br/>
+<p>Описание проведем на примере, а в качестве иллюстрации я буду приводить скриншоты <a href="https://web.stanford.edu/group/sarg/Presentations/FAM2_Martin_Haardt.pdf" rel="nofollow">из первых рук</a>, немного их комментируя.</p><br/>
+<p>Рассмотрим первого пользователя:</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ys/as/qp/ysasqppxfvitfyixgyhk7wzog_e.png"/></p><br/>
+<p>Проговорим основные шаги:</p><br/>
+<ul>
+<li>Составляем некоторую матрицу <img src="https://habrastorage.org/getpro/habr/post_images/784/ead/8de/784ead8de6b7cb889f51a977394d8d54.svg" alt="\mathbf{\hat{H}_1}"/> из канальных матриц всех остальных пользователей.</li>
+</ul><br/>
+<ul>
+<li><p>Раскладываем её методом <a href="https://en.wikipedia.org/wiki/Singular_value_decomposition" rel="nofollow">SVD</a>.</p><br/>
+</li>
+<li><p>В матрице <img src="https://habrastorage.org/getpro/habr/post_images/1b9/7b3/681/1b97b3681cb3a001ac59c7dc75bd3708.svg" alt="\mathbf{\hat{V}_1}"/> находим шумовое подпространство (null-subspace) — матрицу <img src="https://habrastorage.org/getpro/habr/post_images/adc/3cb/754/adc3cb7542b8c2f8e8f0667b0f05aff9.svg" alt="\mathbf{\hat{V}_1^{(0)}"/> (т.е. всё что выходит за <strong>ранг</strong> матрицы <img src="https://habrastorage.org/getpro/habr/post_images/784/ead/8de/784ead8de6b7cb889f51a977394d8d54.svg" alt="\mathbf{\hat{H}_1}"/> — обозначим его <img src="https://habrastorage.org/getpro/habr/post_images/804/c42/9d4/804c429d4bd8e4f2577d467481a193bd.svg" alt="d"/>). </p><br/>
+</li>
+<li><p>Составляем из этой шумовой матрицы и её эрмитового сопряжения некоторую матрицу проекции <img src="https://habrastorage.org/getpro/habr/post_images/57d/648/e96/57d648e96a6434f5a9dd0bbd3ef22523.svg" alt="\mathbf{P_1}"/>.</p><br/>
+</li>
+</ul><br/>
+<p>Идём дальше:</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/8b/8l/xs/8b8lxsezoyeae6oyjb5cukuv4em.png"/></p><br/>
+<ul>
+<li><p>Теперь уже оригинальную часть канальной матрицы <img src="https://habrastorage.org/getpro/habr/post_images/0ff/bb3/69d/0ffbb369de6cd9c08dca17589635879a.svg" alt="\mathbf{H}_1"/> перемножаем с полученной матрицей проекции <img src="https://habrastorage.org/getpro/habr/post_images/b57/757/33e/b5775733eee82d78f916b8b2782f0aae.svg" alt="\mathbf{P}_1"/>.</p><br/>
+</li>
+<li><p>Раскладываем результат через SVD.</p><br/>
+</li>
+<li><p>В матрице <img src="https://habrastorage.org/getpro/habr/post_images/969/b3e/ca0/969b3eca0690cc4faecb9acbfaba67f9.svg" alt="\mathbf{V_1}^H"/> выбираем <img src="https://habrastorage.org/getpro/habr/post_images/cd2/a49/a17/cd2a49a1779b4e360712e1013ed124a7.svg" alt="r"/> строк, где <img src="https://habrastorage.org/getpro/habr/post_images/cd2/a49/a17/cd2a49a1779b4e360712e1013ed124a7.svg" alt="r"/> — ранг <img src="https://habrastorage.org/getpro/habr/post_images/3e1/8b6/055/3e18b605526c6bc1c6016a607707bbf9.svg" alt="\mathbf{H}_1\mathbf{P}_1"/>.</p><br/>
+</li>
+<li><p>Транспонируем их и получаем матрицу <img src="https://habrastorage.org/getpro/habr/post_images/bc6/4af/2b1/bc64af2b1ae4fc94cfc7893ef5fef35a.svg" alt="\mathbf{F}_1"/> (или <img src="https://habrastorage.org/getpro/habr/post_images/be2/c77/f1d/be2c77f1d57d23d62a8c2a0738415152.svg" alt="\mathbf{M}_1"/> — где как обозначают).</p><br/>
+</li>
+</ul><br/>
+<p>И так эта процедура будет повторяться для каждого пользователя. Не это ли магия математики: используя методы линейной алгебры, решаем вполне технические задачи!</p><br/>
+<blockquote>Отметим, что на практике используются не только полученные матрицы пре-кодирования, но, и матрицы пост-обработки, и матрицы сингулярных значений (см. <a href="https://web.stanford.edu/group/sarg/Presentations/FAM2_Martin_Haardt.pdf" rel="nofollow">слайды</a>). Последние, например, для балансировки мощности по уже знакомому нам алгоритму <a href="https://habr.com/ru/post/448570/"><strong>Water-pouring</strong></a>.</blockquote><br/>
+<h1 id="modeliruem-algoritm">Моделируем алгоритм</h1><br/>
+<p>Я думаю, не будет лишним провести небольшое моделирование, чтобы закрепить результат. Для этого будем использовать Python 3, а именно:</p><br/>
+<pre><code class="python">import numpy as np </code></pre><br/>
+<p>для основных расчетов, и:</p><br/>
+<pre><code class="python">import pandas as pd </code></pre><br/>
+<p>для отображения результата.</p><br/>
+<div class="spoiler"><b class="spoiler_title">Чтобы не нагромождать, помещу исходники сюда</b><div class="spoiler_text"><pre><code class="python">class ZeroForcingBD:
+    def __init__(self, H, Mrs_arr):
+        Mr, Mt = np.shape(H)
+        self.Mr = Mr
+        self.Mt = Mt
+        self.H = H
+        self.Mrs_arr = Mrs_arr
+
+    def __routines(self, H, mr, shift):
+
+        # used in self.process() - See example above for illustration 
+        # inputs: 
+        #       H - the whole channel matrix
+        #       mr - number of receive antennas of the i-th user
+        #       shift - how much receive antennas were considered before
+        # outputs:
+        #       Uidx, Sigmaidx, Vhidx - SVD decomposition of the H_iP_i 
+        #       d - rank of the hat H_i
+        #       Hidx - H_i (channel matrix for the i-th user)
+        #       r - rank of the H_i
+
+        Hidx = H[0+shift:mr+shift,:] # H_i (channel matrix for the i-th user)
+        r = np.linalg.matrix_rank(Hidx) # rank of the H_i
+        del_idx = [i for i in range(0+shift, mr+shift, 1)] # row indeces of H_i in H
+        H_hat_idx = np.delete(H, del_idx, 0) # hat H_i
+        d = np.linalg.matrix_rank(H_hat_idx) # rank of the hat H_i
+        U, Sigma, Vh = np.linalg.svd(H_hat_idx) # SVD
+        Vhn = Vh[d:, :] # null-subspace of V^H
+        Vn = np.matrix(Vhn).H # null-subspace of V
+        Pidx = np.dot(Vn, np.matrix(Vn).H) # projection matrix
+        Uidx, Sigmaidx, Vhidx = np.linalg.svd(np.dot(Hidx, Pidx)) # SVD of H_iP_i 
+        return Uidx, Sigmaidx, Vhidx, d, Hidx, r
+
+    def process(self):
+
+        # used in self.obtain_matrices()
+        # outputs:
+        #       F - whole filtering (pre-coding) matrix (array of arrays)
+        #       D - whole demodulator (post-processing) matrix (array of arrays)
+        #       H - the whole channel matrix (array of arrays)
+
+        shift = 0
+        H = self.H
+        F = []
+        D = []
+        Hs = []
+        for mr in self.Mrs_arr:
+            Uidx, Sigmaidx, Vhidx, d, Hidx, r = self.__routines(H, mr, shift)
+            Vhidx1 = Vhidx[:r,:] # signal subspace
+            Fidx = np.matrix(Vhidx1).H
+            F.append(Fidx)
+            D.append(Uidx)
+            Hs.append(Hidx)
+            shift = shift + mr
+        return F, D, Hs
+
+    def obtain_matrices(self):
+
+        # used to obtain pre-coding and post-processing matrices
+        # outputs:
+        #       FF - whole filtering (pre-coding) matrix 
+        #       DD - whole demodulator (post-processing) matrix (array of arrays)
+
+        F, D, Hs = self.process()
+        FF = np.hstack(F)
+        # Home Task: calculation of the demodulator matrices :)
+        return FF</code></pre></div></div><br/>
+<p>Пусть, у нас имеются 8 передающих антенн и 3 пользователя, у которых 3, 2 и 3 приёмных антенны соответственно:</p><br/>
+<pre><code class="python">Mrs_arr = [3,2,3] 
+# 1st user have 3 receive antennas, 2nd user - 2 receive antennas, 3d user - 3 receive antennas 
+Mr = sum(Mrs_arr) # total number of the receive antennas 
+Mt = 8 # total number of the transmitt antennas
+H = (np.random.randn(Mr,Mt) + 1j*np.random.randn(Mr, Mt))/np.sqrt(2); #Rayleigh flat faded channel matrix (MrxMt)</code></pre><br/>
+<p>Инициализируем наш класс и применяем соответствующие методы:</p><br/>
+<pre><code class="python">BD = ZeroForcingBD(H, Mrs_arr)
+
+F, D, Hs = BD.process()
+FF = BD.obtain_matrices()</code></pre><br/>
+<p>Приводим к читабельному виду:</p><br/>
+<pre><code class="python">df = pd.DataFrame(np.dot(H, FF))
+df[abs(df).lt(1e-14)] = 0</code></pre><br/>
+<p>И немного подрихтуем для наглядности (хотя можно и без этого):</p><br/>
+<pre><code class="python">print(pd.DataFrame(np.round(np.real(df),100)))
+</code></pre><br/>
+<p>Должно получиться нечто такое:</p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/09b/235/1e6/09b2351e6aa0f5bb1fd3adae869dc470.png"/></p><br/>
+<p>Собственно, вот они и блоки, вот она и диагонализация. И минимизация интерференции.</p><br/>
+<p>Такие дела.</p><br/>
+<h1 id="literatura">Литература</h1><br/>
+<ol>
+<li>Spencer, Quentin H., A. Lee Swindlehurst, and Martin Haardt. "Zero-forcing methods for downlink spatial multiplexing in multiuser MIMO channels." IEEE transactions on signal processing 52.2 (2004): 461-471.</li>
+<li>Martin Haard "<a href="https://web.stanford.edu/group/sarg/Presentations/FAM2_Martin_Haardt.pdf" rel="nofollow">Robust Transmit Processing for Multi-User MIMO Systems</a>"</li>
+</ol><br/>
+<p><strong>P.S.</strong></p><br/>
+<p>Преподавательскому составу и студенческой братии <a href="https://griat.kai.ru/communications-and-signal-processing" rel="nofollow">родной специальности</a> передаю привет!</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BMIMO%5D" class="tm-tags-list__link">MIMO</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpython3%5D" class="tm-tags-list__link">python3</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bgriat-csp%5D" class="tm-tags-list__link">griat-csp</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/python/" class="tm-hubs-list__link">
+    Python
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/algorithms/" class="tm-hubs-list__link">
+    Алгоритмы
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/wireless/" class="tm-hubs-list__link">
+    Беспроводные технологии
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/popular_science/" class="tm-hubs-list__link">
+    Научно-популярное
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 15: ↑15 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 15: ↑15 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+15</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">5.3K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    49
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/ritchie_kyoto/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/44d/280/61e/44d28061e68e0f5823cc661c3a3cb03d.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 38 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    34
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Владимир Фадеев</span> <a href="/ru/users/ritchie_kyoto/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @ritchie_kyoto
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Инженер</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450948/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450948/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450948/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450948":{"id":"450948","timePublished":"2019-05-10T06:13:19+00:00","isCorporative":false,"lang":"ru","titleHtml":"MU-MIMO: один из алгоритмов реализации","leadData":{"textHtml":"\u003Ch1 id=\"predislovie\"\u003EПредисловие\u003C\u002Fh1\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВ качестве дополнения к моей \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448570\u002F\"\u003Eнедавней статье\u003C\u002Fa\u003E хотелось бы также поговорить о теме MU (\u003Cstrong\u003EM\u003C\u002Fstrong\u003Eulti \u003Cstrong\u003EU\u003C\u002Fstrong\u003Eser) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная \u003Ca href=\"https:\u002F\u002Fwww.researchgate.net\u002Fpublication\u002F3318811_Zero-Forcing_Methods_for_Downlink_Spatial_Multiplexing_in_Multiuser_MIMO_Channels\" rel=\"nofollow\"\u003Eстатья\u003C\u002Fa\u003E, где он вместе со своими коллегами предлагает алгоритм разделения пользователей по нисходящему каналу (Down Link) на основе линейных методов, а именно \u003Cem\u003Eблоковой диагонализации\u003C\u002Fem\u003E (Block Diagonalization) канала. Статья имеет внушающее \u003Ca href=\"https:\u002F\u002Fscholar.google.ru\u002Fscholar?hl=ru&amp;as_sdt=0%2C5&amp;q=Zero-Forcing+Methods+for+Downlink+Spatial+Multiplexing+in+Multiuser+MIMO+Channels&amp;btnG=\" rel=\"nofollow\"\u003Eколичество цитирований\u003C\u002Fa\u003E, а также является краеугольной публикацией для одного из заданий экзамена. Поэтому почему бы и не разобрать основы предлагаемого алгоритма? \u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fe9\u002F_z\u002Fqn\u002Fe9_zqn34rnhwk7ixk9hlydh_mxc.gif\"\u003E\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше &rarr;","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":34,"votesCount":38},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1455042","alias":"ritchie_kyoto","fullname":"Владимир Фадеев","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F44d\u002F280\u002F61e\u002F44d28061e68e0f5823cc661c3a3cb03d.jpg","speciality":"Инженер"},"statistics":{"commentsCount":0,"favoritesCount":49,"readingCount":5312,"score":15,"votesCount":15},"hubs":[{"relatedData":null,"id":"340","alias":"python","type":"collective","title":"Python","titleHtml":"Python","isProfiled":true},{"relatedData":null,"id":"8000","alias":"algorithms","type":"collective","title":"Алгоритмы","titleHtml":"Алгоритмы","isProfiled":true},{"relatedData":null,"id":"17201","alias":"wireless","type":"collective","title":"Беспроводные технологии","titleHtml":"Беспроводные технологии","isProfiled":true},{"relatedData":null,"id":"21910","alias":"popular_science","type":"collective","title":"Научно-популярное","titleHtml":"Научно-популярное","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Ch1 id=\"predislovie\"\u003EПредисловие\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ качестве дополнения к моей \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448570\u002F\"\u003Eнедавней статье\u003C\u002Fa\u003E хотелось бы также поговорить о теме MU (\u003Cstrong\u003EM\u003C\u002Fstrong\u003Eulti \u003Cstrong\u003EU\u003C\u002Fstrong\u003Eser) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная \u003Ca href=\"https:\u002F\u002Fwww.researchgate.net\u002Fpublication\u002F3318811_Zero-Forcing_Methods_for_Downlink_Spatial_Multiplexing_in_Multiuser_MIMO_Channels\" rel=\"nofollow\"\u003Eстатья\u003C\u002Fa\u003E, где он вместе со своими коллегами предлагает алгоритм разделения пользователей по нисходящему каналу (Down Link) на основе линейных методов, а именно \u003Cem\u003Eблоковой диагонализации\u003C\u002Fem\u003E (Block Diagonalization) канала. Статья имеет внушающее \u003Ca href=\"https:\u002F\u002Fscholar.google.ru\u002Fscholar?hl=ru&amp;as_sdt=0%2C5&amp;q=Zero-Forcing+Methods+for+Downlink+Spatial+Multiplexing+in+Multiuser+MIMO+Channels&amp;btnG=\" rel=\"nofollow\"\u003Eколичество цитирований\u003C\u002Fa\u003E, а также является краеугольной публикацией для одного из заданий экзамена. Поэтому почему бы и не разобрать основы предлагаемого алгоритма? \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fe9\u002F_z\u002Fqn\u002Fe9_zqn34rnhwk7ixk9hlydh_mxc.gif\"\u002F\u003E\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"postanovka-zadachi\"\u003EПостановка задачи\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВо-первых, давайте определимся в какой области в тематике MIMO мы будем сейчас работать.\u003Cbr\u002F\u003E\r\nУсловно, все методы передачи в рамках MIMO технологии можно разделить на две основные группы: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EПространственное разнесение\u003C\u002Fstrong\u003E (spatial diversity). \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОсновной целью является увеличение помехоустойчивости передачи. Пространственные каналы, если упрощенно, дублируют друг друга, за счет чего мы получаем лучшее \u003Cstrong\u003Eкачество\u003C\u002Fstrong\u003E передачи. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПримеры:\u003Cbr\u002F\u003E\r\n — Блочные коды (например, \u003Ca href=\"https:\u002F\u002Fnbviewer.jupyter.org\u002Fgithub\u002Fkirlf\u002FCSP\u002Fblob\u002Fmaster\u002FMIMO\u002FAlamouti.ipynb\" rel=\"nofollow\"\u003Eсхема Аламути\u003C\u002Fa\u003E);\u003Cbr\u002F\u003E\r\n — Коды, основанные на алгоритме Витерби.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EПространственное мультиплексирование\u003C\u002Fstrong\u003E (\u003Ca href=\"https:\u002F\u002Fwww.mathworks.com\u002Fhelp\u002Fcomm\u002Fexamples\u002Fspatial-multiplexing.html\" rel=\"nofollow\"\u003Espatial multiplexing\u003C\u002Fa\u003E). \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОсновной целью является увеличение \u003Cstrong\u003Eскорости\u003C\u002Fstrong\u003E передачи. Мы уже обсуждали в \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448570\u002F\"\u003Eпредыдущей статье\u003C\u002Fa\u003E, что при определенных условиях канал MIMO можно рассматривать как ряд параллельных каналов SISO. Собственно говоря, это и есть центральная идея пространственного мультиплексирования: добиться максимального количества независимых информационных потоков. Главная проблема в данном случае — это подавление \u003Cem\u003Eмежканальной интерференции (inter-channel interference)\u003C\u002Fem\u003E, для чего существуют несколько классов решений:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E — горизонтальное разделение каналов;\u003Cbr\u002F\u003E\r\n — вертикальное (например, алгоритм V-BLAST);\u003Cbr\u002F\u003E\r\n — диагональное (например, алгоритм D-BLAST).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНо и это, конечно, не всё.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИдею пространственного мультиплексирования можно расширить: разделять не только каналы, но и пользователей (SDMA — Space Division Multiple Access). \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff88\u002Ffd2\u002Fc0b\u002Ff88fd2c0b80cc84d9e51837ad2b7e31a.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n(\u003Ca href=\"https:\u002F\u002Fwifi-solutions.ru\u002Fnews\u002F20170912\u002F\" rel=\"nofollow\"\u003Eссылка на источник иллюстрации\u003C\u002Fa\u003E)\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСледовательно, и бороться в этом случае уже нужно с интерференцией \u003Cstrong\u003Eмежпользовательской (inter-user interference)\u003C\u002Fstrong\u003E. Именно для этого и был предложен алгоритм под названием \u003Cstrong\u003E Block diagonalization Zero-Forcing\u003C\u002Fstrong\u003E, который мы сегодня и рассматриваем.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"matematicheskoe-opisanie\"\u003EМатематическое описание\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНачнем, как и прежде, с модели принятого сигнала (received signal). А точнее, покажем на схеме что куда и из чего происходит:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fap\u002Fdx\u002Fob\u002Fapdxobgsa7ra3jtliedg_ytixsw.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКанальная матрица в этом случае имеет вид:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F9c3\u002F0b6\u002F48f\u002F9c30b648fc88c1ec4ce363e1ecc891b8.svg\" alt=\"\\underset{M_R\\times M_T} {\\mathbf{H}} = \\begin{bmatrix} \\underset{M_{R1}\\times M_T} {\\mathbf{H}_1} \\\\ \\underset{M_{R2}\\times M_T} {\\mathbf{H}_2} \\\\ . \\\\ . \\\\ . \\\\ \\underset{M_{RK}\\times M_T} {\\mathbf{H}_K} \\end{bmatrix} \\qquad (1)\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003Eпри общем числе передающих антенн \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F790\u002Ff98\u002F5f1\u002F790f985f11719c2994f91faf218ad311.svg\" alt=\"M_T\"\u002F\u003E, и общем числе приёмных антенн \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa6e\u002F9e8\u002F594\u002Fa6e9e859437c975082787943cdc40159.svg\" alt=\"M_R  = \\sum_{k=1}^K M_{Rk}\"\u002F\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Cstrong\u003EВажно\u003C\u002Fstrong\u003E:\u003Cbr\u002F\u003E\r\nДанный алгоритм может быть применён только при условии того, что количество передающих антенн больше или равно общему количеству приёмных антенн:\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F741\u002F9e2\u002Fd40\u002F7419e2d403012fb705132f6b0c8b9168.svg\" alt=\"M_R \\leq  M_T\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭто условие напрямую влияет на свойства диагонализации.\u003C\u002Fblockquote\u003E\u003Cp\u003EИтак, модель принятых символов (сигналов) можно записать в векторном виде как:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F831\u002F142\u002F16b\u002F83114216b181d6f651fc5b9c134e3b59.svg\" alt=\"\\mathbf{r} = \\mathbf{D} \\left( \\mathbf{H} \\mathbf{F} \\mathbf{s} + \\mathbf{n}\\right) \\qquad(2)\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОднако, интереснее посмотреть на формулу для конкретного пользователя:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003C\u002Fp\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F063\u002Ff95\u002F1d9\u002F063f951d9b9243054ca1079628374816.svg\" alt=\"r_k = \\mathbf{D}_k\\left(\\mathbf{H}_k \\mathbf{F}_k s_k + \\mathbf{H}_k \\sum_{i=1, i\\neq k}^K \\mathbf{F}_i s_i + n_k \\right) \\qquad (3)\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСобственно говоря:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F8e3\u002Fe70\u002F7b9\u002F8e3e707b9436fda0f445419cf63cc47e.svg\" alt=\"\\mathbf{H}_k \\mathbf{F}_k s_k\"\u002F\u003E — это полезный сигнал для k-ого пользователя,\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd9b\u002Ff5d\u002Fc43\u002Fd9bf5dc433581efb7926abd8144183bc.svg\" alt=\"\\mathbf{H}_k \\sum_{i=1, i\\neq k}^K \\mathbf{F}_i s_i\"\u002F\u003E — это интерференция от других пользователей, \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fed1\u002F69b\u002F498\u002Fed169b49882049787979a184ea53ed24.svg\" alt=\"n_k\"\u002F\u003E — аддитивный шум.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВот мы и подошли к формулировке главной задачи:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EМожно ведь найти такие матрицы \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F262\u002F9d2\u002F195\u002F2629d21955e2a9cd73b9be24a5a947eb.svg\" alt=\"\\mathbf{F}\"\u002F\u003E, чтобы интерференционная часть обращалась в ноль!\u003C\u002Fblockquote\u003E\u003Cp\u003EЭтим мы и займемся.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"opisanie-algoritma\"\u003EОписание алгоритма\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОписание проведем на примере, а в качестве иллюстрации я буду приводить скриншоты \u003Ca href=\"https:\u002F\u002Fweb.stanford.edu\u002Fgroup\u002Fsarg\u002FPresentations\u002FFAM2_Martin_Haardt.pdf\" rel=\"nofollow\"\u003Eиз первых рук\u003C\u002Fa\u003E, немного их комментируя.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРассмотрим первого пользователя:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fys\u002Fas\u002Fqp\u002Fysasqppxfvitfyixgyhk7wzog_e.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПроговорим основные шаги:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EСоставляем некоторую матрицу \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F784\u002Fead\u002F8de\u002F784ead8de6b7cb889f51a977394d8d54.svg\" alt=\"\\mathbf{\\hat{H}_1}\"\u002F\u003E из канальных матриц всех остальных пользователей.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EРаскладываем её методом \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FSingular_value_decomposition\" rel=\"nofollow\"\u003ESVD\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВ матрице \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F1b9\u002F7b3\u002F681\u002F1b97b3681cb3a001ac59c7dc75bd3708.svg\" alt=\"\\mathbf{\\hat{V}_1}\"\u002F\u003E находим шумовое подпространство (null-subspace) — матрицу \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fadc\u002F3cb\u002F754\u002Fadc3cb7542b8c2f8e8f0667b0f05aff9.svg\" alt=\"\\mathbf{\\hat{V}_1^{(0)}\"\u002F\u003E (т.е. всё что выходит за \u003Cstrong\u003Eранг\u003C\u002Fstrong\u003E матрицы \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F784\u002Fead\u002F8de\u002F784ead8de6b7cb889f51a977394d8d54.svg\" alt=\"\\mathbf{\\hat{H}_1}\"\u002F\u003E — обозначим его \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F804\u002Fc42\u002F9d4\u002F804c429d4bd8e4f2577d467481a193bd.svg\" alt=\"d\"\u002F\u003E). \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоставляем из этой шумовой матрицы и её эрмитового сопряжения некоторую матрицу проекции \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F57d\u002F648\u002Fe96\u002F57d648e96a6434f5a9dd0bbd3ef22523.svg\" alt=\"\\mathbf{P_1}\"\u002F\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИдём дальше:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8b\u002F8l\u002Fxs\u002F8b8lxsezoyeae6oyjb5cukuv4em.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EТеперь уже оригинальную часть канальной матрицы \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F0ff\u002Fbb3\u002F69d\u002F0ffbb369de6cd9c08dca17589635879a.svg\" alt=\"\\mathbf{H}_1\"\u002F\u003E перемножаем с полученной матрицей проекции \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb57\u002F757\u002F33e\u002Fb5775733eee82d78f916b8b2782f0aae.svg\" alt=\"\\mathbf{P}_1\"\u002F\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EРаскладываем результат через SVD.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВ матрице \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F969\u002Fb3e\u002Fca0\u002F969b3eca0690cc4faecb9acbfaba67f9.svg\" alt=\"\\mathbf{V_1}^H\"\u002F\u003E выбираем \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcd2\u002Fa49\u002Fa17\u002Fcd2a49a1779b4e360712e1013ed124a7.svg\" alt=\"r\"\u002F\u003E строк, где \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcd2\u002Fa49\u002Fa17\u002Fcd2a49a1779b4e360712e1013ed124a7.svg\" alt=\"r\"\u002F\u003E — ранг \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F3e1\u002F8b6\u002F055\u002F3e18b605526c6bc1c6016a607707bbf9.svg\" alt=\"\\mathbf{H}_1\\mathbf{P}_1\"\u002F\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EТранспонируем их и получаем матрицу \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fbc6\u002F4af\u002F2b1\u002Fbc64af2b1ae4fc94cfc7893ef5fef35a.svg\" alt=\"\\mathbf{F}_1\"\u002F\u003E (или \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fbe2\u002Fc77\u002Ff1d\u002Fbe2c77f1d57d23d62a8c2a0738415152.svg\" alt=\"\\mathbf{M}_1\"\u002F\u003E — где как обозначают).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ так эта процедура будет повторяться для каждого пользователя. Не это ли магия математики: используя методы линейной алгебры, решаем вполне технические задачи!\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EОтметим, что на практике используются не только полученные матрицы пре-кодирования, но, и матрицы пост-обработки, и матрицы сингулярных значений (см. \u003Ca href=\"https:\u002F\u002Fweb.stanford.edu\u002Fgroup\u002Fsarg\u002FPresentations\u002FFAM2_Martin_Haardt.pdf\" rel=\"nofollow\"\u003Eслайды\u003C\u002Fa\u003E). Последние, например, для балансировки мощности по уже знакомому нам алгоритму \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448570\u002F\"\u003E\u003Cstrong\u003EWater-pouring\u003C\u002Fstrong\u003E\u003C\u002Fa\u003E.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"modeliruem-algoritm\"\u003EМоделируем алгоритм\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЯ думаю, не будет лишним провести небольшое моделирование, чтобы закрепить результат. Для этого будем использовать Python 3, а именно:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Eimport numpy as np \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003Eдля основных расчетов, и:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Eimport pandas as pd \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003Eдля отображения результата.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EЧтобы не нагромождать, помещу исходники сюда\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"python\"\u003Eclass ZeroForcingBD:\n    def __init__(self, H, Mrs_arr):\n        Mr, Mt = np.shape(H)\n        self.Mr = Mr\n        self.Mt = Mt\n        self.H = H\n        self.Mrs_arr = Mrs_arr\n\n    def __routines(self, H, mr, shift):\n\n        # used in self.process() - See example above for illustration \n        # inputs: \n        #       H - the whole channel matrix\n        #       mr - number of receive antennas of the i-th user\n        #       shift - how much receive antennas were considered before\n        # outputs:\n        #       Uidx, Sigmaidx, Vhidx - SVD decomposition of the H_iP_i \n        #       d - rank of the hat H_i\n        #       Hidx - H_i (channel matrix for the i-th user)\n        #       r - rank of the H_i\n\n        Hidx = H[0+shift:mr+shift,:] # H_i (channel matrix for the i-th user)\n        r = np.linalg.matrix_rank(Hidx) # rank of the H_i\n        del_idx = [i for i in range(0+shift, mr+shift, 1)] # row indeces of H_i in H\n        H_hat_idx = np.delete(H, del_idx, 0) # hat H_i\n        d = np.linalg.matrix_rank(H_hat_idx) # rank of the hat H_i\n        U, Sigma, Vh = np.linalg.svd(H_hat_idx) # SVD\n        Vhn = Vh[d:, :] # null-subspace of V^H\n        Vn = np.matrix(Vhn).H # null-subspace of V\n        Pidx = np.dot(Vn, np.matrix(Vn).H) # projection matrix\n        Uidx, Sigmaidx, Vhidx = np.linalg.svd(np.dot(Hidx, Pidx)) # SVD of H_iP_i \n        return Uidx, Sigmaidx, Vhidx, d, Hidx, r\n\n    def process(self):\n\n        # used in self.obtain_matrices()\n        # outputs:\n        #       F - whole filtering (pre-coding) matrix (array of arrays)\n        #       D - whole demodulator (post-processing) matrix (array of arrays)\n        #       H - the whole channel matrix (array of arrays)\n\n        shift = 0\n        H = self.H\n        F = []\n        D = []\n        Hs = []\n        for mr in self.Mrs_arr:\n            Uidx, Sigmaidx, Vhidx, d, Hidx, r = self.__routines(H, mr, shift)\n            Vhidx1 = Vhidx[:r,:] # signal subspace\n            Fidx = np.matrix(Vhidx1).H\n            F.append(Fidx)\n            D.append(Uidx)\n            Hs.append(Hidx)\n            shift = shift + mr\n        return F, D, Hs\n\n    def obtain_matrices(self):\n\n        # used to obtain pre-coding and post-processing matrices\n        # outputs:\n        #       FF - whole filtering (pre-coding) matrix \n        #       DD - whole demodulator (post-processing) matrix (array of arrays)\n\n        F, D, Hs = self.process()\n        FF = np.hstack(F)\n        # Home Task: calculation of the demodulator matrices :)\n        return FF\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПусть, у нас имеются 8 передающих антенн и 3 пользователя, у которых 3, 2 и 3 приёмных антенны соответственно:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003EMrs_arr = [3,2,3] \n# 1st user have 3 receive antennas, 2nd user - 2 receive antennas, 3d user - 3 receive antennas \nMr = sum(Mrs_arr) # total number of the receive antennas \nMt = 8 # total number of the transmitt antennas\nH = (np.random.randn(Mr,Mt) + 1j*np.random.randn(Mr, Mt))\u002Fnp.sqrt(2); #Rayleigh flat faded channel matrix (MrxMt)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИнициализируем наш класс и применяем соответствующие методы:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003EBD = ZeroForcingBD(H, Mrs_arr)\n\nF, D, Hs = BD.process()\nFF = BD.obtain_matrices()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПриводим к читабельному виду:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Edf = pd.DataFrame(np.dot(H, FF))\ndf[abs(df).lt(1e-14)] = 0\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ немного подрихтуем для наглядности (хотя можно и без этого):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"python\"\u003Eprint(pd.DataFrame(np.round(np.real(df),100)))\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДолжно получиться нечто такое:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F09b\u002F235\u002F1e6\u002F09b2351e6aa0f5bb1fd3adae869dc470.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСобственно, вот они и блоки, вот она и диагонализация. И минимизация интерференции.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТакие дела.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1 id=\"literatura\"\u003EЛитература\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003ESpencer, Quentin H., A. Lee Swindlehurst, and Martin Haardt. \"Zero-forcing methods for downlink spatial multiplexing in multiuser MIMO channels.\" IEEE transactions on signal processing 52.2 (2004): 461-471.\u003C\u002Fli\u003E\r\n\u003Cli\u003EMartin Haard \"\u003Ca href=\"https:\u002F\u002Fweb.stanford.edu\u002Fgroup\u002Fsarg\u002FPresentations\u002FFAM2_Martin_Haardt.pdf\" rel=\"nofollow\"\u003ERobust Transmit Processing for Multi-User MIMO Systems\u003C\u002Fa\u003E\"\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EP.S.\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПреподавательскому составу и студенческой братии \u003Ca href=\"https:\u002F\u002Fgriat.kai.ru\u002Fcommunications-and-signal-processing\" rel=\"nofollow\"\u003Eродной специальности\u003C\u002Fa\u003E передаю привет!\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"MIMO"},{"titleHtml":"python3"},{"titleHtml":"griat-csp"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450948\u002F58c84427bfd4f14eb8bd2fa9c85d6e15\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450948\u002F58c84427bfd4f14eb8bd2fa9c85d6e15\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450948\\\u002F\"},\"headline\":\"MU-MIMO: один из алгоритмов реализации\",\"datePublished\":\"2019-05-10T09:13:19+03:00\",\"dateModified\":\"2020-02-28T16:54:09+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Владимир Фадеев\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Предисловие В качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450948\\\u002F#post-content-body\",\"about\":[\"h_python\",\"h_algorithms\",\"h_wireless\",\"h_popular_science\",\"f_develop\",\"f_admin\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fe9\\\u002F_z\\\u002Fqn\\\u002Fe9_zqn34rnhwk7ixk9hlydh_mxc.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ff88\\\u002Ffd2\\\u002Fc0b\\\u002Ff88fd2c0b80cc84d9e51837ad2b7e31a.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fap\\\u002Fdx\\\u002Fob\\\u002Fapdxobgsa7ra3jtliedg_ytixsw.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F9c3\\\u002F0b6\\\u002F48f\\\u002F9c30b648fc88c1ec4ce363e1ecc891b8.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F790\\\u002Ff98\\\u002F5f1\\\u002F790f985f11719c2994f91faf218ad311.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa6e\\\u002F9e8\\\u002F594\\\u002Fa6e9e859437c975082787943cdc40159.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F741\\\u002F9e2\\\u002Fd40\\\u002F7419e2d403012fb705132f6b0c8b9168.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F831\\\u002F142\\\u002F16b\\\u002F83114216b181d6f651fc5b9c134e3b59.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F063\\\u002Ff95\\\u002F1d9\\\u002F063f951d9b9243054ca1079628374816.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F8e3\\\u002Fe70\\\u002F7b9\\\u002F8e3e707b9436fda0f445419cf63cc47e.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd9b\\\u002Ff5d\\\u002Fc43\\\u002Fd9bf5dc433581efb7926abd8144183bc.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fed1\\\u002F69b\\\u002F498\\\u002Fed169b49882049787979a184ea53ed24.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F262\\\u002F9d2\\\u002F195\\\u002F2629d21955e2a9cd73b9be24a5a947eb.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fys\\\u002Fas\\\u002Fqp\\\u002Fysasqppxfvitfyixgyhk7wzog_e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F784\\\u002Fead\\\u002F8de\\\u002F784ead8de6b7cb889f51a977394d8d54.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F1b9\\\u002F7b3\\\u002F681\\\u002F1b97b3681cb3a001ac59c7dc75bd3708.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fadc\\\u002F3cb\\\u002F754\\\u002Fadc3cb7542b8c2f8e8f0667b0f05aff9.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F804\\\u002Fc42\\\u002F9d4\\\u002F804c429d4bd8e4f2577d467481a193bd.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F57d\\\u002F648\\\u002Fe96\\\u002F57d648e96a6434f5a9dd0bbd3ef22523.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8b\\\u002F8l\\\u002Fxs\\\u002F8b8lxsezoyeae6oyjb5cukuv4em.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F0ff\\\u002Fbb3\\\u002F69d\\\u002F0ffbb369de6cd9c08dca17589635879a.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb57\\\u002F757\\\u002F33e\\\u002Fb5775733eee82d78f916b8b2782f0aae.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F969\\\u002Fb3e\\\u002Fca0\\\u002F969b3eca0690cc4faecb9acbfaba67f9.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fcd2\\\u002Fa49\\\u002Fa17\\\u002Fcd2a49a1779b4e360712e1013ed124a7.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3e1\\\u002F8b6\\\u002F055\\\u002F3e18b605526c6bc1c6016a607707bbf9.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fbc6\\\u002F4af\\\u002F2b1\\\u002Fbc64af2b1ae4fc94cfc7893ef5fef35a.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fbe2\\\u002Fc77\\\u002Ff1d\\\u002Fbe2c77f1d57d23d62a8c2a0738415152.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F09b\\\u002F235\\\u002F1e6\\\u002F09b2351e6aa0f5bb1fd3adae869dc470.png\"]}","metaDescription":"Предисловие\r\nВ качестве дополнения к моей недавней статье хотелось бы также поговорить о теме MU (Multi User) MIMO. Есть у мною уже упомянутого профессора Хаардта одна очень известная статья, где он...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"python,algorithms,wireless,popular_science"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

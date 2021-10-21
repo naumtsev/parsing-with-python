@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как зависит перевод термина trunk от вендора коммутаторов? / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450494\/"},"headline":"Как зависит перевод термина trunk от вендора коммутаторов?","datePublished":"2019-05-04T14:24:12+03:00","dateModified":"2019-05-04T16:32:34+03:00","author":{"@type":"Person","name":"Evgeniy V. Bartov"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина &ldquo;trunk&rdquo;...","url":"https:\/\/habr.com\/ru\/post\/450494\/#post-content-body","about":["h_network_technologies","h_terminator","h_learning_languages","f_management","f_admin","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/pj\/tl\/rn\/pjtlrnlzx8tjtmledbbt3oeg-q4.png","https:\/\/habrastorage.org\/webt\/h7\/hx\/oc\/h7hxoc735j8macgeujku_5bd8de.png","https:\/\/habrastorage.org\/webt\/ny\/48\/15\/ny4815e8pkfbpg5dhojgnqu9d4k.png","https:\/\/habrastorage.org\/webt\/yd\/au\/yh\/ydauyhk8h_rhh7eeb5uii8ialrm.png","https:\/\/habrastorage.org\/webt\/xf\/qz\/w9\/xfqzw9uagcdn3e6rsehz4x6ehfy.png","https:\/\/habrastorage.org\/webt\/p7\/of\/6c\/p7of6c0ovwc1h3553-onndhrynk.png","https:\/\/habrastorage.org\/webt\/x_\/7y\/ac\/x_7yac4y8ichgopz5ds8bfbjcma.png","https:\/\/habrastorage.org\/webt\/gv\/ad\/hj\/gvadhjp6qymtx1ntksjbpex8cpk.png","https:\/\/habrastorage.org\/webt\/jr\/2a\/g0\/jr2ag0dxrtcod0j-nhxmcrpxxhi.jpeg","https:\/\/habrastorage.org\/webt\/4o\/7g\/0k\/4o7g0kf5mqtyri6r_x-2_afxkue.png","https:\/\/habrastorage.org\/webt\/gn\/lf\/5q\/gnlf5qqhp8jfjnuzz1te02egtby.png","https:\/\/habrastorage.org\/webt\/ta\/ub\/aj\/taubaj6cs_vkpakqo0ckhtqitpu.png","https:\/\/habrastorage.org\/webt\/lo\/je\/op\/lojeopiap1tgzr7buvkevs_0-du.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как зависит перевод термина trunk от вендора коммутаторов?" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как зависит перевод термина trunk от вендора коммутаторов?" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как зависит перевод термина trunk от вендора коммутаторов?" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина “trunk” нужно обязательно учитывать, чьей..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина “trunk” нужно обязательно учитывать, чьей..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина “trunk” нужно обязательно учитывать, чьей..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина “trunk” нужно обязательно учитывать, чьей..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина “trunk” нужно обязательно учитывать, чьей..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450494/09b1db61fd873483e3ad6cc7b4b5164e/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450494/09b1db61fd873483e3ad6cc7b4b5164e/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450494/09b1db61fd873483e3ad6cc7b4b5164e/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450494/09b1db61fd873483e3ad6cc7b4b5164e/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450494/09b1db61fd873483e3ad6cc7b4b5164e/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450494" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-04T11:24:12.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450494/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450494/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450494/09b1db61fd873483e3ad6cc7b4b5164e/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450494/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/bartov-e/" title="bartov-e" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/55c/5e7/69a/55c5e769a3d8271413cea6f5989a11d9.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/bartov-e/" class="tm-user-info__username">
+      bartov-e
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-04T11:24:12.000Z" title="2019-05-04, 14:24">4  мая  2019 в 14:24</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как зависит перевод термина trunk от вендора коммутаторов?</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/network_technologies/" class="tm-article-snippet__hubs-item-link"><span>Сетевые технологии</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/terminator/" class="tm-article-snippet__hubs-item-link"><span>Терминология IT</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/learning_languages/" class="tm-article-snippet__hubs-item-link"><span>Изучение языков</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина <strong>“trunk”</strong> нужно обязательно учитывать, чьей трактовки придерживается вендор — <strong>Cisco</strong> или <strong>HP</strong>, ибо между ними очень разный технический смысл. </p><br/>
+<p>Давайте разбираться.</p><br/>
+<hr/><br/>
+<p>Рассмотрим проблему на следующих примерах:</p><br/>
+<p><strong>1. Cisco</strong></p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/pj/tl/rn/pjtlrnlzx8tjtmledbbt3oeg-q4.png"/></p><br/>
+<p><strong>2. HP</strong></p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/h7/hx/oc/h7hxoc735j8macgeujku_5bd8de.png"/></p><br/>
+<p>Внимательный читатель обратит внимание, что <strong>“trunk”</strong> в этих примерах имеет разное значение.</p><br/>
+<p>Будем «копать».</p><a name="habracut"></a><br/>
+<h2 id="versiya-cisco">Версия Cisco</h2><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ny/48/15/ny4815e8pkfbpg5dhojgnqu9d4k.png"/></p><br/>
+<p><strong>Cisco</strong> под “<strong>trunk</strong>’ом” понимает <em>канал типа “точка-точка”</em> <em>(канал связи, напрямую соединяющий два устройства)</em>, который соединяет коммутатор и другое сетевое устройство, например еще один коммутатор или маршрутизатор. Его задача – <em>передавать трафик нескольких VLAN через один канал и обеспечивать им доступ ко всей сети</em>. В простонародии называется <strong>«транком»</strong>, что логично. </p><br/>
+<h3 id="princip-deystviya">Принцип действия</h3><br/>
+<h4 id="nachnem-s-togo-chto-takoe-vlan"><strong>Начнем с того, что такое VLAN?</strong></h4><br/>
+<p><strong>VLAN</strong> расшифровывается как <em>Virtual local area network</em> или виртуальная локальная сеть. Это технология, которая позволяет разделить одну физическую сеть на несколько логических, работающих независимо друг от друга. Например, есть на предприятии <strong>отдел кадров</strong>, <strong>бухгалтерия</strong> и <strong>IT-отдел</strong>. У них есть свои коммутаторы, которые соединены через центральный коммутатор в единую сеть, и вот сети этих отделов и нужно отделить друг от друга. Тогда-то на помощь и приходит технология VLAN. </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/yd/au/yh/ydauyhk8h_rhh7eeb5uii8ialrm.png"/></p><br/>
+<p><em>Так выглядит сеть, разделенная на VLAN’ы (виртуальные сети).</em></p><br/>
+<p>Часто для обозначения VLAN’а используют разные цвета. </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/xf/qz/w9/xfqzw9uagcdn3e6rsehz4x6ehfy.png"/></p><br/>
+<p>Так порты, обозначенные зеленым цветом, входят в один VLAN, а порты, обозначенные красным цветом, в другой. Тогда компьютеры, которые находятся в одном VLAN’е, могут взаимодействовать <strong>только друг с другом</strong>, а с компьютерами, входящими в другой VLAN, не могут. </p><br/>
+<h4 id="peremeny-v-tablice-kommutacii-v-vlan"><strong>Перемены в таблице коммутации в VLAN</strong></h4><br/>
+<p>При создании VLAN’ов в таблицу коммутации у коммутаторов добавляется еще одно поле, в котором указываются идентификаторы VLAN. Упрощенно это выглядит так: </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/p7/of/6c/p7of6c0ovwc1h3553-onndhrynk.png"/></p><br/>
+<p><em>Тут мы видим, что порты 1 и 2 принадлежат VLAN’у 2, а порты 3 и 4 – VLAN’у 10.</em></p><br/>
+<p>Идем дальше. На канальном уровне данные передаются в виде кадров (<em>фреймов</em>). При передаче кадров от одного коммутатора к другому нужна информация о том, к какому VLAN’у принадлежит тот или иной кадр. Эту информацию добавляют в передаваемый кадр. На данный момент для этой цели используют открытый стандарт <strong>IEEE 802.1Q</strong>. <strong>Пошаговая эволюция кадра в VLAN</strong></p><br/>
+<ol>
+<li>Компьютер генерирует и отправляет обычный кадр <em>(фрейм, он же пакет канального уровня, т.е. уровня коммутаторов)</em>, ничего не добавляя. Этот кадр выглядит так:</li>
+</ol><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/x_/7y/ac/x_7yac4y8ichgopz5ds8bfbjcma.png"/></p><br/>
+<ol>
+<li>Коммутатор получает кадр. В соответствии с таблицей коммутации, он понимает, с какого компьютера пришел кадр, и к какому VLAN’у принадлежит этот компьютер. Тогда коммутатор сам добавляет в кадр служебную информацию, так называемый <em>тег.</em> Тег – это поле после MAC-адреса отправителя, в котором содержится, грубо говоря, номер VLAN’а. Так выглядит кадр с тегом:</li>
+</ol><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gv/ad/hj/gvadhjp6qymtx1ntksjbpex8cpk.png"/></p><br/>
+<p>Затем коммутатор отправляет этот кадр на другой коммутатор. </p><br/>
+<ol>
+<li><p>Коммутатор, который принимает кадр, извлекает из него информацию о VLAN, то есть понимает, на какой компьютер нужно передать этот кадр, удаляет всю служебную информацию из кадра и передает его на компьютер получателя.</p><br/>
+</li>
+<li><p>На компьютер получателя приходит кадр уже без служебной информации.</p><br/>
+</li>
+</ol><br/>
+<p>Теперь возвращаемся к нашему “<strong>trunk</strong>’у”. Порты коммутатора, поддерживающие VLAN можно разделить на две группы:</p><br/>
+<ol>
+<li>Тегированные порты (или <em>trunk-порты</em> у <strong>Cisco</strong>)</li>
+<li>Нетегированные порты (или <em>access порты</em>)</li>
+</ol><br/>
+<p>Нас интересуют тегированные порты или trunk-порты. Они как раз и служат для того, чтобы через <strong>один порт</strong> можно было передавать данные, принадлежащие к <strong>разным VLAN</strong> и получать данные нескольких VLAN на один порт <em>(мы помним, что обычно порты из разных VLAN друг друга не видят)</em>. </p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/jr/2a/g0/jr2ag0dxrtcod0j-nhxmcrpxxhi.jpeg" data-src="https://habrastorage.org/webt/jr/2a/g0/jr2ag0dxrtcod0j-nhxmcrpxxhi.jpeg" data-blurred="true"/></p><br/>
+<p>На этом рисунке тегированными являются порты номер <strong>21</strong> и <strong>22</strong>, которые соединяют два коммутатора. Через них и будут проходить кадры, например, от компьютера <strong>Е</strong> к компьютеру <strong>А</strong>, которые находятся в одном VLAN’е, по схеме, которая описана выше. </p><br/>
+<p>Так вот, канал связи между этими портами у <strong>Cisco</strong> как раз и называется “<strong>trunk</strong>’ом”. </p><br/>
+<h2 id="versiya-hp">Версия <strong>HP</strong></h2><br/>
+<p><strong>Как в компании интерпретируют этот термин?</strong> </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/4o/7g/0k/4o7g0kf5mqtyri6r_x-2_afxkue.png"/></p><br/>
+<p>Здесь вообще речь про VLAN не идет. В случае с <strong>HP</strong> мы говорим о технологии агрегирования каналов. У них <strong>“trunk”</strong> – это <em>логический канал</em>, который объединяет в себе <em>несколько физических каналов</em>. Подобное объединение позволяет увеличить пропускную способность и надежность канала. Разберем на примере. Допустим, у нас есть два коммутатора, у каждого из которых есть по четыре порта и эти порты соединены между собой четырьмя проводами. </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gn/lf/5q/gnlf5qqhp8jfjnuzz1te02egtby.png"/></p><br/>
+<p>Если оставить все как есть — просто соединения между коммутаторами, — то эти соединения будут передавать кадры друг дружке по кругу, т. е. образовывать <em>петли</em> <em>(причем широковещательные кадры будут раз за разом дублироваться, вводя коммутаторы в широковещательный шторм)</em>. </p><br/>
+<p>Такие дублирующие соединения считаются <em>избыточными</em>, и их необходимо устранять, для этой цели существует протокол STP (Spanning Tree Protocol). Тогда из наших четырех соединений STP выключит три, потому что посчитает их избыточными, и останется всего одно соединение. </p><br/>
+<p>Так вот, в случае же, если мы объединим эти четыре физических канала, между коммутаторами будет один логический канал с увеличенной пропускной способностью (<em>максимальной скоростью передачи информации по каналу связи в единицу времени</em>). Т. е. задействованы сразу четыре канала, и проблема с избыточными соединениями решена. Вот именно этот логический (агрегированный) канал и называется у <strong>HP</strong> “<strong>trunk</strong>’ом”. </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ta/ub/aj/taubaj6cs_vkpakqo0ckhtqitpu.png"/></p><br/>
+<p>Агрегирование каналов можно настроить между двумя коммутаторами, коммутатором и маршрутизатором. В один логический канал можно объединить до восьми физических. Важно, чтобы все порты, которые объединяются в агрегированный канал, имели одинаковые параметры:</p><br/>
+<ul>
+<li>тип среды передачи <em>(витая пара, оптоволокно и т. д.)</em>,</li>
+<li>скорость,</li>
+<li>режим flow control и duplex.</li>
+</ul><br/>
+<p>Если один из портов в агрегированном канале выйдет из строя, канал продолжит работать. Порты агрегированного канал воспринимаются как единое целое, что соответствует идее логического канала. </p><br/>
+<p>И для полного прояснения картины отметим, что такая технология у <strong>Cisco</strong> называется <strong><em>EtherChannel</em></strong>. <strong><em>EtherChannel</em></strong> – технология агрегирования каналов, разработанная <strong>Cisco</strong>. Смысл тот же, позволяет объединять несколько физических каналов Ethernet в один логический. </p><br/>
+<p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/lo/je/op/lojeopiap1tgzr7buvkevs_0-du.png"/></p><br/>
+<hr/><br/>
+<p>Таким образом, термин <strong>trunk</strong> переводится в зависимости от контекста следующим образом:</p><br/>
+<ul>
+<li><p>в документации по коммутаторам <strong>Cisco</strong> — <em>транковый порт, тегированный порт, trunk-порт</em>;</p><br/>
+</li>
+<li><p>в документации по коммутаторам <strong>HP</strong> — <em>агрегированный порт, агрегированный канал</em>.</p><br/>
+<p>На случай, если захочется разобраться в теме более детально, ниже небольшой список источников. </p><br/>
+</li>
+<li><p><em>Cisco:</em> <a href="https://content.cisco.com/chapter.sjs?uri=/searchable/chapter/content/en/us/td/docs/switches/lan/catalyst3850/software/release/3se/vlan/configuration_guide/b_vlan_3se_3850_cg/b_vlan_3se_3850_cg_chapter_0110.html.xml&amp;searchurl=https%3A%2F%2Fsearch.cisco.com%2Fsearch%3Fquery%3Dtrunk%26locale%3DenUS%26bizcontext%3D%26cat%3D%26mode%3Dtext%26clktyp%3Denter%26autosuggest%3Dfalse&amp;dtid=osscdc000283">https://content.cisco.com/chapter.sjs?uri=/searchable/chapter/content/en/us/td/docs/switches/lan/catalyst3850/software/release/3se/vlan/configuration_guide/b_vlan_3se_3850_cg/b_vlan_3se_3850_cg_chapter_0110.html.xml&amp;searchurl=https%3A%2F%2Fsearch.cisco.com%2Fsearch%3Fquery%3Dtrunk%26locale%3DenUS%26bizcontext%3D%26cat%3D%26mode%3Dtext%26clktyp%3Denter%26autosuggest%3Dfalse&amp;dtid=osscdc000283 </a> (или так: <a href="https://bitly.su/OC4VB7">https://bitly.su/OC4VB7)</a></p><br/>
+</li>
+<li><p><em>HP:</em> <a href="http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/WB/15-18/5998-8162_wb_2920_mcg/content/ch04.html">http://h22208.www2.hpe.com/eginfolib/networking/docs/switches/WB/15-18/5998-8162_wb_2920_mcg/content/ch04.html</a></p><br/>
+</li>
+<li><p><em>VLAN:</em> <a href="http://xgu.ru/wiki/VLAN#.D0.A2.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D1.82.D1.80.D0.B0.D1.84.D0.B8.D0.BA.D0.B0_VLAN">http://xgu.ru/wiki/VLAN#.D0.A2.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D1.82.D1.80.D0.B0.D1.84.D0.B8.D0.BA.D0.B0_VLAN</a></p><br/>
+</li>
+<li><p><em>Агрегирование каналов:</em> <a href="http://xgu.ru/wiki/%D0%90%D0%B3%D1%80%D0%B5%D0%B3%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5_%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%BE%D0%B2#.D0.90.D0.B3.D1.80.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D0.BA.D0.B0.D0.BD.D0.B0.D0.BB.D0.BE.D0.B2_.D0.B2_ProCurve">http://xgu.ru/wiki/%D0%90%D0%B3%D1%80%D0%B5%D0%B3%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5<em>%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%BE%D0%B2#.D0.90.D0.B3.D1.80.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5</em>.D0.BA.D0.B0.D0.BD.D0.B0.D0.BB.D0.BE.D0.B2_.D0.B2_ProCurve</a></p><br/>
+</li>
+</ul></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%B8%D0%B9%20%D1%8F%D0%B7%D1%8B%D0%BA%5D" class="tm-tags-list__link">английский язык</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D0%B5%D1%80%D0%BC%D0%B8%D0%BD%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F%5D" class="tm-tags-list__link">терминология</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80%5D" class="tm-tags-list__link">коммутатор</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D0%B5%D1%80%D0%B5%D0%B2%D0%BE%D0%B4%20%D1%81%20%D0%B0%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B3%D0%BE%5D" class="tm-tags-list__link">перевод с английского</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D0%B5%D1%80%D0%B5%D0%B2%D0%BE%D0%B4%20%D0%B8%20%D0%B0%D0%B4%D0%B0%D0%BF%D1%82%D0%B0%D1%86%D0%B8%D1%8F%5D" class="tm-tags-list__link">перевод и адаптация</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/network_technologies/" class="tm-hubs-list__link">
+    Сетевые технологии
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/terminator/" class="tm-hubs-list__link">
+    Терминология IT
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/learning_languages/" class="tm-hubs-list__link">
+    Изучение языков
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 27: ↑24 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 27: ↑24 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+21</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">9.8K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    54
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/bartov-e/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/55c/5e7/69a/55c5e769a3d8271413cea6f5989a11d9.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 51 голос " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    39
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Evgeniy V. Bartov</span> <a href="/ru/users/bartov-e/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @bartov-e
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">ИТ/ИБ переводчик</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="http://tran.su/blog/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a><a href="https://facebook.com/evbartov" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://vk.com/bartov_e" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://telegram.me/alliancepro" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a><a href="https://telegram.me/bartov_e" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450494/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 28 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450494/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450494/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450494":{"id":"450494","timePublished":"2019-05-04T11:24:12+00:00","isCorporative":false,"lang":"ru","titleHtml":"Как зависит перевод термина trunk от вендора коммутаторов?","leadData":{"textHtml":"\u003Cp\u003EНа эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина \u003Cstrong\u003E“trunk”\u003C\u002Fstrong\u003E нужно обязательно учитывать, чьей трактовки придерживается вендор — \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E или \u003Cstrong\u003EHP\u003C\u002Fstrong\u003E, ибо между ними очень разный технический смысл. \u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EДавайте разбираться.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Chr\u003E\u003Cbr\u003E\r\n\u003Cp\u003EРассмотрим проблему на следующих примерах:\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003E\u003Cstrong\u003E1. Cisco\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpj\u002Ftl\u002Frn\u002Fpjtlrnlzx8tjtmledbbt3oeg-q4.png\"\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003E\u003Cstrong\u003E2. HP\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fh7\u002Fhx\u002Foc\u002Fh7hxoc735j8macgeujku_5bd8de.png\"\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВнимательный читатель обратит внимание, что \u003Cstrong\u003E“trunk”\u003C\u002Fstrong\u003E в этих примерах имеет разное значение.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EБудем «копать».\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":39,"votesCount":51},"rating":0,"relatedData":null,"contacts":[{"title":"Сайт","url":"http:\u002F\u002Ftran.su\u002Fblog\u002F","value":"http:\u002F\u002Ftran.su\u002Fblog\u002F"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fevbartov","value":"evbartov"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fbartov_e","value":"bartov_e"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Falliancepro","value":"alliancepro"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fbartov_e","value":"bartov_e"}],"authorContacts":[{"title":"Сайт","url":"http:\u002F\u002Ftran.su\u002Fblog\u002F","value":"http:\u002F\u002Ftran.su\u002Fblog\u002F"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fevbartov","value":"evbartov"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Fbartov_e","value":"bartov_e"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Falliancepro","value":"alliancepro"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fbartov_e","value":"bartov_e"}],"paymentDetails":{"paymentYandexMoney":"410015263835117","paymentPayPalMe":null,"paymentWebmoney":"584884558569"},"id":"1960435","alias":"bartov-e","fullname":"Evgeniy V. Bartov","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F55c\u002F5e7\u002F69a\u002F55c5e769a3d8271413cea6f5989a11d9.png","speciality":"ИТ\u002FИБ переводчик"},"statistics":{"commentsCount":28,"favoritesCount":54,"readingCount":9762,"score":21,"votesCount":27},"hubs":[{"relatedData":null,"id":"17123","alias":"network_technologies","type":"collective","title":"Сетевые технологии","titleHtml":"Сетевые технологии","isProfiled":true},{"relatedData":null,"id":"19019","alias":"terminator","type":"collective","title":"Терминология IT","titleHtml":"Терминология IT","isProfiled":false},{"relatedData":null,"id":"22006","alias":"learning_languages","type":"collective","title":"Изучение языков","titleHtml":"Изучение языков","isProfiled":false}],"flows":[{"id":"3","alias":"management","title":"Менеджмент"},{"id":"6","alias":"admin","title":"Администрирование"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EНа эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина \u003Cstrong\u003E“trunk”\u003C\u002Fstrong\u003E нужно обязательно учитывать, чьей трактовки придерживается вендор — \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E или \u003Cstrong\u003EHP\u003C\u002Fstrong\u003E, ибо между ними очень разный технический смысл. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДавайте разбираться.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Chr\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРассмотрим проблему на следующих примерах:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003E1. Cisco\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fpj\u002Ftl\u002Frn\u002Fpjtlrnlzx8tjtmledbbt3oeg-q4.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003E2. HP\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fh7\u002Fhx\u002Foc\u002Fh7hxoc735j8macgeujku_5bd8de.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВнимательный читатель обратит внимание, что \u003Cstrong\u003E“trunk”\u003C\u002Fstrong\u003E в этих примерах имеет разное значение.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EБудем «копать».\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"versiya-cisco\"\u003EВерсия Cisco\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fny\u002F48\u002F15\u002Fny4815e8pkfbpg5dhojgnqu9d4k.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E под “\u003Cstrong\u003Etrunk\u003C\u002Fstrong\u003E’ом” понимает \u003Cem\u003Eканал типа “точка-точка”\u003C\u002Fem\u003E \u003Cem\u003E(канал связи, напрямую соединяющий два устройства)\u003C\u002Fem\u003E, который соединяет коммутатор и другое сетевое устройство, например еще один коммутатор или маршрутизатор. Его задача – \u003Cem\u003Eпередавать трафик нескольких VLAN через один канал и обеспечивать им доступ ко всей сети\u003C\u002Fem\u003E. В простонародии называется \u003Cstrong\u003E«транком»\u003C\u002Fstrong\u003E, что логично. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"princip-deystviya\"\u003EПринцип действия\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"nachnem-s-togo-chto-takoe-vlan\"\u003E\u003Cstrong\u003EНачнем с того, что такое VLAN?\u003C\u002Fstrong\u003E\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EVLAN\u003C\u002Fstrong\u003E расшифровывается как \u003Cem\u003EVirtual local area network\u003C\u002Fem\u003E или виртуальная локальная сеть. Это технология, которая позволяет разделить одну физическую сеть на несколько логических, работающих независимо друг от друга. Например, есть на предприятии \u003Cstrong\u003Eотдел кадров\u003C\u002Fstrong\u003E, \u003Cstrong\u003Eбухгалтерия\u003C\u002Fstrong\u003E и \u003Cstrong\u003EIT-отдел\u003C\u002Fstrong\u003E. У них есть свои коммутаторы, которые соединены через центральный коммутатор в единую сеть, и вот сети этих отделов и нужно отделить друг от друга. Тогда-то на помощь и приходит технология VLAN. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyd\u002Fau\u002Fyh\u002Fydauyhk8h_rhh7eeb5uii8ialrm.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cem\u003EТак выглядит сеть, разделенная на VLAN’ы (виртуальные сети).\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЧасто для обозначения VLAN’а используют разные цвета. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fxf\u002Fqz\u002Fw9\u002Fxfqzw9uagcdn3e6rsehz4x6ehfy.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТак порты, обозначенные зеленым цветом, входят в один VLAN, а порты, обозначенные красным цветом, в другой. Тогда компьютеры, которые находятся в одном VLAN’е, могут взаимодействовать \u003Cstrong\u003Eтолько друг с другом\u003C\u002Fstrong\u003E, а с компьютерами, входящими в другой VLAN, не могут. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"peremeny-v-tablice-kommutacii-v-vlan\"\u003E\u003Cstrong\u003EПеремены в таблице коммутации в VLAN\u003C\u002Fstrong\u003E\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПри создании VLAN’ов в таблицу коммутации у коммутаторов добавляется еще одно поле, в котором указываются идентификаторы VLAN. Упрощенно это выглядит так: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fp7\u002Fof\u002F6c\u002Fp7of6c0ovwc1h3553-onndhrynk.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cem\u003EТут мы видим, что порты 1 и 2 принадлежат VLAN’у 2, а порты 3 и 4 – VLAN’у 10.\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИдем дальше. На канальном уровне данные передаются в виде кадров (\u003Cem\u003Eфреймов\u003C\u002Fem\u003E). При передаче кадров от одного коммутатора к другому нужна информация о том, к какому VLAN’у принадлежит тот или иной кадр. Эту информацию добавляют в передаваемый кадр. На данный момент для этой цели используют открытый стандарт \u003Cstrong\u003EIEEE 802.1Q\u003C\u002Fstrong\u003E. \u003Cstrong\u003EПошаговая эволюция кадра в VLAN\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EКомпьютер генерирует и отправляет обычный кадр \u003Cem\u003E(фрейм, он же пакет канального уровня, т.е. уровня коммутаторов)\u003C\u002Fem\u003E, ничего не добавляя. Этот кадр выглядит так:\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fx_\u002F7y\u002Fac\u002Fx_7yac4y8ichgopz5ds8bfbjcma.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EКоммутатор получает кадр. В соответствии с таблицей коммутации, он понимает, с какого компьютера пришел кадр, и к какому VLAN’у принадлежит этот компьютер. Тогда коммутатор сам добавляет в кадр служебную информацию, так называемый \u003Cem\u003Eтег.\u003C\u002Fem\u003E Тег – это поле после MAC-адреса отправителя, в котором содержится, грубо говоря, номер VLAN’а. Так выглядит кадр с тегом:\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgv\u002Fad\u002Fhj\u002Fgvadhjp6qymtx1ntksjbpex8cpk.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗатем коммутатор отправляет этот кадр на другой коммутатор. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Cp\u003EКоммутатор, который принимает кадр, извлекает из него информацию о VLAN, то есть понимает, на какой компьютер нужно передать этот кадр, удаляет всю служебную информацию из кадра и передает его на компьютер получателя.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EНа компьютер получателя приходит кадр уже без служебной информации.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь возвращаемся к нашему “\u003Cstrong\u003Etrunk\u003C\u002Fstrong\u003E’у”. Порты коммутатора, поддерживающие VLAN можно разделить на две группы:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EТегированные порты (или \u003Cem\u003Etrunk-порты\u003C\u002Fem\u003E у \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E)\u003C\u002Fli\u003E\r\n\u003Cli\u003EНетегированные порты (или \u003Cem\u003Eaccess порты\u003C\u002Fem\u003E)\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНас интересуют тегированные порты или trunk-порты. Они как раз и служат для того, чтобы через \u003Cstrong\u003Eодин порт\u003C\u002Fstrong\u003E можно было передавать данные, принадлежащие к \u003Cstrong\u003Eразным VLAN\u003C\u002Fstrong\u003E и получать данные нескольких VLAN на один порт \u003Cem\u003E(мы помним, что обычно порты из разных VLAN друг друга не видят)\u003C\u002Fem\u003E. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fjr\u002F2a\u002Fg0\u002Fjr2ag0dxrtcod0j-nhxmcrpxxhi.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjr\u002F2a\u002Fg0\u002Fjr2ag0dxrtcod0j-nhxmcrpxxhi.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа этом рисунке тегированными являются порты номер \u003Cstrong\u003E21\u003C\u002Fstrong\u003E и \u003Cstrong\u003E22\u003C\u002Fstrong\u003E, которые соединяют два коммутатора. Через них и будут проходить кадры, например, от компьютера \u003Cstrong\u003EЕ\u003C\u002Fstrong\u003E к компьютеру \u003Cstrong\u003EА\u003C\u002Fstrong\u003E, которые находятся в одном VLAN’е, по схеме, которая описана выше. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТак вот, канал связи между этими портами у \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E как раз и называется “\u003Cstrong\u003Etrunk\u003C\u002Fstrong\u003E’ом”. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"versiya-hp\"\u003EВерсия \u003Cstrong\u003EHP\u003C\u002Fstrong\u003E\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EКак в компании интерпретируют этот термин?\u003C\u002Fstrong\u003E \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F4o\u002F7g\u002F0k\u002F4o7g0kf5mqtyri6r_x-2_afxkue.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗдесь вообще речь про VLAN не идет. В случае с \u003Cstrong\u003EHP\u003C\u002Fstrong\u003E мы говорим о технологии агрегирования каналов. У них \u003Cstrong\u003E“trunk”\u003C\u002Fstrong\u003E – это \u003Cem\u003Eлогический канал\u003C\u002Fem\u003E, который объединяет в себе \u003Cem\u003Eнесколько физических каналов\u003C\u002Fem\u003E. Подобное объединение позволяет увеличить пропускную способность и надежность канала. Разберем на примере. Допустим, у нас есть два коммутатора, у каждого из которых есть по четыре порта и эти порты соединены между собой четырьмя проводами. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgn\u002Flf\u002F5q\u002Fgnlf5qqhp8jfjnuzz1te02egtby.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕсли оставить все как есть — просто соединения между коммутаторами, — то эти соединения будут передавать кадры друг дружке по кругу, т. е. образовывать \u003Cem\u003Eпетли\u003C\u002Fem\u003E \u003Cem\u003E(причем широковещательные кадры будут раз за разом дублироваться, вводя коммутаторы в широковещательный шторм)\u003C\u002Fem\u003E. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТакие дублирующие соединения считаются \u003Cem\u003Eизбыточными\u003C\u002Fem\u003E, и их необходимо устранять, для этой цели существует протокол STP (Spanning Tree Protocol). Тогда из наших четырех соединений STP выключит три, потому что посчитает их избыточными, и останется всего одно соединение. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТак вот, в случае же, если мы объединим эти четыре физических канала, между коммутаторами будет один логический канал с увеличенной пропускной способностью (\u003Cem\u003Eмаксимальной скоростью передачи информации по каналу связи в единицу времени\u003C\u002Fem\u003E). Т. е. задействованы сразу четыре канала, и проблема с избыточными соединениями решена. Вот именно этот логический (агрегированный) канал и называется у \u003Cstrong\u003EHP\u003C\u002Fstrong\u003E “\u003Cstrong\u003Etrunk\u003C\u002Fstrong\u003E’ом”. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fta\u002Fub\u002Faj\u002Ftaubaj6cs_vkpakqo0ckhtqitpu.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EАгрегирование каналов можно настроить между двумя коммутаторами, коммутатором и маршрутизатором. В один логический канал можно объединить до восьми физических. Важно, чтобы все порты, которые объединяются в агрегированный канал, имели одинаковые параметры:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eтип среды передачи \u003Cem\u003E(витая пара, оптоволокно и т. д.)\u003C\u002Fem\u003E,\u003C\u002Fli\u003E\r\n\u003Cli\u003Eскорость,\u003C\u002Fli\u003E\r\n\u003Cli\u003Eрежим flow control и duplex.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕсли один из портов в агрегированном канале выйдет из строя, канал продолжит работать. Порты агрегированного канал воспринимаются как единое целое, что соответствует идее логического канала. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ для полного прояснения картины отметим, что такая технология у \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E называется \u003Cstrong\u003E\u003Cem\u003EEtherChannel\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E. \u003Cstrong\u003E\u003Cem\u003EEtherChannel\u003C\u002Fem\u003E\u003C\u002Fstrong\u003E – технология агрегирования каналов, разработанная \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E. Смысл тот же, позволяет объединять несколько физических каналов Ethernet в один логический. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flo\u002Fje\u002Fop\u002Flojeopiap1tgzr7buvkevs_0-du.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Chr\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТаким образом, термин \u003Cstrong\u003Etrunk\u003C\u002Fstrong\u003E переводится в зависимости от контекста следующим образом:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003Eв документации по коммутаторам \u003Cstrong\u003ECisco\u003C\u002Fstrong\u003E — \u003Cem\u003Eтранковый порт, тегированный порт, trunk-порт\u003C\u002Fem\u003E;\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003Eв документации по коммутаторам \u003Cstrong\u003EHP\u003C\u002Fstrong\u003E — \u003Cem\u003Eагрегированный порт, агрегированный канал\u003C\u002Fem\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа случай, если захочется разобраться в теме более детально, ниже небольшой список источников. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Cem\u003ECisco:\u003C\u002Fem\u003E \u003Ca href=\"https:\u002F\u002Fcontent.cisco.com\u002Fchapter.sjs?uri=\u002Fsearchable\u002Fchapter\u002Fcontent\u002Fen\u002Fus\u002Ftd\u002Fdocs\u002Fswitches\u002Flan\u002Fcatalyst3850\u002Fsoftware\u002Frelease\u002F3se\u002Fvlan\u002Fconfiguration_guide\u002Fb_vlan_3se_3850_cg\u002Fb_vlan_3se_3850_cg_chapter_0110.html.xml&amp;searchurl=https%3A%2F%2Fsearch.cisco.com%2Fsearch%3Fquery%3Dtrunk%26locale%3DenUS%26bizcontext%3D%26cat%3D%26mode%3Dtext%26clktyp%3Denter%26autosuggest%3Dfalse&amp;dtid=osscdc000283\"\u003Ehttps:\u002F\u002Fcontent.cisco.com\u002Fchapter.sjs?uri=\u002Fsearchable\u002Fchapter\u002Fcontent\u002Fen\u002Fus\u002Ftd\u002Fdocs\u002Fswitches\u002Flan\u002Fcatalyst3850\u002Fsoftware\u002Frelease\u002F3se\u002Fvlan\u002Fconfiguration_guide\u002Fb_vlan_3se_3850_cg\u002Fb_vlan_3se_3850_cg_chapter_0110.html.xml&amp;searchurl=https%3A%2F%2Fsearch.cisco.com%2Fsearch%3Fquery%3Dtrunk%26locale%3DenUS%26bizcontext%3D%26cat%3D%26mode%3Dtext%26clktyp%3Denter%26autosuggest%3Dfalse&amp;dtid=osscdc000283 \u003C\u002Fa\u003E (или так: \u003Ca href=\"https:\u002F\u002Fbitly.su\u002FOC4VB7\"\u003Ehttps:\u002F\u002Fbitly.su\u002FOC4VB7)\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Cem\u003EHP:\u003C\u002Fem\u003E \u003Ca href=\"http:\u002F\u002Fh22208.www2.hpe.com\u002Feginfolib\u002Fnetworking\u002Fdocs\u002Fswitches\u002FWB\u002F15-18\u002F5998-8162_wb_2920_mcg\u002Fcontent\u002Fch04.html\"\u003Ehttp:\u002F\u002Fh22208.www2.hpe.com\u002Feginfolib\u002Fnetworking\u002Fdocs\u002Fswitches\u002FWB\u002F15-18\u002F5998-8162_wb_2920_mcg\u002Fcontent\u002Fch04.html\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Cem\u003EVLAN:\u003C\u002Fem\u003E \u003Ca href=\"http:\u002F\u002Fxgu.ru\u002Fwiki\u002FVLAN#.D0.A2.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D1.82.D1.80.D0.B0.D1.84.D0.B8.D0.BA.D0.B0_VLAN\"\u003Ehttp:\u002F\u002Fxgu.ru\u002Fwiki\u002FVLAN#.D0.A2.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D1.82.D1.80.D0.B0.D1.84.D0.B8.D0.BA.D0.B0_VLAN\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E\u003Cem\u003EАгрегирование каналов:\u003C\u002Fem\u003E \u003Ca href=\"http:\u002F\u002Fxgu.ru\u002Fwiki\u002F%D0%90%D0%B3%D1%80%D0%B5%D0%B3%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5_%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%BE%D0%B2#.D0.90.D0.B3.D1.80.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5_.D0.BA.D0.B0.D0.BD.D0.B0.D0.BB.D0.BE.D0.B2_.D0.B2_ProCurve\"\u003Ehttp:\u002F\u002Fxgu.ru\u002Fwiki\u002F%D0%90%D0%B3%D1%80%D0%B5%D0%B3%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5\u003Cem\u003E%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%BE%D0%B2#.D0.90.D0.B3.D1.80.D0.B5.D0.B3.D0.B8.D1.80.D0.BE.D0.B2.D0.B0.D0.BD.D0.B8.D0.B5\u003C\u002Fem\u003E.D0.BA.D0.B0.D0.BD.D0.B0.D0.BB.D0.BE.D0.B2_.D0.B2_ProCurve\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"английский язык"},{"titleHtml":"терминология"},{"titleHtml":"коммутатор"},{"titleHtml":"перевод с английского"},{"titleHtml":"перевод и адаптация"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450494\u002F09b1db61fd873483e3ad6cc7b4b5164e\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450494\u002F09b1db61fd873483e3ad6cc7b4b5164e\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450494\\\u002F\"},\"headline\":\"Как зависит перевод термина trunk от вендора коммутаторов?\",\"datePublished\":\"2019-05-04T14:24:12+03:00\",\"dateModified\":\"2019-05-04T16:32:34+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Evgeniy V. Bartov\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина &ldquo;trunk&rdquo;...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450494\\\u002F#post-content-body\",\"about\":[\"h_network_technologies\",\"h_terminator\",\"h_learning_languages\",\"f_management\",\"f_admin\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fpj\\\u002Ftl\\\u002Frn\\\u002Fpjtlrnlzx8tjtmledbbt3oeg-q4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fh7\\\u002Fhx\\\u002Foc\\\u002Fh7hxoc735j8macgeujku_5bd8de.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fny\\\u002F48\\\u002F15\\\u002Fny4815e8pkfbpg5dhojgnqu9d4k.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyd\\\u002Fau\\\u002Fyh\\\u002Fydauyhk8h_rhh7eeb5uii8ialrm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fxf\\\u002Fqz\\\u002Fw9\\\u002Fxfqzw9uagcdn3e6rsehz4x6ehfy.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fp7\\\u002Fof\\\u002F6c\\\u002Fp7of6c0ovwc1h3553-onndhrynk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fx_\\\u002F7y\\\u002Fac\\\u002Fx_7yac4y8ichgopz5ds8bfbjcma.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgv\\\u002Fad\\\u002Fhj\\\u002Fgvadhjp6qymtx1ntksjbpex8cpk.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjr\\\u002F2a\\\u002Fg0\\\u002Fjr2ag0dxrtcod0j-nhxmcrpxxhi.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F4o\\\u002F7g\\\u002F0k\\\u002F4o7g0kf5mqtyri6r_x-2_afxkue.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgn\\\u002Flf\\\u002F5q\\\u002Fgnlf5qqhp8jfjnuzz1te02egtby.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fta\\\u002Fub\\\u002Faj\\\u002Ftaubaj6cs_vkpakqo0ckhtqitpu.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flo\\\u002Fje\\\u002Fop\\\u002Flojeopiap1tgzr7buvkevs_0-du.png\"]}","metaDescription":"На эту ошибку (или, если хотите, разночтение) я обратил внимание во время проверки перевода по коммутаторам NETGEAR. Дело в том, что при переводе термина “trunk” нужно обязательно учитывать, чьей...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"network_technologies,terminator,learning_languages"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

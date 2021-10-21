@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Лабораторная работа: настраиваем lvm, raid на linux / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450896\/"},"headline":"Лабораторная работа: настраиваем lvm, raid на linux","datePublished":"2019-05-07T18:02:27+03:00","dateModified":"2019-05-08T02:37:15+03:00","author":{"@type":"Person","name":"Александр"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Небольшое отступление: данная л\\р является синтетической. Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л\/р &mdash; познаком...","url":"https:\/\/habr.com\/ru\/post\/450896\/#post-content-body","about":["h_sys_admin","h_nix","f_admin"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/18f\/6f5\/be6\/18f6f5be6afbc13138abc3dfe960813b.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/77a\/eb5\/3a1\/77aeb53a1de2bc7b91d1396dc9b4148e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3db\/2f0\/e48\/3db2f0e48423f182016bde06c39dfb8d.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/93f\/37c\/ec3\/93f37cec319d628a3267f94d138145e7.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/7a7\/9b0\/3f5\/7a79b03f556925d1fd53ccc4ca77b494.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/0b8\/8dd\/11f\/0b88dd11f9372dbf8e53a6727fc69b27.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/72b\/9d4\/00d\/72b9d400d9b83392c759b7aeb3e9d573.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/225\/61e\/0be\/22561e0be2cd905e0948a63ae3460461.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/5da\/58c\/756\/5da58c756fd8d205a93ebfd49acc396f.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/117\/381\/a61\/117381a61b766df3c89d2646baa2b33d.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Лабораторная работа: настраиваем lvm, raid на linux" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Лабораторная работа: настраиваем lvm, raid на linux" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Лабораторная работа: настраиваем lvm, raid на linux" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Небольшое отступление: данная л\р является синтетической.
+Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л/р — познакомиться с функционалом raid, lvm то..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Небольшое отступление: данная л\р является синтетической.
+Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л/р — познакомиться с функционалом raid, lvm то..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Небольшое отступление: данная л\р является синтетической.
+Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л/р — познакомиться с функционалом raid, lvm то..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Небольшое отступление: данная л\р является синтетической.
+Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л/р — познакомиться с функционалом raid, lvm то..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Небольшое отступление: данная л\р является синтетической.
+Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л/р — познакомиться с функционалом raid, lvm то..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450896/69940e7923261a3c9048ded973a76a78/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450896/69940e7923261a3c9048ded973a76a78/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450896/69940e7923261a3c9048ded973a76a78/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450896/69940e7923261a3c9048ded973a76a78/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450896/69940e7923261a3c9048ded973a76a78/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450896" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T15:02:27.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450896/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450896/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450896/69940e7923261a3c9048ded973a76a78/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/bykvaadm/" title="bykvaadm" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/bykvaadm/" class="tm-user-info__username">
+      bykvaadm
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T15:02:27.000Z" title="2019-05-07, 18:02">7  мая  2019 в 18:02</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Лабораторная работа: настраиваем lvm, raid на linux</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sys_admin/" class="tm-article-snippet__hubs-item-link"><span>Системное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/nix/" class="tm-article-snippet__hubs-item-link"><span>*nix</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>Небольшое отступление: данная л\р является синтетической.</p><br/>
+<p>Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л/р — познакомиться с функционалом raid, lvm то некоторые операции искусственно усложнены.</p><br/>
+<h2 id="trebovaniya-k-instrumentam-dlya-vypolneniya-lr">Требования к инструментам для выполнения л\р:</h2><br/>
+<ul>
+<li>Средства виртуализации, например Virtualbox</li>
+<li>Установочный образ linux, например <a href="https://mirror.yandex.ru/debian-cd/current/amd64/iso-cd/debian-9.8.0-amd64-netinst.iso">Debian9</a></li>
+<li>Наличие интернета для скачивания нескольких пакетов</li>
+<li>Подключение по ssh к установленной VM (опционально)</li>
+</ul><br/>
+<h2 id="vnimanie">ВНИМАНИЕ</h2><br/>
+<p>Данная лабораторная работа связана с такой тонкой материей как сохранность данных — это такая область, которая позволяет из-за мельчайшей ошибки — одной лишней буквы или цифры потерять все ваши данные.</p><br/>
+<p>Поскольку вы выполняете лабораторную работу вам ничего не грозит, разве что придется начать делать ее заново.</p><br/>
+<p>В реальной жизни все гораздо серьезнее, поэтому следует очень внимательно вводить имена дисков, понимая что именно вы выполняете текущей командой и с какими дисками работаете.</p><a name="habracut"></a><br/>
+<p>Второй важный момент — именование дисков и разделов: в зависимости от ситуации номера дисков могут отличаться от тех значений, что представлены в командах в лабораторной работе.<br/>
+Так, например, если удалить диск sda из массива, а затем добавить новый диск, то новый диск будет отображаться в системе с именем sda. Если же выполнить перезагрузку перед добавлением нового диска, то новый диск будет иметь имя sdb, а старый станет именоваться sda</p><br/>
+<p>Лабораторная работа должна выполняться под суперпользователем (root) поскольку большая часть команд требует повышенных привилегий и не имеет смысла постоянно повышать привилегии через sudo.</p><br/>
+<h2 id="materialy-dlya-izucheniya">Материалы для изучения</h2><br/>
+<ul>
+<li>RAID</li>
+<li>LVM</li>
+<li>Именование дисков в ОС Linux</li>
+<li>Что такое раздел</li>
+<li>Что такое таблица разделов и где она хранится</li>
+<li>Что такое grub</li>
+</ul><br/>
+<h2 id="ispolzuemye-utility">Используемые утилиты</h2><br/>
+<ol>
+<li>Просмотр информации о дисках:<br/>
+<ul>
+<li>lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</li>
+<li>fdisk -l</li>
+</ul></li>
+<li>Просмотр информации и работа с LVM<br/>
+<ul>
+<li>pvs</li>
+<li>pvextend</li>
+<li>pvcreate</li>
+<li>pvresize</li>
+<li>vgs</li>
+<li>vgreduce</li>
+<li>lvs</li>
+<li>lvextend</li>
+</ul></li>
+<li>Просмотр информации и работа с RAID:<br/>
+<ul>
+<li>сat /proc/mdstat</li>
+<li>mdadm</li>
+</ul></li>
+<li>Точки монтирования:<br/>
+<ul>
+<li>mount</li>
+<li>umount</li>
+<li>cat /etc/fstab</li>
+<li>cat /etc/mtab</li>
+</ul></li>
+<li>Переразметка диска:<br/>
+<ul>
+<li>fdisk /dev/XXX</li>
+</ul></li>
+<li>Копирование разделов:<br/>
+<ul>
+<li>dd if=/dev/xxx of=/dev/yyy</li>
+</ul></li>
+<li>Работа с таблицей разделов:<br/>
+<ul>
+<li>partx</li>
+<li>sfdisk</li>
+<li>mkfs.ext4</li>
+</ul></li>
+<li>Работа с загрузчиком:<br/>
+<ul>
+<li>grub-install /dev/XXX</li>
+<li>update-grub</li>
+</ul></li>
+<li>misc<br/>
+<ul>
+<li>lsof</li>
+<li>apt</li>
+<li>rsync</li>
+</ul></li>
+</ol><br/>
+<h2 id="laboratornaya-rabota-sostoit-iz-3-h-chastey">Лабораторная работа состоит из 3-х частей:</h2><br/>
+<ul>
+<li>Настройка работоспособной системы с использованием lvm, raid.</li>
+<li>Эмуляция отказа одного из дисков.</li>
+<li>Замена дисков на лету, с добавлением новых дисков и переносом разделов.</li>
+</ul><br/>
+<h2 id="zadanie-1-ustanovka-os-i-nastroyka-lvm-raid">Задание 1 (Установка ОС и настройка LVM, RAID)</h2><br/>
+<ol>
+<li><p>Создайте новую виртуальную машину, выдав ей следующие характеристики:</p><br/>
+<ul>
+<li>1 gb ram</li>
+<li>1 cpu</li>
+<li>2 hdd (назвать их ssd1, ssd2 и назначить равный размер, поставить галочки hot swap и ssd)</li>
+<li>SATA контроллер настроен на 4 порта:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="select ssd disks" data-src="https://habrastorage.org/getpro/habr/post_images/18f/6f5/be6/18f6f5be6afbc13138abc3dfe960813b.png"/></li>
+</ul><br/>
+</li>
+<li><p>Начать установку Linux и дойдя до выбора жестких дисков сделать следующее:</p><br/>
+<ul>
+<li>Partitioning method: manual, после чего вы должны увидеть такую картину:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/77a/eb5/3a1/77aeb53a1de2bc7b91d1396dc9b4148e.png"/></li>
+<li>Настройка отдельного раздела под /boot: Выберите первый диск и создайте на нем новую таблицу разделов:<br/>
+<ul>
+<li>Partition size: 512M</li>
+<li>Mount point: /boot</li>
+</ul></li>
+<li>Повторите настройку для второго диска, но поскольку одновременно монтировать 2 раза /boot нельзя, то выберите mount point: none в итоге получив следующее (картинка с косяком, переделывать лень):<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/3db/2f0/e48/3db2f0e48423f182016bde06c39dfb8d.png"/></li>
+<li>Настройка RAID: </li>
+<li>Выберите свободное место на первом диске и настройте в качестве типа раздела physical volume for RAID</li>
+<li>Выберите "Done setting up the partition"</li>
+<li>Повторите точно такую же настройку для второго диска, в результате получив следующее:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/93f/37c/ec3/93f37cec319d628a3267f94d138145e7.png"/></li>
+<li>Выберите пункт "Configure software RAID"<br/>
+<ul>
+<li>Create MD device</li>
+<li>Software RAID device type: Выберите зеркальный массив</li>
+<li>Active devices for the RAID XXXX array: Выбрать оба диска</li>
+<li>Spare devices: Оставить 0 по умолчанию</li>
+<li>Active devices for the RAID XX array: выбрать разделы, которые вы создавали под raid</li>
+<li>Finish</li>
+</ul></li>
+<li>В итоге вы должны получить такую картину:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/7a7/9b0/3f5/7a79b03f556925d1fd53ccc4ca77b494.png"/></li>
+<li>Настройка LVM: Выберите Configure the Logical Volume Manager</li>
+<li>Keep current partition layout and configure LVM: Yes</li>
+<li>Create volume group</li>
+<li>Volume group name: system</li>
+<li>Devices for the new volume group: Выберите ваш созданный RAID</li>
+<li>Create logical volume<br/>
+<ul>
+<li>logical volume name: root</li>
+<li>logical volume size: 2\5 от размера вашего диска</li>
+</ul></li>
+<li>Create logical volume<br/>
+<ul>
+<li>logical volume name: var</li>
+<li>logical volume size: 2\5 от размера вашего диска</li>
+</ul></li>
+<li>Create logical volume<br/>
+<ul>
+<li>logical volume name: log</li>
+<li>logical volume size: 1\5 от размера вашего диска</li>
+</ul></li>
+<li>Выбрав Display configuration details вы должны получить следующую картину:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/0b8/8dd/11f/0b88dd11f9372dbf8e53a6727fc69b27.png"/></li>
+<li>Завершив настройку LVM вы должны увидеть следующее:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/72b/9d4/00d/72b9d400d9b83392c759b7aeb3e9d573.png"/></li>
+<li>Разметка разделов: по-очереди выберите каждый созданный в LVM том и разметьте их, например, для root так:<br/>
+<ul>
+<li>Use as: ext4</li>
+<li>mount point: /</li>
+</ul></li>
+<li>Результат разметки корневого раздела должен получиться таким:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/225/61e/0be/22561e0be2cd905e0948a63ae3460461.png"/></li>
+<li>Повторите операцию разметки для var и log выбрав соответствующие точки монтирования (/var и /var/log вручную ввести), получив следующий результат:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/5da/58c/756/5da58c756fd8d205a93ebfd49acc396f.png"/></li>
+<li>Выберите Finish Partitioning</li>
+<li>Вам зададут несколько вопросов, про то что у вас остался несмонтированный раздел и не настроен swap. Следует ответить отрицательно на оба вопроса.</li>
+<li>Финальный результат должен получиться вот таким:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="partition disks" data-src="https://habrastorage.org/getpro/habr/post_images/117/381/a61/117381a61b766df3c89d2646baa2b33d.png"/></li>
+</ul><br/>
+</li>
+<li><p>Закончить установку ОС, поставив grub на первое устройство (sda) и загрузить систему.</p><br/>
+</li>
+<li><p>Выполните копирование содержимого раздела /boot с диска sda (ssd1) на диск sdb (ssd2)</p><br/>
+<pre><code class="plaintext">dd if=/dev/sda1 of=/dev/sdb1</code></pre><br/>
+</li>
+<li><p>Выполнить установку grub на второе устройство:</p><br/>
+<ul>
+<li><p>Посмотреть диски в системе: </p><br/>
+<pre><code class="plaintext">fdisk -l
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+<li>Перечислите все диски которые вам выдала предыдущая команда и опишите что это за диск.</li>
+<li><p>Найдите диск на который не была выполнена установка grub и выполните эту установку:</p><br/>
+<pre><code class="plaintext">grub-install /dev/sdb</code></pre><br/>
+</li>
+<li>Просмотрите информацию о текущем raid командой cat /proc/mdstat и запишите что вы увидели.</li>
+<li>Посмотрите выводы команд: pvs, vgs, lvs, mount и запишите что именно вы увидели.</li>
+</ul><br/>
+</li>
+</ol><br/>
+<p>Опишите своими словами что вы сделали и какой результат получили в итоге проделанного задания.</p><br/>
+<p>После выполнения этого задания рекомендуется сохранить резервную копию папки с виртуальной машиной или сделать <a href="https://t.me/bykvaadm/191">vagrant box</a>.</p><br/>
+<p>Результат: Виртуальная машина с дисками ssd1, ssd2.</p><br/>
+<h2 id="zadanie-2-emulyaciya-otkaza-odnogo-iz-diskov">Задание 2 (Эмуляция отказа одного из дисков)</h2><br/>
+<ol>
+<li>Если вы поставили галочку hot swap, то вам доступно удаление дисков на лету:<br/>
+<ul>
+<li>Выполните удаление диска ssd1 в свойствах машины.</li>
+<li>Найдите директорию, где хранятся файлы вашей виртуальной машины и удалите ssd1.vmdk.</li>
+</ul></li>
+<li>Убедитесь что ваша виртуальная машина по-прежнему работает</li>
+<li>Выполните перезагрузку виртуальной машины и убедитесь что она по-прежнему работает</li>
+<li>Проверьте статус RAID-массива: <code>cat /proc/mdstat</code></li>
+<li>Добавьте в интерфейсе VM новый диск такого же размера и назовите его ssd3.</li>
+<li>Выполните операции:<br/>
+<ul>
+<li>Посмотрите что новый диск приехал в систему командой <code>fdisk -l</code></li>
+<li>Скопируйте таблицу разделов со старого диска на новый: <code>sfdisk -d /dev/XXXX | sfdisk /dev/YYY</code></li>
+<li>Посмотрите результат командой <code>fdisk -l</code></li>
+<li>Добавьте в рейд массив новый диск: <code>mdadm --manage /dev/md0 --add /dev/YYY</code></li>
+<li>Посмотрите результат: <code>cat /proc/mdstat</code>. Вы должны увидеть что началась синхронизация</li>
+</ul></li>
+<li><p>Теперь нужно вручную выполните синхронизацию разделов, не входящих в RAID. Для этого воспользуемся утилитой dd, скопировав с "живого" диска на новенький, который вы недавно поставили:</p><br/>
+<pre><code class="plaintext">dd if=/dev/XXX of=/dev/YYY</code></pre><br/>
+</li>
+<li>После завершения синхронизации установите grub на новый диск.</li>
+<li>Выполните перезагрузку ВМ, для того чтобы убедиться что все работает.</li>
+</ol><br/>
+<p>Опишите своими словами что вы сделали и какой результат получили в итоге проделанного задания.</p><br/>
+<p><strong>Результат:</strong> удалён диск ssd1, сохранен диск ssd2, добавлен диск ssd3.</p><br/>
+<h2 id="zadanie-3-dobavlenie-novyh-diskov-i-perenos-razdela">Задание 3 (Добавление новых дисков и перенос раздела)</h2><br/>
+<p>Это самое сложное и объемное задание из всех представленных. Очень внимательно проверяйте что вы делаете и с какими дисками и разделами. Рекомендуется снять копию перед его выполнением. Это задание независимо от задания №2, его можно выполнять после задания №1 с поправкой на имена дисков.</p><br/>
+<p>Вторая часть задания этой лабораторной должна привести в точно такое же состояние которое было после выполнения первой части.</p><br/>
+<p>Для того чтобы вам было проще работать могу рекомендовать не удалять физически диски с хостовой машины, а только лишь отсоединять их в свойствах машины. С точки зрения ОС в ВМ это будет выглядеть абсолютно одинаково, но вы сможете в случае чего подключить диск обратно и продолжить выполнение работы откатившись на пару пунктов назад, в случае если у вас возникли проблемы. Например вы могли выполнить неверно или забыть скопировать на новый диск раздел /boot. Я могу лишь посоветовать несколько раз перепроверять с какими дисками и разделами вы работаете, а еще лучше выписать на листочек соответствие дисков, разделов и "физическому" номеру диска. Красивое и понятное дерево рисует команда <code>lsblk</code>, пользуйтесь ей как можно чаще для анализа того что вы сделали и что нужно сделать.</p><br/>
+<p>К истории...</p><br/>
+<p>Представьте себе что ваш сервер работал долгое время на 2-х ssd дисках, как вдруг...</p><br/>
+<ol>
+<li><p>Проэмулируйте отказ диска ssd2, удалив из свойств ВМ диск и перезагрузившись.</p><br/>
+</li>
+<li><p>Посмотрите текущее состояние дисков и RAID:</p><br/>
+<pre><code class="plaintext">cat /proc/mdstat
+fdisk -l
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+<li><p>Вам повезло — начальство разрешило закупить несколько новых дисков:</p><br/>
+<p>2 SATA большого объема для давно назревшей задачи вынесения раздела с логами на отдельный диск. 2 SSD на замену погибшему, а также на замену пока еще функционирующему.</p><br/>
+<p>Следует учитывать, что корзина сервера поддерживает установку только 4х дисков. одновременно, поэтому добавить все диски сразу нельзя.</p><br/>
+<p>Объем HDD выбрать в 2 раза больше чем SSD.<br/>
+Объем SSD выбрать в 1,25 раза больше бывших SSD.</p><br/>
+</li>
+<li><p>Добавьте один новый ssd диск, назвав его ssd4, а после добавления проверьте что произошло:</p><br/>
+<pre><code class="plaintext">fdisk -l
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+<li><p>В первую очередь следует озаботиться сохранностью данных старого диска. На этот раз мы будем переносить данные с помощью LVM:</p><br/>
+<ul>
+<li><p>В первую очередь необходимо скопировать файловую таблицу со старого диска на новый:</p><br/>
+<pre><code class="plaintext">sfdisk -d /dev/XXX | sfdisk /dev/YYY</code></pre><br/>
+<p>Подставьте вместо x,y правильные диски и разберите что делает данная команда.</p><br/>
+</li>
+<li>Выполните команду lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT и сравните ее вывод с прошлым вызовом. Что поменялось?</li>
+<li><p>С помощью команды dd скопируйте данные /boot на новый диск:</p><br/>
+<pre><code class="plaintext">dd if=/dev/XXX of=/dev/YYY</code></pre><br/>
+</li>
+<li><p>Если /boot остался смонтирован на старом диске, его следует перемонтировать на живой диск:</p><br/>
+<pre><code class="bash">mount | grep boot # смотрим куда смонтирован диск
+lsblk # смотрим какие диски есть в системе и смотрим есть ли диск, полученный из предыдущего пункта
+umount /boot # отмонтируем /boot
+mount -a # выполним монтирование всех точек согласно /etc/fstab. 
+# Поскольку там указана точка монтирования /dev/sda, то будет выполнено корректное перемонтирование на живой диск</code></pre><br/>
+</li>
+<li><p>Установите загрузчик на новый ssd диск:</p><br/>
+<pre><code class="plaintext">grub-install /dev/YYY</code></pre><br/>
+<p>Зачем мы выполняем эту операцию?</p><br/>
+</li>
+<li><p>Создайте новый рейд-массив с включением туда только одного нового ssd диска:</p><br/>
+<pre><code class="plaintext">mdadm --create --verbose /dev/md63 --level=1 --raid-devices=1 /dev/YYY</code></pre><br/>
+<p>Команда приведенная выше не отработает без указания специального ключа.Прочитайте справку и добавьте этот ключ к команде.</p><br/>
+</li>
+<li>С помощью команды cat /proc/mdstat проверьте результат вашей операции. Что поменялось?</li>
+<li>Выполните команду lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT и сравните ее вывод с прошлым вызовом. Что поменялось?</li>
+</ul><br/>
+</li>
+<li><p>Следующим этапом необходимо настроить LVM</p><br/>
+<ul>
+<li>Выполните команду pvs для просмотра информации о текущих физических томах.</li>
+<li><p>Создайте новый физический том включив в него ранее созданный RAID массив:</p><br/>
+<pre><code class="plaintext">pvcreate /dev/md63</code></pre><br/>
+</li>
+<li>Выполните команду lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT и сравните ее вывод с прошлым вызовом. Что поменялось?</li>
+<li>Снова выполните команду pvs. Что поменялось?</li>
+<li><p>Увеличим размер Volume Group system с помощью такой команды:</p><br/>
+<pre><code class="plaintext">vgextend system /dev/md63</code></pre><br/>
+</li>
+<li><p>Выполните команды и запишите что вы увидели и что поменялось.</p><br/>
+<pre><code class="plaintext">vgdisplay system -v
+pvs
+vgs
+lvs -a -o+devices</code></pre><br/>
+<p>На каком физическом диске сейчас находятся LV var, log, root?</p><br/>
+</li>
+<li><p>Выполните перемещение данных со старого диска на новый, подставив правильные имена устройств.</p><br/>
+<pre><code class="plaintext">pvmove -i 10 -n /dev/system/root /dev/md0 /dev/md63 </code></pre><br/>
+<p>Повторите операцию для всех logical volume.</p><br/>
+</li>
+<li><p>Выполните команды и запишите что вы увидели и что поменялось.</p><br/>
+<pre><code class="plaintext">vgdisplay system -v
+pvs
+vgs
+lvs -a -o+devices
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+<li><p>Изменим наш VG, удалив из него диск старого raid. Подставьте правильное имя raid.</p><br/>
+<pre><code class="plaintext">vgreduce system /dev/md0</code></pre><br/>
+</li>
+<li><p>Выполните команды и запишите что вы увидели и что поменялось.</p><br/>
+<pre><code class="plaintext">lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
+pvs
+vgs</code></pre><br/>
+</li>
+<li>Для красоты картины перемонтируйте /boot на второй ssd диск (ssd4) и выполните lsblk. В итоге на диске ssd3 не должно быть ничего смонтировано. Внимательно проверьте что раздел /boot не пустой! <code>ls /boot</code> должен показать несколько файлов и папок. Изучите что хранится в этом разделе и запишите какой файл\каталог за что отвечает.</li>
+</ul><br/>
+</li>
+<li><p>Удалите ssd3 диск и добавьте ssd5, hdd1, hdd2 согласно вышеописанным ТЗ, в итоге получив:</p><br/>
+<ul>
+<li>ssd4 — первый новый ssd</li>
+<li>ssd5 — второй новый ssd</li>
+<li>hdd1 — первый новый hdd</li>
+<li>hdd2 — второй новый hdd</li>
+</ul><br/>
+</li>
+<li><p>Проверьте что произошло после добавления дисков:</p><br/>
+<pre><code class="plaintext">fdisk -l
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+<li><p>Восстановим работу основного raid массива:</p><br/>
+<ul>
+<li><p>Выполните копирование таблицы разделов, подставив правильные диски:</p><br/>
+<pre><code class="plaintext">sfdisk -d /dev/XXX | sfdisk /dev/YYY</code></pre><br/>
+</li>
+<li><p>Обратите внимание, что когда мы скопировали таблицу разделов со старого диска лказалось что новый размер не использует весь объем жесткого диска. Поэтому в скором времени нам потребуется изменить размер этого раздела и расширить raid. Убедитесь в этом сами, введя команду:</p><br/>
+<pre><code class="plaintext">lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+</ul><br/>
+</li>
+<li><p>Скопируйте загрузочный раздел /boot с диска ssd4 на ssd5:</p><br/>
+<pre><code class="plaintext">dd if=/dev/XXX of=/dev/YYY</code></pre><br/>
+</li>
+<li><p>Установите grub на новый диск (ssd5).</p><br/>
+</li>
+<li><p>Изменим размер второго раздела диска ssd5.</p><br/>
+<ul>
+<li><p>Запустите утилиту для работы с разметкой дисков:</p><br/>
+<pre><code class="plaintext">fdisk /dev/XXX</code></pre><br/>
+</li>
+<li>Введите ключ d для того чтобы удалить существующий раздел (выберите 2).</li>
+<li>Введите ключ n для того чтобы создать новый раздел.</li>
+<li>Введите ключ p для того чтобы указать тип раздела "первичный".</li>
+<li>Введите ключ 2 для того чтобы новый раздел имел второй номер.</li>
+<li>First sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером начала раздела.</li>
+<li>Last sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером конца раздела.</li>
+<li>Введите ключ l для того чтобы увидеть список всех возможных типов разделов и найдите в нем Linux raid auto.</li>
+<li>Введите ключ t для того чтобы изменить тип созданного раздела (2) и введите найденный на предыдущем шаге номер.</li>
+<li>Введите ключ w для того чтобы записать изменение на диск.</li>
+</ul><br/>
+</li>
+<li><p>Перечитаем таблицу разделов и проверим результат:</p><br/>
+<pre><code class="plaintext">partx -u /dev/XXX
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+<ul>
+<li><p>Добавим новый диск к текущему raid массиву (не забудьте подставить правильные диски):</p><br/>
+<pre><code class="plaintext">mdadm --manage /dev/md63 --add /dev/sda2</code></pre><br/>
+</li>
+<li><p>Расширим количество дисков в нашем массиве до 2-х штук:</p><br/>
+<pre><code class="plaintext">mdadm --grow /dev/md63 --raid-devices=2</code></pre><br/>
+</li>
+<li><p>Посмотрите результат: у нас размечено 2 массива, но оба раздела входящие в этот массив имеют разные размеры:</p><br/>
+<pre><code class="plaintext">lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+</li>
+</ul><br/>
+</li>
+<li><p>Увеличим размер раздела на диске ssd4</p><br/>
+<ul>
+<li><p>Запустите утилиту для работы с разметкой дисков:</p><br/>
+<pre><code class="plaintext">fdisk /dev/XXX</code></pre><br/>
+</li>
+<li>Введите ключ d для того чтобы удалить существующий раздел (выберите 2).</li>
+<li>Введите ключ n для того чтобы создать новый раздел.</li>
+<li>Введите ключ p для того чтобы указать тип раздела "первичный".</li>
+<li>Введите ключ 2 для того чтобы новый раздел имел второй номер.</li>
+<li>First sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером начала раздела.</li>
+<li>Last sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером конца раздела.</li>
+<li>В конце разметки следует выбрать No, чтобы оставить сигнатуру принадлежности раздела к массиву.</li>
+<li>Введите ключ w для того чтобы записать изменение на диск.</li>
+</ul><br/>
+</li>
+<li><p>Перечитаем таблицу разделов и проверим результат.</p><br/>
+<pre><code class="plaintext">partx -u /dev/XXX
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT</code></pre><br/>
+<p>Обратите внимание, теперь sda2, sdc2 разделы имеют размер > чем размер raid-устройства.</p><br/>
+</li>
+<li><p>На этом этапе размер raid можно теперь расширить:</p><br/>
+<pre><code class="bash">mdadm --grow /dev/md63 --size=max
+lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT # check result</code></pre><br/>
+<p>Просмотрите lsblk и запишите что изменилось.</p><br/>
+</li>
+<li><p>Однако, хоть мы и изменили размер raid, сами размеры vg root,var,log не изменились</p><br/>
+<ul>
+<li><p>Посмотрите чему равен размер PV:</p><br/>
+<pre><code class="bash">pvs</code></pre><br/>
+</li>
+<li><p>Расширим размер нашего PV:</p><br/>
+<pre><code class="bash">pvresize /dev/md63</code></pre><br/>
+</li>
+<li><p>Посмотрите чему равен размер PV:</p><br/>
+<pre><code class="bash">pvs</code></pre><br/>
+</li>
+</ul><br/>
+</li>
+<li><p>Добавим вновь появившееся место VG var, root:</p><br/>
+<pre><code class="bash">lvs # посмотрим сколько сейчас размечено
+lvextend -l +50%FREE /dev/system/root
+lvextend -l +100%FREE /dev/system/var
+lvs # проверьте что получилось</code></pre><br/>
+<p>На этом этапе вы завершили миграцию основного массива на новые диски. работа с ssd1,ssd2 закончена.</p><br/>
+</li>
+<li><p>Наша следующая задача — переместить /var/log на новые диски, для этого создадим новый массив и lvm на hdd дисках.</p><br/>
+<ul>
+<li><p>Посмотрим какие имена имеют новые hdd диски:</p><br/>
+<pre><code class="bash">fdisk -l</code></pre><br/>
+</li>
+<li><p>Создадим raid массив:</p><br/>
+<pre><code class="bash">mdadm --create /dev/md127 --level=1 --raid-devices=2 /dev/sdc /dev/sdd</code></pre><br/>
+</li>
+<li><p>Создадим новый PV на рейде из больших дисков:</p><br/>
+<pre><code class="bash">pvcreate data /dev/md127</code></pre><br/>
+</li>
+<li><p>Создадим в этом PV группу с названием data:</p><br/>
+<pre><code class="bash">vgcreate data /dev/md127</code></pre><br/>
+</li>
+<li><p>Создадим логический том размером всего свободного пространства и назовем его val_log:</p><br/>
+<pre><code class="bash">lvcreate -l 100%FREE -n var_log data # lvs # посмотрим результат</code></pre><br/>
+</li>
+<li><p>Отформатируем созданные раздел в ext4:</p><br/>
+<pre><code class="bash">mkfs.ext4 /dev/mapper/data-var_log</code></pre><br/>
+</li>
+<li><p>Посмотрим результат:</p><br/>
+<pre><code class="bash">lsblk</code></pre><br/>
+</li>
+</ul><br/>
+</li>
+<li><p>Перенесем данные логов со старого раздела на новый</p><br/>
+<ul>
+<li><p>Примонтируем временно новое хранилище логов:</p><br/>
+<pre><code class="plaintext">mount /dev/mapper/data-var_log /mnt</code></pre><br/>
+</li>
+<li><p>Выполним синхронизацию разделов:</p><br/>
+<pre><code class="bash">apt install rsync
+rsync -avzr /var/log/ /mnt/</code></pre><br/>
+</li>
+<li><p>Выясним какие процессы работают сейчас с /var/log:</p><br/>
+<pre><code class="bash">apt install lsof
+lsof | grep '/var/log'</code></pre><br/>
+</li>
+<li><p>Останавливаем эти процессы:</p><br/>
+<pre><code class="bash">systemctl stop rsyslog.service syslog.socket</code></pre><br/>
+</li>
+<li><p>Выполним финальную синхронизацию разделов (тех данных что могли измениться с момента последней синхронизации):</p><br/>
+<pre><code class="bash">rsync -avzr /var/log/ /mnt/</code></pre><br/>
+</li>
+<li><p>Поменяем местами разделы:</p><br/>
+<pre><code class="bash">umount /mnt
+umount /var/log
+mount /dev/mapper/data-var_log /var/log</code></pre><br/>
+</li>
+<li><p>Проверяем что получилось:</p><br/>
+<pre><code class="bash">lsblk</code></pre><br/>
+</li>
+</ul><br/>
+</li>
+<li><p>Правим /etc/fstab</p><br/>
+<p>fstab — файл, в котором записываются правила, по которым при загрузке будут смонтированы разделы. Наша задача — найти ту строку, в которой монтируется /var/log и поправить устройство <code>system-log</code> на <code>data-var_log</code>.</p><br/>
+</li>
+<li><p>Самое важно на этом этапе — не забыть изменить таблицу раделов (ext4, например). Поскольку как бы мы не изменяли всякие raid, lvm — пока ФС на разделе не будет уведомлена о том что теперь размер раздела изменился, мы не сможем использовать новое пространство. Используйте команду <code>resize2fs</code> для изменения ФС.</p><br/>
+</li>
+<li><p>Финальный аккорд</p><br/>
+<ul>
+<li>Выполним перезагрузку. Если вы все сделали правильно — вы снова попадете в вашу ОС (это нужно для того чтобы убедиться что все работает. Никакого смысла кроме самопроверки этот шаг не несет)</li>
+<li><p>Выполните проверки, что все что мы хотели сделать действительно было сделано:</p><br/>
+<pre><code class="bash">pvs
+lvs
+vgs
+lsblk
+cat /proc/mdstat</code></pre><br/>
+</li>
+</ul><br/>
+</li>
+<li><p>[ОПЦИОНАЛЬНО] Выполните действия</p><br/>
+<ul>
+<li>Перезагрузитесь нажимая F12, чтобы указать при загрузке разные диски, для того чтобы убедиться что вы можете загрузиться с любого из ssd дисков, так чтобы мы не боялись отказа одного из них.</li>
+<li><p>Теперь у вас есть ненужный LV log в VG system. Распределите это пространство между root или var, но вместо использования конструкции 100%FREE укажите размер руками с помощью ключа -L: </p><br/>
+<pre><code class="bash">-L 500M  </code></pre><br/>
+</li>
+<li>Исправьте проблему с тем что /boot находится на двух разделах без синхронизации, по-правильному так делать не нужно, здесь это добавлено для примера. Не забудьте предварительно куда-то скопировать содержимое /boot.</li>
+<li>Создайте новый рейд и включите в него sda1, sda2.</li>
+<li>Включите эти разделы в существующий raid и восстановите /boot в основном raid, но уже не монтируя его.</li>
+</ul><br/>
+</li>
+</ol></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Braid%5D" class="tm-tags-list__link">raid</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blvm%5D" class="tm-tags-list__link">lvm</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/sys_admin/" class="tm-hubs-list__link">
+    Системное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/nix/" class="tm-hubs-list__link">
+    *nix
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 24: ↑24 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 24: ↑24 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+24</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">27K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    212
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/bykvaadm/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 93 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    53
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Александр</span> <a href="/ru/users/bykvaadm/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @bykvaadm
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">DevOps</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://telegram.me/bykva" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450896/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 14 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450896/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450896/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450896":{"id":"450896","timePublished":"2019-05-07T15:02:27+00:00","isCorporative":false,"lang":"ru","titleHtml":"Лабораторная работа: настраиваем lvm, raid на linux","leadData":{"textHtml":"\u003Cp\u003EНебольшое отступление: данная л\\р является синтетической.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EНекоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л\u002Fр — познакомиться с функционалом raid, lvm то некоторые операции искусственно усложнены.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Ch2 id=\"trebovaniya-k-instrumentam-dlya-vypolneniya-lr\"\u003EТребования к инструментам для выполнения л\\р:\u003C\u002Fh2\u003E\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EСредства виртуализации, например Virtualbox\u003C\u002Fli\u003E\r\n\u003Cli\u003EУстановочный образ linux, например \u003Ca href=\"https:\u002F\u002Fmirror.yandex.ru\u002Fdebian-cd\u002Fcurrent\u002Famd64\u002Fiso-cd\u002Fdebian-9.8.0-amd64-netinst.iso\"\u003EDebian9\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EНаличие интернета для скачивания нескольких пакетов\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодключение по ssh к установленной VM (опционально)\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u003E\r\n\u003Ch2 id=\"vnimanie\"\u003EВНИМАНИЕ\u003C\u002Fh2\u003E\u003Cbr\u003E\r\n\u003Cp\u003EДанная лабораторная работа связана с такой тонкой материей как сохранность данных — это такая область, которая позволяет из-за мельчайшей ошибки — одной лишней буквы или цифры потерять все ваши данные.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EПоскольку вы выполняете лабораторную работу вам ничего не грозит, разве что придется начать делать ее заново.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВ реальной жизни все гораздо серьезнее, поэтому следует очень внимательно вводить имена дисков, понимая что именно вы выполняете текущей командой и с какими дисками работаете.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":53,"votesCount":93},"rating":0,"relatedData":null,"contacts":[{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fbykva","value":"bykva"}],"authorContacts":[{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fbykva","value":"bykva"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"968094","alias":"bykvaadm","fullname":"Александр","avatarUrl":null,"speciality":"DevOps"},"statistics":{"commentsCount":14,"favoritesCount":212,"readingCount":27215,"score":24,"votesCount":24},"hubs":[{"relatedData":null,"id":"221","alias":"sys_admin","type":"collective","title":"Системное администрирование","titleHtml":"Системное администрирование","isProfiled":true},{"relatedData":null,"id":"7289","alias":"nix","type":"collective","title":"*nix","titleHtml":"*nix","isProfiled":true}],"flows":[{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EНебольшое отступление: данная л\\р является синтетической.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНекоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л\u002Fр — познакомиться с функционалом raid, lvm то некоторые операции искусственно усложнены.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"trebovaniya-k-instrumentam-dlya-vypolneniya-lr\"\u003EТребования к инструментам для выполнения л\\р:\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EСредства виртуализации, например Virtualbox\u003C\u002Fli\u003E\r\n\u003Cli\u003EУстановочный образ linux, например \u003Ca href=\"https:\u002F\u002Fmirror.yandex.ru\u002Fdebian-cd\u002Fcurrent\u002Famd64\u002Fiso-cd\u002Fdebian-9.8.0-amd64-netinst.iso\"\u003EDebian9\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EНаличие интернета для скачивания нескольких пакетов\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодключение по ssh к установленной VM (опционально)\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"vnimanie\"\u003EВНИМАНИЕ\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДанная лабораторная работа связана с такой тонкой материей как сохранность данных — это такая область, которая позволяет из-за мельчайшей ошибки — одной лишней буквы или цифры потерять все ваши данные.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПоскольку вы выполняете лабораторную работу вам ничего не грозит, разве что придется начать делать ее заново.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ реальной жизни все гораздо серьезнее, поэтому следует очень внимательно вводить имена дисков, понимая что именно вы выполняете текущей командой и с какими дисками работаете.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВторой важный момент — именование дисков и разделов: в зависимости от ситуации номера дисков могут отличаться от тех значений, что представлены в командах в лабораторной работе.\u003Cbr\u002F\u003E\r\nТак, например, если удалить диск sda из массива, а затем добавить новый диск, то новый диск будет отображаться в системе с именем sda. Если же выполнить перезагрузку перед добавлением нового диска, то новый диск будет иметь имя sdb, а старый станет именоваться sda\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЛабораторная работа должна выполняться под суперпользователем (root) поскольку большая часть команд требует повышенных привилегий и не имеет смысла постоянно повышать привилегии через sudo.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"materialy-dlya-izucheniya\"\u003EМатериалы для изучения\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003ERAID\u003C\u002Fli\u003E\r\n\u003Cli\u003ELVM\u003C\u002Fli\u003E\r\n\u003Cli\u003EИменование дисков в ОС Linux\u003C\u002Fli\u003E\r\n\u003Cli\u003EЧто такое раздел\u003C\u002Fli\u003E\r\n\u003Cli\u003EЧто такое таблица разделов и где она хранится\u003C\u002Fli\u003E\r\n\u003Cli\u003EЧто такое grub\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"ispolzuemye-utility\"\u003EИспользуемые утилиты\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EПросмотр информации о дисках:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Elsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fli\u003E\r\n\u003Cli\u003Efdisk -l\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПросмотр информации и работа с LVM\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Epvs\u003C\u002Fli\u003E\r\n\u003Cli\u003Epvextend\u003C\u002Fli\u003E\r\n\u003Cli\u003Epvcreate\u003C\u002Fli\u003E\r\n\u003Cli\u003Epvresize\u003C\u002Fli\u003E\r\n\u003Cli\u003Evgs\u003C\u002Fli\u003E\r\n\u003Cli\u003Evgreduce\u003C\u002Fli\u003E\r\n\u003Cli\u003Elvs\u003C\u002Fli\u003E\r\n\u003Cli\u003Elvextend\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПросмотр информации и работа с RAID:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eсat \u002Fproc\u002Fmdstat\u003C\u002Fli\u003E\r\n\u003Cli\u003Emdadm\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EТочки монтирования:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Emount\u003C\u002Fli\u003E\r\n\u003Cli\u003Eumount\u003C\u002Fli\u003E\r\n\u003Cli\u003Ecat \u002Fetc\u002Ffstab\u003C\u002Fli\u003E\r\n\u003Cli\u003Ecat \u002Fetc\u002Fmtab\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПереразметка диска:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Efdisk \u002Fdev\u002FXXX\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EКопирование разделов:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Edd if=\u002Fdev\u002Fxxx of=\u002Fdev\u002Fyyy\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EРабота с таблицей разделов:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Epartx\u003C\u002Fli\u003E\r\n\u003Cli\u003Esfdisk\u003C\u002Fli\u003E\r\n\u003Cli\u003Emkfs.ext4\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EРабота с загрузчиком:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Egrub-install \u002Fdev\u002FXXX\u003C\u002Fli\u003E\r\n\u003Cli\u003Eupdate-grub\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003Emisc\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Elsof\u003C\u002Fli\u003E\r\n\u003Cli\u003Eapt\u003C\u002Fli\u003E\r\n\u003Cli\u003Ersync\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"laboratornaya-rabota-sostoit-iz-3-h-chastey\"\u003EЛабораторная работа состоит из 3-х частей:\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EНастройка работоспособной системы с использованием lvm, raid.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЭмуляция отказа одного из дисков.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЗамена дисков на лету, с добавлением новых дисков и переносом разделов.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"zadanie-1-ustanovka-os-i-nastroyka-lvm-raid\"\u003EЗадание 1 (Установка ОС и настройка LVM, RAID)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздайте новую виртуальную машину, выдав ей следующие характеристики:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E1 gb ram\u003C\u002Fli\u003E\r\n\u003Cli\u003E1 cpu\u003C\u002Fli\u003E\r\n\u003Cli\u003E2 hdd (назвать их ssd1, ssd2 и назначить равный размер, поставить галочки hot swap и ssd)\u003C\u002Fli\u003E\r\n\u003Cli\u003ESATA контроллер настроен на 4 порта:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"select ssd disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F18f\u002F6f5\u002Fbe6\u002F18f6f5be6afbc13138abc3dfe960813b.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EНачать установку Linux и дойдя до выбора жестких дисков сделать следующее:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EPartitioning method: manual, после чего вы должны увидеть такую картину:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F77a\u002Feb5\u002F3a1\u002F77aeb53a1de2bc7b91d1396dc9b4148e.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EНастройка отдельного раздела под \u002Fboot: Выберите первый диск и создайте на нем новую таблицу разделов:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EPartition size: 512M\u003C\u002Fli\u003E\r\n\u003Cli\u003EMount point: \u002Fboot\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПовторите настройку для второго диска, но поскольку одновременно монтировать 2 раза \u002Fboot нельзя, то выберите mount point: none в итоге получив следующее (картинка с косяком, переделывать лень):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F3db\u002F2f0\u002Fe48\u002F3db2f0e48423f182016bde06c39dfb8d.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EНастройка RAID: \u003C\u002Fli\u003E\r\n\u003Cli\u003EВыберите свободное место на первом диске и настройте в качестве типа раздела physical volume for RAID\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыберите \"Done setting up the partition\"\u003C\u002Fli\u003E\r\n\u003Cli\u003EПовторите точно такую же настройку для второго диска, в результате получив следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F93f\u002F37c\u002Fec3\u002F93f37cec319d628a3267f94d138145e7.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыберите пункт \"Configure software RAID\"\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003ECreate MD device\u003C\u002Fli\u003E\r\n\u003Cli\u003ESoftware RAID device type: Выберите зеркальный массив\u003C\u002Fli\u003E\r\n\u003Cli\u003EActive devices for the RAID XXXX array: Выбрать оба диска\u003C\u002Fli\u003E\r\n\u003Cli\u003ESpare devices: Оставить 0 по умолчанию\u003C\u002Fli\u003E\r\n\u003Cli\u003EActive devices for the RAID XX array: выбрать разделы, которые вы создавали под raid\u003C\u002Fli\u003E\r\n\u003Cli\u003EFinish\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EВ итоге вы должны получить такую картину:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F7a7\u002F9b0\u002F3f5\u002F7a79b03f556925d1fd53ccc4ca77b494.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EНастройка LVM: Выберите Configure the Logical Volume Manager\u003C\u002Fli\u003E\r\n\u003Cli\u003EKeep current partition layout and configure LVM: Yes\u003C\u002Fli\u003E\r\n\u003Cli\u003ECreate volume group\u003C\u002Fli\u003E\r\n\u003Cli\u003EVolume group name: system\u003C\u002Fli\u003E\r\n\u003Cli\u003EDevices for the new volume group: Выберите ваш созданный RAID\u003C\u002Fli\u003E\r\n\u003Cli\u003ECreate logical volume\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Elogical volume name: root\u003C\u002Fli\u003E\r\n\u003Cli\u003Elogical volume size: 2\\5 от размера вашего диска\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003ECreate logical volume\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Elogical volume name: var\u003C\u002Fli\u003E\r\n\u003Cli\u003Elogical volume size: 2\\5 от размера вашего диска\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003ECreate logical volume\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Elogical volume name: log\u003C\u002Fli\u003E\r\n\u003Cli\u003Elogical volume size: 1\\5 от размера вашего диска\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыбрав Display configuration details вы должны получить следующую картину:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F0b8\u002F8dd\u002F11f\u002F0b88dd11f9372dbf8e53a6727fc69b27.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EЗавершив настройку LVM вы должны увидеть следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F72b\u002F9d4\u002F00d\u002F72b9d400d9b83392c759b7aeb3e9d573.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EРазметка разделов: по-очереди выберите каждый созданный в LVM том и разметьте их, например, для root так:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EUse as: ext4\u003C\u002Fli\u003E\r\n\u003Cli\u003Emount point: \u002F\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EРезультат разметки корневого раздела должен получиться таким:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F225\u002F61e\u002F0be\u002F22561e0be2cd905e0948a63ae3460461.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПовторите операцию разметки для var и log выбрав соответствующие точки монтирования (\u002Fvar и \u002Fvar\u002Flog вручную ввести), получив следующий результат:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F5da\u002F58c\u002F756\u002F5da58c756fd8d205a93ebfd49acc396f.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыберите Finish Partitioning\u003C\u002Fli\u003E\r\n\u003Cli\u003EВам зададут несколько вопросов, про то что у вас остался несмонтированный раздел и не настроен swap. Следует ответить отрицательно на оба вопроса.\u003C\u002Fli\u003E\r\n\u003Cli\u003EФинальный результат должен получиться вот таким:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"partition disks\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F117\u002F381\u002Fa61\u002F117381a61b766df3c89d2646baa2b33d.png\"\u002F\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EЗакончить установку ОС, поставив grub на первое устройство (sda) и загрузить систему.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните копирование содержимого раздела \u002Fboot с диска sda (ssd1) на диск sdb (ssd2)\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Edd if=\u002Fdev\u002Fsda1 of=\u002Fdev\u002Fsdb1\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполнить установку grub на второе устройство:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотреть диски в системе: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efdisk -l\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EПеречислите все диски которые вам выдала предыдущая команда и опишите что это за диск.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EНайдите диск на который не была выполнена установка grub и выполните эту установку:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Egrub-install \u002Fdev\u002Fsdb\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EПросмотрите информацию о текущем raid командой cat \u002Fproc\u002Fmdstat и запишите что вы увидели.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосмотрите выводы команд: pvs, vgs, lvs, mount и запишите что именно вы увидели.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОпишите своими словами что вы сделали и какой результат получили в итоге проделанного задания.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле выполнения этого задания рекомендуется сохранить резервную копию папки с виртуальной машиной или сделать \u003Ca href=\"https:\u002F\u002Ft.me\u002Fbykvaadm\u002F191\"\u003Evagrant box\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРезультат: Виртуальная машина с дисками ssd1, ssd2.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"zadanie-2-emulyaciya-otkaza-odnogo-iz-diskov\"\u003EЗадание 2 (Эмуляция отказа одного из дисков)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EЕсли вы поставили галочку hot swap, то вам доступно удаление дисков на лету:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВыполните удаление диска ssd1 в свойствах машины.\u003C\u002Fli\u003E\r\n\u003Cli\u003EНайдите директорию, где хранятся файлы вашей виртуальной машины и удалите ssd1.vmdk.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EУбедитесь что ваша виртуальная машина по-прежнему работает\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыполните перезагрузку виртуальной машины и убедитесь что она по-прежнему работает\u003C\u002Fli\u003E\r\n\u003Cli\u003EПроверьте статус RAID-массива: \u003Ccode\u003Ecat \u002Fproc\u002Fmdstat\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EДобавьте в интерфейсе VM новый диск такого же размера и назовите его ssd3.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыполните операции:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EПосмотрите что новый диск приехал в систему командой \u003Ccode\u003Efdisk -l\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EСкопируйте таблицу разделов со старого диска на новый: \u003Ccode\u003Esfdisk -d \u002Fdev\u002FXXXX | sfdisk \u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосмотрите результат командой \u003Ccode\u003Efdisk -l\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EДобавьте в рейд массив новый диск: \u003Ccode\u003Emdadm --manage \u002Fdev\u002Fmd0 --add \u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосмотрите результат: \u003Ccode\u003Ecat \u002Fproc\u002Fmdstat\u003C\u002Fcode\u003E. Вы должны увидеть что началась синхронизация\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EТеперь нужно вручную выполните синхронизацию разделов, не входящих в RAID. Для этого воспользуемся утилитой dd, скопировав с \"живого\" диска на новенький, который вы недавно поставили:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Edd if=\u002Fdev\u002FXXX of=\u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосле завершения синхронизации установите grub на новый диск.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыполните перезагрузку ВМ, для того чтобы убедиться что все работает.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОпишите своими словами что вы сделали и какой результат получили в итоге проделанного задания.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EРезультат:\u003C\u002Fstrong\u003E удалён диск ssd1, сохранен диск ssd2, добавлен диск ssd3.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"zadanie-3-dobavlenie-novyh-diskov-i-perenos-razdela\"\u003EЗадание 3 (Добавление новых дисков и перенос раздела)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭто самое сложное и объемное задание из всех представленных. Очень внимательно проверяйте что вы делаете и с какими дисками и разделами. Рекомендуется снять копию перед его выполнением. Это задание независимо от задания №2, его можно выполнять после задания №1 с поправкой на имена дисков.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВторая часть задания этой лабораторной должна привести в точно такое же состояние которое было после выполнения первой части.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля того чтобы вам было проще работать могу рекомендовать не удалять физически диски с хостовой машины, а только лишь отсоединять их в свойствах машины. С точки зрения ОС в ВМ это будет выглядеть абсолютно одинаково, но вы сможете в случае чего подключить диск обратно и продолжить выполнение работы откатившись на пару пунктов назад, в случае если у вас возникли проблемы. Например вы могли выполнить неверно или забыть скопировать на новый диск раздел \u002Fboot. Я могу лишь посоветовать несколько раз перепроверять с какими дисками и разделами вы работаете, а еще лучше выписать на листочек соответствие дисков, разделов и \"физическому\" номеру диска. Красивое и понятное дерево рисует команда \u003Ccode\u003Elsblk\u003C\u002Fcode\u003E, пользуйтесь ей как можно чаще для анализа того что вы сделали и что нужно сделать.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EК истории...\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПредставьте себе что ваш сервер работал долгое время на 2-х ssd дисках, как вдруг...\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Cp\u003EПроэмулируйте отказ диска ssd2, удалив из свойств ВМ диск и перезагрузившись.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотрите текущее состояние дисков и RAID:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Ecat \u002Fproc\u002Fmdstat\nfdisk -l\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВам повезло — начальство разрешило закупить несколько новых дисков:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E2 SATA большого объема для давно назревшей задачи вынесения раздела с логами на отдельный диск. 2 SSD на замену погибшему, а также на замену пока еще функционирующему.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСледует учитывать, что корзина сервера поддерживает установку только 4х дисков. одновременно, поэтому добавить все диски сразу нельзя.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбъем HDD выбрать в 2 раза больше чем SSD.\u003Cbr\u002F\u003E\r\nОбъем SSD выбрать в 1,25 раза больше бывших SSD.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EДобавьте один новый ssd диск, назвав его ssd4, а после добавления проверьте что произошло:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efdisk -l\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВ первую очередь следует озаботиться сохранностью данных старого диска. На этот раз мы будем переносить данные с помощью LVM:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EВ первую очередь необходимо скопировать файловую таблицу со старого диска на новый:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Esfdisk -d \u002Fdev\u002FXXX | sfdisk \u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПодставьте вместо x,y правильные диски и разберите что делает данная команда.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыполните команду lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT и сравните ее вывод с прошлым вызовом. Что поменялось?\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EС помощью команды dd скопируйте данные \u002Fboot на новый диск:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Edd if=\u002Fdev\u002FXXX of=\u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EЕсли \u002Fboot остался смонтирован на старом диске, его следует перемонтировать на живой диск:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Emount | grep boot # смотрим куда смонтирован диск\nlsblk # смотрим какие диски есть в системе и смотрим есть ли диск, полученный из предыдущего пункта\numount \u002Fboot # отмонтируем \u002Fboot\nmount -a # выполним монтирование всех точек согласно \u002Fetc\u002Ffstab. \n# Поскольку там указана точка монтирования \u002Fdev\u002Fsda, то будет выполнено корректное перемонтирование на живой диск\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EУстановите загрузчик на новый ssd диск:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Egrub-install \u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗачем мы выполняем эту операцию?\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздайте новый рейд-массив с включением туда только одного нового ssd диска:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Emdadm --create --verbose \u002Fdev\u002Fmd63 --level=1 --raid-devices=1 \u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКоманда приведенная выше не отработает без указания специального ключа.Прочитайте справку и добавьте этот ключ к команде.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EС помощью команды cat \u002Fproc\u002Fmdstat проверьте результат вашей операции. Что поменялось?\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыполните команду lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT и сравните ее вывод с прошлым вызовом. Что поменялось?\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСледующим этапом необходимо настроить LVM\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВыполните команду pvs для просмотра информации о текущих физических томах.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздайте новый физический том включив в него ранее созданный RAID массив:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Epvcreate \u002Fdev\u002Fmd63\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыполните команду lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT и сравните ее вывод с прошлым вызовом. Что поменялось?\u003C\u002Fli\u003E\r\n\u003Cli\u003EСнова выполните команду pvs. Что поменялось?\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EУвеличим размер Volume Group system с помощью такой команды:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Evgextend system \u002Fdev\u002Fmd63\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните команды и запишите что вы увидели и что поменялось.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Evgdisplay system -v\npvs\nvgs\nlvs -a -o+devices\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа каком физическом диске сейчас находятся LV var, log, root?\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните перемещение данных со старого диска на новый, подставив правильные имена устройств.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Epvmove -i 10 -n \u002Fdev\u002Fsystem\u002Froot \u002Fdev\u002Fmd0 \u002Fdev\u002Fmd63 \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПовторите операцию для всех logical volume.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните команды и запишите что вы увидели и что поменялось.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Evgdisplay system -v\npvs\nvgs\nlvs -a -o+devices\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EИзменим наш VG, удалив из него диск старого raid. Подставьте правильное имя raid.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Evgreduce system \u002Fdev\u002Fmd0\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните команды и запишите что вы увидели и что поменялось.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Elsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\npvs\nvgs\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EДля красоты картины перемонтируйте \u002Fboot на второй ssd диск (ssd4) и выполните lsblk. В итоге на диске ssd3 не должно быть ничего смонтировано. Внимательно проверьте что раздел \u002Fboot не пустой! \u003Ccode\u003Els \u002Fboot\u003C\u002Fcode\u003E должен показать несколько файлов и папок. Изучите что хранится в этом разделе и запишите какой файл\\каталог за что отвечает.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EУдалите ssd3 диск и добавьте ssd5, hdd1, hdd2 согласно вышеописанным ТЗ, в итоге получив:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Essd4 — первый новый ssd\u003C\u002Fli\u003E\r\n\u003Cli\u003Essd5 — второй новый ssd\u003C\u002Fli\u003E\r\n\u003Cli\u003Ehdd1 — первый новый hdd\u003C\u002Fli\u003E\r\n\u003Cli\u003Ehdd2 — второй новый hdd\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПроверьте что произошло после добавления дисков:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efdisk -l\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВосстановим работу основного raid массива:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните копирование таблицы разделов, подставив правильные диски:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Esfdisk -d \u002Fdev\u002FXXX | sfdisk \u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EОбратите внимание, что когда мы скопировали таблицу разделов со старого диска лказалось что новый размер не использует весь объем жесткого диска. Поэтому в скором времени нам потребуется изменить размер этого раздела и расширить raid. Убедитесь в этом сами, введя команду:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Elsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСкопируйте загрузочный раздел \u002Fboot с диска ssd4 на ssd5:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Edd if=\u002Fdev\u002FXXX of=\u002Fdev\u002FYYY\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EУстановите grub на новый диск (ssd5).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EИзменим размер второго раздела диска ssd5.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EЗапустите утилиту для работы с разметкой дисков:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efdisk \u002Fdev\u002FXXX\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ d для того чтобы удалить существующий раздел (выберите 2).\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ n для того чтобы создать новый раздел.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ p для того чтобы указать тип раздела \"первичный\".\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ 2 для того чтобы новый раздел имел второй номер.\u003C\u002Fli\u003E\r\n\u003Cli\u003EFirst sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером начала раздела.\u003C\u002Fli\u003E\r\n\u003Cli\u003ELast sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером конца раздела.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ l для того чтобы увидеть список всех возможных типов разделов и найдите в нем Linux raid auto.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ t для того чтобы изменить тип созданного раздела (2) и введите найденный на предыдущем шаге номер.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ w для того чтобы записать изменение на диск.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПеречитаем таблицу разделов и проверим результат:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Epartx -u \u002Fdev\u002FXXX\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EДобавим новый диск к текущему raid массиву (не забудьте подставить правильные диски):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Emdadm --manage \u002Fdev\u002Fmd63 --add \u002Fdev\u002Fsda2\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EРасширим количество дисков в нашем массиве до 2-х штук:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Emdadm --grow \u002Fdev\u002Fmd63 --raid-devices=2\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотрите результат: у нас размечено 2 массива, но оба раздела входящие в этот массив имеют разные размеры:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Elsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EУвеличим размер раздела на диске ssd4\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EЗапустите утилиту для работы с разметкой дисков:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efdisk \u002Fdev\u002FXXX\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ d для того чтобы удалить существующий раздел (выберите 2).\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ n для того чтобы создать новый раздел.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ p для того чтобы указать тип раздела \"первичный\".\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ 2 для того чтобы новый раздел имел второй номер.\u003C\u002Fli\u003E\r\n\u003Cli\u003EFirst sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером начала раздела.\u003C\u002Fli\u003E\r\n\u003Cli\u003ELast sector: нажмите enter, чтобы согласиться с атоматически вычесленным размером конца раздела.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВ конце разметки следует выбрать No, чтобы оставить сигнатуру принадлежности раздела к массиву.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВведите ключ w для того чтобы записать изменение на диск.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПеречитаем таблицу разделов и проверим результат.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Epartx -u \u002Fdev\u002FXXX\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбратите внимание, теперь sda2, sdc2 разделы имеют размер \u003E чем размер raid-устройства.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EНа этом этапе размер raid можно теперь расширить:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Emdadm --grow \u002Fdev\u002Fmd63 --size=max\nlsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT # check result\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПросмотрите lsblk и запишите что изменилось.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EОднако, хоть мы и изменили размер raid, сами размеры vg root,var,log не изменились\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотрите чему равен размер PV:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Epvs\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EРасширим размер нашего PV:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Epvresize \u002Fdev\u002Fmd63\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотрите чему равен размер PV:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Epvs\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EДобавим вновь появившееся место VG var, root:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Elvs # посмотрим сколько сейчас размечено\nlvextend -l +50%FREE \u002Fdev\u002Fsystem\u002Froot\nlvextend -l +100%FREE \u002Fdev\u002Fsystem\u002Fvar\nlvs # проверьте что получилось\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа этом этапе вы завершили миграцию основного массива на новые диски. работа с ssd1,ssd2 закончена.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EНаша следующая задача — переместить \u002Fvar\u002Flog на новые диски, для этого создадим новый массив и lvm на hdd дисках.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотрим какие имена имеют новые hdd диски:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Efdisk -l\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздадим raid массив:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Emdadm --create \u002Fdev\u002Fmd127 --level=1 --raid-devices=2 \u002Fdev\u002Fsdc \u002Fdev\u002Fsdd\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздадим новый PV на рейде из больших дисков:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Epvcreate data \u002Fdev\u002Fmd127\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздадим в этом PV группу с названием data:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Evgcreate data \u002Fdev\u002Fmd127\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСоздадим логический том размером всего свободного пространства и назовем его val_log:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Elvcreate -l 100%FREE -n var_log data # lvs # посмотрим результат\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EОтформатируем созданные раздел в ext4:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Emkfs.ext4 \u002Fdev\u002Fmapper\u002Fdata-var_log\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПосмотрим результат:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Elsblk\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПеренесем данные логов со старого раздела на новый\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cp\u003EПримонтируем временно новое хранилище логов:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Emount \u002Fdev\u002Fmapper\u002Fdata-var_log \u002Fmnt\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполним синхронизацию разделов:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eapt install rsync\nrsync -avzr \u002Fvar\u002Flog\u002F \u002Fmnt\u002F\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыясним какие процессы работают сейчас с \u002Fvar\u002Flog:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eapt install lsof\nlsof | grep '\u002Fvar\u002Flog'\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EОстанавливаем эти процессы:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Esystemctl stop rsyslog.service syslog.socket\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполним финальную синхронизацию разделов (тех данных что могли измениться с момента последней синхронизации):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Ersync -avzr \u002Fvar\u002Flog\u002F \u002Fmnt\u002F\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПоменяем местами разделы:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eumount \u002Fmnt\numount \u002Fvar\u002Flog\nmount \u002Fdev\u002Fmapper\u002Fdata-var_log \u002Fvar\u002Flog\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПроверяем что получилось:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Elsblk\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EПравим \u002Fetc\u002Ffstab\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003Efstab — файл, в котором записываются правила, по которым при загрузке будут смонтированы разделы. Наша задача — найти ту строку, в которой монтируется \u002Fvar\u002Flog и поправить устройство \u003Ccode\u003Esystem-log\u003C\u002Fcode\u003E на \u003Ccode\u003Edata-var_log\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EСамое важно на этом этапе — не забыть изменить таблицу раделов (ext4, например). Поскольку как бы мы не изменяли всякие raid, lvm — пока ФС на разделе не будет уведомлена о том что теперь размер раздела изменился, мы не сможем использовать новое пространство. Используйте команду \u003Ccode\u003Eresize2fs\u003C\u002Fcode\u003E для изменения ФС.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EФинальный аккорд\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВыполним перезагрузку. Если вы все сделали правильно — вы снова попадете в вашу ОС (это нужно для того чтобы убедиться что все работает. Никакого смысла кроме самопроверки этот шаг не несет)\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EВыполните проверки, что все что мы хотели сделать действительно было сделано:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Epvs\nlvs\nvgs\nlsblk\ncat \u002Fproc\u002Fmdstat\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003E[ОПЦИОНАЛЬНО] Выполните действия\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EПерезагрузитесь нажимая F12, чтобы указать при загрузке разные диски, для того чтобы убедиться что вы можете загрузиться с любого из ssd дисков, так чтобы мы не боялись отказа одного из них.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cp\u003EТеперь у вас есть ненужный LV log в VG system. Распределите это пространство между root или var, но вместо использования конструкции 100%FREE укажите размер руками с помощью ключа -L: \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003E-L 500M  \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EИсправьте проблему с тем что \u002Fboot находится на двух разделах без синхронизации, по-правильному так делать не нужно, здесь это добавлено для примера. Не забудьте предварительно куда-то скопировать содержимое \u002Fboot.\u003C\u002Fli\u003E\r\n\u003Cli\u003EСоздайте новый рейд и включите в него sda1, sda2.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВключите эти разделы в существующий raid и восстановите \u002Fboot в основном raid, но уже не монтируя его.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"raid"},{"titleHtml":"lvm"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450896\u002F69940e7923261a3c9048ded973a76a78\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450896\u002F69940e7923261a3c9048ded973a76a78\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450896\\\u002F\"},\"headline\":\"Лабораторная работа: настраиваем lvm, raid на linux\",\"datePublished\":\"2019-05-07T18:02:27+03:00\",\"dateModified\":\"2019-05-08T02:37:15+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Александр\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Небольшое отступление: данная л\\\\р является синтетической. Некоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л\\\u002Fр &mdash; познаком...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450896\\\u002F#post-content-body\",\"about\":[\"h_sys_admin\",\"h_nix\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F18f\\\u002F6f5\\\u002Fbe6\\\u002F18f6f5be6afbc13138abc3dfe960813b.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F77a\\\u002Feb5\\\u002F3a1\\\u002F77aeb53a1de2bc7b91d1396dc9b4148e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3db\\\u002F2f0\\\u002Fe48\\\u002F3db2f0e48423f182016bde06c39dfb8d.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F93f\\\u002F37c\\\u002Fec3\\\u002F93f37cec319d628a3267f94d138145e7.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F7a7\\\u002F9b0\\\u002F3f5\\\u002F7a79b03f556925d1fd53ccc4ca77b494.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F0b8\\\u002F8dd\\\u002F11f\\\u002F0b88dd11f9372dbf8e53a6727fc69b27.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F72b\\\u002F9d4\\\u002F00d\\\u002F72b9d400d9b83392c759b7aeb3e9d573.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F225\\\u002F61e\\\u002F0be\\\u002F22561e0be2cd905e0948a63ae3460461.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F5da\\\u002F58c\\\u002F756\\\u002F5da58c756fd8d205a93ebfd49acc396f.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F117\\\u002F381\\\u002Fa61\\\u002F117381a61b766df3c89d2646baa2b33d.png\"]}","metaDescription":"Небольшое отступление: данная л\\р является синтетической.\r\nНекоторые задания которые здесь описаны можно сделать гораздо проще, но поскольку задача л\u002Fр — познакомиться с функционалом raid, lvm то...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"sys_admin,nix"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

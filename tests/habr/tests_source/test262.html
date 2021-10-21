@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Автоматизация библиотек на Typescript / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450262\/"},"headline":"Автоматизация библиотек на Typescript","datePublished":"2019-05-01T14:53:17+03:00","dateModified":"2019-05-02T21:51:49+03:00","author":{"@type":"Person","name":"Владимир Репин"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты мои...","url":"https:\/\/habr.com\/ru\/post\/450262\/#post-content-body","about":["h_nodejs","h_build_automation","h_typescript","f_develop"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e7d\/23c\/060\/e7d23c0601b80abf5e381f3f9e51c5ad.jpg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Автоматизация библиотек на Typescript" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Автоматизация библиотек на Typescript" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Автоматизация библиотек на Typescript" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450262/e0150d426d721a959acfd8b125bb7d8b/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450262/e0150d426d721a959acfd8b125bb7d8b/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450262/e0150d426d721a959acfd8b125bb7d8b/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450262/e0150d426d721a959acfd8b125bb7d8b/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450262/e0150d426d721a959acfd8b125bb7d8b/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450262" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T11:53:17.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450262/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450262/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450262/e0150d426d721a959acfd8b125bb7d8b/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450262/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/VladVR/" title="VladVR" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/VladVR/" class="tm-user-info__username">
+      VladVR
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T11:53:17.000Z" title="2019-05-01, 14:53">1  мая  2019 в 14:53</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Автоматизация библиотек на Typescript</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/nodejs/" class="tm-article-snippet__hubs-item-link"><span>Node.JS</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/build_automation/" class="tm-article-snippet__hubs-item-link"><span>Системы сборки</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/typescript/" class="tm-article-snippet__hubs-item-link"><span>TypeScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://medium.com/@bobah083/automation-for-typescript-libraries-a41fe948df16" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Владимир Репин
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце статьи будет ссылка на GitLab репозиторий, который вы можете посмотреть, и может быть взять что то понравившееся себе на вооружение. Может быть даже по моему опыту создадите свое автоматизированное решение.<br/>
+<a name="habracut"></a><br/>
+<h1>Зачем это нужно</h1><br/>
+Итак, зачем вообще нужно создавать библиотеки, ну или в конкретном случае NPM пакеты?<br/>
+<br/>
+<ol>
+<li>Переиспользование кода между проектами. <br/>
+<br/>
+Началось все с того, что я заметил за собой привычку создавать в проектах папочку /tools. Кроме этого я еще и забираю с собой большую часть этой папки при переходе в новый проект. И тут я задал себе вопрос, а почему бы вместо копипаста не сделать NPM пакет и потом просто подключать его в любой проект?</li>
+<li>Различный жизненный цикл. В одном из приложений в качестве зависимости была большая корпоративная сборка компонентов. Обновлять ее можно было только целиком, даже если обновился только один компонент. Изменения в других компонентах могли что то сломать и не всегда у нас хватало оцененного времени, чтобы это перетестировать. Эта модель очень неудобна. Когда же каждый пакет служит своей цели или небольшому набору связанных по смыслу целей, их уже можно обновлять когда это действительно нужно. Так же следующие версии пакета выпускаются только когда в них есть какие то изменения, а не «за компанию».</li>
+<li>Отделить второстепенный код от основной бизнес логики. В DDD есть принцип дистилляции домена, он предполагает идентифицировать части кода не принадлежащие основному домену и изолироваться от них. И как лучше изолироваться, чем вынести этот код в отдельный проект.<br/>
+Кстати, дистилляция домена очень похожа на принцип SRP только на другом уровне.</li>
+<li>Собственное покрытие кода. В одном из проектов, где я участвовал, покрытие кода было около 30%. А библиотека, которую я из него вынес, имеет покрытие около 100%. Проект, хоть и потерял процент покрытия, как был в красной зоне до вынесения, так и остался. А библиотека имеет такие завидные показатели и по сей день, спустя почти год и 4 мажорные версии.</li>
+<li>Open Source. Код не содержащий бизнес логику — первый кандидат на отделение от проекта, поэтому его можно сделать открытым.</li>
+</ol><br/>
+<h1>Стартовать новые библиотеки «дорого»</h1><br/>
+Cуществует такая проблема: для того чтобы создать библиотеку недостаточно завести под нее git репозиторий. Также нужно настроить таски, чтобы проект можно было собирать, проводить статическую проверку(lint) и тестировать. Также, в дополнение к тестированию желательно собирать покрытие кода. Кроме этого публиковать пакет придется каждый раз вручную. И еще нужно написать readme. Вот только с readme ничем помочь не смогу.<br/>
+<br/>
+Итак, что же можно сделать со всеми этими нудными, неинтересными задачами?<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/e7d/23c/060/e7d23c0601b80abf5e381f3f9e51c5ad.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/e7d/23c/060/e7d23c0601b80abf5e381f3f9e51c5ad.jpg" data-blurred="true"/><br/>
+<br/>
+<h1>Первый шаг: Seed</h1><br/>
+Начал я все с того, что создал проект seed. Этакий стартовый набор, у него была такая же структура, как и у первого моего проекта по вынесению кода в отдельный пакет. Я насоздавал в нем gulp таски и сценарии которые бы построили, протестировали и собрали покрытие пакета в одно действие. Теперь, чтобы создать еще один проект, мне нужно было склонировать seed в новую папку и поменять origin, чтобы он показывал на свежесозданный на GitHub-е репозиторий(тогда я еще использовал GitHub).<br/>
+<br/>
+Такой способ создания проектов дает еще одно преимущество. Теперь изменения касающиеся построения или тестирования проекта производятся единожды, в проекте seed. И копипастить эти изменения уже не нужно. Вместо этого в конечном проекте, в следующий раз когда с ним приходится поработать, я создаю второй remote с названием seed и забираю оттуда эти изменения.<br/>
+<br/>
+И это работало для меня какое то время. До тех пор пока я не использовал seed в проекте, где участвовали несколько разработчиков. Я написал инструкцию из трех шагов: взять последний master, построить и опубликовать. И в какой то момент один из разработчиков, по непонятной причине выполнил первый шаг и третий. Как вообще такое возможно?<br/>
+<br/>
+<h1>Второй шаг: Автоматическая публикация</h1><br/>
+Несмотря на то, что это была единичная ошибка, такие ручные действия как публикация занудны. Поэтому я посчитал, что автоматизировать ее необходимо. Кроме этого нужен был CI, чтобы предотвратить попадание «красных» коммитов в master. Сначала я попробовал использовать Travis CI, но уперся в следующее ограничение. Он считает pull-request в master эквивалентным коммиту в master-е. А мне нужно было сделать разные действия.<br/>
+<br/>
+Один из моих коллег посоветовал обратить внимание на GitLab и его CI, и там заработало все что я хотел. <br/>
+<br/>
+Я создал следующий процесс работы с проектом, применяемый когда нужно поправить ошибку, добавить новую функциональность или создать новую версию:<br/>
+<br/>
+<ol>
+<li>Создаю ветку от master-а. Пишу в ней код и тесты.</li>
+<li>Создаю merge request.</li>
+<li>GitLab CI автоматически запускает тесты в контейнере node:latest </li>
+<li>На запросе проходит Code Review.</li>
+<li>После того как запрос помержен, GitLab запускает второй набор скриптов. Этот набор создает тэг на коммите с номером версии. Номер версии берется из package.json если он там вручную увеличен, если нет, то берется последняя опубликованная версия и автоинкрементируется.</li>
+<li>Скрипт собирает проект и снова запускает тесты.</li>
+<li>Последними шагами тэг с версией отправляется в репозиторий а пакет публикуется в NPM.</li>
+</ol><br/>
+ Таким образом, версия указанная в тэге всегда совпадает с версией пакета, опубликованного с этого коммита. Для того чтобы эти операции работали, в проекте на GitLab нужно указать переменные окружения с ключами доступа в репозиторий и в NPM.<br/>
+<br/>
+<h1>Последний шаг: Автоматизируем всё</h1><br/>
+На этот момент я уже многое автоматизировал, но все еще оставалось достаточно много ручных действий для того чтобы создать проект. Это, конечно, все равно уже был прогресс, потому что действия делались один раз на проект, а не на каждую версию. Но все равно, инструкция состояла из 11 шагов. И я сам пару раз ошибся, делая эти шаги. Тогда я и решил, что раз начал автоматизировать, то надо довести это до конца.<br/>
+<br/>
+Чтобы эта полная автоматизация работала, но компьютере мне нужно иметь 3 файла в папке .ssh. Я посчитал, что эта папка достаточно защищена, раз там уже хранится приватный ключ id_rsa. Этот файл также будет использован для того чтобы GitLab CI передавал тэги в репозиторий. <br/>
+<br/>
+Второй файл, который я туда положил — «gitlab», в нем лежит ключ доступа к GitLab API. И третий файл — «npm», ключ доступа для публикации пакета.<br/>
+<br/>
+И тут начинается магия. Все что нужно для создания нового пакета это запустить одну команду в папке seed: «gulp startNewLib -n [npmName]/[libName]». Готово, пакет создан, готов к разработке и авто-публикации.<br/>
+<br/>
+Для примера, пакет «vlr/validity» был создан таким образом.<br/>
+<br/>
+Эта команда делает следующие действия:<br/>
+<br/>
+<ol>
+<li>Cоздает проект на GitLab</li>
+<li>Клонирует seed в локальную папку по соседству с папкой из которой команда запущена.</li>
+<li>Меняет origin на проект созданный в шаге 1</li>
+<li>Пушит ветку master</li>
+<li>Создает переменные окружения в проекте из файлов в папке .ssh</li>
+<li>Создает ветку firstImplementation</li>
+<li>Меняет имя библиотеки в package.json, коммитит и пушит ветку</li>
+</ol><br/>
+Все что нужно после этого — положить туда код и создать merge request.<br/>
+<br/>
+Как результат, которым можно гордиться, от момента когда принимается решение вынести какой то код в отдельный проект до публикации первой версии проходит около пяти минут. Четыре из которых занимают два пайплайна GitLabCI, и одна минута на то чтобы запустить вышеописанную команду, перетащить код, и нажать кнопки в интерфейсе GitLab чтобы создать и потом помержить запрос.<br/>
+<br/>
+Есть некоторые ограничения: GitLab имя должно совпадать с именем в npm. И еще, эта команда, в отличие от остального функционала в проекте seed, работает только на Windows.<br/>
+<br/>
+Если вам будет интересен этот seed проект, его можно <a href="https://gitlab.com/vlr/tslib-seed">поизучать по следующей ссылке</a>.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Btypescript%5D" class="tm-tags-list__link">typescript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnodejs%5D" class="tm-tags-list__link">nodejs</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnpm%5D" class="tm-tags-list__link">npm</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/nodejs/" class="tm-hubs-list__link">
+    Node.JS
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/build_automation/" class="tm-hubs-list__link">
+    Системы сборки
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/typescript/" class="tm-hubs-list__link">
+    TypeScript
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 19: ↑17 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 19: ↑17 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+15</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">3K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    37
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/VladVR/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 67 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    23
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Владимир Репин</span> <a href="/ru/users/VladVR/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @VladVR
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">User</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450262/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 4 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450262/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450262/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450262":{"id":"450262","timePublished":"2019-05-01T11:53:17+00:00","isCorporative":false,"lang":"ru","titleHtml":"Автоматизация библиотек на Typescript","leadData":{"textHtml":"Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце статьи будет ссылка на GitLab репозиторий, который вы можете посмотреть, и может быть взять что то понравившееся себе на вооружение. Может быть даже по моему опыту создадите свое автоматизированное решение.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Владимир Репин","originalUrl":"https:\u002F\u002Fmedium.com\u002F@bobah083\u002Fautomation-for-typescript-libraries-a41fe948df16"}}],"author":{"scoreStats":{"score":23,"votesCount":67},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"221569","alias":"VladVR","fullname":"Владимир Репин","avatarUrl":null,"speciality":"User"},"statistics":{"commentsCount":4,"favoritesCount":37,"readingCount":3005,"score":15,"votesCount":19},"hubs":[{"relatedData":null,"id":"17110","alias":"nodejs","type":"collective","title":"Node.JS","titleHtml":"Node.JS","isProfiled":true},{"relatedData":null,"id":"19816","alias":"build_automation","type":"collective","title":"Системы сборки","titleHtml":"Системы сборки","isProfiled":true},{"relatedData":null,"id":"21370","alias":"typescript","type":"collective","title":"TypeScript","titleHtml":"TypeScript","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EХочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце статьи будет ссылка на GitLab репозиторий, который вы можете посмотреть, и может быть взять что то понравившееся себе на вооружение. Может быть даже по моему опыту создадите свое автоматизированное решение.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EЗачем это нужно\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nИтак, зачем вообще нужно создавать библиотеки, ну или в конкретном случае NPM пакеты?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EПереиспользование кода между проектами. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНачалось все с того, что я заметил за собой привычку создавать в проектах папочку \u002Ftools. Кроме этого я еще и забираю с собой большую часть этой папки при переходе в новый проект. И тут я задал себе вопрос, а почему бы вместо копипаста не сделать NPM пакет и потом просто подключать его в любой проект?\u003C\u002Fli\u003E\r\n\u003Cli\u003EРазличный жизненный цикл. В одном из приложений в качестве зависимости была большая корпоративная сборка компонентов. Обновлять ее можно было только целиком, даже если обновился только один компонент. Изменения в других компонентах могли что то сломать и не всегда у нас хватало оцененного времени, чтобы это перетестировать. Эта модель очень неудобна. Когда же каждый пакет служит своей цели или небольшому набору связанных по смыслу целей, их уже можно обновлять когда это действительно нужно. Так же следующие версии пакета выпускаются только когда в них есть какие то изменения, а не «за компанию».\u003C\u002Fli\u003E\r\n\u003Cli\u003EОтделить второстепенный код от основной бизнес логики. В DDD есть принцип дистилляции домена, он предполагает идентифицировать части кода не принадлежащие основному домену и изолироваться от них. И как лучше изолироваться, чем вынести этот код в отдельный проект.\u003Cbr\u002F\u003E\r\nКстати, дистилляция домена очень похожа на принцип SRP только на другом уровне.\u003C\u002Fli\u003E\r\n\u003Cli\u003EСобственное покрытие кода. В одном из проектов, где я участвовал, покрытие кода было около 30%. А библиотека, которую я из него вынес, имеет покрытие около 100%. Проект, хоть и потерял процент покрытия, как был в красной зоне до вынесения, так и остался. А библиотека имеет такие завидные показатели и по сей день, спустя почти год и 4 мажорные версии.\u003C\u002Fli\u003E\r\n\u003Cli\u003EOpen Source. Код не содержащий бизнес логику — первый кандидат на отделение от проекта, поэтому его можно сделать открытым.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EСтартовать новые библиотеки «дорого»\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nCуществует такая проблема: для того чтобы создать библиотеку недостаточно завести под нее git репозиторий. Также нужно настроить таски, чтобы проект можно было собирать, проводить статическую проверку(lint) и тестировать. Также, в дополнение к тестированию желательно собирать покрытие кода. Кроме этого публиковать пакет придется каждый раз вручную. И еще нужно написать readme. Вот только с readme ничем помочь не смогу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, что же можно сделать со всеми этими нудными, неинтересными задачами?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe7d\u002F23c\u002F060\u002Fe7d23c0601b80abf5e381f3f9e51c5ad.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe7d\u002F23c\u002F060\u002Fe7d23c0601b80abf5e381f3f9e51c5ad.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EПервый шаг: Seed\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНачал я все с того, что создал проект seed. Этакий стартовый набор, у него была такая же структура, как и у первого моего проекта по вынесению кода в отдельный пакет. Я насоздавал в нем gulp таски и сценарии которые бы построили, протестировали и собрали покрытие пакета в одно действие. Теперь, чтобы создать еще один проект, мне нужно было склонировать seed в новую папку и поменять origin, чтобы он показывал на свежесозданный на GitHub-е репозиторий(тогда я еще использовал GitHub).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТакой способ создания проектов дает еще одно преимущество. Теперь изменения касающиеся построения или тестирования проекта производятся единожды, в проекте seed. И копипастить эти изменения уже не нужно. Вместо этого в конечном проекте, в следующий раз когда с ним приходится поработать, я создаю второй remote с названием seed и забираю оттуда эти изменения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ это работало для меня какое то время. До тех пор пока я не использовал seed в проекте, где участвовали несколько разработчиков. Я написал инструкцию из трех шагов: взять последний master, построить и опубликовать. И в какой то момент один из разработчиков, по непонятной причине выполнил первый шаг и третий. Как вообще такое возможно?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EВторой шаг: Автоматическая публикация\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНесмотря на то, что это была единичная ошибка, такие ручные действия как публикация занудны. Поэтому я посчитал, что автоматизировать ее необходимо. Кроме этого нужен был CI, чтобы предотвратить попадание «красных» коммитов в master. Сначала я попробовал использовать Travis CI, но уперся в следующее ограничение. Он считает pull-request в master эквивалентным коммиту в master-е. А мне нужно было сделать разные действия.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдин из моих коллег посоветовал обратить внимание на GitLab и его CI, и там заработало все что я хотел. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЯ создал следующий процесс работы с проектом, применяемый когда нужно поправить ошибку, добавить новую функциональность или создать новую версию:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EСоздаю ветку от master-а. Пишу в ней код и тесты.\u003C\u002Fli\u003E\r\n\u003Cli\u003EСоздаю merge request.\u003C\u002Fli\u003E\r\n\u003Cli\u003EGitLab CI автоматически запускает тесты в контейнере node:latest \u003C\u002Fli\u003E\r\n\u003Cli\u003EНа запросе проходит Code Review.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПосле того как запрос помержен, GitLab запускает второй набор скриптов. Этот набор создает тэг на коммите с номером версии. Номер версии берется из package.json если он там вручную увеличен, если нет, то берется последняя опубликованная версия и автоинкрементируется.\u003C\u002Fli\u003E\r\n\u003Cli\u003EСкрипт собирает проект и снова запускает тесты.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПоследними шагами тэг с версией отправляется в репозиторий а пакет публикуется в NPM.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n Таким образом, версия указанная в тэге всегда совпадает с версией пакета, опубликованного с этого коммита. Для того чтобы эти операции работали, в проекте на GitLab нужно указать переменные окружения с ключами доступа в репозиторий и в NPM.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EПоследний шаг: Автоматизируем всё\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНа этот момент я уже многое автоматизировал, но все еще оставалось достаточно много ручных действий для того чтобы создать проект. Это, конечно, все равно уже был прогресс, потому что действия делались один раз на проект, а не на каждую версию. Но все равно, инструкция состояла из 11 шагов. И я сам пару раз ошибся, делая эти шаги. Тогда я и решил, что раз начал автоматизировать, то надо довести это до конца.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы эта полная автоматизация работала, но компьютере мне нужно иметь 3 файла в папке .ssh. Я посчитал, что эта папка достаточно защищена, раз там уже хранится приватный ключ id_rsa. Этот файл также будет использован для того чтобы GitLab CI передавал тэги в репозиторий. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВторой файл, который я туда положил — «gitlab», в нем лежит ключ доступа к GitLab API. И третий файл — «npm», ключ доступа для публикации пакета.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ тут начинается магия. Все что нужно для создания нового пакета это запустить одну команду в папке seed: «gulp startNewLib -n [npmName]\u002F[libName]». Готово, пакет создан, готов к разработке и авто-публикации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля примера, пакет «vlr\u002Fvalidity» был создан таким образом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта команда делает следующие действия:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003ECоздает проект на GitLab\u003C\u002Fli\u003E\r\n\u003Cli\u003EКлонирует seed в локальную папку по соседству с папкой из которой команда запущена.\u003C\u002Fli\u003E\r\n\u003Cli\u003EМеняет origin на проект созданный в шаге 1\u003C\u002Fli\u003E\r\n\u003Cli\u003EПушит ветку master\u003C\u002Fli\u003E\r\n\u003Cli\u003EСоздает переменные окружения в проекте из файлов в папке .ssh\u003C\u002Fli\u003E\r\n\u003Cli\u003EСоздает ветку firstImplementation\u003C\u002Fli\u003E\r\n\u003Cli\u003EМеняет имя библиотеки в package.json, коммитит и пушит ветку\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nВсе что нужно после этого — положить туда код и создать merge request.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак результат, которым можно гордиться, от момента когда принимается решение вынести какой то код в отдельный проект до публикации первой версии проходит около пяти минут. Четыре из которых занимают два пайплайна GitLabCI, и одна минута на то чтобы запустить вышеописанную команду, перетащить код, и нажать кнопки в интерфейсе GitLab чтобы создать и потом помержить запрос.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть некоторые ограничения: GitLab имя должно совпадать с именем в npm. И еще, эта команда, в отличие от остального функционала в проекте seed, работает только на Windows.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли вам будет интересен этот seed проект, его можно \u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fvlr\u002Ftslib-seed\"\u003Eпоизучать по следующей ссылке\u003C\u002Fa\u003E.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"typescript"},{"titleHtml":"nodejs"},{"titleHtml":"npm"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450262\u002Fe0150d426d721a959acfd8b125bb7d8b\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450262\u002Fe0150d426d721a959acfd8b125bb7d8b\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450262\\\u002F\"},\"headline\":\"Автоматизация библиотек на Typescript\",\"datePublished\":\"2019-05-01T14:53:17+03:00\",\"dateModified\":\"2019-05-02T21:51:49+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Владимир Репин\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты мои...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450262\\\u002F#post-content-body\",\"about\":[\"h_nodejs\",\"h_build_automation\",\"h_typescript\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe7d\\\u002F23c\\\u002F060\\\u002Fe7d23c0601b80abf5e381f3f9e51c5ad.jpg\"]}","metaDescription":"Хочу сразу оговориться: эта статья не дает готового к использованию рецепта. Это скорее моя история путешествия в мир Typescript и NodeJS, а также результаты моих экспериментов. Тем не менее, в конце...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"nodejs,build_automation,typescript"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

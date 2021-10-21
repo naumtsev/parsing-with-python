@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод) / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450116\/"},"headline":"Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)","datePublished":"2019-04-30T12:02:18+03:00","dateModified":"2019-04-30T19:14:28+03:00","author":{"@type":"Person","name":"Александр"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Введение в операционные системы  Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы &mdash; OSTEP. В этом...","url":"https:\/\/habr.com\/ru\/post\/450116\/#post-content-body","about":["h_sys_admin","h_system_programming","h_nix","h_c","h_engineering_systems","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/4x\/ad\/rr\/4xadrrwfmrtn3mg-se6wgith9gm.png","https:\/\/habrastorage.org\/webt\/jl\/wi\/fg\/jlwifg8osgxds9bpyftx2aoa9pa.png","https:\/\/habrastorage.org\/webt\/hq\/dp\/ou\/hqdpouigzrlqbjbhwnvgv9e8mxc.png","https:\/\/habrastorage.org\/webt\/md\/oa\/f_\/mdoaf_yf81n7xvy-j_bdo6hvbmm.png","https:\/\/habrastorage.org\/webt\/cx\/te\/ll\/cxtellydeep0hkgrqfiypt-zqq4.png","https:\/\/habrastorage.org\/webt\/je\/rs\/kw\/jerskwy36cewrg6auapm-dal7iu.png","https:\/\/habrastorage.org\/webt\/p4\/1j\/-d\/p41j-d9spzwfok9w7xmkcewqgrq.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Введение в операционные системы 
+Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Введение в операционные системы 
+Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Введение в операционные системы 
+Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Введение в операционные системы 
+Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Введение в операционные системы 
+Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450116/74d8f3021232878a8de9d71fb524c1a5/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450116/74d8f3021232878a8de9d71fb524c1a5/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450116/74d8f3021232878a8de9d71fb524c1a5/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450116/74d8f3021232878a8de9d71fb524c1a5/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450116/74d8f3021232878a8de9d71fb524c1a5/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450116" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-30T09:02:18.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450116/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450116/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450116/74d8f3021232878a8de9d71fb524c1a5/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450116/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/bykvaadm/" title="bykvaadm" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/bykvaadm/" class="tm-user-info__username">
+      bykvaadm
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-30T09:02:18.000Z" title="2019-04-30, 12:02">30  апреля  2019 в 12:02</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sys_admin/" class="tm-article-snippet__hubs-item-link"><span>Системное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/system_programming/" class="tm-article-snippet__hubs-item-link"><span>Системное программирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/nix/" class="tm-article-snippet__hubs-item-link"><span>*nix</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/c/" class="tm-article-snippet__hubs-item-link"><span>C</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/engineering_systems/" class="tm-article-snippet__hubs-item-link"><span>Инженерные системы</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><h1>Введение в операционные системы</h1> <br/>
+Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно глубоко работа unix-подобных операционных систем, а именно — работа с процессами, различными планировщиками, памятью и прочиими подобными компонентами, которые составляют современную ОС. Оригинал всех материалов вы можете посмотреть вот <a href="http://pages.cs.wisc.edu/~remzi/OSTEP/">тут</a>. Прошу учесть, что перевод выполнен непрофессионально (достаточно вольно), но надеюсь общий смысл я сохранил.<br/>
+<br/>
+Лабораторные работы по данному предмету можно найти вот тут:<br/>
+<br/>
+<ul>
+<li><a href="http://pages.cs.wisc.edu/~remzi/OSTEP/Homework/homework.html">оригинал</a></li>
+<li><a href="https://github.com/remzi-arpacidusseau/ostep-code">оригинал</a></li>
+<li><a href="https://github.com/bykvaadm/OS/tree/master/ostep">моя личная адаптация</a></li>
+</ul><br/>
+Другие части:<br/>
+<br/>
+<ul>
+<li><a href="https://habr.com/en/post/446340/">Часть 1: Intro</a></li>
+<li><a href="https://habr.com/en/post/446866/">Часть 2: Абстрация: процесс</a></li>
+<li><a href="https://habr.com/en/post/447182/">Часть 3: Введение в API процессов</a></li>
+<li><a href="https://habr.com/en/post/449026/">Часть 4: Введение в планировщик</a></li>
+<li><a href="https://habr.com/en/post/450116/">Часть 5: Планировщик MLFQ</a></li>
+</ul><br/>
+А еще можете заглядывать ко мне на канал в <a href="https://t.me/bykvaadm">телеграм</a> =)<br/>
+<a name="habracut"></a><br/>
+<h2>Планирование: Multi-Level Feedback Queue</h2><br/>
+В этой лекции мы поговорим о проблемах разработки одного из самых известных подходов к<br/>
+планированию, который называется <b>Multi-Level Feedback Queue</b> (MLFQ). Впервые MLFQ планировщик был описан в 1962 году Fernando J. Corbató в системе, называемой Compatible Time-Sharing System (CTSS). Эти работы (в том числе и поздние работы над Multics) впоследствии были представлены к награде Turing Award. Планировщик был впоследствии усовершенствован и приобрел облик, который можно встретить уже в некоторых современных системах.<br/>
+<br/>
+Алгоритм MLFQ пытается решить 2 фундаментальные пересекающиеся проблемы.<br/>
+<b>Во-первых</b>, он пытается оптимизировать время оборота, которое как мы рассматривали в предыдущей лекции, оптимизируется методом запуска в начале очереди наиболее коротких задач. Однако, ОС не знает как долго будет работать тот или иной процесс, а это необходимое знание для работы алгоритмов SJF, STCF. <b>Во-вторых</b>, MLFQ пытается сделать систему отзывчивой для пользователей (например для таких, которые сидят и пялятся в экран в ожидании завершения задачи) и таким образом минимизировать время отклика. К сожалению, алгоритмы наподобие RR уменьшают время отклика, но крайне плохо влияют на метрику времени оборота. Отсюда наша проблема: Как проектировать планировщик, который будет отвечать нашим требованиям и при этом ничего не знать о характере процесса, в общем? Как планировщик сможет изучить характеристики задач, которые он запускает и таким образом принимать лучше решения о планировании?<br/>
+<br/>
+<u>Суть проблемы: Как планировать постановку задач без идеального знания? Как разработать планировщик, который одновременно минимизирует время отклика для интерактивных задач и при этом минимизирует время оборота без заведомого знания времени исполнения задачи?</u><br/>
+<br/>
+Заметка: обучаемся по предыдущим событиям<br/>
+<br/>
+Очередь MLFQ является прекрасным примером системы, которая обучается на прошедших событиях, чтобы предсказать будущее. Подобные подходы часто встречаются в ОС (И многих других отраслях в информатике, включая ветки предсказаний в оборудовании и алгоритмы кэширования). Подобные походы срабатывают, когда у задач есть поведенческие фазы и таким образом они предсказуемы.<br/>
+<br/>
+Однако с такой техникой следует быть осторожным, потому что предсказания очень легко могут оказаться неправильными и привести систему к принятию худших решений, нежели были бы без знаний вообще.<br/>
+<br/>
+<h3>MLFQ: Basic Rules</h3><br/>
+Рассмотрим базовые правила алгоритма MLFQ. И хотя реализаций этого алгоритма существует несколько, базовые подходы схожи.<br/>
+<br/>
+В той реализации, которую мы будем рассматривать, в MLFQ будет несколько отдельных очередей, каждая из которых будет иметь разный приоритет. В любое время, задача, готовая к исполнению находится в одной очереди. MLFQ использует приоритеты, чтобы решить, какую задачу запускать на исполнение, т.е. задача с более высоким приоритетом (задача из очереди с высшим приоритетом) будет запущена в первую очередь.<br/>
+<br/>
+Несомненно, в конкретной очереди может находиться более одной задачи, таким образом у них будет одинаковый приоритет. В этом случае будет использоваться механизм RR для планирования запуска среди этих задач.<br/>
+<br/>
+Таким образом мы приходим к двум базовым правилам для MLFQ:<br/>
+<br/>
+<ul>
+<li> Rule1: Если приоритет(А) > Приоритет(Б), будет запущена задача А (Б не будет)</li>
+<li> Rule2: Если приоритет(А) = Приоритет(Б), АиБ запускаются с использованием RR</li>
+</ul><br/>
+Исходя из вышеперечисленного, ключевыми элементами к планированию MLFQ являются приоритеты. Вместо того чтобы задавать фиксированный приоритет каждому заданию, MLFQ изменяет его приоритет в зависимости от наблюдаемого поведения.<br/>
+<br/>
+Например, если задача постоянно бросает работу на CPU в ожидании ввода с клавиатуры, MLFQ будет поддерживать приоритет процесса на высоком уровне, потому что именно так должен работать интерактивный процесс. Если же напротив задача постоянно и интенсивно использует CPU в течение долгого периода, MLFQ будет понижать его приоритет. Таким образом, MLFQ будет изучать поведение процессов в момент их работы и использовать поведения.<br/>
+<br/>
+Нарисуем пример того как могли бы выглядеть очереди в некоторый момент времени и тогда получится что-то вроде этого:<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://habrastorage.org/webt/4x/ad/rr/4xadrrwfmrtn3mg-se6wgith9gm.png"/><br/>
+<br/>
+В данной схеме 2 процесса А и B находятся в очереди с наивысшим приоритетом. Процесс С где-то посередине, а процесс D в самом конце очереди. Согласно приведенным выше описаниям алгоритма MLFQ планировщик будет исполнять задачи только с наивысшим приоритетом согласно RR, а задачи C,D будут не у дел.<br/>
+<br/>
+Естественно статический снапшот не даст полную картину того как работает MLFQ.<br/>
+Важно понимать, как именно меняется картина с течением времени.<br/>
+<br/>
+<h4>Попытка 1: Как изменять приоритет</h4><br/>
+В этот момент необходимо решить, как MLFQ будет менять уровень приоритета задачи (и таким образом положения задачи в очереди) по ходу ее жизненного цикла. Для этого необходимо держать в голове рабочий процесс: некоторое количество интерактивных задач с коротким временем работы (и таким образом частое освобождение CPU) и несколько долгих задач, которые используют CPU все свое рабочее время, при этом время отклика для таких задач не важно. И таким образом можно сделать первую попытку реализовать алгоритм MLFQ со следующими правилами:<br/>
+<br/>
+<ul>
+<li> Rule3: Когда задача поступает в систему, она помещается в очередь с наивысшим</li>
+<li>приоритетом.</li>
+<li>Rule4a: Если задача использует целиком отведенное ей временное окно, то ее</li>
+<li>приоритет понижается.</li>
+<li>Rule4b: Если Задача освобождает CPU до истечения своего временного окна, то она</li>
+<li>остается с прежним приоритетом.</li>
+</ul><br/>
+<b>Пример 1: Одиночная долгоработающая задача</b><br/>
+ <br/>
+Как видно в этом примере, задача при поступлении ставится с наивысшим приоритетом. После временного окна в 10мс процесс понижается в приоритете планировщиком. После следующего временного окна задача, наконец, понижается до низшего приоритета в системе, где и остается.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/jl/wi/fg/jlwifg8osgxds9bpyftx2aoa9pa.png"/><br/>
+<br/>
+<b>Пример 2: Подвезли короткую задачу</b><br/>
+<br/>
+Теперь посмотрим пример того, как MLFQ попытается приблизиться к SJF. В этом примере две задачи: А, которая является долгоиграющей задачей постоянно занимающей CPU и B, которая является короткой интерактивной задачей. Предположим, что А уже работала некоторое время к моменту когда поступила задача B.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/hq/dp/ou/hqdpouigzrlqbjbhwnvgv9e8mxc.png"/><br/>
+<br/>
+На данном графике видны результаты сценария. Задача А, как и любая задача, использующая CPU оказалась в самом низу. Задача В прибудет во время Т=100 и будет помещена в очередь с наивысшим приоритетом. Поскольку время ее работы невелико, то она завершится до того как достигнет последней очереди.<br/>
+<br/>
+Из этого примера следует понять главную цель алгоритма: поскольку алгоритм не знает длинная задача или короткая, то в первую очередь он предполагает, что задача короткая и выдает ей наивысший приоритет. Если это действительно короткая задача, то она выполнится быстро, иначе если это длинная задача, то она будет медленно двигаться в приоритете вниз и вскоре докажет, что она действительно долгая задача, которая не требует отклика.<br/>
+<br/>
+<b>Пример 3: Что же о вводе-выводе?</b><br/>
+<br/>
+Теперь взглянем на пример с вводом-выводом. Как утверждалось в правиле 4b, если процесс освобождает процессор, не использовав полностью его процессорное время, то он остается на прежнем уровне приоритета. Намерения этого правила довольно просты — если интерактивное задание выполняет много операций ввода-вывода, например, ожидая от пользователя нажатий клавиши или мыши, такое задание будет освобождать процессор раньше отведенного окна. Мы не хотели бы опускать такое задание по приоритету, и таким образом оно останется на прежнем уровне.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/md/oa/f_/mdoaf_yf81n7xvy-j_bdo6hvbmm.png"/><br/>
+<br/>
+Этот пример показывает как будет работать алгоритм с такими процессами — интерактивное задание В, которое нуждается в CPU только на 1мс перед выполнением процесса ввода-вывода и долгое задание А, которое все свое время использует CPU.<br/>
+<br/>
+MLFQ держит процесс В с наивысшим приоритетом, поскольку он все время продолжает <br/>
+освобождать CPU. Если B — интерактивное задание, то алгоритм в таком случае достиг своей цели запускать интерактивные задачи быстро.<br/>
+<br/>
+<b>Проблемы с текущим алгоритмом MLFQ</b><br/>
+<br/>
+В предыдущих примерах мы построили базовый вариант MLFQ. И кажется что он выполняет свою работу хорошо и честно, распределяя процессорное время честно между долгими задачами и позволяя коротким задачам или задачам интенсивно обращающимся к вводу-выводу отрабатывать быстро. К сожалению, такой подход содержит несколько серьезных проблем.<br/>
+<br/>
+<b>Во-первых</b>, проблема голода: если в системе будет множество интерактивных задач, то они будут потреблять все процессорное время и таким образом ни одно долгое задание не получит возможности исполняться (они голодают).<br/>
+<br/>
+<b>Во-вторых</b>, умные пользователи могли бы писать свои программы так, чтобы<br/>
+обмануть планировщик. Обман кроется в том, чтобы сделать что-то такое, чтобы заставить<br/>
+планировщик выдавать процессу больше процессорного времени. Алгоритм, который<br/>
+описан выше вполне уязвим к подобным атакам: перед тем как окно времени практически<br/>
+кончилось нужно выполнить операцию ввода-вывода (к какому-то, неважно какому файлу)<br/>
+и таким образом освободить CPU. Подобное поведение позволит оставаться в той же<br/>
+самой очереди и снова получить больший процент процессорного времени. Если сделать<br/>
+это правильно (например, исполняться 99% времени окна перед освобождением CPU),<br/>
+такая задача попросту может монополизировать процессор.<br/>
+<br/>
+Наконец, программа может менять свое поведение со временем. Те задачи,<br/>
+которые использовали CPU, могут стать интерактивными. В нашем примере подобные<br/>
+задачи не получат должного обращения от планировщика, так как получили бы другие<br/>
+(изначальные) интерактивные задачи.<br/>
+<br/>
+<u>Вопрос к залу: какие атаки на планировщик можно было совершать в современном мире?<br/>
+</u><br/>
+<h4>Попытка 2: Повышение приоритета</h4><br/>
+<br/>
+Попробуем поменять правила и посмотрим получится ли избежать проблем с<br/>
+голоданием. Что бы мы могли сделать для того, чтобы гарантировать, что связанные с<br/>
+CPU задачи получат свое время (даже если и не долгое).<br/>
+В качестве простого решения проблемы можно предложить периодически<br/>
+повышать приоритет всех таких задач в системе. Существует множество способов<br/>
+достижения этого, попробуем воплотить в качестве примера что-то простое: переводить<br/>
+сразу все задачи в наивысший приоритет, отсюда новое правило:<br/>
+<ul>
+<li><b>Rule5</b>: По прошествии некоторого периода S перевести все задачи в системе в наивысшую очередь.</li>
+</ul><br/>
+Наше новое правило решает две проблемы сразу. Во-первых, процессы<br/>
+гарантированно не голодают: задачи, находящиеся в высшей очереди будут делить<br/>
+процессорное время согласно алгоритму RR и таким образом все процессы получат<br/>
+процессорное время. Во-вторых, если какой-то процесс, который ранее использовал <br/>
+только процессор, становится интерактивным, то он будет оставаться в очереди с высшим<br/>
+приоритетом после того как единожды получит повышение приоритета до наивысшего.<br/>
+Рассмотрим пример. В этом сценарии рассмотрим один процесс, использующий<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/cx/te/ll/cxtellydeep0hkgrqfiypt-zqq4.png"/><br/>
+<br/>
+CPU и два интерактивных, коротких процесса. Слева на рисунке рисунок демонстрирует поведение без повышения приоритета, и таким образом долгая задача начинает голодать после прибытия в систему двух интерактивных задач. На рисунке справа каждые 50мс выполняется повышение приоритета и таким образом все процессы гарантированно получают процессорное время и будут периодически запускаться. 50мс в данном случае взято для примера, реально это число несколько больше.<br/>
+Очевидно, что добавление времени периодического повышения S приводит к<br/>
+закономерному вопросу: какое значение должно быть выставлено? Один из заслуженных<br/>
+системных инженеров John Ousterhout называл подобные величины в системах как voo-doo<br/>
+константа, поскольку они в некотором роде требовали черной магии для корректного<br/>
+выставления. И, к сожалению S имеет такой аромат. Если выставить значение слишком<br/>
+большим — долгие задачи начнут голодать. А если выставить слишком низкое значение,<br/>
+интерактивные задачи не получат должного процессорного времени.<br/>
+<br/>
+<h4>Попытка 3: Лучший учет</h4><br/>
+<br/>
+Теперь у нас есть еще одна проблема, которую необходимо решить: как не<br/>
+позволять обманывать наш планировщик? Виноватыми в этой возможности оказываются<br/>
+правила 4a, 4b, которые позволяют заданию сохранять приоритет, освобождая процессор<br/>
+до истечения выделенного времени. Как же с этим справиться?<br/>
+Решением в этом случае можно считать лучший учет времени CPU на каждом<br/>
+уровне MLFQ. Вместо того чтобы забывать время, которое программа использовала<br/>
+процессор за отведенный промежуток, следует учитывать и сохранять его. После того как<br/>
+процесс израсходовал отведенное ему время следует понижать его до следующего<br/>
+уровня приоритета. Теперь неважно как процесс будет использовать свое время — как<br/>
+постоянно вычисляющий на процессоре или как множество вызовов. Таким образом,<br/>
+следует переписать правило 4 к следующему виду:<br/>
+<br/>
+<ul>
+<li><b>Rule4</b>: После того как задача израсходовала выделенное ей время в текущей очереди (независимо от того сколько раз она освобождала CPU) приоритет такой задачи понижается (она двигается вниз очереди).</li>
+</ul><br/>
+Посмотрим на пример:<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/je/rs/kw/jerskwy36cewrg6auapm-dal7iu.png"/>" <br/>
+<br/>
+На рисунке показано что случается, если попробовать обмануть планировщик, как<br/>
+если бы было с предыдущими правилами 4a, 4b получится результат слева. С новым<br/>
+правилом — результат справа. До защиты любой процесс мог вызвать I/O до завершения и<br/>
+таким образом доминировать на CPU, после включения защиты, независимо от поведения<br/>
+I/O, он будет все равно опускаться в очереди вниз и таким образом не сможет нечестно<br/>
+завладеть ресурсами CPU.<br/>
+<br/>
+<h4>Улучшаем MLFQ и прочие проблемы</h4><br/>
+С приведенными выше улучшениями возникают новые проблемы: один из главных<br/>
+вопросов — как параметризировать подобный планировщик? Т.е. Сколько должно быть<br/>
+очередей? Каков должен быть размер окна работы программы в пределах очереди? Как<br/>
+часто следует повышать приоритет программы для того чтобы избежать голодания и<br/>
+принять во внимание изменение поведения программы? На эти вопросы, нет простого<br/>
+ответа и только эксперименты с нагрузками и последующее конфигурирование<br/>
+планировщика может привести к некоему удовлетворительному балансу.<br/>
+<br/>
+Например, большинство реализаций MLFQ позволяют назначать различные<br/>
+временные интервалы различным очередям. Высокоприоритетным очередям обычно<br/>
+назначаются короткие интервалы. Эти очереди состоят из интерактивных задач,<br/>
+переключение между которыми довольно чувствительно и должно занимать 10 или меньше<br/>
+мс. В противовес низкоприоритетные очереди состоят из долгих задач, использующих<br/>
+CPU. И в этом случае длинные временные интервалы подходят очень хорошо (100мс).<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/p4/1j/-d/p41j-d9spzwfok9w7xmkcewqgrq.png"/><br/>
+<br/>
+В этом примере есть 2 задачи, которые проработали в высокоприоритетной очереди 20<br/>
+мс, разбитые на окна по 10мс. 40мс в средней очереди (окно в 20мс) и в низкоприоритетной<br/>
+очереди временное окно стало 40мс, где задачи завершили свою работу.<br/>
+<br/>
+Реализация MLFQ в ОС Solaris — класс планировщиков, разделяющих по времени.<br/>
+Планировщик предоставлят набор таблиц, которые определяют в точности, как должен<br/>
+меняться приоритет процесса с течением его жизни, каким должен быть размер<br/>
+выделяемого окна и как часто нужно поднимать приоритеты задачи. Администратор<br/>
+системы может взаимодействовать с этой таблицей и заставлять планировщик вести себя<br/>
+по-другому. По-умолчанию в этой таблице 60 очередей с постепенным увеличением<br/>
+размера окна с 20мс (высокий приоритет) до нескольких сотен мс (низший приоритет), а<br/>
+также с бустом всех задач раз в секунду.<br/>
+<br/>
+Другие MLFQ планировщики не используют таблицу или какие-то конкретные<br/>
+правила, которые описаны в этой лекции, напротив они вычисляют приоритеты, используя<br/>
+математические формулы. Так, например планировщик в FreeBSD использует формулу для<br/>
+вычисления текущего приоритета задачи, основываясь на том, сколько процесс<br/>
+использовал CPU. В дополнение, использование CPU со временем загнивает, и таким<br/>
+образом повышение приоритета происходит несколько иначе, чем описано выше. Это так<br/>
+называемые decay алгоритмы. С версии 7.1 в FreeBSD используется планировщик ULE.<br/>
+<br/>
+Наконец, многие планировщики имеют другие особенности. Например, некоторые<br/>
+планировщики резервируют высшие уровни для работы операционной системы и таким<br/>
+образом, никакой пользовательский процесс не сможет получить наивысший приоритет в<br/>
+системе. Некоторые системы позволяют давать советы для того чтобы помочь<br/>
+планировщику корректно выставлять приоритеты. Так например, с помощью команды <b>nice</b><br/>
+можно увеличивать или уменьшать приоритет задачи и таким образом повышать или<br/>
+понижать шансы программы на процессорное время.<br/>
+<h3>MLFQ: Итоги</h3><br/>
+Мы описали подход к планированию, который называется MLFQ. Его название<br/>
+заключено в принципе работы — он имеет несколько очередей и использует обратную связь<br/>
+для определения приоритета задачи.<br/>
+Итоговый вид правил будет следующим:<br/>
+ <ul>
+<li><b>Rule1</b>: Если приоритет(А) > Приоритет(Б), будет запущена задача А (Б не будет)</li>
+<li><b>Rule2</b>: Если приоритет(А) = Приоритет(Б), АиБ запускаются с использованием RR</li>
+<li><b>Rule3</b>: Когда задача поступает в систему, она помещается в очередь с наивысшим приоритетом.</li>
+<li><b>Rule4</b>: После того как задача израсходовала выделенное ей время в текущей очереди (независимо от того сколько раз она освобождала CPU) приоритет такой задачи понижается (она двигается вниз очереди).</li>
+<li><b>Rule5</b>: По прошествии некоторого периода S перевести все задачи в системе в наивысшую очередь.</li>
+</ul><br/>
+MLFQ интересен по следующей причине — вместо того чтобы требовать знание о<br/>
+природе задачи заранее, алгоритм изучает прошлое поведение задачи и выставляет<br/>
+приоритеты соответствующе. Таким образом он старается усидеть сразу на двух стульях — достичь производительности для маленьких задач (SJF, STCF) и честно запускать долгие,<br/>
+загружающие CPU задания. Поэтому многие системы, включая BSD и их производные,<br/>
+Solaris, Windows, Mac используют в качестве планировщика некоторую форму алгоритма<br/>
+MLFQ в качестве базовой основы.<br/>
+<h4>Дополнительные материалы:</h4><br/>
+<ol>
+<li><a href="https://manpages.debian.org/stretch/manpages/sched.7.en.html">manpages.debian.org/stretch/manpages/sched.7.en.html</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Scheduling_">en.wikipedia.org/wiki/Scheduling_</a>(computing)</li>
+<li><a href="https://pages.lip6.fr/Julia.Lawall/atc18-bouron.pdf">pages.lip6.fr/Julia.Lawall/atc18-bouron.pdf</a></li>
+<li><a href="https://www.usenix.org/legacy/event/bsdcon03/tech/full_papers/roberson/roberson.pdf">www.usenix.org/legacy/event/bsdcon03/tech/full_papers/roberson/roberson.pdf</a></li>
+<li><a href="https://chebykin.org/freebsd-process-scheduling">chebykin.org/freebsd-process-scheduling</a></li>
+</ol></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D0%B5%D1%80%D0%B5%D0%B2%D0%BE%D0%B4%20%D1%81%20%D0%B0%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B3%D0%BE%5D" class="tm-tags-list__link">перевод с английского</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BE%D0%BF%D0%B5%D1%80%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D1%8B%D0%B5%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%5D" class="tm-tags-list__link">операционные системы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blinux%5D" class="tm-tags-list__link">linux</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/sys_admin/" class="tm-hubs-list__link">
+    Системное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/system_programming/" class="tm-hubs-list__link">
+    Системное программирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/nix/" class="tm-hubs-list__link">
+    *nix
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/c/" class="tm-hubs-list__link">
+    C
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/engineering_systems/" class="tm-hubs-list__link">
+    Инженерные системы
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 5: ↑5 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 5: ↑5 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+5</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">2.3K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    32
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/bykvaadm/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 93 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    53
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Александр</span> <a href="/ru/users/bykvaadm/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @bykvaadm
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">DevOps</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <div class="tm-article-author__user-contacts"><a href="https://telegram.me/bykva" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450116/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 1 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450116/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450116/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450116":{"id":"450116","timePublished":"2019-04-30T09:02:18+00:00","isCorporative":false,"lang":"ru","titleHtml":"Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)","leadData":{"textHtml":"\u003Ch1\u003EВведение в операционные системы\u003C\u002Fh1\u003E \u003Cbr\u003E\r\nПривет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно глубоко работа unix-подобных операционных систем, а именно — работа с процессами, различными планировщиками, памятью и прочиими подобными компонентами, которые составляют современную ОС. Оригинал всех материалов вы можете посмотреть вот \u003Ca href=\"http:\u002F\u002Fpages.cs.wisc.edu\u002F~remzi\u002FOSTEP\u002F\"\u003Eтут\u003C\u002Fa\u003E. Прошу учесть, что перевод выполнен непрофессионально (достаточно вольно), но надеюсь общий смысл я сохранил.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЛабораторные работы по данному предмету можно найти вот тут:\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"http:\u002F\u002Fpages.cs.wisc.edu\u002F~remzi\u002FOSTEP\u002FHomework\u002Fhomework.html\"\u003Eоригинал\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fremzi-arpacidusseau\u002Fostep-code\"\u003Eоригинал\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fbykvaadm\u002FOS\u002Ftree\u002Fmaster\u002Fostep\"\u003Eмоя личная адаптация\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u003E\r\nДругие части:\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F446340\u002F\"\u003EЧасть 1: Intro\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F446866\u002F\"\u003EЧасть 2: Абстрация: процесс\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F447182\u002F\"\u003EЧасть 3: Введение в API процессов\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F449026\u002F\"\u003EЧасть 4: Введение в планировщик\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F450116\u002F\"\u003EЧасть 5: Планировщик MLFQ\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u003E\r\nА еще можете заглядывать ко мне на канал в \u003Ca href=\"https:\u002F\u002Ft.me\u002Fbykvaadm\"\u003Eтелеграм\u003C\u002Fa\u003E =)\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":53,"votesCount":93},"rating":0,"relatedData":null,"contacts":[{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fbykva","value":"bykva"}],"authorContacts":[{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Fbykva","value":"bykva"}],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"968094","alias":"bykvaadm","fullname":"Александр","avatarUrl":null,"speciality":"DevOps"},"statistics":{"commentsCount":1,"favoritesCount":32,"readingCount":2308,"score":5,"votesCount":5},"hubs":[{"relatedData":null,"id":"221","alias":"sys_admin","type":"collective","title":"Системное администрирование","titleHtml":"Системное администрирование","isProfiled":true},{"relatedData":null,"id":"5767","alias":"system_programming","type":"collective","title":"Системное программирование","titleHtml":"Системное программирование","isProfiled":true},{"relatedData":null,"id":"7289","alias":"nix","type":"collective","title":"*nix","titleHtml":"*nix","isProfiled":true},{"relatedData":null,"id":"17717","alias":"c","type":"collective","title":"C","titleHtml":"C","isProfiled":true},{"relatedData":null,"id":"22113","alias":"engineering_systems","type":"collective","title":"Инженерные системы","titleHtml":"Инженерные системы","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Ch1\u003EВведение в операционные системы\u003C\u002Fh1\u003E \u003Cbr\u002F\u003E\r\nПривет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно глубоко работа unix-подобных операционных систем, а именно — работа с процессами, различными планировщиками, памятью и прочиими подобными компонентами, которые составляют современную ОС. Оригинал всех материалов вы можете посмотреть вот \u003Ca href=\"http:\u002F\u002Fpages.cs.wisc.edu\u002F~remzi\u002FOSTEP\u002F\"\u003Eтут\u003C\u002Fa\u003E. Прошу учесть, что перевод выполнен непрофессионально (достаточно вольно), но надеюсь общий смысл я сохранил.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЛабораторные работы по данному предмету можно найти вот тут:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"http:\u002F\u002Fpages.cs.wisc.edu\u002F~remzi\u002FOSTEP\u002FHomework\u002Fhomework.html\"\u003Eоригинал\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fremzi-arpacidusseau\u002Fostep-code\"\u003Eоригинал\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fbykvaadm\u002FOS\u002Ftree\u002Fmaster\u002Fostep\"\u003Eмоя личная адаптация\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nДругие части:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F446340\u002F\"\u003EЧасть 1: Intro\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F446866\u002F\"\u003EЧасть 2: Абстрация: процесс\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F447182\u002F\"\u003EЧасть 3: Введение в API процессов\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F449026\u002F\"\u003EЧасть 4: Введение в планировщик\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fen\u002Fpost\u002F450116\u002F\"\u003EЧасть 5: Планировщик MLFQ\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nА еще можете заглядывать ко мне на канал в \u003Ca href=\"https:\u002F\u002Ft.me\u002Fbykvaadm\"\u003Eтелеграм\u003C\u002Fa\u003E =)\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПланирование: Multi-Level Feedback Queue\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ этой лекции мы поговорим о проблемах разработки одного из самых известных подходов к\u003Cbr\u002F\u003E\r\nпланированию, который называется \u003Cb\u003EMulti-Level Feedback Queue\u003C\u002Fb\u003E (MLFQ). Впервые MLFQ планировщик был описан в 1962 году Fernando J. Corbató в системе, называемой Compatible Time-Sharing System (CTSS). Эти работы (в том числе и поздние работы над Multics) впоследствии были представлены к награде Turing Award. Планировщик был впоследствии усовершенствован и приобрел облик, который можно встретить уже в некоторых современных системах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАлгоритм MLFQ пытается решить 2 фундаментальные пересекающиеся проблемы.\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВо-первых\u003C\u002Fb\u003E, он пытается оптимизировать время оборота, которое как мы рассматривали в предыдущей лекции, оптимизируется методом запуска в начале очереди наиболее коротких задач. Однако, ОС не знает как долго будет работать тот или иной процесс, а это необходимое знание для работы алгоритмов SJF, STCF. \u003Cb\u003EВо-вторых\u003C\u002Fb\u003E, MLFQ пытается сделать систему отзывчивой для пользователей (например для таких, которые сидят и пялятся в экран в ожидании завершения задачи) и таким образом минимизировать время отклика. К сожалению, алгоритмы наподобие RR уменьшают время отклика, но крайне плохо влияют на метрику времени оборота. Отсюда наша проблема: Как проектировать планировщик, который будет отвечать нашим требованиям и при этом ничего не знать о характере процесса, в общем? Как планировщик сможет изучить характеристики задач, которые он запускает и таким образом принимать лучше решения о планировании?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cu\u003EСуть проблемы: Как планировать постановку задач без идеального знания? Как разработать планировщик, который одновременно минимизирует время отклика для интерактивных задач и при этом минимизирует время оборота без заведомого знания времени исполнения задачи?\u003C\u002Fu\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗаметка: обучаемся по предыдущим событиям\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОчередь MLFQ является прекрасным примером системы, которая обучается на прошедших событиях, чтобы предсказать будущее. Подобные подходы часто встречаются в ОС (И многих других отраслях в информатике, включая ветки предсказаний в оборудовании и алгоритмы кэширования). Подобные походы срабатывают, когда у задач есть поведенческие фазы и таким образом они предсказуемы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОднако с такой техникой следует быть осторожным, потому что предсказания очень легко могут оказаться неправильными и привести систему к принятию худших решений, нежели были бы без знаний вообще.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EMLFQ: Basic Rules\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nРассмотрим базовые правила алгоритма MLFQ. И хотя реализаций этого алгоритма существует несколько, базовые подходы схожи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ той реализации, которую мы будем рассматривать, в MLFQ будет несколько отдельных очередей, каждая из которых будет иметь разный приоритет. В любое время, задача, готовая к исполнению находится в одной очереди. MLFQ использует приоритеты, чтобы решить, какую задачу запускать на исполнение, т.е. задача с более высоким приоритетом (задача из очереди с высшим приоритетом) будет запущена в первую очередь.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНесомненно, в конкретной очереди может находиться более одной задачи, таким образом у них будет одинаковый приоритет. В этом случае будет использоваться механизм RR для планирования запуска среди этих задач.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТаким образом мы приходим к двум базовым правилам для MLFQ:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E Rule1: Если приоритет(А) \u003E Приоритет(Б), будет запущена задача А (Б не будет)\u003C\u002Fli\u003E\r\n\u003Cli\u003E Rule2: Если приоритет(А) = Приоритет(Б), АиБ запускаются с использованием RR\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nИсходя из вышеперечисленного, ключевыми элементами к планированию MLFQ являются приоритеты. Вместо того чтобы задавать фиксированный приоритет каждому заданию, MLFQ изменяет его приоритет в зависимости от наблюдаемого поведения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример, если задача постоянно бросает работу на CPU в ожидании ввода с клавиатуры, MLFQ будет поддерживать приоритет процесса на высоком уровне, потому что именно так должен работать интерактивный процесс. Если же напротив задача постоянно и интенсивно использует CPU в течение долгого периода, MLFQ будет понижать его приоритет. Таким образом, MLFQ будет изучать поведение процессов в момент их работы и использовать поведения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНарисуем пример того как могли бы выглядеть очереди в некоторый момент времени и тогда получится что-то вроде этого:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F4x\u002Fad\u002Frr\u002F4xadrrwfmrtn3mg-se6wgith9gm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ данной схеме 2 процесса А и B находятся в очереди с наивысшим приоритетом. Процесс С где-то посередине, а процесс D в самом конце очереди. Согласно приведенным выше описаниям алгоритма MLFQ планировщик будет исполнять задачи только с наивысшим приоритетом согласно RR, а задачи C,D будут не у дел.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕстественно статический снапшот не даст полную картину того как работает MLFQ.\u003Cbr\u002F\u003E\r\nВажно понимать, как именно меняется картина с течением времени.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EПопытка 1: Как изменять приоритет\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nВ этот момент необходимо решить, как MLFQ будет менять уровень приоритета задачи (и таким образом положения задачи в очереди) по ходу ее жизненного цикла. Для этого необходимо держать в голове рабочий процесс: некоторое количество интерактивных задач с коротким временем работы (и таким образом частое освобождение CPU) и несколько долгих задач, которые используют CPU все свое рабочее время, при этом время отклика для таких задач не важно. И таким образом можно сделать первую попытку реализовать алгоритм MLFQ со следующими правилами:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E Rule3: Когда задача поступает в систему, она помещается в очередь с наивысшим\u003C\u002Fli\u003E\r\n\u003Cli\u003Eприоритетом.\u003C\u002Fli\u003E\r\n\u003Cli\u003ERule4a: Если задача использует целиком отведенное ей временное окно, то ее\u003C\u002Fli\u003E\r\n\u003Cli\u003Eприоритет понижается.\u003C\u002Fli\u003E\r\n\u003Cli\u003ERule4b: Если Задача освобождает CPU до истечения своего временного окна, то она\u003C\u002Fli\u003E\r\n\u003Cli\u003Eостается с прежним приоритетом.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПример 1: Одиночная долгоработающая задача\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nКак видно в этом примере, задача при поступлении ставится с наивысшим приоритетом. После временного окна в 10мс процесс понижается в приоритете планировщиком. После следующего временного окна задача, наконец, понижается до низшего приоритета в системе, где и остается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjl\u002Fwi\u002Ffg\u002Fjlwifg8osgxds9bpyftx2aoa9pa.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПример 2: Подвезли короткую задачу\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь посмотрим пример того, как MLFQ попытается приблизиться к SJF. В этом примере две задачи: А, которая является долгоиграющей задачей постоянно занимающей CPU и B, которая является короткой интерактивной задачей. Предположим, что А уже работала некоторое время к моменту когда поступила задача B.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fhq\u002Fdp\u002Fou\u002Fhqdpouigzrlqbjbhwnvgv9e8mxc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа данном графике видны результаты сценария. Задача А, как и любая задача, использующая CPU оказалась в самом низу. Задача В прибудет во время Т=100 и будет помещена в очередь с наивысшим приоритетом. Поскольку время ее работы невелико, то она завершится до того как достигнет последней очереди.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИз этого примера следует понять главную цель алгоритма: поскольку алгоритм не знает длинная задача или короткая, то в первую очередь он предполагает, что задача короткая и выдает ей наивысший приоритет. Если это действительно короткая задача, то она выполнится быстро, иначе если это длинная задача, то она будет медленно двигаться в приоритете вниз и вскоре докажет, что она действительно долгая задача, которая не требует отклика.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПример 3: Что же о вводе-выводе?\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь взглянем на пример с вводом-выводом. Как утверждалось в правиле 4b, если процесс освобождает процессор, не использовав полностью его процессорное время, то он остается на прежнем уровне приоритета. Намерения этого правила довольно просты — если интерактивное задание выполняет много операций ввода-вывода, например, ожидая от пользователя нажатий клавиши или мыши, такое задание будет освобождать процессор раньше отведенного окна. Мы не хотели бы опускать такое задание по приоритету, и таким образом оно останется на прежнем уровне.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmd\u002Foa\u002Ff_\u002Fmdoaf_yf81n7xvy-j_bdo6hvbmm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭтот пример показывает как будет работать алгоритм с такими процессами — интерактивное задание В, которое нуждается в CPU только на 1мс перед выполнением процесса ввода-вывода и долгое задание А, которое все свое время использует CPU.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nMLFQ держит процесс В с наивысшим приоритетом, поскольку он все время продолжает \u003Cbr\u002F\u003E\r\nосвобождать CPU. Если B — интерактивное задание, то алгоритм в таком случае достиг своей цели запускать интерактивные задачи быстро.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПроблемы с текущим алгоритмом MLFQ\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ предыдущих примерах мы построили базовый вариант MLFQ. И кажется что он выполняет свою работу хорошо и честно, распределяя процессорное время честно между долгими задачами и позволяя коротким задачам или задачам интенсивно обращающимся к вводу-выводу отрабатывать быстро. К сожалению, такой подход содержит несколько серьезных проблем.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВо-первых\u003C\u002Fb\u003E, проблема голода: если в системе будет множество интерактивных задач, то они будут потреблять все процессорное время и таким образом ни одно долгое задание не получит возможности исполняться (они голодают).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EВо-вторых\u003C\u002Fb\u003E, умные пользователи могли бы писать свои программы так, чтобы\u003Cbr\u002F\u003E\r\nобмануть планировщик. Обман кроется в том, чтобы сделать что-то такое, чтобы заставить\u003Cbr\u002F\u003E\r\nпланировщик выдавать процессу больше процессорного времени. Алгоритм, который\u003Cbr\u002F\u003E\r\nописан выше вполне уязвим к подобным атакам: перед тем как окно времени практически\u003Cbr\u002F\u003E\r\nкончилось нужно выполнить операцию ввода-вывода (к какому-то, неважно какому файлу)\u003Cbr\u002F\u003E\r\nи таким образом освободить CPU. Подобное поведение позволит оставаться в той же\u003Cbr\u002F\u003E\r\nсамой очереди и снова получить больший процент процессорного времени. Если сделать\u003Cbr\u002F\u003E\r\nэто правильно (например, исполняться 99% времени окна перед освобождением CPU),\u003Cbr\u002F\u003E\r\nтакая задача попросту может монополизировать процессор.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаконец, программа может менять свое поведение со временем. Те задачи,\u003Cbr\u002F\u003E\r\nкоторые использовали CPU, могут стать интерактивными. В нашем примере подобные\u003Cbr\u002F\u003E\r\nзадачи не получат должного обращения от планировщика, так как получили бы другие\u003Cbr\u002F\u003E\r\n(изначальные) интерактивные задачи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cu\u003EВопрос к залу: какие атаки на планировщик можно было совершать в современном мире?\u003Cbr\u002F\u003E\r\n\u003C\u002Fu\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EПопытка 2: Повышение приоритета\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПопробуем поменять правила и посмотрим получится ли избежать проблем с\u003Cbr\u002F\u003E\r\nголоданием. Что бы мы могли сделать для того, чтобы гарантировать, что связанные с\u003Cbr\u002F\u003E\r\nCPU задачи получат свое время (даже если и не долгое).\u003Cbr\u002F\u003E\r\nВ качестве простого решения проблемы можно предложить периодически\u003Cbr\u002F\u003E\r\nповышать приоритет всех таких задач в системе. Существует множество способов\u003Cbr\u002F\u003E\r\nдостижения этого, попробуем воплотить в качестве примера что-то простое: переводить\u003Cbr\u002F\u003E\r\nсразу все задачи в наивысший приоритет, отсюда новое правило:\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule5\u003C\u002Fb\u003E: По прошествии некоторого периода S перевести все задачи в системе в наивысшую очередь.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nНаше новое правило решает две проблемы сразу. Во-первых, процессы\u003Cbr\u002F\u003E\r\nгарантированно не голодают: задачи, находящиеся в высшей очереди будут делить\u003Cbr\u002F\u003E\r\nпроцессорное время согласно алгоритму RR и таким образом все процессы получат\u003Cbr\u002F\u003E\r\nпроцессорное время. Во-вторых, если какой-то процесс, который ранее использовал \u003Cbr\u002F\u003E\r\nтолько процессор, становится интерактивным, то он будет оставаться в очереди с высшим\u003Cbr\u002F\u003E\r\nприоритетом после того как единожды получит повышение приоритета до наивысшего.\u003Cbr\u002F\u003E\r\nРассмотрим пример. В этом сценарии рассмотрим один процесс, использующий\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fcx\u002Fte\u002Fll\u002Fcxtellydeep0hkgrqfiypt-zqq4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nCPU и два интерактивных, коротких процесса. Слева на рисунке рисунок демонстрирует поведение без повышения приоритета, и таким образом долгая задача начинает голодать после прибытия в систему двух интерактивных задач. На рисунке справа каждые 50мс выполняется повышение приоритета и таким образом все процессы гарантированно получают процессорное время и будут периодически запускаться. 50мс в данном случае взято для примера, реально это число несколько больше.\u003Cbr\u002F\u003E\r\nОчевидно, что добавление времени периодического повышения S приводит к\u003Cbr\u002F\u003E\r\nзакономерному вопросу: какое значение должно быть выставлено? Один из заслуженных\u003Cbr\u002F\u003E\r\nсистемных инженеров John Ousterhout называл подобные величины в системах как voo-doo\u003Cbr\u002F\u003E\r\nконстанта, поскольку они в некотором роде требовали черной магии для корректного\u003Cbr\u002F\u003E\r\nвыставления. И, к сожалению S имеет такой аромат. Если выставить значение слишком\u003Cbr\u002F\u003E\r\nбольшим — долгие задачи начнут голодать. А если выставить слишком низкое значение,\u003Cbr\u002F\u003E\r\nинтерактивные задачи не получат должного процессорного времени.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EПопытка 3: Лучший учет\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь у нас есть еще одна проблема, которую необходимо решить: как не\u003Cbr\u002F\u003E\r\nпозволять обманывать наш планировщик? Виноватыми в этой возможности оказываются\u003Cbr\u002F\u003E\r\nправила 4a, 4b, которые позволяют заданию сохранять приоритет, освобождая процессор\u003Cbr\u002F\u003E\r\nдо истечения выделенного времени. Как же с этим справиться?\u003Cbr\u002F\u003E\r\nРешением в этом случае можно считать лучший учет времени CPU на каждом\u003Cbr\u002F\u003E\r\nуровне MLFQ. Вместо того чтобы забывать время, которое программа использовала\u003Cbr\u002F\u003E\r\nпроцессор за отведенный промежуток, следует учитывать и сохранять его. После того как\u003Cbr\u002F\u003E\r\nпроцесс израсходовал отведенное ему время следует понижать его до следующего\u003Cbr\u002F\u003E\r\nуровня приоритета. Теперь неважно как процесс будет использовать свое время — как\u003Cbr\u002F\u003E\r\nпостоянно вычисляющий на процессоре или как множество вызовов. Таким образом,\u003Cbr\u002F\u003E\r\nследует переписать правило 4 к следующему виду:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule4\u003C\u002Fb\u003E: После того как задача израсходовала выделенное ей время в текущей очереди (независимо от того сколько раз она освобождала CPU) приоритет такой задачи понижается (она двигается вниз очереди).\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПосмотрим на пример:\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fje\u002Frs\u002Fkw\u002Fjerskwy36cewrg6auapm-dal7iu.png\"\u002F\u003E\" \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа рисунке показано что случается, если попробовать обмануть планировщик, как\u003Cbr\u002F\u003E\r\nесли бы было с предыдущими правилами 4a, 4b получится результат слева. С новым\u003Cbr\u002F\u003E\r\nправилом — результат справа. До защиты любой процесс мог вызвать I\u002FO до завершения и\u003Cbr\u002F\u003E\r\nтаким образом доминировать на CPU, после включения защиты, независимо от поведения\u003Cbr\u002F\u003E\r\nI\u002FO, он будет все равно опускаться в очереди вниз и таким образом не сможет нечестно\u003Cbr\u002F\u003E\r\nзавладеть ресурсами CPU.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EУлучшаем MLFQ и прочие проблемы\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nС приведенными выше улучшениями возникают новые проблемы: один из главных\u003Cbr\u002F\u003E\r\nвопросов — как параметризировать подобный планировщик? Т.е. Сколько должно быть\u003Cbr\u002F\u003E\r\nочередей? Каков должен быть размер окна работы программы в пределах очереди? Как\u003Cbr\u002F\u003E\r\nчасто следует повышать приоритет программы для того чтобы избежать голодания и\u003Cbr\u002F\u003E\r\nпринять во внимание изменение поведения программы? На эти вопросы, нет простого\u003Cbr\u002F\u003E\r\nответа и только эксперименты с нагрузками и последующее конфигурирование\u003Cbr\u002F\u003E\r\nпланировщика может привести к некоему удовлетворительному балансу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример, большинство реализаций MLFQ позволяют назначать различные\u003Cbr\u002F\u003E\r\nвременные интервалы различным очередям. Высокоприоритетным очередям обычно\u003Cbr\u002F\u003E\r\nназначаются короткие интервалы. Эти очереди состоят из интерактивных задач,\u003Cbr\u002F\u003E\r\nпереключение между которыми довольно чувствительно и должно занимать 10 или меньше\u003Cbr\u002F\u003E\r\nмс. В противовес низкоприоритетные очереди состоят из долгих задач, использующих\u003Cbr\u002F\u003E\r\nCPU. И в этом случае длинные временные интервалы подходят очень хорошо (100мс).\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fp4\u002F1j\u002F-d\u002Fp41j-d9spzwfok9w7xmkcewqgrq.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этом примере есть 2 задачи, которые проработали в высокоприоритетной очереди 20\u003Cbr\u002F\u003E\r\nмс, разбитые на окна по 10мс. 40мс в средней очереди (окно в 20мс) и в низкоприоритетной\u003Cbr\u002F\u003E\r\nочереди временное окно стало 40мс, где задачи завершили свою работу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРеализация MLFQ в ОС Solaris — класс планировщиков, разделяющих по времени.\u003Cbr\u002F\u003E\r\nПланировщик предоставлят набор таблиц, которые определяют в точности, как должен\u003Cbr\u002F\u003E\r\nменяться приоритет процесса с течением его жизни, каким должен быть размер\u003Cbr\u002F\u003E\r\nвыделяемого окна и как часто нужно поднимать приоритеты задачи. Администратор\u003Cbr\u002F\u003E\r\nсистемы может взаимодействовать с этой таблицей и заставлять планировщик вести себя\u003Cbr\u002F\u003E\r\nпо-другому. По-умолчанию в этой таблице 60 очередей с постепенным увеличением\u003Cbr\u002F\u003E\r\nразмера окна с 20мс (высокий приоритет) до нескольких сотен мс (низший приоритет), а\u003Cbr\u002F\u003E\r\nтакже с бустом всех задач раз в секунду.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДругие MLFQ планировщики не используют таблицу или какие-то конкретные\u003Cbr\u002F\u003E\r\nправила, которые описаны в этой лекции, напротив они вычисляют приоритеты, используя\u003Cbr\u002F\u003E\r\nматематические формулы. Так, например планировщик в FreeBSD использует формулу для\u003Cbr\u002F\u003E\r\nвычисления текущего приоритета задачи, основываясь на том, сколько процесс\u003Cbr\u002F\u003E\r\nиспользовал CPU. В дополнение, использование CPU со временем загнивает, и таким\u003Cbr\u002F\u003E\r\nобразом повышение приоритета происходит несколько иначе, чем описано выше. Это так\u003Cbr\u002F\u003E\r\nназываемые decay алгоритмы. С версии 7.1 в FreeBSD используется планировщик ULE.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаконец, многие планировщики имеют другие особенности. Например, некоторые\u003Cbr\u002F\u003E\r\nпланировщики резервируют высшие уровни для работы операционной системы и таким\u003Cbr\u002F\u003E\r\nобразом, никакой пользовательский процесс не сможет получить наивысший приоритет в\u003Cbr\u002F\u003E\r\nсистеме. Некоторые системы позволяют давать советы для того чтобы помочь\u003Cbr\u002F\u003E\r\nпланировщику корректно выставлять приоритеты. Так например, с помощью команды \u003Cb\u003Enice\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\nможно увеличивать или уменьшать приоритет задачи и таким образом повышать или\u003Cbr\u002F\u003E\r\nпонижать шансы программы на процессорное время.\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EMLFQ: Итоги\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nМы описали подход к планированию, который называется MLFQ. Его название\u003Cbr\u002F\u003E\r\nзаключено в принципе работы — он имеет несколько очередей и использует обратную связь\u003Cbr\u002F\u003E\r\nдля определения приоритета задачи.\u003Cbr\u002F\u003E\r\nИтоговый вид правил будет следующим:\u003Cbr\u002F\u003E\r\n \u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule1\u003C\u002Fb\u003E: Если приоритет(А) \u003E Приоритет(Б), будет запущена задача А (Б не будет)\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule2\u003C\u002Fb\u003E: Если приоритет(А) = Приоритет(Б), АиБ запускаются с использованием RR\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule3\u003C\u002Fb\u003E: Когда задача поступает в систему, она помещается в очередь с наивысшим приоритетом.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule4\u003C\u002Fb\u003E: После того как задача израсходовала выделенное ей время в текущей очереди (независимо от того сколько раз она освобождала CPU) приоритет такой задачи понижается (она двигается вниз очереди).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ERule5\u003C\u002Fb\u003E: По прошествии некоторого периода S перевести все задачи в системе в наивысшую очередь.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nMLFQ интересен по следующей причине — вместо того чтобы требовать знание о\u003Cbr\u002F\u003E\r\nприроде задачи заранее, алгоритм изучает прошлое поведение задачи и выставляет\u003Cbr\u002F\u003E\r\nприоритеты соответствующе. Таким образом он старается усидеть сразу на двух стульях — достичь производительности для маленьких задач (SJF, STCF) и честно запускать долгие,\u003Cbr\u002F\u003E\r\nзагружающие CPU задания. Поэтому многие системы, включая BSD и их производные,\u003Cbr\u002F\u003E\r\nSolaris, Windows, Mac используют в качестве планировщика некоторую форму алгоритма\u003Cbr\u002F\u003E\r\nMLFQ в качестве базовой основы.\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EДополнительные материалы:\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmanpages.debian.org\u002Fstretch\u002Fmanpages\u002Fsched.7.en.html\"\u003Emanpages.debian.org\u002Fstretch\u002Fmanpages\u002Fsched.7.en.html\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FScheduling_\"\u003Een.wikipedia.org\u002Fwiki\u002FScheduling_\u003C\u002Fa\u003E(computing)\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fpages.lip6.fr\u002FJulia.Lawall\u002Fatc18-bouron.pdf\"\u003Epages.lip6.fr\u002FJulia.Lawall\u002Fatc18-bouron.pdf\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fwww.usenix.org\u002Flegacy\u002Fevent\u002Fbsdcon03\u002Ftech\u002Ffull_papers\u002Froberson\u002Froberson.pdf\"\u003Ewww.usenix.org\u002Flegacy\u002Fevent\u002Fbsdcon03\u002Ftech\u002Ffull_papers\u002Froberson\u002Froberson.pdf\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fchebykin.org\u002Ffreebsd-process-scheduling\"\u003Echebykin.org\u002Ffreebsd-process-scheduling\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"перевод с английского"},{"titleHtml":"операционные системы"},{"titleHtml":"linux"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450116\u002F74d8f3021232878a8de9d71fb524c1a5\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450116\u002F74d8f3021232878a8de9d71fb524c1a5\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450116\\\u002F\"},\"headline\":\"Operating Systems: Three Easy Pieces. Part 5: Планирование: Multi-Level Feedback Queue (перевод)\",\"datePublished\":\"2019-04-30T12:02:18+03:00\",\"dateModified\":\"2019-04-30T19:14:28+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Александр\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Введение в операционные системы  Привет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы &mdash; OSTEP. В этом...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450116\\\u002F#post-content-body\",\"about\":[\"h_sys_admin\",\"h_system_programming\",\"h_nix\",\"h_c\",\"h_engineering_systems\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F4x\\\u002Fad\\\u002Frr\\\u002F4xadrrwfmrtn3mg-se6wgith9gm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjl\\\u002Fwi\\\u002Ffg\\\u002Fjlwifg8osgxds9bpyftx2aoa9pa.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fhq\\\u002Fdp\\\u002Fou\\\u002Fhqdpouigzrlqbjbhwnvgv9e8mxc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmd\\\u002Foa\\\u002Ff_\\\u002Fmdoaf_yf81n7xvy-j_bdo6hvbmm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fcx\\\u002Fte\\\u002Fll\\\u002Fcxtellydeep0hkgrqfiypt-zqq4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fje\\\u002Frs\\\u002Fkw\\\u002Fjerskwy36cewrg6auapm-dal7iu.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fp4\\\u002F1j\\\u002F-d\\\u002Fp41j-d9spzwfok9w7xmkcewqgrq.png\"]}","metaDescription":"Введение в операционные системы \r\nПривет, Хабр! Хочу представить вашему вниманию серию статей-переводов одной интересной на мой взгляд литературы — OSTEP. В этом материале рассматривается достаточно...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"sys_admin,system_programming,nix,c,engineering_systems"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

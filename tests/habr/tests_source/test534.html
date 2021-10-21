@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450534\/"},"headline":"Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы","datePublished":"2019-05-04T22:51:11+03:00","dateModified":"2019-05-05T13:31:08+03:00","author":{"@type":"Person","name":"DmitrySpb79"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Привет, Хабр.  На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных...","url":"https:\/\/habr.com\/ru\/post\/450534\/#post-content-body","about":["h_instant_messaging","h_netdev","h_network_standarts","h_popular_science","h_engineering_systems","f_develop","f_admin","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/-j\/lp\/kz\/-jlpkzqg5f2ncqmvqz3rxeghyve.png","https:\/\/habrastorage.org\/webt\/ls\/ew\/oz\/lsewoz-zrzcjvpfcr4pbtnmbmva.png","https:\/\/habrastorage.org\/webt\/gc\/0i\/i1\/gc0ii1x0et7yfvzmgaj_klnad1e.png","https:\/\/habrastorage.org\/webt\/ey\/gq\/c0\/eygqc0oinfcnw8ivdcqxubgx9ae.png","https:\/\/habrastorage.org\/webt\/yi\/8m\/2e\/yi8m2ej1mdlq7edpylxytrxbw6o.png","https:\/\/habrastorage.org\/webt\/xi\/3h\/k_\/xi3hk_62wdpfcjmfiu610rmmgew.png","https:\/\/habrastorage.org\/webt\/ov\/dt\/oy\/ovdtoy_tacqynldbcmylsgyu1hm.png","https:\/\/habrastorage.org\/webt\/li\/fy\/mr\/lifymr2pcgvlysy-pnel68_ed-q.png","https:\/\/habrastorage.org\/webt\/lw\/wm\/oj\/lwwmojarewjwrj30svnlghn56yu.png","https:\/\/habrastorage.org\/webt\/nk\/y4\/dt\/nky4dt91b8pn7dq0vowl-kblpny.png","https:\/\/habrastorage.org\/webt\/81\/me\/23\/81me23s_p_y4ywkeahovi2dbsnu.png","https:\/\/habrastorage.org\/webt\/zx\/kt\/m-\/zxktm-ayrsjxytdwtkj0thtv4dy.png","https:\/\/habrastorage.org\/webt\/qm\/ac\/yu\/qmacyueqbfhdeziuaebniycfexo.png","https:\/\/habrastorage.org\/webt\/jx\/b8\/bh\/jxb8bhnbm_dm8yfmhkfcw-v_fo0.png","https:\/\/habrastorage.org\/webt\/r6\/8d\/du\/r68ddul3eylwgxproeyvnop5e3s.png","https:\/\/habrastorage.org\/webt\/1w\/5v\/8r\/1w5v8rohpiusbcaese4vjmtbliy.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Привет, Хабр.
+
+На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Привет, Хабр.
+
+На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Привет, Хабр.
+
+На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Привет, Хабр.
+
+На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Привет, Хабр.
+
+На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450534/355ba976a35eed6b026012c30f8dfabb/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450534/355ba976a35eed6b026012c30f8dfabb/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450534/355ba976a35eed6b026012c30f8dfabb/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450534/355ba976a35eed6b026012c30f8dfabb/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450534/355ba976a35eed6b026012c30f8dfabb/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450534" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-04T19:51:11.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450534/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450534/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450534/355ba976a35eed6b026012c30f8dfabb/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450534/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/DmitrySpb79/" title="DmitrySpb79" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/DmitrySpb79/" class="tm-user-info__username">
+      DmitrySpb79
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-04T19:51:11.000Z" title="2019-05-04, 22:51">4  мая  2019 в 22:51</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/instant_messaging/" class="tm-article-snippet__hubs-item-link"><span>Мессенджеры</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/netdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка систем связи</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/network_standarts/" class="tm-article-snippet__hubs-item-link"><span>Стандарты связи</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/popular_science/" class="tm-article-snippet__hubs-item-link"><span>Научно-популярное</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/engineering_systems/" class="tm-article-snippet__hubs-item-link"><span>Инженерные системы</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Привет, Хабр.<br/>
+<br/>
+На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало интересных сигналов. <br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/-j/lp/kz/-jlpkzqg5f2ncqmvqz3rxeghyve.png"/></div><br/>
+Все из них рассмотреть разумеется, нереально, попробуем выбрать самые интересные, те которые можно принять и декодировать самостоятельно с помощью компьютера. Для приема сигналов мы воспользуемся голландским онлайн-приемником <a href="http://websdr.ewi.utwente.nl:8901/">WebSDR</a>, декодером MultiPSK и программой Virtual Audio Cable.<br/>
+<a name="habracut"></a><br/>
+Для удобства рассмотрения будем приводить сигналы по возрастанию частоты. Вещательные станции я рассматривать не буду, это скучно и банально, послушать Радио Китая в АМ желающие могут и самостоятельно. А мы перейдем к более интересным сигналам.<br/>
+<br/>
+<h2>Сигналы точного времени</h2><br/>
+На частоте 77.5КГц (диапазон длинных волн) передаются сигналы точного времени немецкой станции DCF77. По ним уже была <a href="https://habr.com/ru/post/445470/">отдельная статья</a>, так что можно лишь кратко повторить, что это простой по структуре сигнал в амплитудной модуляции — разными длительностями закодированы «1» и «0», в итоге за одну минуту принимается 58-битный код.<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://habrastorage.org/webt/ls/ew/oz/lsewoz-zrzcjvpfcr4pbtnmbmva.png"/><br/>
+<br/>
+<h2>130-140КГц — телеметрия электросетей</h2><br/>
+На этих частотах, если верить <a href="http://www.radioscanner.ru/base/freq16693.html">сайту radioscanner</a>, передаются сигналы управления электросетями Германии. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/gc/0i/i1/gc0ii1x0et7yfvzmgaj_klnad1e.png"/><br/>
+<br/>
+Сигнал достаточно сильный, и по отзывам, принимается даже в Австралии. Декодировать его можно в MultiPSK, если выставить параметры, как показано на скриншоте.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ey/gq/c0/eygqc0oinfcnw8ivdcqxubgx9ae.png"/><br/>
+<br/>
+На выходе мы получим пакеты данных, их структура разумеется, неизвестна, желающие могут поэкспериментировать и заняться анализом на досуге. Технически, сам сигнал очень прост, метод называется FSK (Frequency Shift Keying) и заключается в формировании битовой последовательности путем смены частоты передачи. Тот же сигнал, в виде спектра — биты можно посчитать даже вручную.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/yi/8m/2e/yi8m2ej1mdlq7edpylxytrxbw6o.png"/><br/>
+<br/>
+<h2>Метеотелетайп</h2><br/>
+На спектре выше, совсем рядом, на частоте 147КГц виден еще один сигнал. Это (также немецкая) станция DWD (Deutscher Wetterdienst), передающая сводки погоды для судов. Помимо этой частоты, сигналы передаются также на 11039 и 14467КГц. <br/>
+<br/>
+Результат декодирования показан на скриншоте.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/xi/3h/k_/xi3hk_62wdpfcjmfiu610rmmgew.png"/><br/>
+<br/>
+Принцип кодирования телетайпа такой же, FSK, интерес тут представляет кодирование текста. Оно 5-битное, с помощью <a href="https://en.wikipedia.org/wiki/Baudot_code">кода Бодо</a>, и имеет практически 100-летнюю историю.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ov/dt/oy/ovdtoy_tacqynldbcmylsgyu1hm.png"/><br/>
+<br/>
+Вроде бы аналогичный код использовался и на перфолентах, ну а телетайпы погоды рассылаются где-то с 60х годов, и как можно видеть, работают до сих пор. Разумеется, на реальном корабле сигнал не декодируется с помощью компьютера — существуют специальные приемники, которые записывают сигнал и выводят его на экран. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/li/fy/mr/lifymr2pcgvlysy-pnel68_ed-q.png"/><br/>
+<br/>
+В общем, даже при наличии спутниковой связи и Интернета, передача данных таким способом до сих пор остается простым, надежным и дешевым средством. Хотя конечно, можно предположить что когда-то и эти системы уйдут в историю и будут заменены полностью цифровыми сервисами. Так что желающим принять подобный сигнал не стоит очень уж затягивать. <br/>
+<br/>
+<h2>Метеофакс</h2><br/>
+Еще один legacy-сигнал примерно с почти такой же давней историей. В этом сигнале изображение передается в <i>аналоговом виде</i> со скоростью 120 линий в минуту (бывают и другие значения, например 60 или 240 LPM), для кодирования яркости используется частотная модуляция — яркость каждой точки изображения пропорциональна изменению частоты. Такая простая схема позволяла передавать изображения еще в те времена, когда про “цифровые сигналы” мало кто слышал.<br/>
+<br/>
+Популярной в европейской части и удобной для приема является уже упомянутая немецкая станция DWD (Deutche Wetterdienst), передающая сообщения на частотах 3855, 7880 и 13882КГц. Другая организация, факсы которой несложно принять — британская Joint Operational Meteorology and Oceanography Centre, они передают сигналы на частотах 2618, 4610, 6834, 8040, 11086, 12390 и 18261КГц. <br/>
+<br/>
+Чтобы принять сигналы HF Fax, нужно использовать режим приемника USB, для декодирования можно использовать MultiPSK. Результат приема через websdr-приемник показан на рисунке:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/lw/wm/oj/lwwmojarewjwrj30svnlghn56yu.png"/><br/>
+<br/>
+Эта картинка была принята прямо во время написания текста. Видно кстати, что вертикальные линии съехали — протокол аналоговый, и точность синхронизации здесь критична, даже небольшие задержки при передаче звука онлайн вызывают сдвиг изображения. При использовании “настоящего” приемника такого эффекта не будет.<br/>
+<br/>
+Разумеется, как и в случае с метеотелетайпом, на судах никто не декодирует факсы с помощью компьютера — существуют специализированные приемники (пример картинки из начала статьи), которые делают всю работу автоматически. <br/>
+<br/>
+Правка: как подсказали в комментариях, с помощью факсов передаются не только метеосводки, но и даже <a href="https://habrastorage.org/getpro/habr/comment_images/c6f/306/4ce/c6f3064ce7f702a1807a794362cc5b50.jpg">газеты</a>. Частоты и расписание передачи разных стран и регионов можно найти <a href="https://www.nws.noaa.gov/os/marine/rfax.pdf">в pdf</a>.<br/>
+<br/>
+<h2>STANAG 4285</h2><br/>
+Рассмотрим теперь более современный стандарт передачи данных на коротких волнах — модем Stanag 4285. Этот формат разрабатывался для NATO, и существует в различных вариантах. В основе лежит фазовая модуляция, параметры сигнала могут варьироваться, как можно видеть из таблицы, скорость может составлять от 75 до 2400бит/с. Это может показаться немного, но учитывая среду передачи — короткие волны, с их замираниями и помехами, это вполне хороший результат.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/nk/y4/dt/nky4dt91b8pn7dq0vowl-kblpny.png"/><br/>
+<br/>
+Программа MultiPSK может декодировать STANAG, но в 95% случаев результатом декодирования будет лишь “мусор” — сам формат предоставляет лишь побитовый протокол нижнего уровня, а собственно данные могут быть зашифрованы или иметь какой-то свой формат. Некоторые сигналы впрочем, декодировать можно, например, приведенная ниже запись на частоте 8453КГц. Декодировать хоть какой-то сигнал через websdr-приемник у меня не получилось, видимо все же онлайн-передача нарушает структуру данных. Желающие могут скачать файл с реального приемника по ссылке <a href="https://cloud.mail.ru/public/JRZs/gH581X71s">cloud.mail.ru/public/JRZs/gH581X71s</a>. Результаты декодирования в MultiPSK показаны на скриншоте ниже. Как можно видеть, скорость для данной записи составляет 600bps, в качестве содержимого видимо, передается текстовый файл.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/81/me/23/81me23s_p_y4ywkeahovi2dbsnu.png"/><br/>
+<br/>
+Интересно, что как можно видеть на панораме, таких сигналов в эфире реально очень много:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/zx/kt/m-/zxktm-ayrsjxytdwtkj0thtv4dy.png"/><br/>
+<br/>
+Разумеется, не все из них возможно, принадлежат именно STANAG — на похожих принципах существуют и другие протоколы. Для примера, можно привести разбор сигнала <a href="http://i56578-swl.blogspot.com/2017/06/stanag-4539-in-multichannel-mode-thales.html">Thales HF Modem</a>. <br/>
+<br/>
+Как и в случае с другими рассмотренными сигналами, для реального приема и передачи используются специализированные устройства. К примеру для показанного на фото модема <a href="http://nsgdata.com/fredelec/products/4539.pdf">NSGDatacom 4539</a> заявлена скорость от 75 до 9600bps при полосе сигнала 3КГц.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/qm/ac/yu/qmacyueqbfhdeziuaebniycfexo.png"/><br/>
+<br/>
+Скорость в 9600 конечно, не очень внушает, но учитывая что сигналы можно передавать даже из джунглей или из корабля в океане, причем ничего не платя за траффик оператору связи, это не так уж плохо.<br/>
+<br/>
+Посмотрим кстати, внимательнее на панораму выше. Слева мы видим… правильно, старую добрую азбуку Морзе. Итак, переходим к следующему сигналу.<br/>
+<br/>
+<h2>Код Морзе (CW)</h2><br/>
+На частоте 8423КГц мы слышим именно его. Искусство слухового приема азбуки Морзе сейчас практически утрачено, поэтому мы воспользуемся MultiPSK (впрочем, декодирует она так себе, программа CW Skimmer справляется гораздо лучше).<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/jx/b8/bh/jxb8bhnbm_dm8yfmhkfcw-v_fo0.png"/><br/>
+<br/>
+Как можно видеть, передается повторяющийся текст DE SVO, если верить <a href="http://www.radioscanner.ru/base/freq391.html">сайту radioscanner</a>, станция расположена в Греции. <br/>
+<br/>
+Разумеется, таких сигналов уже мало, но они еще есть. Как пример, можно привести давно работающую станцию на 4331КГц, передающую повторяющиеся сигналы “VVV DE E4X4XZ”. Как подсказывает Гугл, станция принадлежит израильским ВМС. Передается ли на этой частоте что-то еще? Ответ неизвестен, желающие могут послушать и проверить самостоятельно. <br/>
+<br/>
+<h2>The Buzzer (УВБ-76)</h2><br/>
+Завершает наш хит-парад самый наверное, известный, сигнал — известный и в России и за ее пределами, сигнал на частоте 4625КГц. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/r6/8d/du/r68ddul3eylwgxproeyvnop5e3s.png"/><br/>
+<br/>
+Сигнал используется для оповещения войск, и представляет собой повторяющиеся гудки, в перерывах между которыми иногда передаются кодовые фразы из шифроблокнота (абстрактные слова типа «КРОЛИСТ» или «БРАМИРКА»). Одни пишут что видели такие приемники в военкоматах, другие говорят что это часть системы «мертвая рука», в общем, сигнал является меккой для любителей Сталкера, теорий заговора, «холодной войны» и прочего-прочего. Желающие могут набрать в поиске «УВБ-76», и уверен, занимательное чтиво на вечер гарантировано (впрочем, не стоит ко всему написанному относиться серьезно). В то же время, система достаточно интересна, хотя бы тем что работает до сих пор со времен «холодной войны», хотя нужно ли это кому-то сейчас, сказать сложно. <br/>
+<br/>
+<h2>Завершение</h2><br/>
+Данный список далеко не полон. С помощью радиоприемника можно услышать (а точнее увидеть) и сигналы связи с подводными лодками, и загоризонтные радары, и быстро меняющиеся frequency hopping сигналы, и много чего еще. <br/>
+<br/>
+Вот для примера картинка, сделанная прямо сейчас на частоте 8МГц, на ней можно насчитать минимум 5 сигналов различных видов. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/1w/5v/8r/1w5v8rohpiusbcaese4vjmtbliy.png"/><br/>
+<br/>
+Что они из себя представляют — зачастую неизвестно, по крайней мере, в открытых источниках найти можно далеко не все (хотя есть такие сайты как <a href="https://www.sigidwiki.com/wiki/Signal_Identification_Guide">www.sigidwiki.com/wiki/Signal_Identification_Guide</a> и <a href="http://www.radioscanner.ru/base/">www.radioscanner.ru/base</a>). Изучение таких сигналов вполне интересно как с точки зрения математики, программирования и ЦОС, так и просто как способ узнать что-то новое об окружающем мире.<br/>
+<br/>
+Интересно и то, что несмотря на развитие Интернета и коммуникаций, радио не только не сдает позиции, а пожалуй, даже наоборот — современные процессоры и АЦП позволяют кодировать и декодировать сигналы любой сложности практически на одном чипе. Наконец, возможность передачи данных напрямую от отправителя получателю, без цензуры, контроля траффика и отслеживания пакетов, может стать (хотя будем надеяться что все же не станет) снова актуальной…</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B0%D0%B4%D0%B8%D0%BE%5D" class="tm-tags-list__link">радио</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%81%D0%B8%D0%B3%D0%BD%D0%B0%D0%BB%D1%8B%5D" class="tm-tags-list__link">сигналы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%B8%D0%B5%D0%BC%5D" class="tm-tags-list__link">прием</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D0%B5%D0%BB%D0%B5%D1%82%D0%B0%D0%B9%D0%BF%5D" class="tm-tags-list__link">телетайп</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BRTTY%5D" class="tm-tags-list__link">RTTY</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BFAX%5D" class="tm-tags-list__link">FAX</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/instant_messaging/" class="tm-hubs-list__link">
+    Мессенджеры
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/netdev/" class="tm-hubs-list__link">
+    Разработка систем связи
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/network_standarts/" class="tm-hubs-list__link">
+    Стандарты связи
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/popular_science/" class="tm-hubs-list__link">
+    Научно-популярное
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/engineering_systems/" class="tm-hubs-list__link">
+    Инженерные системы
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 113: ↑111 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 113: ↑111 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+109</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">65K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    245
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/DmitrySpb79/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 494 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    340.2
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0.3</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/DmitrySpb79/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @DmitrySpb79
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Закончил активность на Хабре</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450534/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 113 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450534/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450534/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450534":{"id":"450534","timePublished":"2019-05-04T19:51:11+00:00","isCorporative":false,"lang":"ru","titleHtml":"Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы","leadData":{"textHtml":"Привет, Хабр.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nНа дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало интересных сигналов. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F-j\u002Flp\u002Fkz\u002F-jlpkzqg5f2ncqmvqz3rxeghyve.png\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\nВсе из них рассмотреть разумеется, нереально, попробуем выбрать самые интересные, те которые можно принять и декодировать самостоятельно с помощью компьютера. Для приема сигналов мы воспользуемся голландским онлайн-приемником \u003Ca href=\"http:\u002F\u002Fwebsdr.ewi.utwente.nl:8901\u002F\"\u003EWebSDR\u003C\u002Fa\u003E, декодером MultiPSK и программой Virtual Audio Cable.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":340.2,"votesCount":494},"rating":0.3,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1071558","alias":"DmitrySpb79","fullname":null,"avatarUrl":null,"speciality":"Закончил активность на Хабре"},"statistics":{"commentsCount":113,"favoritesCount":245,"readingCount":64953,"score":109,"votesCount":113},"hubs":[{"relatedData":null,"id":"92","alias":"instant_messaging","type":"collective","title":"Мессенджеры","titleHtml":"Мессенджеры","isProfiled":true},{"relatedData":null,"id":"19395","alias":"netdev","type":"collective","title":"Разработка систем связи","titleHtml":"Разработка систем связи","isProfiled":true},{"relatedData":null,"id":"19429","alias":"network_standarts","type":"collective","title":"Стандарты связи","titleHtml":"Стандарты связи","isProfiled":false},{"relatedData":null,"id":"21910","alias":"popular_science","type":"collective","title":"Научно-популярное","titleHtml":"Научно-популярное","isProfiled":false},{"relatedData":null,"id":"22113","alias":"engineering_systems","type":"collective","title":"Инженерные системы","titleHtml":"Инженерные системы","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EПривет, Хабр.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало интересных сигналов. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F-j\u002Flp\u002Fkz\u002F-jlpkzqg5f2ncqmvqz3rxeghyve.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВсе из них рассмотреть разумеется, нереально, попробуем выбрать самые интересные, те которые можно принять и декодировать самостоятельно с помощью компьютера. Для приема сигналов мы воспользуемся голландским онлайн-приемником \u003Ca href=\"http:\u002F\u002Fwebsdr.ewi.utwente.nl:8901\u002F\"\u003EWebSDR\u003C\u002Fa\u003E, декодером MultiPSK и программой Virtual Audio Cable.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\nДля удобства рассмотрения будем приводить сигналы по возрастанию частоты. Вещательные станции я рассматривать не буду, это скучно и банально, послушать Радио Китая в АМ желающие могут и самостоятельно. А мы перейдем к более интересным сигналам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EСигналы точного времени\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНа частоте 77.5КГц (диапазон длинных волн) передаются сигналы точного времени немецкой станции DCF77. По ним уже была \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F445470\u002F\"\u003Eотдельная статья\u003C\u002Fa\u003E, так что можно лишь кратко повторить, что это простой по структуре сигнал в амплитудной модуляции — разными длительностями закодированы «1» и «0», в итоге за одну минуту принимается 58-битный код.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fls\u002Few\u002Foz\u002Flsewoz-zrzcjvpfcr4pbtnmbmva.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E130-140КГц — телеметрия электросетей\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНа этих частотах, если верить \u003Ca href=\"http:\u002F\u002Fwww.radioscanner.ru\u002Fbase\u002Ffreq16693.html\"\u003Eсайту radioscanner\u003C\u002Fa\u003E, передаются сигналы управления электросетями Германии. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fgc\u002F0i\u002Fi1\u002Fgc0ii1x0et7yfvzmgaj_klnad1e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСигнал достаточно сильный, и по отзывам, принимается даже в Австралии. Декодировать его можно в MultiPSK, если выставить параметры, как показано на скриншоте.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fey\u002Fgq\u002Fc0\u002Feygqc0oinfcnw8ivdcqxubgx9ae.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа выходе мы получим пакеты данных, их структура разумеется, неизвестна, желающие могут поэкспериментировать и заняться анализом на досуге. Технически, сам сигнал очень прост, метод называется FSK (Frequency Shift Keying) и заключается в формировании битовой последовательности путем смены частоты передачи. Тот же сигнал, в виде спектра — биты можно посчитать даже вручную.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyi\u002F8m\u002F2e\u002Fyi8m2ej1mdlq7edpylxytrxbw6o.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EМетеотелетайп\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНа спектре выше, совсем рядом, на частоте 147КГц виден еще один сигнал. Это (также немецкая) станция DWD (Deutscher Wetterdienst), передающая сводки погоды для судов. Помимо этой частоты, сигналы передаются также на 11039 и 14467КГц. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРезультат декодирования показан на скриншоте.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fxi\u002F3h\u002Fk_\u002Fxi3hk_62wdpfcjmfiu610rmmgew.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПринцип кодирования телетайпа такой же, FSK, интерес тут представляет кодирование текста. Оно 5-битное, с помощью \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FBaudot_code\"\u003Eкода Бодо\u003C\u002Fa\u003E, и имеет практически 100-летнюю историю.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fov\u002Fdt\u002Foy\u002Fovdtoy_tacqynldbcmylsgyu1hm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВроде бы аналогичный код использовался и на перфолентах, ну а телетайпы погоды рассылаются где-то с 60х годов, и как можно видеть, работают до сих пор. Разумеется, на реальном корабле сигнал не декодируется с помощью компьютера — существуют специальные приемники, которые записывают сигнал и выводят его на экран. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fli\u002Ffy\u002Fmr\u002Flifymr2pcgvlysy-pnel68_ed-q.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ общем, даже при наличии спутниковой связи и Интернета, передача данных таким способом до сих пор остается простым, надежным и дешевым средством. Хотя конечно, можно предположить что когда-то и эти системы уйдут в историю и будут заменены полностью цифровыми сервисами. Так что желающим принять подобный сигнал не стоит очень уж затягивать. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EМетеофакс\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЕще один legacy-сигнал примерно с почти такой же давней историей. В этом сигнале изображение передается в \u003Ci\u003Eаналоговом виде\u003C\u002Fi\u003E со скоростью 120 линий в минуту (бывают и другие значения, например 60 или 240 LPM), для кодирования яркости используется частотная модуляция — яркость каждой точки изображения пропорциональна изменению частоты. Такая простая схема позволяла передавать изображения еще в те времена, когда про “цифровые сигналы” мало кто слышал.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПопулярной в европейской части и удобной для приема является уже упомянутая немецкая станция DWD (Deutche Wetterdienst), передающая сообщения на частотах 3855, 7880 и 13882КГц. Другая организация, факсы которой несложно принять — британская Joint Operational Meteorology and Oceanography Centre, они передают сигналы на частотах 2618, 4610, 6834, 8040, 11086, 12390 и 18261КГц. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы принять сигналы HF Fax, нужно использовать режим приемника USB, для декодирования можно использовать MultiPSK. Результат приема через websdr-приемник показан на рисунке:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flw\u002Fwm\u002Foj\u002Flwwmojarewjwrj30svnlghn56yu.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭта картинка была принята прямо во время написания текста. Видно кстати, что вертикальные линии съехали — протокол аналоговый, и точность синхронизации здесь критична, даже небольшие задержки при передаче звука онлайн вызывают сдвиг изображения. При использовании “настоящего” приемника такого эффекта не будет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазумеется, как и в случае с метеотелетайпом, на судах никто не декодирует факсы с помощью компьютера — существуют специализированные приемники (пример картинки из начала статьи), которые делают всю работу автоматически. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПравка: как подсказали в комментариях, с помощью факсов передаются не только метеосводки, но и даже \u003Ca href=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcomment_images\u002Fc6f\u002F306\u002F4ce\u002Fc6f3064ce7f702a1807a794362cc5b50.jpg\"\u003Eгазеты\u003C\u002Fa\u003E. Частоты и расписание передачи разных стран и регионов можно найти \u003Ca href=\"https:\u002F\u002Fwww.nws.noaa.gov\u002Fos\u002Fmarine\u002Frfax.pdf\"\u003Eв pdf\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ESTANAG 4285\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nРассмотрим теперь более современный стандарт передачи данных на коротких волнах — модем Stanag 4285. Этот формат разрабатывался для NATO, и существует в различных вариантах. В основе лежит фазовая модуляция, параметры сигнала могут варьироваться, как можно видеть из таблицы, скорость может составлять от 75 до 2400бит\u002Fс. Это может показаться немного, но учитывая среду передачи — короткие волны, с их замираниями и помехами, это вполне хороший результат.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnk\u002Fy4\u002Fdt\u002Fnky4dt91b8pn7dq0vowl-kblpny.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПрограмма MultiPSK может декодировать STANAG, но в 95% случаев результатом декодирования будет лишь “мусор” — сам формат предоставляет лишь побитовый протокол нижнего уровня, а собственно данные могут быть зашифрованы или иметь какой-то свой формат. Некоторые сигналы впрочем, декодировать можно, например, приведенная ниже запись на частоте 8453КГц. Декодировать хоть какой-то сигнал через websdr-приемник у меня не получилось, видимо все же онлайн-передача нарушает структуру данных. Желающие могут скачать файл с реального приемника по ссылке \u003Ca href=\"https:\u002F\u002Fcloud.mail.ru\u002Fpublic\u002FJRZs\u002FgH581X71s\"\u003Ecloud.mail.ru\u002Fpublic\u002FJRZs\u002FgH581X71s\u003C\u002Fa\u003E. Результаты декодирования в MultiPSK показаны на скриншоте ниже. Как можно видеть, скорость для данной записи составляет 600bps, в качестве содержимого видимо, передается текстовый файл.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F81\u002Fme\u002F23\u002F81me23s_p_y4ywkeahovi2dbsnu.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнтересно, что как можно видеть на панораме, таких сигналов в эфире реально очень много:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fzx\u002Fkt\u002Fm-\u002Fzxktm-ayrsjxytdwtkj0thtv4dy.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазумеется, не все из них возможно, принадлежат именно STANAG — на похожих принципах существуют и другие протоколы. Для примера, можно привести разбор сигнала \u003Ca href=\"http:\u002F\u002Fi56578-swl.blogspot.com\u002F2017\u002F06\u002Fstanag-4539-in-multichannel-mode-thales.html\"\u003EThales HF Modem\u003C\u002Fa\u003E. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак и в случае с другими рассмотренными сигналами, для реального приема и передачи используются специализированные устройства. К примеру для показанного на фото модема \u003Ca href=\"http:\u002F\u002Fnsgdata.com\u002Ffredelec\u002Fproducts\u002F4539.pdf\"\u003ENSGDatacom 4539\u003C\u002Fa\u003E заявлена скорость от 75 до 9600bps при полосе сигнала 3КГц.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqm\u002Fac\u002Fyu\u002Fqmacyueqbfhdeziuaebniycfexo.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСкорость в 9600 конечно, не очень внушает, но учитывая что сигналы можно передавать даже из джунглей или из корабля в океане, причем ничего не платя за траффик оператору связи, это не так уж плохо.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосмотрим кстати, внимательнее на панораму выше. Слева мы видим… правильно, старую добрую азбуку Морзе. Итак, переходим к следующему сигналу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКод Морзе (CW)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНа частоте 8423КГц мы слышим именно его. Искусство слухового приема азбуки Морзе сейчас практически утрачено, поэтому мы воспользуемся MultiPSK (впрочем, декодирует она так себе, программа CW Skimmer справляется гораздо лучше).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjx\u002Fb8\u002Fbh\u002Fjxb8bhnbm_dm8yfmhkfcw-v_fo0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак можно видеть, передается повторяющийся текст DE SVO, если верить \u003Ca href=\"http:\u002F\u002Fwww.radioscanner.ru\u002Fbase\u002Ffreq391.html\"\u003Eсайту radioscanner\u003C\u002Fa\u003E, станция расположена в Греции. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРазумеется, таких сигналов уже мало, но они еще есть. Как пример, можно привести давно работающую станцию на 4331КГц, передающую повторяющиеся сигналы “VVV DE E4X4XZ”. Как подсказывает Гугл, станция принадлежит израильским ВМС. Передается ли на этой частоте что-то еще? Ответ неизвестен, желающие могут послушать и проверить самостоятельно. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EThe Buzzer (УВБ-76)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЗавершает наш хит-парад самый наверное, известный, сигнал — известный и в России и за ее пределами, сигнал на частоте 4625КГц. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fr6\u002F8d\u002Fdu\u002Fr68ddul3eylwgxproeyvnop5e3s.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСигнал используется для оповещения войск, и представляет собой повторяющиеся гудки, в перерывах между которыми иногда передаются кодовые фразы из шифроблокнота (абстрактные слова типа «КРОЛИСТ» или «БРАМИРКА»). Одни пишут что видели такие приемники в военкоматах, другие говорят что это часть системы «мертвая рука», в общем, сигнал является меккой для любителей Сталкера, теорий заговора, «холодной войны» и прочего-прочего. Желающие могут набрать в поиске «УВБ-76», и уверен, занимательное чтиво на вечер гарантировано (впрочем, не стоит ко всему написанному относиться серьезно). В то же время, система достаточно интересна, хотя бы тем что работает до сих пор со времен «холодной войны», хотя нужно ли это кому-то сейчас, сказать сложно. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЗавершение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДанный список далеко не полон. С помощью радиоприемника можно услышать (а точнее увидеть) и сигналы связи с подводными лодками, и загоризонтные радары, и быстро меняющиеся frequency hopping сигналы, и много чего еще. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот для примера картинка, сделанная прямо сейчас на частоте 8МГц, на ней можно насчитать минимум 5 сигналов различных видов. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1w\u002F5v\u002F8r\u002F1w5v8rohpiusbcaese4vjmtbliy.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто они из себя представляют — зачастую неизвестно, по крайней мере, в открытых источниках найти можно далеко не все (хотя есть такие сайты как \u003Ca href=\"https:\u002F\u002Fwww.sigidwiki.com\u002Fwiki\u002FSignal_Identification_Guide\"\u003Ewww.sigidwiki.com\u002Fwiki\u002FSignal_Identification_Guide\u003C\u002Fa\u003E и \u003Ca href=\"http:\u002F\u002Fwww.radioscanner.ru\u002Fbase\u002F\"\u003Ewww.radioscanner.ru\u002Fbase\u003C\u002Fa\u003E). Изучение таких сигналов вполне интересно как с точки зрения математики, программирования и ЦОС, так и просто как способ узнать что-то новое об окружающем мире.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнтересно и то, что несмотря на развитие Интернета и коммуникаций, радио не только не сдает позиции, а пожалуй, даже наоборот — современные процессоры и АЦП позволяют кодировать и декодировать сигналы любой сложности практически на одном чипе. Наконец, возможность передачи данных напрямую от отправителя получателю, без цензуры, контроля траффика и отслеживания пакетов, может стать (хотя будем надеяться что все же не станет) снова актуальной…\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"радио"},{"titleHtml":"сигналы"},{"titleHtml":"прием"},{"titleHtml":"телетайп"},{"titleHtml":"RTTY"},{"titleHtml":"FAX"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450534\u002F355ba976a35eed6b026012c30f8dfabb\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450534\u002F355ba976a35eed6b026012c30f8dfabb\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450534\\\u002F\"},\"headline\":\"Что слышно в радиоэфире? Принимаем и декодируем наиболее интересные сигналы\",\"datePublished\":\"2019-05-04T22:51:11+03:00\",\"dateModified\":\"2019-05-05T13:31:08+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"DmitrySpb79\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Привет, Хабр.  На дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450534\\\u002F#post-content-body\",\"about\":[\"h_instant_messaging\",\"h_netdev\",\"h_network_standarts\",\"h_popular_science\",\"h_engineering_systems\",\"f_develop\",\"f_admin\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F-j\\\u002Flp\\\u002Fkz\\\u002F-jlpkzqg5f2ncqmvqz3rxeghyve.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fls\\\u002Few\\\u002Foz\\\u002Flsewoz-zrzcjvpfcr4pbtnmbmva.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fgc\\\u002F0i\\\u002Fi1\\\u002Fgc0ii1x0et7yfvzmgaj_klnad1e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fey\\\u002Fgq\\\u002Fc0\\\u002Feygqc0oinfcnw8ivdcqxubgx9ae.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyi\\\u002F8m\\\u002F2e\\\u002Fyi8m2ej1mdlq7edpylxytrxbw6o.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fxi\\\u002F3h\\\u002Fk_\\\u002Fxi3hk_62wdpfcjmfiu610rmmgew.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fov\\\u002Fdt\\\u002Foy\\\u002Fovdtoy_tacqynldbcmylsgyu1hm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fli\\\u002Ffy\\\u002Fmr\\\u002Flifymr2pcgvlysy-pnel68_ed-q.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flw\\\u002Fwm\\\u002Foj\\\u002Flwwmojarewjwrj30svnlghn56yu.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnk\\\u002Fy4\\\u002Fdt\\\u002Fnky4dt91b8pn7dq0vowl-kblpny.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F81\\\u002Fme\\\u002F23\\\u002F81me23s_p_y4ywkeahovi2dbsnu.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fzx\\\u002Fkt\\\u002Fm-\\\u002Fzxktm-ayrsjxytdwtkj0thtv4dy.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqm\\\u002Fac\\\u002Fyu\\\u002Fqmacyueqbfhdeziuaebniycfexo.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjx\\\u002Fb8\\\u002Fbh\\\u002Fjxb8bhnbm_dm8yfmhkfcw-v_fo0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fr6\\\u002F8d\\\u002Fdu\\\u002Fr68ddul3eylwgxproeyvnop5e3s.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1w\\\u002F5v\\\u002F8r\\\u002F1w5v8rohpiusbcaese4vjmtbliy.png\"]}","metaDescription":"Привет, Хабр.\r\n\r\nНа дворе уже 21й век, и казалось бы, передать данные можно в HD-качестве даже на Марс. Однако, до сих пор в радиоэфире работает немало интересных устройств и можно услышать немало...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"instant_messaging,netdev,network_standarts,popular_science,engineering_systems"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

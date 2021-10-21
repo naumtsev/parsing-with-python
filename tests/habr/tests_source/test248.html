@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Сохранение цвета элемента в БД Navisworks / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450248\/"},"headline":"Сохранение цвета элемента в БД Navisworks","datePublished":"2019-05-01T10:39:12+03:00","dateModified":"2019-05-01T10:39:12+03:00","author":{"@type":"Person","name":"Severn"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Предыстория задачи Возникла у заказчика задача, допустим, такая:  Скинуть в 1С элементы модели здания. В 1С использовать эти части модели в договорах &ndash; ну, допус...","url":"https:\/\/habr.com\/ru\/post\/450248\/#post-content-body","about":["h_net","h_cad_cam","f_develop"],"image":["https:\/\/pp.userapi.com\/c846017\/v846017649\/1f3a4c\/v2x4VoIrW1E.jpg","https:\/\/pp.userapi.com\/c846017\/v846017649\/1f3a45\/7Q1YusQG91I.jpg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Сохранение цвета элемента в БД Navisworks" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Сохранение цвета элемента в БД Navisworks" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Сохранение цвета элемента в БД Navisworks" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Предыстория задачи
+Возникла у заказчика задача, допустим, такая:
+
+Скинуть в 1С элементы модели здания.
+В 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Предыстория задачи
+Возникла у заказчика задача, допустим, такая:
+
+Скинуть в 1С элементы модели здания.
+В 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Предыстория задачи
+Возникла у заказчика задача, допустим, такая:
+
+Скинуть в 1С элементы модели здания.
+В 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Предыстория задачи
+Возникла у заказчика задача, допустим, такая:
+
+Скинуть в 1С элементы модели здания.
+В 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Предыстория задачи
+Возникла у заказчика задача, допустим, такая:
+
+Скинуть в 1С элементы модели здания.
+В 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450248/f25924f77180671b47a4c9a6bc958b82/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450248/f25924f77180671b47a4c9a6bc958b82/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450248/f25924f77180671b47a4c9a6bc958b82/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450248/f25924f77180671b47a4c9a6bc958b82/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450248/f25924f77180671b47a4c9a6bc958b82/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450248" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T07:39:12.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450248/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450248/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450248/f25924f77180671b47a4c9a6bc958b82/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Severn/" title="Severn" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/Severn/" class="tm-user-info__username">
+      Severn
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T07:39:12.000Z" title="2019-05-01, 10:39">1  мая  2019 в 10:39</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Сохранение цвета элемента в БД Navisworks</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/net/" class="tm-article-snippet__hubs-item-link"><span>.NET</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/cad_cam/" class="tm-article-snippet__hubs-item-link"><span>CAD/CAM</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><h2 id="predystoriya-zadachi">Предыстория задачи</h2><br/>
+<p>Возникла у заказчика задача, допустим, такая:</p><br/>
+<ul>
+<li>Скинуть в 1С элементы модели здания.</li>
+<li>В 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то элементы уже построены, такие-то – только запланированы, и т.п..</li>
+<li>В Navisworks на чертеже как-то увидеть это – например, отобразив элементы модели разными цветами. Для этого сделали к Navisworks плагин, который умеет копировать в 1С данные из таблиц Quantification (Takeoff tables), а также забирать их из 1С обратно и запихивать в Takeoff tables.<br/>
+А в 1С предполагалось у используемых в договоре элементов модели (помещений) менять цвета.</li>
+</ul><br/>
+<p>Только вот оказалось, что после изменения этих табличных данных в 1С – Navisworks не понимает, что они изменились, и надо бы их обновить. Стало быть, мне, программисту, надо ему это подсказать. </p><br/>
+<h2 id="itak-zadacha-dlya-programmista">Итак, задача для программиста</h2><br/>
+<p>После обмена с 1С изменились данные в таблице TK_Item – в частности, поле Color. Необходимо привести цвета на отображаемом чертеже в соответствие с указанными в таблице.</p><a name="habracut"></a><br/>
+<p>Ищем, как это сделать. Копаем описание. Находим функцию – </p><br/>
+<pre><code class="cs">public void OverridePermanentColor(IEnumerable&lt;ModelItem> items, Color color)</code></pre><br/>
+<p>Ну, как найти соответствующие выбранному элементу TK_Item элементы модели – это другая история, в другой раз расскажу, если будет интересно. Но кому надо – и сам разберется. А вот с цветом все оказалось интереснее.<br/>
+Во-первых, указанный в параметрах функции Color – это не System.Drawing.Color, а вовсе даже Autodesk.Navisworks.Api.Color, со своим блекджеком и … ну, вы поняли. Ну, пускай, зато у него есть вот такой конструктор:</p><br/>
+<pre><code class="cs">public static unsafe Color FromByteRGB(byte red, byte green, byte blue)</code></pre><br/>
+<p>Стало быть, без проблем сделаем такой Color, какой Автодесковскому API нужен.<br/>
+(Собственно, первым делом я это и попробовать – найти элементы, соответствующие выбранному Item'у, выбрать цвет – и установить им это цвет.)</p><br/>
+<p>Но. В таблице-то у нас в поле Color стоит одно значение типа Int64. И как его сопоставить с объектом типа Color – непонятно.</p><br/>
+<p>Причем ни в документации, ни на форуме, ни в примерах мне не удалось найти, как это пишется в БД. </p><br/>
+<p>ОК, будем копать экспериментальным путем.</p><br/>
+<p>Берем Navisworks, открываем Quantification, меняем у какого-нибудь элемента цвет. Скажем, на честный беспримесный Red.</p><br/>
+<p><img src="https://pp.userapi.com/c846017/v846017649/1f3a4c/v2x4VoIrW1E.jpg" alt="image" data-src="https://pp.userapi.com/c846017/v846017649/1f3a4c/v2x4VoIrW1E.jpg" data-blurred="true"/></p><br/>
+<p>После этого берем наш плагин, выкачиваем им данные из таблицы TK_Item, и смотрим, что там в таблице? </p><br/>
+<p>(Благо, в плагине для отладочных целей был предусмотрен такой вариант – выкачать данные и показать на форме.)</p><br/>
+<p>Там, оказывается, стоит -65536.</p><br/>
+<p><img src="https://pp.userapi.com/c846017/v846017649/1f3a45/7Q1YusQG91I.jpg" alt="image" data-src="https://pp.userapi.com/c846017/v846017649/1f3a45/7Q1YusQG91I.jpg" data-blurred="true"/></p><br/>
+<p>Повторяем процедуру несколько раз и сводим результаты в текстовый файл.</p><br/>
+<div class="scrollable-table"><table>
+<thead>
+<tr>
+<th>Название</th>
+<th>Цвет</th>
+<th>Значение цвета в таблице</th>
+<th>Двоичное представление цвета в таблице</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Стены Тип 1.1 выше отм. 0,000</td>
+<td>Red</td>
+<td>-65536</td>
+<td>1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0000 0000 0000 0000</td>
+</tr>
+<tr>
+<td>Стены Тип 1.2 выше отм. 0,000</td>
+<td>Green</td>
+<td>-16711936</td>
+<td>1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0000 0000 1111 1111 0000 0000</td>
+</tr>
+<tr>
+<td>Стены Тип 2.1 выше отм. 0,000</td>
+<td>Blue</td>
+<td>-16776961</td>
+<td>1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0000 0000 0000 0000 1111 1111</td>
+</tr>
+<tr>
+<td>Стены Тип 0.1 ниже отм. 0,000</td>
+<td>Red=16</td>
+<td>-15728640</td>
+<td>1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0001 0000 0000 0000 0000 0000</td>
+</tr>
+<tr>
+<td>Стены Тип 0.2 ниже отм. 0,000</td>
+<td>Red=17</td>
+<td>-15663104</td>
+<td>1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0001 0001 0000 0000 0000 0000</td>
+</tr>
+<tr>
+<td>Стяжки на отм. 0,000</td>
+<td>Red=193 Green=32 Blue=74</td>
+<td>12 656 714</td>
+<td>0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1100 0001 0010 0000 0100 1010</td>
+</tr>
+</tbody>
+</table></div><br/>
+<p>Сначала меня сильно удивили цифры в таблице, а особенно – наличие положительных и отрицательных значений.</p><br/>
+<p>Поэкспериментировав со значениями компонент R, G, B, я сообразил, что эти три компоненты отображаются последними тремя байтами числа.</p><br/>
+<p>Но тогда странно – почему старшие байты оказываются заполнены не нулями, а единицами?<br/>
+Впрочем, если предположить, что их всегда заполняют единицами – то получает объяснение наличие отрицательных чисел. Просто заполняют и старший байт, определяющий знак числа.<br/>
+Но ведь там не всегда отрицательные числа!</p><br/>
+<p>И вот только вспомнив, как работают функции >> и &lt;&lt;, я сообразил, что они могут тупо заполнять цифрами старшие биты, в том числе знаковый бит. А поскольку старшие биты не нужны – то и неважно, что там стоит.</p><br/>
+<p>Тогда вопрос – а нафига им потребовалось такое большое значение для цвета? Аж 64 бита? Посмотрел структуру таблиц, в которых хранятся эти данные – там просто для всех целых чисел используется Int64. Действительно, чего мелочиться?</p><br/>
+<h2 id="itog">Итог</h2><br/>
+<p>Значение цвета, записываемого в таблице, получаем так:</p><br/>
+<pre><code class="cs">Int64 dbColor = Rb&lt;&lt;16 + Gb&lt;&lt;8 + Bb;</code></pre><br/>
+<p>Обратное преобразование – табличного цвета в используемый для элементов модели цвет – делаем так:</p><br/>
+<pre><code class="cs">byte R = (byte)(dbColorValue >> 16 % 256);
+byte G = (byte)(dbColorValue >> 8 % 256);
+byte B = (byte) (dbColorValue % 256);
+var color = Autodesk.Navisworks.Api.Color.FromByteRGB(R, G, B);</code></pre></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B.net%5D" class="tm-tags-list__link">.net</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BNavisworks%5D" class="tm-tags-list__link">Navisworks</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/net/" class="tm-hubs-list__link">
+    .NET
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/cad_cam/" class="tm-hubs-list__link">
+    CAD/CAM
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 21: ↑20 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 21: ↑20 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+19</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">1.7K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    8
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Severn/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 5 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/Severn/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Severn
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450248/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450248/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450248/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450248":{"id":"450248","timePublished":"2019-05-01T07:39:12+00:00","isCorporative":false,"lang":"ru","titleHtml":"Сохранение цвета элемента в БД Navisworks","leadData":{"textHtml":"\u003Ch2 id=\"predystoriya-zadachi\"\u003EПредыстория задачи\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВозникла у заказчика задача, допустим, такая:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EСкинуть в 1С элементы модели здания.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВ 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то элементы уже построены, такие-то – только запланированы, и т.п..\u003C\u002Fli\u003E\r\n\u003Cli\u003EВ Navisworks на чертеже как-то увидеть это – например, отобразив элементы модели разными цветами. Для этого сделали к Navisworks плагин, который умеет копировать в 1С данные из таблиц Quantification (Takeoff tables), а также забирать их из 1С обратно и запихивать в Takeoff tables.\u003Cbr\u002F\u003E\r\nА в 1С предполагалось у используемых в договоре элементов модели (помещений) менять цвета.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТолько вот оказалось, что после изменения этих табличных данных в 1С – Navisworks не понимает, что они изменились, и надо бы их обновить. Стало быть, мне, программисту, надо ему это подсказать. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"itak-zadacha-dlya-programmista\"\u003EИтак, задача для программиста\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле обмена с 1С изменились данные в таблице TK_Item – в частности, поле Color. Необходимо привести цвета на отображаемом чертеже в соответствие с указанными в таблице.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше &rarr;","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":5,"votesCount":5},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"210536","alias":"Severn","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":0,"favoritesCount":8,"readingCount":1723,"score":19,"votesCount":21},"hubs":[{"relatedData":null,"id":"546","alias":"net","type":"collective","title":".NET","titleHtml":".NET","isProfiled":true},{"relatedData":null,"id":"17698","alias":"cad_cam","type":"collective","title":"CAD\u002FCAM","titleHtml":"CAD\u002FCAM","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Ch2 id=\"predystoriya-zadachi\"\u003EПредыстория задачи\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВозникла у заказчика задача, допустим, такая:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EСкинуть в 1С элементы модели здания.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВ 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то элементы уже построены, такие-то – только запланированы, и т.п..\u003C\u002Fli\u003E\r\n\u003Cli\u003EВ Navisworks на чертеже как-то увидеть это – например, отобразив элементы модели разными цветами. Для этого сделали к Navisworks плагин, который умеет копировать в 1С данные из таблиц Quantification (Takeoff tables), а также забирать их из 1С обратно и запихивать в Takeoff tables.\u003Cbr\u002F\u003E\r\nА в 1С предполагалось у используемых в договоре элементов модели (помещений) менять цвета.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТолько вот оказалось, что после изменения этих табличных данных в 1С – Navisworks не понимает, что они изменились, и надо бы их обновить. Стало быть, мне, программисту, надо ему это подсказать. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"itak-zadacha-dlya-programmista\"\u003EИтак, задача для программиста\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле обмена с 1С изменились данные в таблице TK_Item – в частности, поле Color. Необходимо привести цвета на отображаемом чертеже в соответствие с указанными в таблице.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИщем, как это сделать. Копаем описание. Находим функцию – \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic void OverridePermanentColor(IEnumerable&lt;ModelItem\u003E items, Color color)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНу, как найти соответствующие выбранному элементу TK_Item элементы модели – это другая история, в другой раз расскажу, если будет интересно. Но кому надо – и сам разберется. А вот с цветом все оказалось интереснее.\u003Cbr\u002F\u003E\r\nВо-первых, указанный в параметрах функции Color – это не System.Drawing.Color, а вовсе даже Autodesk.Navisworks.Api.Color, со своим блекджеком и … ну, вы поняли. Ну, пускай, зато у него есть вот такой конструктор:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Epublic static unsafe Color FromByteRGB(byte red, byte green, byte blue)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСтало быть, без проблем сделаем такой Color, какой Автодесковскому API нужен.\u003Cbr\u002F\u003E\r\n(Собственно, первым делом я это и попробовать – найти элементы, соответствующие выбранному Item'у, выбрать цвет – и установить им это цвет.)\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНо. В таблице-то у нас в поле Color стоит одно значение типа Int64. И как его сопоставить с объектом типа Color – непонятно.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПричем ни в документации, ни на форуме, ни в примерах мне не удалось найти, как это пишется в БД. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОК, будем копать экспериментальным путем.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EБерем Navisworks, открываем Quantification, меняем у какого-нибудь элемента цвет. Скажем, на честный беспримесный Red.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846017\u002Fv846017649\u002F1f3a4c\u002Fv2x4VoIrW1E.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846017\u002Fv846017649\u002F1f3a4c\u002Fv2x4VoIrW1E.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле этого берем наш плагин, выкачиваем им данные из таблицы TK_Item, и смотрим, что там в таблице? \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E(Благо, в плагине для отладочных целей был предусмотрен такой вариант – выкачать данные и показать на форме.)\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТам, оказывается, стоит -65536.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846017\u002Fv846017649\u002F1f3a45\u002F7Q1YusQG91I.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846017\u002Fv846017649\u002F1f3a45\u002F7Q1YusQG91I.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПовторяем процедуру несколько раз и сводим результаты в текстовый файл.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Cthead\u003E\r\n\u003Ctr\u003E\r\n\u003Cth\u003EНазвание\u003C\u002Fth\u003E\r\n\u003Cth\u003EЦвет\u003C\u002Fth\u003E\r\n\u003Cth\u003EЗначение цвета в таблице\u003C\u002Fth\u003E\r\n\u003Cth\u003EДвоичное представление цвета в таблице\u003C\u002Fth\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Fthead\u003E\r\n\u003Ctbody\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСтены Тип 1.1 выше отм. 0,000\u003C\u002Ftd\u003E\r\n\u003Ctd\u003ERed\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-65536\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0000 0000 0000 0000\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСтены Тип 1.2 выше отм. 0,000\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EGreen\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-16711936\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0000 0000 1111 1111 0000 0000\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСтены Тип 2.1 выше отм. 0,000\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EBlue\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-16776961\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0000 0000 0000 0000 1111 1111\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСтены Тип 0.1 ниже отм. 0,000\u003C\u002Ftd\u003E\r\n\u003Ctd\u003ERed=16\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-15728640\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0001 0000 0000 0000 0000 0000\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСтены Тип 0.2 ниже отм. 0,000\u003C\u002Ftd\u003E\r\n\u003Ctd\u003ERed=17\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E-15663104\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 0001 0001 0000 0000 0000 0000\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСтяжки на отм. 0,000\u003C\u002Ftd\u003E\r\n\u003Ctd\u003ERed=193 Green=32 Blue=74\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E12 656 714\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1100 0001 0010 0000 0100 1010\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftbody\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСначала меня сильно удивили цифры в таблице, а особенно – наличие положительных и отрицательных значений.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПоэкспериментировав со значениями компонент R, G, B, я сообразил, что эти три компоненты отображаются последними тремя байтами числа.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНо тогда странно – почему старшие байты оказываются заполнены не нулями, а единицами?\u003Cbr\u002F\u003E\r\nВпрочем, если предположить, что их всегда заполняют единицами – то получает объяснение наличие отрицательных чисел. Просто заполняют и старший байт, определяющий знак числа.\u003Cbr\u002F\u003E\r\nНо ведь там не всегда отрицательные числа!\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИ вот только вспомнив, как работают функции \u003E\u003E и &lt;&lt;, я сообразил, что они могут тупо заполнять цифрами старшие биты, в том числе знаковый бит. А поскольку старшие биты не нужны – то и неважно, что там стоит.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТогда вопрос – а нафига им потребовалось такое большое значение для цвета? Аж 64 бита? Посмотрел структуру таблиц, в которых хранятся эти данные – там просто для всех целых чисел используется Int64. Действительно, чего мелочиться?\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"itog\"\u003EИтог\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗначение цвета, записываемого в таблице, получаем так:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003EInt64 dbColor = Rb&lt;&lt;16 + Gb&lt;&lt;8 + Bb;\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбратное преобразование – табличного цвета в используемый для элементов модели цвет – делаем так:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cs\"\u003Ebyte R = (byte)(dbColorValue \u003E\u003E 16 % 256);\nbyte G = (byte)(dbColorValue \u003E\u003E 8 % 256);\nbyte B = (byte) (dbColorValue % 256);\nvar color = Autodesk.Navisworks.Api.Color.FromByteRGB(R, G, B);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":".net"},{"titleHtml":"Navisworks"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450248\u002Ff25924f77180671b47a4c9a6bc958b82\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450248\u002Ff25924f77180671b47a4c9a6bc958b82\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450248\\\u002F\"},\"headline\":\"Сохранение цвета элемента в БД Navisworks\",\"datePublished\":\"2019-05-01T10:39:12+03:00\",\"dateModified\":\"2019-05-01T10:39:12+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Severn\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Предыстория задачи Возникла у заказчика задача, допустим, такая:  Скинуть в 1С элементы модели здания. В 1С использовать эти части модели в договорах &ndash; ну, допус...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450248\\\u002F#post-content-body\",\"about\":[\"h_net\",\"h_cad_cam\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fpp.userapi.com\\\u002Fc846017\\\u002Fv846017649\\\u002F1f3a4c\\\u002Fv2x4VoIrW1E.jpg\",\"https:\\\u002F\\\u002Fpp.userapi.com\\\u002Fc846017\\\u002Fv846017649\\\u002F1f3a45\\\u002F7Q1YusQG91I.jpg\"]}","metaDescription":"Предыстория задачи\r\nВозникла у заказчика задача, допустим, такая:\r\n\r\nСкинуть в 1С элементы модели здания.\r\nВ 1С использовать эти части модели в договорах – ну, допустим, указать, что вот такие-то...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"net,cad_cam"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

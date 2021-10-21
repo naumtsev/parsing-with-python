@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1/2: Progressive Web App / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/vk\/blog\/450504\/"},"headline":"Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1\/2: Progressive Web App","datePublished":"2019-05-07T15:23:49+03:00","dateModified":"2019-05-11T12:10:22+03:00","author":{"@type":"Person","name":"macket"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки...","url":"https:\/\/habr.com\/ru\/company\/vk\/blog\/450504\/#post-content-body","about":["c_vk","h_webdev","h_mobile_dev","h_android_dev","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/qp\/6r\/fv\/qp6rfvsvw7jfgzexsn2tqlcsxfm.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/330\/2db\/7bf\/3302db7bf5f02c8dd48ebeb089ebbe7b.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/308\/930\/eaf\/308930eaf740ff668775f027adeeb319.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/49e\/88f\/e73\/49e88fe7310fb29ea8eaeea2e0560445.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/7ae\/e54\/f5a\/7aee54f5afb99e56c536300a272a94a0.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/0f6\/81f\/411\/0f681f41101fb338efbd166904462b69.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b35\/65a\/ac9\/b3565aac9825d0080986720cdc9d9231.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/ba2\/97b\/e53\/ba297be532bbf6881e561aad65ae95d3.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e62\/684\/7e6\/e626847e6ed596232f86c46738659178.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/bd6\/105\/230\/bd61052307b6b7a6492174c74f67d4fa.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e37\/997\/fff\/e37997fffe093504de191c6ccff7bcb9.jpg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1/2: Progressive Web App" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1/2: Progressive Web App" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1/2: Progressive Web App" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450504/56e9b8f81a60e4888cc9374a74b6a777/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450504/56e9b8f81a60e4888cc9374a74b6a777/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450504/56e9b8f81a60e4888cc9374a74b6a777/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450504/56e9b8f81a60e4888cc9374a74b6a777/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450504/56e9b8f81a60e4888cc9374a74b6a777/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450504" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T12:23:49.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450504/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/vk/blog/450504/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450504/56e9b8f81a60e4888cc9374a74b6a777/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="vk" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://vk.com/vkteam"><img src="//habrastorage.org/getpro/habr/branding/174/2c4/3a5/1742c43a5b504987a0fadf577a0bd4de.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/vk/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/9ed/c74/6b4/9edc746b484c805ecad1f941b5f7068a.png" width="48" class="tm-entity-image__pic"></div></a> <a href="https://career.habr.com/companies/vk" rel="noopener" target="_blank" class="tm-grade tm-company-card__rating"><div class="tm-rating"><div class="tm-rating__header"><svg height="24" width="24" class="tm-svg-img tm-svg-grade__icon"><title>Оценка компании на Хабр Карьере</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#grade"></use></svg> <div class="tm-rating__counter tm-rating__counter_variant-grade">4.37</div></div> <div class="tm-rating__text tm-rating__text_variant-grade">
+    Оценка
+  </div></div></a> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">329.16</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/vk/profile/" class="tm-company-card__name">
+        VK
+      </a> <div class="tm-company-card__description">Технологии, которые объединяют</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/macket/" title="macket" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_pink"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/macket/" class="tm-user-info__username">
+      macket
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T12:23:49.000Z" title="2019-05-07, 15:23">7  мая  2019 в 15:23</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1/2: Progressive Web App</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/vk/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании VK</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/webdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка веб-сайтов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/mobile_dev/" class="tm-article-snippet__hubs-item-link"><span>Разработка мобильных приложений</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/android_dev/" class="tm-article-snippet__hubs-item-link"><span>Разработка под Android</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/qp/6r/fv/qp6rfvsvw7jfgzexsn2tqlcsxfm.png"/><br/>
+<br/>
+Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и вовлечённости пользователей.<br/>
+<br/>
+Да, современный фронтенд, написанный, например, на React, работает как приложение. Но вот только скачивается это приложение в браузер и запускается из него. В этом и заключается огромный гандикап, который всегда имела мобильная разработка. Давайте подумаем, чем с точки зрения обычного пользователя, «приложение» отличается от «сайта». Сразу в голову приходит, что приложение в телефоне, а сайт на компьютере. Но ведь есть мобильный браузер, так что сайт и в телефоне тоже. Тогда остаётся 3 существенных отличия:<br/>
+<a name="habracut"></a><br/>
+<ol>
+<li>Иконка приложения есть на главном экране смартфона.<br/>
+</li>
+<li>Приложение открывается в отдельном окне.<br/>
+</li>
+<li>Приложение отправляет push-уведомления.<br/>
+</li>
+</ol><br/>
+Все 3 пункта снимаются благодаря Progressive Web App или PWA. Теперь, заходя на сайт из мобильного браузера, мы можем «скачать» его, после чего увидим иконку на главном экране. Кроме того, при запуске появляется заставка, как у мобильных приложений, и при желании можно настроить отправку push-уведомлений.<br/>
+<br/>
+И казалось бы, всё прекрасно! Но увы, за 10 с лишним лет мобильной эпохи пользователи слишком сильно привыкли искать приложения в Google Play и App Store. Ломать привычки пользователей — дело неблагодарное, и потому ребята из Google (кстати, Google является разработчиком PWA) решили, что если гора не идёт к Магомеду, то… В общем, совсем недавно, 6 февраля 2019 года, они <a href="https://developers.google.com/web/updates/2019/02/using-twa">обеспечили использование Trusted Web Activities</a> для выкладки веб-приложений в Google Play.<br/>
+<br/>
+В статье из двух частей будет рассказано, как пройти полный путь от обычного веб-сайта до приложения в Google Play всего за считанные часы. Всё это будет показано на примере реального сервиса — <a href="https://skorochtec.ru/">Скорочтец</a>.<br/>
+<br/>
+<ol>
+<li><a href="https://habr.com/ru/company/mailru/blog/450504/"><u>Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1/2: Progressive Web App</u></a></li>
+<li><a href="https://habr.com/ru/company/mailru/blog/450506/"><u>Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 2/2: Trusted Web Activity</u></a></li>
+</ol><br/>
+<br/>
+<h1>Lighthouse</h1><br/>
+На входе у нас есть веб-сайт с мобильной вёрсткой:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/330/2db/7bf/3302db7bf5f02c8dd48ebeb089ebbe7b.jpg" width="400" data-src="https://habrastorage.org/getpro/habr/post_images/330/2db/7bf/3302db7bf5f02c8dd48ebeb089ebbe7b.jpg" data-blurred="true"/></div><br/>
+Первым делом нужно установить расширение <a href="https://chrome.google.com/webstore/detail/lighthouse/blipmdconlkpinefehnmjammfjpmpbjk">Lighthouse</a> в Google Chrome на своём рабочем компьютере. Это инструмент для анализа сайтов в целом и для проверки соответствия стандарту Progressive Web App в частности.<br/>
+<br/>
+Далее открываем наш сайт, боевой или запущенный локально, и генерируем отчёт для него при помощи Lighthouse:<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/308/930/eaf/308930eaf740ff668775f027adeeb319.png" data-width="400"/></div><br/>
+В разделе Progressive Web App отчёта вы должны увидеть примерно следующее:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/49e/88f/e73/49e88fe7310fb29ea8eaeea2e0560445.png"/><br/>
+<br/>
+Обратите внимание на раздел Installable. Во-первых, если вы запускаете сайт локально, а вам придётся это делать во время разработки и тестирования, то нужно использовать домен localhost и никакой другой. Благодаря этому будет удовлетворено требование «Use HTTPS», а точнее Lighthouse просто закроет глаза на него, и вы сможете полноценно тестировать свой PWA.<br/>
+<br/>
+Кроме требования HTTPS, чтобы наше приложение превратилось в PWA и стало устанавливаемым, нужно подключить к сайту service worker и Web app manifest. Давайте сделаем это.<br/>
+<br/>
+<h1>Service worker</h1><br/>
+Технология <a href="https://developer.mozilla.org/ru/docs/Web/API/Service_Worker_API/Using_Service_Workers">service workers</a> позволяет вашему сайту быть online даже тогда, когда сервер недоступен. Это такой посредник между клиентом и сервером, который перехватывает каждый запрос и в случае чего подсовывает данные из кэша в качестве ответа.<br/>
+<br/>
+Для работы PWA достаточно базовой реализации service worker, которая выглядит следующим образом:<br/>
+<br/>
+service-worker.js<br/>
+<pre><code class="javascript">// Должно быть true в production
+var doCache = true;
+
+// Имя кэша
+var CACHE_NAME = 'my-pwa-cache-v2';
+
+// Очищает старый кэш
+self.addEventListener('activate', event => {
+   const cacheWhitelist = [CACHE_NAME];
+   event.waitUntil(
+       caches.keys()
+           .then(keyList =>
+               Promise.all(keyList.map(key => {
+                   if (!cacheWhitelist.includes(key)) {
+                       console.log('Deleting cache: ' + key)
+                       return caches.delete(key);
+                   }
+               }))
+           )
+   );
+});
+
+// 'install' вызывается, как только пользователь впервые открывает PWA 
+self.addEventListener('install', function(event) {
+   if (doCache) {
+       event.waitUntil(
+           caches.open(CACHE_NAME)
+               .then(function(cache) {
+                   // Получаем данные из манифеста (они кэшируются)
+                   fetch('/static/reader/manifest.json')
+                       .then(response => {
+                           response.json()
+                       })
+                       .then(assets => {
+                       // Открываем и кэшируем нужные страницы и файлы
+                           const urlsToCache = [
+                               '/app/',
+                ........
+                               '/static/core/logo.svg*',
+                           ]
+                           cache.addAll(urlsToCache)
+                           console.log('cached');
+                       })
+               })
+       );
+   }
+});
+
+// Когда приложение запущено, сервис-воркер перехватывает запросы и отвечает на них данными из кэша, если они есть
+self.addEventListener('fetch', function(event) {
+   if (doCache) {
+       event.respondWith(
+           caches.match(event.request).then(function(response) {
+               return response || fetch(event.request);
+           })
+       );
+   }
+});</code></pre><br/>
+Здесь реализованы обработчики для трёх событий: <code>install</code>, <code>activate </code>и <code>fetch</code>. Как только пользователь откроет сайт, на котором есть service worker, вызовется событие <code>install</code>. Это процедура установки сервис-воркера в браузер пользователя. В её обработчике в массиве <code>urlsToCache</code> вы можете указать страницы сайта, которые будут кэшироваться, включая статику. Затем вызывается <code>activate</code>, которое очищает ресурсы, использованные в предыдущей версии скрипта сервис-воркера. И теперь, когда сервис-воркер успешно установлен, он будет перехватывать каждое событие <code>fetch</code> и искать в кэше запрашиваемые ресурсы, прежде чем идти за ними на сервер.<br/>
+<br/>
+Чтобы всё это заработало, нужно добавить скрипт для регистрации сервис-воркера в html-файлы. Так как Скорочтец является одностраничным приложением (SPA), то у него один единственный html, который после добавления указанного скрипта выглядит вот так:<br/>
+<br/>
+index.html<br/>
+<pre><code class="xml">&lt;!DOCTYPE html>
+&lt;html lang="ru">
+&lt;head>
+   &lt;meta charset="UTF-8">
+   &lt;title>Скорочтец&lt;/title>
+
+
+&lt;/head>
+&lt;body>
+   &lt;div id="root">&lt;/div>
+   &lt;script src="/static/build/app.js">&lt;/script>
+
+   &lt;script>
+       if ('serviceWorker' in navigator) {
+           window.addEventListener('load', function() {
+               navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                   // Registration was successful
+               console.log('ServiceWorker registration successful with scope: ', registration.scope);
+             }, function(err) {
+               // registration failed :(
+               console.log('ServiceWorker registration failed: ', err);
+             }).catch(function(err) {
+               console.log(err)
+             });
+           });
+         } else {
+           console.log('service worker is not supported');
+         }
+   &lt;/script>
+&lt;/body>
+&lt;/html></code></pre><br/>
+Функция <code>navigator.serviceWorker.register('/service-worker.js')</code> принимает в качестве аргумента URL, по которому расположен файл сервис-воркера. Здесь не важно, как именно называется файл, но важно, чтобы он был расположен в корне домена. Тогда областью видимости сервис-воркера станет весь домен, и он будет получать события <code>fetch </code>из любой страницы.<br/>
+<br/>
+Таким образом, расположив файл сервис-воркера по адресу <a href="https://skorochtec.ru/service-worker.js">skorochtec.ru/service-worker.js</a> и добавив нужный скрипт в html, мы получаем следующую картину в отчёте Lighthouse:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/7ae/e54/f5a/7aee54f5afb99e56c536300a272a94a0.png"/><br/>
+<br/>
+Если сравнивать с предыдущим отчётом, то теперь у нас удовлетворён второй пункт и сайт отвечает 200 даже offline, а также в 5-м пункте мы видим, что сервис-воркер обнаружен, но вот стартовой страницы не хватает. Информация о стартовой странице и не только указывается в Web App Manifest, давайте добавим его!<br/>
+<br/>
+<h1>Web App Manifest</h1><br/>
+<a href="https://developer.mozilla.org/ru/docs/Web/%D0%9C%D0%B0%D0%BD%D0%B8%D1%84%D0%B5%D1%81%D1%82">Манифест</a> предоставляет информацию о нашем приложении: короткое и длинное имя, иконки всех размеров, стартовая страница, цвета и ориентация.<br/>
+<br/>
+manifest.json<br/>
+<pre><code class="json">{
+ "short_name": "Скорочтец",
+ "name": "Скорочтец",
+ "icons": [
+       {
+     "src":"/static/core/manifest/logo-pwa-16.png",
+     "sizes": "16x16",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-32.png",
+     "sizes": "32x32",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-48.png",
+     "sizes": "48x48",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-72.png",
+     "sizes": "72x72",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-96.png",
+     "sizes": "96x96",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-144.png",
+     "sizes": "144x144",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-192.png",
+     "sizes": "192x192",
+     "type": "image/png"
+   },
+   {
+     "src":"/static/core/manifest/logo-pwa-512.png",
+     "sizes": "512x512",
+     "type": "image/png"
+   }
+ ],
+
+ "start_url": "/app/",
+ "background_color": "#7ACCE5",
+ "theme_color": "#7ACCE5",
+ "orientation": "any",
+ "display": "standalone"
+}</code></pre><br/>
+Последняя переменная указывает, что это будет отдельное приложение. Файл манифеста необходимо расположить на сайте (не обязательно в корне) и подключить его в html:<br/>
+<br/>
+index.html<br/>
+<pre><code class="xml">&lt;!DOCTYPE html>
+&lt;html lang="ru">
+&lt;head>
+   &lt;meta charset="UTF-8">
+   &lt;title>Скорочтец&lt;/title>
+
+   &lt;!-- Add manifest -->
+
+&lt;link rel="manifest" href="{% static "core/manifest/manifest.json" %}">
+
+   &lt;!-- Tell the browser it's a PWA -->
+&lt;/head>
+&lt;body>
+   &lt;div id="root">&lt;/div>
+   &lt;script src="/static/build/app.js">&lt;/script>
+
+   &lt;script>
+       if ('serviceWorker' in navigator) {
+           window.addEventListener('load', function() {
+               navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                   // Registration was successful
+               console.log('ServiceWorker registration successful with scope: ', registration.scope);
+             }, function(err) {
+               // registration failed :(
+               console.log('ServiceWorker registration failed: ', err);
+             }).catch(function(err) {
+               console.log(err)
+             });
+           });
+         } else {
+           console.log('service worker is not supported');
+         }
+   &lt;/script>
+&lt;/body>
+&lt;/html></code></pre><br/>
+Давайте снова проанализируем сайт Lighthouse-ом:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/0f6/81f/411/0f681f41101fb338efbd166904462b69.png"/><br/>
+<br/>
+Ура! Теперь у нас не просто сайт, а Progressive Web App! Возможно, вы заметили, что скорость загрузки резко подросла. Это никак не связано с тем, что мы делали, просто я заменил development-сборку React-приложения на production, чтобы отчёт выглядел максимально красиво.<br/>
+<br/>
+Ну что ж, заходим на сайт из мобильного Chrome и что же мы видим?<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/b35/65a/ac9/b3565aac9825d0080986720cdc9d9231.jpg" width="400" data-src="https://habrastorage.org/getpro/habr/post_images/b35/65a/ac9/b3565aac9825d0080986720cdc9d9231.jpg" data-blurred="true"/></div><br/>
+Да! Можно открывать шампанское! Добавляем приложение на главный экран:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/ba2/97b/e53/ba297be532bbf6881e561aad65ae95d3.jpg" width="400" data-src="https://habrastorage.org/getpro/habr/post_images/ba2/97b/e53/ba297be532bbf6881e561aad65ae95d3.jpg" data-blurred="true"/></div><br/>
+<br/>
+Бонусом получаем заставку при запуске, которая собирается из указанных в манифесте name, background_color и иконки 512x512 в массиве icons:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/e62/684/7e6/e626847e6ed596232f86c46738659178.jpg" width="400" data-src="https://habrastorage.org/getpro/habr/post_images/e62/684/7e6/e626847e6ed596232f86c46738659178.jpg" data-blurred="true"/></div><br/>
+К сожалению, цвет текста подбирается автоматически, что в случае Скорочтеца немного ломает стиль.<br/>
+<br/>
+Ну и само приложение:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/bd6/105/230/bd61052307b6b7a6492174c74f67d4fa.jpg" width="400" data-src="https://habrastorage.org/getpro/habr/post_images/bd6/105/230/bd61052307b6b7a6492174c74f67d4fa.jpg" data-blurred="true"/></div><br/>
+<h1>Ограничения</h1><br/>
+На данный момент PWA поддерживается только в Chrome и Safari (начиная с iOS версии 11.3). Причём, Safari поддерживает эту технологию «по-тихому». Пользователь может добавить приложение на главный экран, но только никакого сообщения об этом нет, в отличие от Chrome.<br/>
+<br/>
+<h1>Полезные советы и трюки</h1><br/>
+<h3>1. Предложение об установке на Safari</h3><br/>
+Поскольку в Apple этого не сделали (надеемся, что пока не сделали), то приходится реализовывать «руками». Получается вот такое:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/e37/997/fff/e37997fffe093504de191c6ccff7bcb9.jpg" width="400" data-src="https://habrastorage.org/getpro/habr/post_images/e37/997/fff/e37997fffe093504de191c6ccff7bcb9.jpg" data-blurred="true"/></div><br/>
+Реализуется следующим JavaScript-кодом:<br/>
+<br/>
+<pre><code class="javascript">       const isIos = () => {
+           const userAgent = window.navigator.userAgent.toLowerCase();
+           return /iphone|ipad|ipod/.test( userAgent );
+       };
+       // Проверяем, открыто ли приложение отдельно или в браузере
+       const isInStandaloneMode = () => ('standalone' in window.navigator) &amp;&amp; (window.navigator.standalone);
+
+
+
+       // Если приложение открыто на iOS и в браузере, то предлагаем установить
+       if (isIos() &amp;&amp; !isInStandaloneMode()) {
+           this.setState({ isShown: true }); // На примере React
+       }</code></pre><br/>
+<h3>2. Отслеживание установок</h3><br/>
+Это работает только в Google Chrome. Нужно добавить в html скрипт, отлавливающий событие appinstalled и, например, отправлять на свой сервер сообщение об этом:<br/>
+<br/>
+<pre><code class="javascript">&lt;script>
+   window.addEventListener('appinstalled', (evt) => {
+       fetch(&lt;your_url>, {
+           method: 'GET',
+           credentials: 'include',
+       });
+   });
+&lt;/script>
+</code></pre><br/>
+<h3>3. Правильный выбор start_url</h3><br/>
+Обязательно нужно позаботиться о том, что url всех страниц приложения являются продолжением <code>start_url</code>, указанного в манифесте. Потому что, если вы укажете <code>"start_url": "/app/"</code>, а затем пользователь перейдёт на страницу, скажем, "/books/", то тут же покажет себя адресная строка браузера и весь пользовательский опыт сломается. Кроме того, человек почувствует себя обманутым: думал, что использует приложение, а это замаскированный браузер. И даже <code>theme_color</code> из манифеста, который окрасит интерфейс браузера в ваш фирменный цвет, не спасёт.<br/>
+<br/>
+В случае Скорочтеца, все страницы, относящиеся к приложению, начинаются с /app/, поэтому таких казусов не возникает.<br/>
+<br/>
+<h1>Что дальше?</h1><br/>
+Ну что ж, теперь вы знаете, как забраться к пользователю на главный экран смартфона через ваш сайт. Но это только одна из дверей, и скорее всего не парадная. Во <a href="https://habr.com/ru/company/mailru/blog/450506/">второй части</a> будет рассказано, как войти через парадную дверь: вы узнаете, как выложить ваше прогрессивное веб-приложение в Google Play.<br/>
+<br/>
+<h1>Полезные ссылки</h1><br/>
+<ul>
+<li><a href="https://auth0.com/blog/introduction-to-progressive-apps-part-one">Introduction to Progressive Web Apps (Offline First) — Part 1</a> </li>
+<li><a href="https://auth0.com/blog/introduction-to-progressive-web-apps-instant-loading-part-2">Introduction to Progressive Web Apps (Instant Loading) — Part 2</a> </li>
+<li><a href="https://auth0.com/blog/introduction-to-progressive-web-apps-push-notifications-part-3">Introduction to Progressive Web Apps (Push Notifications) — Part 3</a> </li>
+<li><a href="https://tuhub.ru/posts/progressive-web-app-with-react">Разработка вашего первого Progressive Web App c React</a> </li>
+<li><a href="https://www.creativebloq.com/features/9-amazing-pwa-secrets">9 amazing PWA secrets</a> </li>
+<li><a href="https://medium.com/@firt/progressive-web-apps-on-ios-are-here-d00430dee3a7">Progressive Web Apps on iOS are here </a></li>
+<li><a href="https://medium.com/@addyosmani/progressive-web-apps-with-react-js-part-i-introduction-50679aef2b12">Progressive Web Apps with React.js: Part I — Introduction</a> </li>
+<li><a href="https://medium.com/@addyosmani/progressive-web-apps-with-react-js-part-2-page-load-performance-33b932d97cf2">Progressive Web Apps with React.js: Part 2 — Page Load Performance</a> </li>
+<li><a href="https://medium.com/@addyosmani/progressive-web-apps-with-react-js-part-3-offline-support-and-network-resilience-c84db889162c?source=user_profile---------11----------------">Progressive Web Apps with React.js: Part 3 — Offline support and network resilience</a> </li>
+<li><a href="https://medium.com/@addyosmani/progressive-web-apps-with-react-js-part-4-site-is-progressively-enhanced-b5ad7cf7a447">Progressive Web Apps with React.js: Part 4 — Progressive Enhancement</a> </li>
+<li><a href="https://medium.com/dev-channel/treebo-a-react-and-preact-progressive-web-app-performance-case-study-5e4f450d5299">A React And Preact Progressive Web App Performance Case Study: Treebo</a> </li>
+</ul></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bprogressive%20web%20apps%5D" class="tm-tags-list__link">progressive web apps</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/vk/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании VK
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/webdev/" class="tm-hubs-list__link">
+    Разработка веб-сайтов
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/mobile_dev/" class="tm-hubs-list__link">
+    Разработка мобильных приложений
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/android_dev/" class="tm-hubs-list__link">
+    Разработка под Android
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 52: ↑52 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 52: ↑52 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+52</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">69K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    472
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/vk/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/9ed/c74/6b4/9edc746b484c805ecad1f941b5f7068a.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/vk/profile/" class="tm-company-snippet__title">VK</a> <div class="tm-company-snippet__description">Технологии, которые объединяют</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/insidevk" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://twitter.com/inside_vk" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Twitter
+    </a><a href="https://vk.com/insidevk" rel="noopener" target="_blank" class="tm-article-author__contact">
+      ВКонтакте
+    </a><a href="https://instagram.com/inside.vk" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Instagram
+    </a><a href="https://telegram.me/inside_vk" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Telegram
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/macket/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_pink"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 14 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    14
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/macket/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @macket
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/vk/blog/450504/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 31 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="1998-10-14T20:00:00.000Z" title="1998-10-15, 00:00">15  октября  1998</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://vk.com/vkteam" target="_blank" class="tm-company-basic-info__link">
+      vk.com
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    5 001–10 000 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2008-08-09T07:42:32.000Z" title="2008-08-09, 11:42">9  августа  2008</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/somuchmich/" class="tm-company-basic-info__link">
+      Миша Буданов
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/vk/blog/450504/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/vk/blog/450504/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450504":{"id":"450504","timePublished":"2019-05-07T12:23:49+00:00","isCorporative":true,"lang":"ru","titleHtml":"Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1\u002F2: Progressive Web App","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqp\u002F6r\u002Ffv\u002Fqp6rfvsvw7jfgzexsn2tqlcsxfm.png\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nНаверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и вовлечённости пользователей.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nДа, современный фронтенд, написанный, например, на React, работает как приложение. Но вот только скачивается это приложение в браузер и запускается из него. В этом и заключается огромный гандикап, который всегда имела мобильная разработка. Давайте подумаем, чем с точки зрения обычного пользователя, «приложение» отличается от «сайта». Сразу в голову приходит, что приложение в телефоне, а сайт на компьютере. Но ведь есть мобильный браузер, так что сайт и в телефоне тоже. Тогда остаётся 3 существенных отличия:\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":14,"votesCount":14},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"2044959","alias":"macket","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":31,"favoritesCount":472,"readingCount":69040,"score":52,"votesCount":52},"hubs":[{"relatedData":null,"id":"4992","alias":"vk","type":"corporative","title":"Блог компании VK","titleHtml":"Блог компании VK","isProfiled":false},{"relatedData":null,"id":"91","alias":"webdev","type":"collective","title":"Разработка веб-сайтов","titleHtml":"Разработка веб-сайтов","isProfiled":true},{"relatedData":null,"id":"6345","alias":"mobile_dev","type":"collective","title":"Разработка мобильных приложений","titleHtml":"Разработка мобильных приложений","isProfiled":true},{"relatedData":null,"id":"17107","alias":"android_dev","type":"collective","title":"Разработка под Android","titleHtml":"Разработка под Android","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqp\u002F6r\u002Ffv\u002Fqp6rfvsvw7jfgzexsn2tqlcsxfm.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и вовлечённости пользователей.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДа, современный фронтенд, написанный, например, на React, работает как приложение. Но вот только скачивается это приложение в браузер и запускается из него. В этом и заключается огромный гандикап, который всегда имела мобильная разработка. Давайте подумаем, чем с точки зрения обычного пользователя, «приложение» отличается от «сайта». Сразу в голову приходит, что приложение в телефоне, а сайт на компьютере. Но ведь есть мобильный браузер, так что сайт и в телефоне тоже. Тогда остаётся 3 существенных отличия:\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EИконка приложения есть на главном экране смартфона.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EПриложение открывается в отдельном окне.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EПриложение отправляет push-уведомления.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nВсе 3 пункта снимаются благодаря Progressive Web App или PWA. Теперь, заходя на сайт из мобильного браузера, мы можем «скачать» его, после чего увидим иконку на главном экране. Кроме того, при запуске появляется заставка, как у мобильных приложений, и при желании можно настроить отправку push-уведомлений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ казалось бы, всё прекрасно! Но увы, за 10 с лишним лет мобильной эпохи пользователи слишком сильно привыкли искать приложения в Google Play и App Store. Ломать привычки пользователей — дело неблагодарное, и потому ребята из Google (кстати, Google является разработчиком PWA) решили, что если гора не идёт к Магомеду, то… В общем, совсем недавно, 6 февраля 2019 года, они \u003Ca href=\"https:\u002F\u002Fdevelopers.google.com\u002Fweb\u002Fupdates\u002F2019\u002F02\u002Fusing-twa\"\u003Eобеспечили использование Trusted Web Activities\u003C\u002Fa\u003E для выкладки веб-приложений в Google Play.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ статье из двух частей будет рассказано, как пройти полный путь от обычного веб-сайта до приложения в Google Play всего за считанные часы. Всё это будет показано на примере реального сервиса — \u003Ca href=\"https:\u002F\u002Fskorochtec.ru\u002F\"\u003EСкорочтец\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fmailru\u002Fblog\u002F450504\u002F\"\u003E\u003Cu\u003EКак сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1\u002F2: Progressive Web App\u003C\u002Fu\u003E\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fmailru\u002Fblog\u002F450506\u002F\"\u003E\u003Cu\u003EКак сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 2\u002F2: Trusted Web Activity\u003C\u002Fu\u003E\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003ELighthouse\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНа входе у нас есть веб-сайт с мобильной вёрсткой:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F330\u002F2db\u002F7bf\u002F3302db7bf5f02c8dd48ebeb089ebbe7b.jpg\" width=\"400\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F330\u002F2db\u002F7bf\u002F3302db7bf5f02c8dd48ebeb089ebbe7b.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nПервым делом нужно установить расширение \u003Ca href=\"https:\u002F\u002Fchrome.google.com\u002Fwebstore\u002Fdetail\u002Flighthouse\u002Fblipmdconlkpinefehnmjammfjpmpbjk\"\u003ELighthouse\u003C\u002Fa\u003E в Google Chrome на своём рабочем компьютере. Это инструмент для анализа сайтов в целом и для проверки соответствия стандарту Progressive Web App в частности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДалее открываем наш сайт, боевой или запущенный локально, и генерируем отчёт для него при помощи Lighthouse:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F308\u002F930\u002Feaf\u002F308930eaf740ff668775f027adeeb319.png\" data-width=\"400\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВ разделе Progressive Web App отчёта вы должны увидеть примерно следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F49e\u002F88f\u002Fe73\u002F49e88fe7310fb29ea8eaeea2e0560445.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбратите внимание на раздел Installable. Во-первых, если вы запускаете сайт локально, а вам придётся это делать во время разработки и тестирования, то нужно использовать домен localhost и никакой другой. Благодаря этому будет удовлетворено требование «Use HTTPS», а точнее Lighthouse просто закроет глаза на него, и вы сможете полноценно тестировать свой PWA.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКроме требования HTTPS, чтобы наше приложение превратилось в PWA и стало устанавливаемым, нужно подключить к сайту service worker и Web app manifest. Давайте сделаем это.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EService worker\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nТехнология \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fru\u002Fdocs\u002FWeb\u002FAPI\u002FService_Worker_API\u002FUsing_Service_Workers\"\u003Eservice workers\u003C\u002Fa\u003E позволяет вашему сайту быть online даже тогда, когда сервер недоступен. Это такой посредник между клиентом и сервером, который перехватывает каждый запрос и в случае чего подсовывает данные из кэша в качестве ответа.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля работы PWA достаточно базовой реализации service worker, которая выглядит следующим образом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nservice-worker.js\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E\u002F\u002F Должно быть true в production\nvar doCache = true;\n\n\u002F\u002F Имя кэша\nvar CACHE_NAME = 'my-pwa-cache-v2';\n\n\u002F\u002F Очищает старый кэш\nself.addEventListener('activate', event =\u003E {\n   const cacheWhitelist = [CACHE_NAME];\n   event.waitUntil(\n       caches.keys()\n           .then(keyList =\u003E\n               Promise.all(keyList.map(key =\u003E {\n                   if (!cacheWhitelist.includes(key)) {\n                       console.log('Deleting cache: ' + key)\n                       return caches.delete(key);\n                   }\n               }))\n           )\n   );\n});\n\n\u002F\u002F 'install' вызывается, как только пользователь впервые открывает PWA \nself.addEventListener('install', function(event) {\n   if (doCache) {\n       event.waitUntil(\n           caches.open(CACHE_NAME)\n               .then(function(cache) {\n                   \u002F\u002F Получаем данные из манифеста (они кэшируются)\n                   fetch('\u002Fstatic\u002Freader\u002Fmanifest.json')\n                       .then(response =\u003E {\n                           response.json()\n                       })\n                       .then(assets =\u003E {\n                       \u002F\u002F Открываем и кэшируем нужные страницы и файлы\n                           const urlsToCache = [\n                               '\u002Fapp\u002F',\n                ........\n                               '\u002Fstatic\u002Fcore\u002Flogo.svg*',\n                           ]\n                           cache.addAll(urlsToCache)\n                           console.log('cached');\n                       })\n               })\n       );\n   }\n});\n\n\u002F\u002F Когда приложение запущено, сервис-воркер перехватывает запросы и отвечает на них данными из кэша, если они есть\nself.addEventListener('fetch', function(event) {\n   if (doCache) {\n       event.respondWith(\n           caches.match(event.request).then(function(response) {\n               return response || fetch(event.request);\n           })\n       );\n   }\n});\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь реализованы обработчики для трёх событий: \u003Ccode\u003Einstall\u003C\u002Fcode\u003E, \u003Ccode\u003Eactivate \u003C\u002Fcode\u003Eи \u003Ccode\u003Efetch\u003C\u002Fcode\u003E. Как только пользователь откроет сайт, на котором есть service worker, вызовется событие \u003Ccode\u003Einstall\u003C\u002Fcode\u003E. Это процедура установки сервис-воркера в браузер пользователя. В её обработчике в массиве \u003Ccode\u003EurlsToCache\u003C\u002Fcode\u003E вы можете указать страницы сайта, которые будут кэшироваться, включая статику. Затем вызывается \u003Ccode\u003Eactivate\u003C\u002Fcode\u003E, которое очищает ресурсы, использованные в предыдущей версии скрипта сервис-воркера. И теперь, когда сервис-воркер успешно установлен, он будет перехватывать каждое событие \u003Ccode\u003Efetch\u003C\u002Fcode\u003E и искать в кэше запрашиваемые ресурсы, прежде чем идти за ними на сервер.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы всё это заработало, нужно добавить скрипт для регистрации сервис-воркера в html-файлы. Так как Скорочтец является одностраничным приложением (SPA), то у него один единственный html, который после добавления указанного скрипта выглядит вот так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nindex.html\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;!DOCTYPE html\u003E\n&lt;html lang=\"ru\"\u003E\n&lt;head\u003E\n   &lt;meta charset=\"UTF-8\"\u003E\n   &lt;title\u003EСкорочтец&lt;\u002Ftitle\u003E\n\n\n&lt;\u002Fhead\u003E\n&lt;body\u003E\n   &lt;div id=\"root\"\u003E&lt;\u002Fdiv\u003E\n   &lt;script src=\"\u002Fstatic\u002Fbuild\u002Fapp.js\"\u003E&lt;\u002Fscript\u003E\n\n   &lt;script\u003E\n       if ('serviceWorker' in navigator) {\n           window.addEventListener('load', function() {\n               navigator.serviceWorker.register('\u002Fservice-worker.js').then(function(registration) {\n                   \u002F\u002F Registration was successful\n               console.log('ServiceWorker registration successful with scope: ', registration.scope);\n             }, function(err) {\n               \u002F\u002F registration failed :(\n               console.log('ServiceWorker registration failed: ', err);\n             }).catch(function(err) {\n               console.log(err)\n             });\n           });\n         } else {\n           console.log('service worker is not supported');\n         }\n   &lt;\u002Fscript\u003E\n&lt;\u002Fbody\u003E\n&lt;\u002Fhtml\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nФункция \u003Ccode\u003Enavigator.serviceWorker.register('\u002Fservice-worker.js')\u003C\u002Fcode\u003E принимает в качестве аргумента URL, по которому расположен файл сервис-воркера. Здесь не важно, как именно называется файл, но важно, чтобы он был расположен в корне домена. Тогда областью видимости сервис-воркера станет весь домен, и он будет получать события \u003Ccode\u003Efetch \u003C\u002Fcode\u003Eиз любой страницы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТаким образом, расположив файл сервис-воркера по адресу \u003Ca href=\"https:\u002F\u002Fskorochtec.ru\u002Fservice-worker.js\"\u003Eskorochtec.ru\u002Fservice-worker.js\u003C\u002Fa\u003E и добавив нужный скрипт в html, мы получаем следующую картину в отчёте Lighthouse:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F7ae\u002Fe54\u002Ff5a\u002F7aee54f5afb99e56c536300a272a94a0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсли сравнивать с предыдущим отчётом, то теперь у нас удовлетворён второй пункт и сайт отвечает 200 даже offline, а также в 5-м пункте мы видим, что сервис-воркер обнаружен, но вот стартовой страницы не хватает. Информация о стартовой странице и не только указывается в Web App Manifest, давайте добавим его!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EWeb App Manifest\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fru\u002Fdocs\u002FWeb\u002F%D0%9C%D0%B0%D0%BD%D0%B8%D1%84%D0%B5%D1%81%D1%82\"\u003EМанифест\u003C\u002Fa\u003E предоставляет информацию о нашем приложении: короткое и длинное имя, иконки всех размеров, стартовая страница, цвета и ориентация.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nmanifest.json\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"json\"\u003E{\n \"short_name\": \"Скорочтец\",\n \"name\": \"Скорочтец\",\n \"icons\": [\n       {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-16.png\",\n     \"sizes\": \"16x16\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-32.png\",\n     \"sizes\": \"32x32\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-48.png\",\n     \"sizes\": \"48x48\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-72.png\",\n     \"sizes\": \"72x72\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-96.png\",\n     \"sizes\": \"96x96\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-144.png\",\n     \"sizes\": \"144x144\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-192.png\",\n     \"sizes\": \"192x192\",\n     \"type\": \"image\u002Fpng\"\n   },\n   {\n     \"src\":\"\u002Fstatic\u002Fcore\u002Fmanifest\u002Flogo-pwa-512.png\",\n     \"sizes\": \"512x512\",\n     \"type\": \"image\u002Fpng\"\n   }\n ],\n\n \"start_url\": \"\u002Fapp\u002F\",\n \"background_color\": \"#7ACCE5\",\n \"theme_color\": \"#7ACCE5\",\n \"orientation\": \"any\",\n \"display\": \"standalone\"\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПоследняя переменная указывает, что это будет отдельное приложение. Файл манифеста необходимо расположить на сайте (не обязательно в корне) и подключить его в html:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nindex.html\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;!DOCTYPE html\u003E\n&lt;html lang=\"ru\"\u003E\n&lt;head\u003E\n   &lt;meta charset=\"UTF-8\"\u003E\n   &lt;title\u003EСкорочтец&lt;\u002Ftitle\u003E\n\n   &lt;!-- Add manifest --\u003E\n\n&lt;link rel=\"manifest\" href=\"{% static \"core\u002Fmanifest\u002Fmanifest.json\" %}\"\u003E\n\n   &lt;!-- Tell the browser it's a PWA --\u003E\n&lt;\u002Fhead\u003E\n&lt;body\u003E\n   &lt;div id=\"root\"\u003E&lt;\u002Fdiv\u003E\n   &lt;script src=\"\u002Fstatic\u002Fbuild\u002Fapp.js\"\u003E&lt;\u002Fscript\u003E\n\n   &lt;script\u003E\n       if ('serviceWorker' in navigator) {\n           window.addEventListener('load', function() {\n               navigator.serviceWorker.register('\u002Fservice-worker.js').then(function(registration) {\n                   \u002F\u002F Registration was successful\n               console.log('ServiceWorker registration successful with scope: ', registration.scope);\n             }, function(err) {\n               \u002F\u002F registration failed :(\n               console.log('ServiceWorker registration failed: ', err);\n             }).catch(function(err) {\n               console.log(err)\n             });\n           });\n         } else {\n           console.log('service worker is not supported');\n         }\n   &lt;\u002Fscript\u003E\n&lt;\u002Fbody\u003E\n&lt;\u002Fhtml\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДавайте снова проанализируем сайт Lighthouse-ом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F0f6\u002F81f\u002F411\u002F0f681f41101fb338efbd166904462b69.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУра! Теперь у нас не просто сайт, а Progressive Web App! Возможно, вы заметили, что скорость загрузки резко подросла. Это никак не связано с тем, что мы делали, просто я заменил development-сборку React-приложения на production, чтобы отчёт выглядел максимально красиво.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНу что ж, заходим на сайт из мобильного Chrome и что же мы видим?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb35\u002F65a\u002Fac9\u002Fb3565aac9825d0080986720cdc9d9231.jpg\" width=\"400\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb35\u002F65a\u002Fac9\u002Fb3565aac9825d0080986720cdc9d9231.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДа! Можно открывать шампанское! Добавляем приложение на главный экран:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fba2\u002F97b\u002Fe53\u002Fba297be532bbf6881e561aad65ae95d3.jpg\" width=\"400\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fba2\u002F97b\u002Fe53\u002Fba297be532bbf6881e561aad65ae95d3.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБонусом получаем заставку при запуске, которая собирается из указанных в манифесте name, background_color и иконки 512x512 в массиве icons:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe62\u002F684\u002F7e6\u002Fe626847e6ed596232f86c46738659178.jpg\" width=\"400\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe62\u002F684\u002F7e6\u002Fe626847e6ed596232f86c46738659178.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nК сожалению, цвет текста подбирается автоматически, что в случае Скорочтеца немного ломает стиль.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНу и само приложение:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fbd6\u002F105\u002F230\u002Fbd61052307b6b7a6492174c74f67d4fa.jpg\" width=\"400\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fbd6\u002F105\u002F230\u002Fbd61052307b6b7a6492174c74f67d4fa.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EОграничения\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНа данный момент PWA поддерживается только в Chrome и Safari (начиная с iOS версии 11.3). Причём, Safari поддерживает эту технологию «по-тихому». Пользователь может добавить приложение на главный экран, но только никакого сообщения об этом нет, в отличие от Chrome.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EПолезные советы и трюки\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E1. Предложение об установке на Safari\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПоскольку в Apple этого не сделали (надеемся, что пока не сделали), то приходится реализовывать «руками». Получается вот такое:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe37\u002F997\u002Ffff\u002Fe37997fffe093504de191c6ccff7bcb9.jpg\" width=\"400\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe37\u002F997\u002Ffff\u002Fe37997fffe093504de191c6ccff7bcb9.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nРеализуется следующим JavaScript-кодом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E       const isIos = () =\u003E {\n           const userAgent = window.navigator.userAgent.toLowerCase();\n           return \u002Fiphone|ipad|ipod\u002F.test( userAgent );\n       };\n       \u002F\u002F Проверяем, открыто ли приложение отдельно или в браузере\n       const isInStandaloneMode = () =\u003E ('standalone' in window.navigator) &amp;&amp; (window.navigator.standalone);\n\n\n\n       \u002F\u002F Если приложение открыто на iOS и в браузере, то предлагаем установить\n       if (isIos() &amp;&amp; !isInStandaloneMode()) {\n           this.setState({ isShown: true }); \u002F\u002F На примере React\n       }\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E2. Отслеживание установок\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЭто работает только в Google Chrome. Нужно добавить в html скрипт, отлавливающий событие appinstalled и, например, отправлять на свой сервер сообщение об этом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003E&lt;script\u003E\n   window.addEventListener('appinstalled', (evt) =\u003E {\n       fetch(&lt;your_url\u003E, {\n           method: 'GET',\n           credentials: 'include',\n       });\n   });\n&lt;\u002Fscript\u003E\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E3. Правильный выбор start_url\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nОбязательно нужно позаботиться о том, что url всех страниц приложения являются продолжением \u003Ccode\u003Estart_url\u003C\u002Fcode\u003E, указанного в манифесте. Потому что, если вы укажете \u003Ccode\u003E\"start_url\": \"\u002Fapp\u002F\"\u003C\u002Fcode\u003E, а затем пользователь перейдёт на страницу, скажем, \"\u002Fbooks\u002F\", то тут же покажет себя адресная строка браузера и весь пользовательский опыт сломается. Кроме того, человек почувствует себя обманутым: думал, что использует приложение, а это замаскированный браузер. И даже \u003Ccode\u003Etheme_color\u003C\u002Fcode\u003E из манифеста, который окрасит интерфейс браузера в ваш фирменный цвет, не спасёт.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ случае Скорочтеца, все страницы, относящиеся к приложению, начинаются с \u002Fapp\u002F, поэтому таких казусов не возникает.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EЧто дальше?\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\nНу что ж, теперь вы знаете, как забраться к пользователю на главный экран смартфона через ваш сайт. Но это только одна из дверей, и скорее всего не парадная. Во \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Fmailru\u002Fblog\u002F450506\u002F\"\u003Eвторой части\u003C\u002Fa\u003E будет рассказано, как войти через парадную дверь: вы узнаете, как выложить ваше прогрессивное веб-приложение в Google Play.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch1\u003EПолезные ссылки\u003C\u002Fh1\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fauth0.com\u002Fblog\u002Fintroduction-to-progressive-apps-part-one\"\u003EIntroduction to Progressive Web Apps (Offline First) — Part 1\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fauth0.com\u002Fblog\u002Fintroduction-to-progressive-web-apps-instant-loading-part-2\"\u003EIntroduction to Progressive Web Apps (Instant Loading) — Part 2\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fauth0.com\u002Fblog\u002Fintroduction-to-progressive-web-apps-push-notifications-part-3\"\u003EIntroduction to Progressive Web Apps (Push Notifications) — Part 3\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Ftuhub.ru\u002Fposts\u002Fprogressive-web-app-with-react\"\u003EРазработка вашего первого Progressive Web App c React\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fwww.creativebloq.com\u002Ffeatures\u002F9-amazing-pwa-secrets\"\u003E9 amazing PWA secrets\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@firt\u002Fprogressive-web-apps-on-ios-are-here-d00430dee3a7\"\u003EProgressive Web Apps on iOS are here \u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@addyosmani\u002Fprogressive-web-apps-with-react-js-part-i-introduction-50679aef2b12\"\u003EProgressive Web Apps with React.js: Part I — Introduction\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@addyosmani\u002Fprogressive-web-apps-with-react-js-part-2-page-load-performance-33b932d97cf2\"\u003EProgressive Web Apps with React.js: Part 2 — Page Load Performance\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@addyosmani\u002Fprogressive-web-apps-with-react-js-part-3-offline-support-and-network-resilience-c84db889162c?source=user_profile---------11----------------\"\u003EProgressive Web Apps with React.js: Part 3 — Offline support and network resilience\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmedium.com\u002F@addyosmani\u002Fprogressive-web-apps-with-react-js-part-4-site-is-progressively-enhanced-b5ad7cf7a447\"\u003EProgressive Web Apps with React.js: Part 4 — Progressive Enhancement\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fmedium.com\u002Fdev-channel\u002Ftreebo-a-react-and-preact-progressive-web-app-performance-case-study-5e4f450d5299\"\u003EA React And Preact Progressive Web App Performance Case Study: Treebo\u003C\u002Fa\u003E \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"progressive web apps"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450504\u002F56e9b8f81a60e4888cc9374a74b6a777\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450504\u002F56e9b8f81a60e4888cc9374a74b6a777\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fvk\\\u002Fblog\\\u002F450504\\\u002F\"},\"headline\":\"Как сделать из сайта приложение и выложить его в Google Play за несколько часов. Часть 1\\\u002F2: Progressive Web App\",\"datePublished\":\"2019-05-07T15:23:49+03:00\",\"dateModified\":\"2019-05-11T12:10:22+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"macket\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fvk\\\u002Fblog\\\u002F450504\\\u002F#post-content-body\",\"about\":[\"c_vk\",\"h_webdev\",\"h_mobile_dev\",\"h_android_dev\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqp\\\u002F6r\\\u002Ffv\\\u002Fqp6rfvsvw7jfgzexsn2tqlcsxfm.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F330\\\u002F2db\\\u002F7bf\\\u002F3302db7bf5f02c8dd48ebeb089ebbe7b.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F308\\\u002F930\\\u002Feaf\\\u002F308930eaf740ff668775f027adeeb319.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F49e\\\u002F88f\\\u002Fe73\\\u002F49e88fe7310fb29ea8eaeea2e0560445.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F7ae\\\u002Fe54\\\u002Ff5a\\\u002F7aee54f5afb99e56c536300a272a94a0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F0f6\\\u002F81f\\\u002F411\\\u002F0f681f41101fb338efbd166904462b69.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb35\\\u002F65a\\\u002Fac9\\\u002Fb3565aac9825d0080986720cdc9d9231.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fba2\\\u002F97b\\\u002Fe53\\\u002Fba297be532bbf6881e561aad65ae95d3.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe62\\\u002F684\\\u002F7e6\\\u002Fe626847e6ed596232f86c46738659178.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fbd6\\\u002F105\\\u002F230\\\u002Fbd61052307b6b7a6492174c74f67d4fa.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe37\\\u002F997\\\u002Ffff\\\u002Fe37997fffe093504de191c6ccff7bcb9.jpg\"]}","metaDescription":"Наверное, все близкие к веб-разработке люди уже наслышаны о Progressive Web App. Ещё бы! Эта технология практически уравняла веб и мобильную разработку с точки зрения распространения продуктов и...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"vk":{"alias":"vk","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F9ed\u002Fc74\u002F6b4\u002F9edc746b484c805ecad1f941b5f7068a.png","titleHtml":"VK","descriptionHtml":"Технологии, которые объединяют","relatedData":null,"statistics":{"postsCount":2250,"newsCount":142,"vacanciesCount":24,"employeesCount":693,"careerRating":4.37,"subscribersCount":124470,"rating":329.16,"invest":null},"foundationDate":{"year":"1998","month":"10","day":"15"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fvk.com\u002Fvkteam","staffNumber":"5 001–10 000 человек","registrationDate":"2008-08-09T07:42:32+00:00","representativeUser":{"alias":"somuchmich","fullname":"Миша Буданов"},"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Finsidevk"},{"title":"Twitter","url":"https:\u002F\u002Ftwitter.com\u002Finside_vk"},{"title":"ВКонтакте","url":"https:\u002F\u002Fvk.com\u002Finsidevk"},{"title":"Instagram","url":"https:\u002F\u002Finstagram.com\u002Finside.vk"},{"title":"Telegram","url":"https:\u002F\u002Ftelegram.me\u002Finside_vk"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-16546458-6"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F174\u002F2c4\u002F3a5\u002F1742c43a5b504987a0fadf577a0bd4de.png","linkUrl":"https:\u002F\u002Fvk.com\u002Fvkteam","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"VK, Москва - Технологии, которые объединяют с 15 октября 1998 г.","title":"VK, Москва - Технологии, которые объединяют с 15 октября 1998 г.","keywords":["Программирование","DevOps","Kubernetes","Облачные вычисления","Tarantool"],"descriptionHtml":"2 250 статей от авторов компании VK","description":"2 250 статей от авторов компании VK"},"aDeskSettings":null,"careerAlias":"vk","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

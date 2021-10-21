@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Создание инструмента для быстрого и эффективного написания автотестов на Selenium / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450726\/"},"headline":"Создание инструмента для быстрого и эффективного написания автотестов на Selenium","datePublished":"2019-05-06T17:13:06+03:00","dateModified":"2019-05-06T17:13:41+03:00","author":{"@type":"Person","name":"Владимир"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Фундаментальный строительный блок автоматизации &ndash; тестирование Род Джонсон   Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее...","url":"https:\/\/habr.com\/ru\/post\/450726\/#post-content-body","about":["h_it_testing","h_java","h_web_testing","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/we\/bo\/hc\/webohc2wdcta3-sndagvuqhbnwo.jpeg","https:\/\/habrastorage.org\/webt\/8f\/sk\/ag\/8fskag6agt4vred-urcowwdxzfs.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Создание инструмента для быстрого и эффективного написания автотестов на Selenium" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Создание инструмента для быстрого и эффективного написания автотестов на Selenium" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Создание инструмента для быстрого и эффективного написания автотестов на Selenium" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Фундаментальный строительный блок автоматизации – тестирование
+Род Джонсон 
+
+Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Фундаментальный строительный блок автоматизации – тестирование
+Род Джонсон 
+
+Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Фундаментальный строительный блок автоматизации – тестирование
+Род Джонсон 
+
+Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Фундаментальный строительный блок автоматизации – тестирование
+Род Джонсон 
+
+Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Фундаментальный строительный блок автоматизации – тестирование
+Род Джонсон 
+
+Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450726/6459e8e7c8619431d61799861f78148c/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450726/6459e8e7c8619431d61799861f78148c/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450726/6459e8e7c8619431d61799861f78148c/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450726/6459e8e7c8619431d61799861f78148c/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450726/6459e8e7c8619431d61799861f78148c/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450726" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T14:13:06.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450726/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450726/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450726/6459e8e7c8619431d61799861f78148c/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/vvpetrov91/" title="vvpetrov91" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/vvpetrov91/" class="tm-user-info__username">
+      vvpetrov91
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T14:13:06.000Z" title="2019-05-06, 17:13">6  мая  2019 в 17:13</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Создание инструмента для быстрого и эффективного написания автотестов на Selenium</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование IT-систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/java/" class="tm-article-snippet__hubs-item-link"><span>Java</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/web_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование веб-сервисов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Из песочницы
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><blockquote><i><b>Фундаментальный строительный блок автоматизации – тестирование</b></i><br/>
+<i>Род Джонсон</i></blockquote> <img src="https://habrastorage.org/r/w780q1/webt/we/bo/hc/webohc2wdcta3-sndagvuqhbnwo.jpeg" alt="image" data-src="https://habrastorage.org/webt/we/bo/hc/webohc2wdcta3-sndagvuqhbnwo.jpeg" data-blurred="true"/><br/>
+<br/>
+Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим опыт в этой сфере.<br/>
+<br/>
+Для совсем новичков также будет полезно, т.к. я предоставляю исходный код, где можно посмотреть, как в конечном продукте организовано взаимодействие с селениумом.<br/>
+<br/>
+Я расскажу о том, как с нуля, имея небольшой опыт разработки, написал платформу для запуска тестов, и о самой платформе. Сам я считаю, что мой продукт получился весьма эффективным, а значит будет многим полезен и имеет место для рассмотрения.<br/>
+<a name="habracut"></a><br/>
+<h2>Концепции</h2><br/>
+Процесс тестирования зависит от информационной системы.<br/>
+<br/>
+Для поминания моей концепции, необходимо понять на какие системы я ориентируюсь в первую очередь – это те системы, где обычно существуют конкретные линейные бизнес-процессы, которые и ставятся ключом при проведении регрессионных тестов.<br/>
+<br/>
+Итак, система типа srm. Ключевая бизнес-сущность – коммерческие предложения поставщика. Ключевое внимание при проведении регрессионного тестирования – целостность бизнес-процесса.<br/>
+Бизнес-процесс начинается от регистрации поставщика в системе, далее идет создание коммерческого предложения – идет на этап рассмотрения, который производится различными типами внутренних пользователей (и для каждого пользователя уникальный интерфейс) до возврата решения о рассмотрения предложения поставщику.<br/>
+<br/>
+Получается, что мы проходим через ряд разных интерфейсов, и практически всегда работаем с разными. На деле – если просто взглянуть на это прямо – это похоже на просмотр видеокассеты – т.е. это именно процесс, имеющий начало и конец, и он абсолютно линейный – никаких ветвлений, при написании теста мы всегда знаем ожидаемый результат. Т.е. я хочу сказать, что уже глядя на это картину, можно заключить, что сделать тесты полиморфными вряд ли получится. Ввиду этого при создании платформы для запуска тестов, ключевым фактором я поставил скорость написания тестов.<br/>
+<br/>
+<b>Концепции, которые я перед собой поставил:</b><br/>
+<br/>
+<ol>
+<li>Автотест должен создаваться максимально быстро на сколько это возможно. Если добиться этого качественно, то остальные аспекты, такие как надежность и удобство использования, должны прийти сами собой.</li>
+<li>Тесты должны быть объявлены декларативно и жить отдельно от кода. Иного варианта я даже не увидел. Это увеличивает скорость написания, т.к. при наличие готового интерпретатора — нашей платформы, не надо потом ничего дописывать, не надо лезть лишний раз в код – вообще после готовой платформы по IDE можно забыть. Так тесты проще сопровождать. В таком виде их проще научить писать, т.к. не нужны навыки разработки, а лишь понимание языка разметки. В таком виде они понятны всем участникам процесса. </li>
+</ol><br/>
+<b>От чего я решил отказаться уже на старте:<br/>
+</b><br/>
+<ol>
+<li>НЕ оборачивать свою систему в тестовый фреймворк. Запустить выполнение того или иного процесса можно и без тестового фреймворка. «Ты хочешь изобрести велосипед!», — скажут многие. Я рассуждаю по-другому. Популярные используемые тестовые фреймворки создавались в первую очередь для тестирования кода изнутри, а мы собираемся тестировать внешнюю часть системы снаружи. Это как если у меня есть шоссейный велосипед, а мне нужно спуститься с горы по бездорожью (грубо, но ход мыслей отражает). В общем фреймворк будем писать сами — с блек джеком и … (хотя я в курсе что, например, JUnit 5 уже в гораздо большей степени адаптирован под такого рода задач). </li>
+<li>Отказ от использования оберток для селениума. Собственно, ключевая библиотека сама по себе небольшая. Чтобы понять, что нужно использовать 5 процентов ее функциональности, при этом перелопатив ее полностью, потребуется несколько часов. Хватит везде искать способ писать меньше кода и приучать себя к горшку. В современном мире это желание часто приводит к абсурду и почти всегда дает ущерб гибкости (я имею ввиду именно подходы к «написать меньше кода» а не случаи архитектурных фреймворков). </li>
+<li>Красивое оформление результатов не нужно. Внес данный пункт, т.к. уже не однократно сталкиваюсь с этим. Когда автотест выполнился, мне нужно знать 2 вещи: общий результат (положительный/отрицательный), и, если была ошибка – где именно. Возможно еще надо вести статистику. Все остальное в плане результатов – АБСОЛЮТНО не существенно. Рассматривать красивое оформление как существенный плюс, либо тратить на это красивое оформление время на начальных этапах – лишние понты. </li>
+</ol><br/>
+Немного еще расскажу об уровне разработки в компании и условиях создания инструмента дабы до конца внести в ясность в некоторые детали.<br/>
+<br/>
+В силу неких конфиденциальных обстоятельств я не раскрываю компанию, где работаю.<br/>
+<br/>
+В нашей компании разработка существует уже далеко не первый год, и стало быть все процессы уже давно налажены. Однако, они сильно отстают от современных тенденций. <br/>
+Все представители айти понимают, что надо покрывать код тестами, писать сценарии автотестов в момент согласования требований к будущей функциональности, гибкие технологии существенно экономят время и ресурсы, а CI который просто берет и упрощает жизнь. Но это все пока только медленно доходит до нас… <br/>
+<br/>
+Так и служба контроля качества ПО – все тесты выполняются мануально, если взглянуть на процесс «сверху» – то это «горлышко бутылки» всего процесса разработки.<br/>
+<br/>
+<h2>Описание сборки</h2><br/>
+Платформа написана на языке Java с использогванием JDK 12 <br/>
+<br/>
+Основные инфраструктурные инструменты — Selenium Web Driver, OJDBC<br/>
+<br/>
+Для работы приложения на ПК должен быть установлен браузер FireFox версии выше 52<br/>
+<br/>
+<h4>Состав сборки приложения</h4><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/8f/sk/ag/8fskag6agt4vred-urcowwdxzfs.jpeg" alt="image" data-src="https://habrastorage.org/webt/8f/sk/ag/8fskag6agt4vred-urcowwdxzfs.jpeg" data-blurred="true"/><br/>
+<br/>
+С приложением в обязательном порядке идет 3 папки и 2 файла:<br/>
+<br/>
+• папка <b>BuildKit</b> — содержит:<br/>
+<br/>
+<ul>
+<li>jdk12, при помощи которого осуществляется запуск приложения (JVM);</li>
+<li>geckodriver.exe — для работы Selenium Web Driver с браузером FireFox;</li>
+<li>SprintAutoTest.jar — непосредственно инстанс приложения</li>
+</ul><br/>
+• папка <b>Reports</b> — в нее сохраняются отчеты после завершения выполнения приложением тест кейса. Также должна содержать папку ErrorScreens, куда сохраняется скриншот в случае возникновения ошибки<br/>
+<br/>
+• папка <b>TestSuite</b> — веб пакеты, яваскрипты, набор тест кейсов (о заполнении данной папке будет подробно рассказано отдельно)<br/>
+<br/>
+• файл config.properties — содержит конфиг для подключения к БД Oracle и значения явных ожиданий для WebDriverWait<br/>
+<br/>
+• starter.bat — файлик для запуска приложения (возможен автоматический запуск приложения без ручного указания TestCase если в конце ввести в качестве параметра ввести имя TestCase).<br/>
+<br/>
+<h2>Краткое описание работы приложения</h2><br/>
+Приложение может быть запущено с параметром (имя TestCase) либо без него — в этом случае необходимо ввести имя тест кейса в консоли самостоятельно.<br/>
+<br/>
+<i>Пример общего содержания bat файла, для запуска <b>без параметра</b>: start «AutoTest launcher» %cd%\BuildKit\jdk-12\bin\java.exe -Xmx768M -jar --enable-preview %cd%\BuildKit\SprintAutoTest.jar</i><br/>
+<br/>
+При общем запуске приложения, оно просматривает xml файлы, находящиеся в директории "\TestSuite\TestCase" (без просмотра содержания вложенных папок). При этом происходит первичная валидация xml файлов на корректность структуры (т.е. что все теги с точки зрения разметки xml указаны верно), и берутся названия, указанные в теге «testCaseName», после чего пользователю предлагается ввести один из возможных вариантов имен имеющихся тест кейсов. В случае ошибочного ввода система попросит ввести имя повторно.<br/>
+<br/>
+После того как будет получено имя TestCase, выполняется построение внутренней модели, которая представляет из себя связку TestCase (тестовый сценарий) — WebPackage (хранилище элементов) в виде java объектов. После построения модели строится непосредственно TestCase (исполняемый объект программы). На этапе построения TestCase также происходит вторичная валидация — проверяется что все указанные формы в TestCase имеются в связанном WebPackage и что все элементы, указанные в action, имеются в WebPackage в рамках указанных страниц. (О структуре TestCase и WebPackage подробно описано ниже)<br/>
+<br/>
+После того, как будет построен TestCase, происходит непосредственно запуск сценария<br/>
+<br/>
+<h4>Алгоритм работы сценария (ключевая логика)</h4><br/>
+TestCase представляет из себя набор сущностей Action, который в свою очередь представляет из себя набор сущностей Event.<br/>
+<br/>
+<b>TestCase<br/>
+ -> List{Action}<br/>
+ -> List{Event}</b><br/>
+<br/>
+При запуске TestCase происходит последовательный запуск Action (каждый Action возвращает логический результат)<br/>
+<br/>
+При запуске Action происходит последовательный запуск Event (каждый Event возвращает логический результат)<br/>
+<br/>
+По результату выполнения каждого Event сохраняется результат<br/>
+<br/>
+Соответственно тест завершается либо, когда все действия были выполнены успешно, либо если Action вернул false.<br/>
+<br/>
+<i><b>*Механизм сбоя</b><br/>
+<br/>
+Т.к. моя тестируемая система древняя и имеет отлавливаемые ошибки/глюги, которые не являются ошибками, и некоторые события не срабатывают с первого раза, в платформе реализован механизм, который может отходить от вышеописанной концепции жестко линейного теста (однако он жестко типизирован). При отлавливании таких ошибок предусмотрена возможность повторения кейсов сначала и выполнения дополнительных действий для возможности повтора действий</i><br/>
+<br/>
+По окончанию работы приложения происходит формирование отчета, который сохраняется в директорию "\Reports". В случае возникновение ошибки делается скриншот, который сохраняется в "\Reports\ErrorScreens"<br/>
+<br/>
+<h2>Заполнение TestSuite</h2><br/>
+Итак, описание теста. Как уже говорилось, основной параметр, необходимый для запуска – имя теста, который следует запустить. Это имя хранится в xml файле в директории “/TestSuite/TestCase”. В данной директории хранятся все тестовые сценарии. Их здесь может быть сколько угодно. Имя тест кейса берется не из имени файла, а из тега “testCaseName” внутри файла. <br/>
+<br/>
+В TestCase задается что именно будет делаться – т.е. действия. В директории “/TestSuite/WebPackage” в xml файлах хранятся все локаторы. Т.е. все в лучших традициях – действия хранятся отдельно, локаторы веб форм отдельно. <br/>
+<br/>
+В TestCase также хранится имя WebPackage в теге “webPackageName”.<br/>
+<br/>
+Итого картина уже есть. Для запуска необходимо наличие 2-ух xml файлов: TestCase и WebPackage. Они составляют связку. WebPackage независим – в качестве идентификатора указывается имя в теге “webPackageName”. Соответственно вот и первое правило – имена TestCase и WebPackage должны быть уникальными. Т.е. еще раз – по сути наш тест — это связка файлов TestCase и WepPackage, которые связаны именем WebPackage, которое указывается в TestCase. На практике я автоматизирую одну систему и все свои тест кейсы вяжу к одному WebPackage в котором у меня до кучи описание всех форм.<br/>
+<br/>
+Следующий слой логической декомпозиции основан на таком паттерне, как Page Object.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Page Object</b><div class="spoiler_text"><i><b>Page Object</b> — один из наиболее полезных и используемых архитектурных решений в автоматизации. Данный шаблон проектирования помогает инкапсулировать работу с отдельными элементами страницы. Page Object как бы моделирует страницы тестируемого приложения в качестве объектов.<br/>
+<br/>
+<b>Разделение логики и реализации</b><br/>
+<br/>
+Существует большая разница между логикой тестирования (что проверить) и его реализацией (как проверить). Пример тестового сценария: «Пользователь вводит неверный логин или пароль, нажимает кнопку входа, получает сообщение об ошибке». Этот сценарий описывает логику теста, в то время как реализация содержит в себе такие действия как поиск полей ввода на странице, их заполнение, проверку полученной ошибки и т.д. И если, например, измениться способ вывода сообщения об ошибке, то это никак не повлияет на сценарий теста, все также нужно будет ввести неверные данные, нажать кнопку входа и проверить ошибку. Но это напрямую затронет реализацию теста — необходимо будет изменить метод получающий и обрабатывающий сообщение об ошибке. При разделении логики теста от его реализации автотесты становятся более гибкими и их, как правило, легче поддерживать.<br/>
+<br/>
+<b>*!</b> Нельзя говорить о том, что данный архитектурный подход применен полностью. Речь идет лишь о декомпозиции описания тестового сценария постранично, что помогает писать тесты быстрее и добавлять дополнительные автопроверки на всех страницах, стимулирует к правильному описанию локаторов (чтобы они не были одинаковыми на разных страницах) и строит «красивую» логическую структуру теста. Сама платформа реализована на принципах «Чистой архитектуры» </i><br/>
+</div></div><br/>
+Далее я постараюсь подробно не расписывать структуру WebPackage и TestCase. Для них я создал DTD схему для WebPackage и XSD 1.1 для TestCase. <br/>
+<br/>
+<h4>! ВАЖНО</h4><br/>
+<b>За счет ведения DTD и XSD схем осуществляется концепция быстрого написания теста. <br/>
+<br/>
+При написании непосредственно WebPackage и TestCase необходимо использовать xml Editor со встроенными функциями валидации DTD и XSD в реальном времени с автогенерацией тегов, что сделает сам процесс написания авто теста в значительной мере автоматизированным (все обязательные теги будут подставлены автоматически, для значений атрибутов будут выданы выпадающие списки возможных значений, под тип ивента будут сгенерированы соответствующие теги)</b>.<br/>
+<br/>
+Когда эти схемы «прикручиваются» к самому xml файлу, то можно забыть про корректность структуры xml файла, если использовать специальную среду. Мой выбор пал на oXygen XLM Editor. Еще раз – без использования подобной проги, вы не поймете суть скорости написания. Idea для этого не очень подходит т.к. в ней не обрабатывается конструкция XSD 1.1 “alternative”, которое имеет ключевое значение для TestCase.<br/>
+<br/>
+<h2>WebPackage</h2><br/>
+WebPackaege — xml файл, описывающий элементы веб форм, находится в директории "\TestSuite\WebPackage". (может быть сколько угодно много файлов. Название файлов может быть любым — значение имеет только содержание).<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">DTD (вставляется в начало документа):</b><div class="spoiler_text"><pre><code class="xml">&lt;!DOCTYPE webPackage [
+        &lt;!ELEMENT webPackage (webPackageName, forms)>
+        &lt;!ELEMENT webPackageName (#PCDATA)>
+        &lt;!ELEMENT forms (form+)>
+            &lt;!ELEMENT form (formName, elements+)>
+            &lt;!ELEMENT formName (#PCDATA)>
+            &lt;!ELEMENT elements (element+)>
+                &lt;!ELEMENT element (name, locator)>
+                &lt;!ATTLIST element type (0|1|2|3|4|5|6|7) #REQUIRED>
+                &lt;!ATTLIST element alwaysVisible (0|1) #IMPLIED>
+                &lt;!ELEMENT name (#PCDATA)>
+                &lt;!ELEMENT locator (#PCDATA)>
+                &lt;!ATTLIST locator type (1|2) #IMPLIED>
+        ]></code></pre><br/>
+</div></div><br/>
+<div class="spoiler"><b class="spoiler_title">В общем виде выглядит примерно</b><div class="spoiler_text"><pre><code class="xml">&lt;webPackage>
+    &lt;webPackageName>уникальное_название&lt;/webPackageName>
+    &lt;forms>
+        &lt;form>
+            &lt;formName>пустая_форма_авторизации_при_открытии_тестового_приложения&lt;/formName>
+            &lt;elements>
+                &lt;element type="2" alwaysVisible="1">
+                    &lt;name>наименование_элемента&lt;/name>
+                    &lt;locator type="2">.//div/form/div/div/form/table/tbody/tr/td[text()="Логин"]/following-sibling::td/input&lt;/locator>
+                &lt;/element>
+               &lt;element type="2">
+                    &lt;name>наименование_другого_элемента&lt;/name>
+                    &lt;locator>.//div/form/div/div/form/table/tbody/tr/td[text()="Логин"]/following-sibling::td/input&lt;/locator>
+                &lt;/element>
+                .......
+            &lt;/elements>
+        &lt;/form>
+        .......    
+    &lt;/forms>
+&lt;/webPackage></code></pre><br/>
+</div></div><br/>
+Как уже говорилось, чтобы элементы были не в кучи – все декомпозировано по веб формам<br/>
+<br/>
+Ключевой сущностью является <pre><code class="xml">&lt;element></code></pre><br/>
+Тег element имеет 2 атрибута:<br/>
+<br/>
+<ul>
+<li>type </li>
+<li>alwaysVisible </li>
+</ul><br/>
+Атрибут <b>type</b> является обязательным и задает тип элемента. В платформе задается типом byte<br/>
+<br/>
+На текущей момент конкретно для себя в платформе реализовал следующие типы:<br/>
+<br/>
+• 0 — не имеет функционального смысла, обычно какая-то надпись<br/>
+• 1 — кнопка (button)<br/>
+• 2 — поле ввода (input)<br/>
+• 3 — чекбокс (checkBox)<br/>
+• 4 — выпадающий список (select) – на самом деле не реализован, но место под него оставил<br/>
+• 5 — для выпадающего списка srm: пишем название, дожидаемся появления значения – выбираем по конкретному xpath шаблону – тип конкретно под мою систему<br/>
+• 6 — srm select — используется на типовых функциях типа поиска и т.д. – тип конкретно под мою систему<br/>
+<br/>
+Атрибут <b>alwaysVisible</b> — необязательный — показывает присутствует ли элемент на форме всегда, может использоваться при начальной/конечной валидации Action (т.е. в автоматическом режиме можно проверить, что при открытии формы на ней присутствуют все элементы, которые есть на ней всегда, при закрытии формы, все эти элементы исчезли)<br/>
+<br/>
+Возможные значения:<br/>
+<br/>
+<ul>
+<li>0 — по умолчанию (или если атрибут не задан) — элемент может отсутствовать на странице (не валидировать)</li>
+<li>1 — элемент всегда присутствует на странице </li>
+</ul><br/>
+Дополнительный необязательный атрибут <b>type</b> реализован у тега locator<br/>
+<br/>
+Возможные значения:<br/>
+<br/>
+<ul>
+<li>1 — поиск элемента по id (соответственно в локаторе указать только id) </li>
+<li>2 — по умолчанию (или если атрибут не задан) — поиск по xpath — рекомендуется использовать только поиск по xpath, т.к. данный метод сочетает в себе практически все преимущества остальных и является универсальным </li>
+</ul><br/>
+<h2>TestCase</h2><br/>
+TestCase — xml файл, описывающих непосредственно сценарий тестирования, находится в директории "\TestSuite\TestCase" (может быть сколько угодно много файлов. Название файлов может быть любым — значение имеет только содержание).<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">XSD схема:</b><div class="spoiler_text"><pre><code class="xml">&lt;xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.1">
+	
+	&lt;xs:element name="testCase">
+		&lt;xs:complexType>
+			&lt;xs:sequence>
+				&lt;xs:element name="testCaseName" type="xs:string"/>
+				&lt;xs:element name="webPackageName" type="xs:string"/>
+				&lt;xs:element name="actions" type="actionsType"/>
+			&lt;/xs:sequence>
+		&lt;/xs:complexType>
+	&lt;/xs:element>
+	
+	&lt;xs:complexType name="actionsType">
+		&lt;xs:sequence>
+			&lt;xs:element name="action" type="actionType" maxOccurs="unbounded"/>
+		&lt;/xs:sequence>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="actionType">
+		&lt;xs:sequence>
+			&lt;xs:element name="name" type="xs:string"/>
+			&lt;xs:element name="orderNumber" type="xs:positiveInteger"/>
+			&lt;xs:element name="runConfiguration" type="runConfigurationType"/>
+		&lt;/xs:sequence>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="runConfigurationType">
+		&lt;xs:sequence>
+			&lt;xs:element name="formName" type="xs:string"/>
+			&lt;xs:element name="repeatsOnError" type="xs:positiveInteger" minOccurs="0"/>
+			&lt;xs:element name="events" type="eventsType"/>
+			&lt;xs:element name="exceptionBlock" type="eventsType" minOccurs="0"/>
+		&lt;/xs:sequence>
+		&lt;xs:attribute name="openValidation" use="required">
+			&lt;xs:simpleType>
+				&lt;xs:restriction base="xs:byte">
+					&lt;xs:enumeration value="1"/>
+					&lt;xs:enumeration value="0"/>
+				&lt;/xs:restriction>
+			&lt;/xs:simpleType>
+		&lt;/xs:attribute>
+		&lt;xs:attribute name="closeValidation" use="required">
+			&lt;xs:simpleType>
+				&lt;xs:restriction base="xs:byte">
+					&lt;xs:enumeration value="1"/>
+					&lt;xs:enumeration value="0"/>
+				&lt;/xs:restriction>
+			&lt;/xs:simpleType>
+		&lt;/xs:attribute>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventBaseType">
+		&lt;xs:sequence>
+			&lt;xs:element name="orderNumber" type="xs:positiveInteger"/>
+		&lt;/xs:sequence>
+		&lt;xs:attribute name="type" use="required">
+			&lt;xs:simpleType>
+				&lt;xs:restriction base="xs:string">
+					&lt;xs:enumeration value="goToURL"/>
+					&lt;xs:enumeration value="checkElementsVisibility"/>
+					&lt;xs:enumeration value="checkElementsInVisibility"/>
+					&lt;xs:enumeration value="fillingFields"/>
+					&lt;xs:enumeration value="clickElement"/>
+					&lt;xs:enumeration value="dbUpdate"/>
+					&lt;xs:enumeration value="wait"/>
+					&lt;xs:enumeration value="scrollDown"/>
+					&lt;xs:enumeration value="userInput"/>
+					&lt;xs:enumeration value="checkInputValues"/>
+					&lt;xs:enumeration value="checkQueryResultWithUtilityValue"/>
+					&lt;xs:enumeration value="checkFieldsPresenceByQueryResult"/>
+				&lt;/xs:restriction>
+			&lt;/xs:simpleType>
+		&lt;/xs:attribute>
+		&lt;xs:attribute name="invertResult" use="optional" default="0">
+			&lt;xs:simpleType>
+				&lt;xs:restriction base="xs:byte">
+					&lt;xs:enumeration value="1"/>
+					&lt;xs:enumeration value="0"/>
+				&lt;/xs:restriction>
+			&lt;/xs:simpleType>
+		&lt;/xs:attribute>
+		&lt;xs:attribute name="hasExceptionBlock" use="optional" default="0">
+			&lt;xs:simpleType>
+				&lt;xs:restriction base="xs:byte">
+					&lt;xs:enumeration value="1"/>
+					&lt;xs:enumeration value="0"/>
+				&lt;/xs:restriction>
+			&lt;/xs:simpleType>
+		&lt;/xs:attribute>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventsType">
+		&lt;xs:sequence>
+			&lt;xs:element name="event" type="eventBaseType" maxOccurs="unbounded">
+				&lt;xs:alternative test="@type='goToURL'" type="eventGoToURL"/>
+				&lt;xs:alternative test="@type='checkElementsVisibility'" type="eventCheckElementsVisibility"/>
+				&lt;xs:alternative test="@type='checkElementsInVisibility'" type="eventCheckElementsVisibility"/>
+				&lt;xs:alternative test="@type='fillingFields'" type="eventFillingFields"/>
+				&lt;xs:alternative test="@type='checkInputValues'" type="eventFillingFields"/>
+				&lt;xs:alternative test="@type='clickElement'" type="eventClickElement"/>
+				&lt;xs:alternative test="@TYPE='dbUpdate'" type="eventRequest"/>
+				&lt;xs:alternative test="@type='wait'" type="utilityValueInteger"/>
+				&lt;xs:alternative test="@type='scrollDown'" type="eventClickElement"/>
+				&lt;xs:alternative test="@type='userInput'" type="eventClickElement"/>
+				&lt;xs:alternative test="@type='checkQueryResultWithUtilityValue'" type="eventRequestWithValue"/>
+				&lt;xs:alternative test="@type='checkFieldsPresenceByQueryResult'" type="eventRequestWithValue"/>
+			&lt;/xs:element>
+		&lt;/xs:sequence>
+	&lt;/xs:complexType>
+	
+	&lt;!-- ТИПЫ ДЛЯ EVENTS -->
+	
+	&lt;xs:complexType name="eventGoToURL">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="url" type="xs:anyURI"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventCheckElementsVisibility">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="fields" type="fieldType"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventFillingFields">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="fields" type="fieldTypeWithValue"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventClickElement">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="elementName" type="xs:string"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventRequest">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="dbRequest" type="xs:string"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="utilityValueInteger">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="utilityValue" type="xs:positiveInteger"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="eventRequestWithValue">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="eventBaseType">
+				&lt;xs:sequence>
+					&lt;xs:element name="dbRequest" type="xs:string"/>
+					&lt;xs:element name="utilityValue" type="xs:string"/>
+				&lt;/xs:sequence>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+	
+	&lt;!-- ТИПЫ ДЛЯ EVENTS -->
+	
+	&lt;xs:complexType name="fieldType">
+		&lt;xs:sequence>
+			&lt;xs:element name="field" maxOccurs="unbounded">
+				&lt;xs:complexType>
+					&lt;xs:choice>
+						&lt;xs:element name="element" type="xs:string"/>
+						&lt;xs:element name="xpath" type="xs:string"/>
+					&lt;/xs:choice>
+				&lt;/xs:complexType>
+			&lt;/xs:element>
+		&lt;/xs:sequence>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="fieldTypeWithValue">
+		&lt;xs:sequence>
+			&lt;xs:element name="field" maxOccurs="unbounded">
+				&lt;xs:complexType>
+					&lt;xs:sequence>
+						&lt;xs:element name="element" type="xs:string"/>
+						&lt;xs:element name="value" type="valueType"/>
+					&lt;/xs:sequence>
+				&lt;/xs:complexType>
+			&lt;/xs:element>
+		&lt;/xs:sequence>
+	&lt;/xs:complexType>
+	
+	&lt;xs:complexType name="valueType">
+		&lt;xs:complexContent>
+			&lt;xs:extension base="xs:anyType">
+				&lt;xs:attribute name="type" use="optional" default="1">
+					&lt;xs:simpleType>
+						&lt;xs:restriction base="xs:byte">
+							&lt;xs:enumeration value="1"/>
+							&lt;xs:enumeration value="2"/>
+							&lt;xs:enumeration value="3"/>
+						&lt;/xs:restriction>
+					&lt;/xs:simpleType>
+				&lt;/xs:attribute>
+			&lt;/xs:extension>
+		&lt;/xs:complexContent>
+	&lt;/xs:complexType>
+
+&lt;/xs:schema></code></pre><br/>
+</div></div><br/>
+<div class="spoiler"><b class="spoiler_title">Общий вид:</b><div class="spoiler_text"><pre><code class="xml">&lt;!DOCTYPE testCase SYSTEM "./TestSuite/TestCase/entities.dtd" []>
+
+&lt;testCase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="testShema.xsd">
+    &lt;testCaseName>уникальное_наименование_testCase&lt;/testCaseName>
+    &lt;webPackageName>название_webPackage_из_webPackageName&lt;/webPackageName>
+    &lt;actions>
+        
+        &lt;action>
+            &lt;name>Вход через пустую форму авторизации в интерфейс КМа для инициализации приложения&lt;/name>
+            &lt;orderNumber>10&lt;/orderNumber>
+            &lt;runConfiguration openValidation="1" closeValidation="1">
+                &lt;formName>пустая_форма_авторизации_при_открытии_тестового_приложения&lt;/formName>
+                &lt;events>
+                    &lt;event type="goToURL">
+                        &lt;orderNumber>10&lt;/orderNumber>
+                        &lt;url>&amp;srmURL;&lt;/url>
+                    &lt;/event>
+                    .......        
+                &lt;/events>
+            &lt;/runConfiguration>
+        &lt;/action>
+    .......
+    &lt;/actions>
+&lt;/testCase></code></pre><br/>
+</div></div><br/>
+Вот в этой строчке видно как прикрутить xsd схему чтобы XML Editor ее видел: <br/>
+<br/>
+<pre><code class="xml">&lt;testCase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="testShema.xsd"></code></pre><br/>
+В TestCase я также использую сущности DTD, которые хранятся отдельно в той же директории – файлик с расширением .dtd. В нем я храню практически все данные – константы. Также я построил логику таким образом, что чтобы запустить новый тест, и по ходу всего теста создавались новые уникальные сущности, регистрировался новый КА, достаточно поменять 1 цифру в этом файле.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Структура его очень проста - приведу пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;!ENTITY mainNumber '040'>
+&lt;!ENTITY mail '@mail.ru'>
+&lt;!ENTITY srmURL 'https://srm-test.ru'></code></pre><br/>
+</div></div><br/>
+В значение тега такие константы вставляются так: <br/>
+<br/>
+<pre><code class="xml">&lt;url>&amp;srmURL;&lt;/url></code></pre> <br/>
+ — можно комбинировать.<br/>
+<br/>
+<b>! Рекомендация</b> — при написании testCase следует указывать эти сущности DTD внутри документа, и уже после того, как все стабильно заработает, переносить в отдельный файлик. У моего xml editor-а с этим сложности – он не может найти DTD и не берет во внимание XSD, поэтому рекомендую так<br/>
+<br/>
+<b>testCase</b><br/>
+<br/>
+testCase — самый родительский тег содержит:<br/>
+<br/>
+<ul>
+<li><b>testCaseName</b> — имя нашего тест кейса, именно этот параметр передается на вход приложению </li>
+<li><b>webPackageName</b> — имя WebPackage, которое указано в webPackageName (см пп выше о WebPackage) </li>
+<li><b>actions</b> — контейнер сущностей action </li>
+</ul><br/>
+<b>action</b><br/>
+<br/>
+Содержит:<br/>
+<br/>
+<ul>
+<li><b>name</b> — имя — рекомендуется указывать имя формы и ключевые действия — что и зачем</li>
+<li><b>orderNumber</b> — порядковый номер — параметр необходимый для сортировки action (введен в связи с тем, что при разборе xml в java при использовании определенных инструментов разбор может быть осуществлен в многопоточной среде, в связи с чем порядок может поехать) — при указании следующего action можно перепрыгивать — т.е. имеет при сортировке имеет значение только «больше/меньше», а так можно доставлять action между уже описанными без необходимости менять всю нумерацию </li>
+<li><b>runConfiguration</b> — собственно описание того, что будет происходить в рамках action </li>
+</ul><br/>
+<b>runConfiguration</b><br/>
+<br/>
+Содержит:<br/>
+<br/>
+<ul>
+<li>атрибут <b>openValidation</b> — необязательный, по умолчанию «0» <br/>
+<ul>
+<li>0 — не проводить начальную валидацию формы </li>
+<li>1 — произвести начальную валидацию формы </li>
+</ul></li>
+<li>атрибут <b>closeValidation</b> — необязательный, по умолчанию «0»<br/>
+<ul>
+<li>0 — не проводить конечную валидацию формы </li>
+<li>1 — произвести конечную валидацию формы </li>
+</ul> </li>
+<li><b>formName</b> — имя формы в рамках которой будут проводиться действия — значение formName из WebPackage</li>
+<li><b>repeatsOnError</b> — необязательный, указывается какое количество повторов необходимо произвести в случае сбоя</li>
+<li><b>events</b> — контейнер сущностей event</li>
+<li><b>exceptionBlock</b> — необязательный — контейнер сущностей event, которые выполняются в случае ошибки</li>
+</ul><br/>
+<b>event</b><br/>
+<br/>
+Минимальная структурная единичка — данная сущность показывает, какие действия совершаются<br/>
+<br/>
+Каждый event особенный, может иметь уникальные теги и атрибуты.<br/>
+<br/>
+Базовый тип содержит:<br/>
+<br/>
+<ul>
+<li>атрибут <b>type</b> — указывается тип элемента</li>
+<li>атрибут <b>hasExceptionBlock</b> — необязательный атрибут, по умолчанию «0» — необходим для реализации механизма сбоя — атрибут говорит о том, что на этом ивенте мы можем ожидать ошибку <br/>
+<ul>
+<li><b>0</b> — не ожидается ошибка </li>
+<li><b>1</b> — ожидается возможная ошибка на действии </li>
+</ul></li>
+<li>атрибут <b>invertResult</b> — необязательный атрибут, по умолчанию «0» — атрибут говорит о том, что необходимо поменять результат ивента <br/>
+<ul>
+<li><b>0</b> — оставить результат выполнения ивента по факту </li>
+<li><b>1</b> — изменить результат ивента на противоположный </li>
+</ul></li>
+</ul><br/>
+<div class="spoiler"><b class="spoiler_title">*! Механизм описания ожидаемой ошибки</b><div class="spoiler_text">Приведу банальный пример где это было использовано мной в первый раз и что сделать, чтобы он сработал.<br/>
+<br/>
+Кейс: ввод капчи. Данный момент я не смог автоматизировать, так сказать проверка на робота пока подкашивает – не пишут мне тестовый сервис капчи (а мне самому уже проще сделать нейросеть для распознавания))) Так вот, мы можем ошибиться при вводе. На этот случай я делаю контрольный ивент, в котором проверяю, что у нас отсутствует элемент – уведомление о неверном контрольном коде, ставлю на нем атрибут hasExceptionBlock. Предварительно я задал на action, что у нас может быть несколько повторений (5) и после всего прописал exceptionBlock, в котором прописал, что надо нажать кнопку выхода из уведомления, после чего action повторяется. <br/>
+<br/>
+Примеры из моего контекста.<br/>
+<br/>
+Вот я как я прописал ивент:<br/>
+<br/>
+<pre><code class="xml">&lt;event type="checkElementsInVisibility" hasExceptionBlock="1">
+	&lt;orderNumber>57&lt;/orderNumber>
+	&lt;fields>
+		&lt;field>
+			&lt;element>уведомление_неверный_контрольный_код&lt;/element>
+		&lt;/field>
+	&lt;/fields>
+&lt;/event></code></pre><br/>
+А вот exceptionBlock после ивентов<br/>
+<br/>
+<pre><code class="xml"> &lt;exceptionBlock>
+	&lt;event type="clickElement">
+		&lt;orderNumber>10&lt;/orderNumber>
+		&lt;elementName>кнопка_ок_для_выхода_из_уведомления&lt;/elementName>
+	&lt;/event>
+&lt;/exceptionBlock></code></pre><br/>
+И да, действия на одной странице можно декомпозировать на несколько action.<br/>
+<br/>
++ кто заметил в конфиге 2 параметра: defaultTimeOutsForWebDriverWait, lowTimeOutsForWebDriverWait. Так вот зачем они. Т.к. весь веб драйвер у меня в синглтоне, и я не захотел создавать каждый раз новый WebDriverWait, то у меня 1 быстрый, и он на случай ошибки (ну или если вы просто поставите hasExceptionBlock=«1», то он тупо будет с меньшим количеством времени явного ожидания) – ну согласитесь, ждать минуту чтобы убедиться, что сообщение не вылезло не комильфо, как и создавать каждый раз новый WebDriverWait. Ну и эта ситуация с какой стороны не ткнись требует костылька – я решил сделать так.<br/>
+</div></div><br/>
+<h2>Типы event</h2><br/>
+Здесь я приведу минимальный набор моих ивентов, типа набора бойскаута, с помощью которых я по своей системе могу протестить практически все.<br/>
+<br/>
+И теперь плавненько к коду для понимания что такое ивент и как он строится. В коде по сути реализован фреймворк. У меня есть 2 класса – DataBaseWrapper и SeleniumWrapper. В этих классах описано взаимодействие с инфраструктурными компонентами, а также отражаются особенности платформы. Приведу интерфейс, который реализует SeleniumWrapper<br/>
+<br/>
+<pre><code class="java">package logic.selenium;
+
+import models.ElementWithStringValue;
+import models.webpackage.Element;
+import org.openqa.selenium.WebElement;
+
+
+public interface SeleniumService {
+    void initialization(boolean webDriverWait);
+
+    void nacigateTo(String url);
+    void refreshPage();
+    boolean checkElementNotPresent(Element element);
+    WebElement findSingleVisibleElement(Element element);
+    WebElement findSingleElementInDOM(Element element);
+    void enterSingleValuesToWebField(ElementWithStringValue element);
+    void click(Element element);
+    String getInputValue(Element element);
+    Object jsReturnsValue(String jsFunction);
+    //Actions actions
+    void doubleClick(Element element);
+    void moveMouseToElement(Element element);
+    void pressKey(CharSequence charSequence);
+    void getScreenShot(String storage);
+}
+</code></pre><br/>
+В нем описываются все возможности селениума и накладываются фишки платформы – ну собственно основная фишка – это метод «enterSingleValuesToWebField». Помните, что мы в WebPackage указываем тип элемента. Так вот, то как на этот тип реагировать при заполнении полей прописано тут. Пишем 1 раз и забываем. Вышеуказанный метод стоит поправить под себя в первую очередь. К примеру типы 5 и 6, ныне действующие – подходят только для моей системы. А если у вас есть такая штука как фильтр и надо много фильтровать, и он типовой (в вашем веб приложении), но, чтобы им воспользоваться надо сначала навести мышку на поле, дождаться появления каких-то полей, перейти на какое-то, дождаться там чего-то, затем перейти туда и ввести… Тупо прописываете механизм действия 1 раз, даете уникальный тип этому всему в конструкции switch – далее не заморачиваетесь – получаете полиморфный метод на все аналогичные фильтры приложения. <br/>
+<br/>
+Итак, в пакете «package logic.testcase.events» есть абстрактный класс, описывающий общие действия ивента. Для того чтобы создать свой уникальный ивент, необходимо создать новый класс, унаследоваться от этого абстрактного класса, и у вас уже в комплекте есть и dataBaseService и seleniumService – а далее вы определяете какие данные вам нужны и что с ними делать. Как-то так. Ну и соответственно, после создания нового ивента надо допилить класс-фабрику TestCaseActionFactory и по возможности XSD схему. Ну и, если добавляется новый атрибут – доработать саму модель. На деле это очень легко и быстро.<br/>
+<br/>
+Итак, набор бойскаута.<br/>
+<br/>
+<b>goToURL</b> – обычно первое действие – переход по указанной ссылке<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="goToURL">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;url>testURL&lt;/url>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>fillingFields</b> — Заполнение указанных элементов<br/>
+<br/>
+Специальные теги:<br/>
+<br/>
+<ul>
+<li><b>fields</b> — контейнер сущности fiel <br/>
+<ul>
+<li><b>field</b> — содержит тег element <br/>
+<ul>
+<li><b>element</b> — указывается имя элемента из webPackage </li>
+<li><b>value</b> — какое значение указать, имеет необязательный атрибут <b>type</b> (если елемент чекбокс, то указывается одно из значений: «check» или «uncheck») </li>
+</ul></li>
+</ul></li>
+</ul><br/>
+<ul>
+<li>атрибут <b>type</b> — указывается каким образом взять значение, необязательный, значение по умолчанию — «1» <ul>
+<li>1 — берется указанное значение </li>
+<li>2 — в этом случае выполняется указанная JS функция из директории "\TestSuite\JS"! ВАЖНО — указывается название txt файла, без ".txt" (и я пока нашел применения js функциям пока только в таком виде – использую в одном месте для генерации случайного инн, однако спектр возможного применения широк) </li>
+<li>3 — в этом случае указывается в качестве значения указывается запрос в БД, а программа подставляет в 1-ый результат данного запроса </li>
+</ul></li>
+</ul><br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="fillingFields">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;fields>
+		&lt;field>
+			&lt;element>test&lt;/element>
+			&lt;value>test&lt;/value>
+		&lt;/field>
+	&lt;/fields>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>checkElementsVisibility</b> – проверяется, что указанные элементы присутствуют на форме (именно видимые, а не просто в DOM). В атрибуте field может быть указан или элемент из WebPackage или непосредственно xpath<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="checkElementsVisibility">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;fields>
+		&lt;field>
+			&lt;element>test&lt;/element>
+		&lt;/field>
+		&lt;field>
+			&lt;xpath>test&lt;/xpath>
+		&lt;/field>
+	&lt;/fields>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>checkElementsInVisibility</b> – аналогичный checkElementsVisibility, но наоборот<br/>
+<br/>
+<b>clickElement</b> – клик по указанному элементу<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="clickElement">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;elementName>test&lt;/elementName>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>checkInputValues</b> – проверка введенных значений<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="checkInputValues">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;fields>
+		&lt;field>
+			&lt;element>test&lt;/element>
+			&lt;value>test&lt;/value>
+		&lt;/field>
+	&lt;/fields>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>dbUpdate</b> – выполнить апдейт в базе (<b><i>oXygen странно реагирует на 1 ивент типа dbUpdate – не знаю что с ним сделать и не понимаю почему</i></b>)<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="dbUpdate">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;dbRequest>update что-то там&lt;/dbRequest>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>CheckQueryResultWithUtilityValue</b> — проверка введенного пользователем значения с значением из БД<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="checkQueryResultWithUtilityValue">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;dbRequest>select ...&lt;/dbRequest>
+	&lt;utilityValue>test&lt;/utilityValue>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>checkFieldsPresenceByQueryResult</b> — проверка наличия элементов на форме по xpath по паттерну. Если желаемы паттерн не указан, то поиск произойдет по паттерну .//*[text()[contains(normalize-space(.), "$")]], где вместо «$» будет значение из БД. При описании собственного паттерна, на то место, куда следует поставить значение из БД – надо указать «$». В моей системе есть так называемые гриды в которых бывают значения, которые как правило формируются из какой-то вьюхи. Этот ивент для проверки таких гридов<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="checkFieldsPresenceByQueryResult">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;dbRequest>test&lt;/dbRequest>
+	&lt;utilityValue>&lt;/utilityValue>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>Wait</b> – все просто – ожидание указанного количества милисекунд. К сожалению, хоть это и принято считать костылем, скажу точно – иногда без него невозможно обойтись<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="wait">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;utilityValue>1000&lt;/utilityValue>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>scrollDown</b> – скрол вниз от указанного элемента. Делается так: кликается по указанному элементу и типа нажимается клавиша «PgDn». В моих кейсах, где мне надо было скрольнуть вниз работает отлично:<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="scrollDown">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;elementName>test&lt;/elementName>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<b>userInput</b> – ввод значения в указанный элемент. Единственный полуавтомат в моей автоматизации, используется только для капчи. Указывается элемент, в который надо ввести значение. Значение вводится в всплывшее диалоговое окошко.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Пример:</b><div class="spoiler_text"><pre><code class="xml">&lt;event type="userInput">
+	&lt;orderNumber>10&lt;/orderNumber>
+	&lt;elementName>capch_input&lt;/elementName>
+&lt;/event></code></pre><br/>
+</div></div><br/>
+<h2>Про код</h2><br/>
+Значит, я старался сделать платформу в соответствии с принципами Чистой архитектуры дядюшки Боба. <br/>
+<br/>
+Пакеты:<br/>
+<br/>
+application – инициализация и запуск + конфиги и отчет (не ругайте меня за класс Report – вот что максимально на скорую руку, то максимально на скорую руку)<br/>
+<br/>
+logic – ключевая логика + сервисы Селениума и БД. Тут же ивенты.<br/>
+<br/>
+models – POJO на XML и все вспомогательные классы-объекты<br/>
+<br/>
+utils – синглтоны для селениума и БД<br/>
+<br/>
+Чтобы код запустить, надо скачать jdk 12 и везде указать, чтобы включились ее фишки. В Idea это делается через Project Structure –> Modules и Project. Также не забыть про Maven runner. И при запуске в бат файле дописать --enable-preview. Пример был.<br/>
+<br/>
+Ну и, чтобы все еще запустилось, по мимо JDK потребуется скачать ojdbc драйвер и закинуть джарник в директорию “SprintAutoTest\src\lib”. Я его не предоставляю, т.к. у оракла там щас все серьезно – чтобы скачать надо зарегаться, но я уверен, все желающие так или иначе справятся (ну и проверьте, чтобы все папки были созданы, а то отчет не сохранится)<br/>
+<br/>
+<h2>Резюме</h2><br/>
+Итак, мы имеем запускалку тестов, написание тестов на которую делается действительно быстро. За рабочую неделю мне удалось автоматизировать 1,5 часа ручной работы, которая выполняется роботом за 5 – 6 минут. Это примерно 3700 строчек конкатенированного тест кейса и 830 описанных элементов (более 4800 строчек). Цифры грубые, и так оно не меряется, но кто занимается автоматизацией должен понимать, что это весьма высокий показатель, тем более для недружелюбных к роботам систем. При этом я тестирую все – бизнес-логику, по ходу выполняю какие-то негативные тесты на корректность заполненных атрибутов, и как бонус проверяю полностью каждую веб-форму, по которой не лентяйничаю, и описываю все функциональные и ключевые элементы, в независимости нужны они мне или нет (Небольшое отступление – closeValidation я применяю в основном только при написании теста. Когда он стабилен, и понятно, что локаторы не пересекаются, я его отключаю для всех action, дабы процесс шел шустрее).<br/>
+<br/>
+На первый взгляд кажется, что много строчек xml, однако на практике они генерируются полуавтоматически, при этом ошибку можно совершить только в непосредственно вводимых параметрах (т.к. по сути мы имеем 2 уровня валидации – 1-ый это xml схемы, 2-ой проверки наличия указанных форм и элементов при старте запуска TestCase). <br/>
+<br/>
+Из минусов – нет четких границ тестов. Как таковые они отсутствуют и можно упрекнуть меня, что это просто запускалка макроса, а не тестов. Я оговариваю это так: <br/>
+<br/>
+В платформе тесты концептуально с моей точки зрения делятся на несколько уровней абстракции:<br/>
+<br/>
+<ul>
+<li>как касета + конечный результат — тест завершается если «порвалась пленка» + как рекомендация — это валидация конечного результата (то к чему мы приходим по окончании тестирования функциональности – т.е. валидация конечного результата бизнес-процесса) </li>
+<li>описание действий декомпозировано постранично (сущность action — это совокупность event в рамках одной страницы c промежуточной валидацией действий + начальная и конечная валидация страницы в автоматическом режиме) </li>
+<li>описанными ивентами, мы не определяем сами тесты, однако они есть – их определяет тест-дизайнер. Да и никто не мешает развернуть платформу так, чтобы каждый ивент представлял из себя тест – но именно от этого я пытался уйти. У меня есть пару ивентов, содержащих ком. тайну, которые я убрал – которые просто было удобнее описать как ивент, но сути дела не меняет </li>
+<li>каждое действие на странице представляет из себя unit тест (возвращающий единственный результат true или false) </li>
+</ul><br/>
+Если сравнивать мой подход с чем-то, то минусы, например, популярного Cucumber и самой концепции BDD для меня более существенны (именно когда мы тестируем подобные моей системы):<br/>
+<br/>
+<ul>
+<li>Мы не можем гарантировать выполнение тестов при тестировании нестабильного веб приложения. Т.е. в моем случаи для большинства тестов мы не можем гарантировать их исполнения, и они будут валиться на «When», что на мой взгляд не есть вообще приемлемо, если уж мы описываем тестирование набором тестов. </li>
+<li>Ну и везде приводится этот уже бесящий пример с логином. Да за всю мою практику вот именно в логине никогда ошибок не было никогда (хотя он конечно должен быть покрыт, это точно). И пример хорош, но для остальных тестов надо лепить бесконечные костыли из Given и When – в приведенной мной системе для реальных тестов потребуется 99% на описание промежуточных условий, пока мы к этому самому тесту дойдем – много мороки, мало сути, да еще и надо в код лезть. </li>
+</ul><br/>
+Из того что я хотел бы сделать, над чем подумать, но еще не дошли руки:<br/>
+<br/>
+<ul>
+<li>запуск не одного, а нескольких тестов последовательно в одном запуске </li>
+<li>думаю, прокачать сущности, чтобы можно было в них генерить значения по факту нового теста, и они сохранялись по ходу выполнения </li>
+<li>сделать централизованный версионный контроль. Не просто git, а, чтобы указывать какую версию теста запустить, ну или опять же умный модуль, который бы понимал какая версия актуальна, какая еще нет </li>
+<li>как я уже говорил, для запуска нового теста с новыми значениями, мне надо поменять 1 цифру, автоматизировать как бы и это – сделать на это умный модуль </li>
+<li>хоть меня и не сильно смущает, что у меня все локаторы хранятся в одном месте, все же по-хорошему надо бы сделать еще более user friendly структуру для их хранения </li>
+<li>не баловался с selenium server. Думаю, стоит задуматься об этом, как и возможность дальнейшей адаптации к CI, Team City и пр. вкусностям </li>
+</ul><br/>
+Ну в общем-то и все. Прилагаю ссылочку на github: <a href="https://github.com/PetrovVladimir/SprintAutoTest">исходники</a>.<br/>
+<br/>
+Буду крайне рад конструктивной критике, надеюсь этот проект действительно будет полезен.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bselenium%5D" class="tm-tags-list__link">selenium</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bselenium-webdriver%5D" class="tm-tags-list__link">selenium-webdriver</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F%20%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F%5D" class="tm-tags-list__link">автоматизация тестирования</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%B2%D0%B5%D0%B1-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B9%5D" class="tm-tags-list__link">тестирование веб-приложений</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%B2%D1%82%D0%BE%D1%82%D0%B5%D1%81%D1%82%D1%8B%5D" class="tm-tags-list__link">автотесты</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/it_testing/" class="tm-hubs-list__link">
+    Тестирование IT-систем
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/java/" class="tm-hubs-list__link">
+    Java
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/web_testing/" class="tm-hubs-list__link">
+    Тестирование веб-сервисов
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 18: ↑15 и ↓3</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 18: ↑15 и ↓3" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+12</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">10K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    51
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/vvpetrov91/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 7 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Владимир</span> <a href="/ru/users/vvpetrov91/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @vvpetrov91
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Тестирование, java</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450726/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 15 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450726/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450726/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450726":{"id":"450726","timePublished":"2019-05-06T14:13:06+00:00","isCorporative":false,"lang":"ru","titleHtml":"Создание инструмента для быстрого и эффективного написания автотестов на Selenium","leadData":{"textHtml":"\u003Cblockquote\u003E\u003Ci\u003E\u003Cb\u003EФундаментальный строительный блок автоматизации – тестирование\u003C\u002Fb\u003E\u003C\u002Fi\u003E\u003Cbr\u003E\r\n\u003Ci\u003EРод Джонсон\u003C\u002Fi\u003E\u003C\u002Fblockquote\u003E \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fwe\u002Fbo\u002Fhc\u002Fwebohc2wdcta3-sndagvuqhbnwo.jpeg\" alt=\"image\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЯ не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим опыт в этой сфере.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nДля совсем новичков также будет полезно, т.к. я предоставляю исходный код, где можно посмотреть, как в конечном продукте организовано взаимодействие с селениумом.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nЯ расскажу о том, как с нуля, имея небольшой опыт разработки, написал платформу для запуска тестов, и о самой платформе. Сам я считаю, что мой продукт получился весьма эффективным, а значит будет многим полезен и имеет место для рассмотрения.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"sandbox","data":null}],"author":{"scoreStats":{"score":7,"votesCount":7},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410017089395060","paymentPayPalMe":null,"paymentWebmoney":null},"id":"2011583","alias":"vvpetrov91","fullname":"Владимир","avatarUrl":null,"speciality":"Тестирование, java"},"statistics":{"commentsCount":15,"favoritesCount":51,"readingCount":10202,"score":12,"votesCount":18},"hubs":[{"relatedData":null,"id":"210","alias":"it_testing","type":"collective","title":"Тестирование IT-систем","titleHtml":"Тестирование IT-систем","isProfiled":true},{"relatedData":null,"id":"375","alias":"java","type":"collective","title":"Java","titleHtml":"Java","isProfiled":true},{"relatedData":null,"id":"19279","alias":"web_testing","type":"collective","title":"Тестирование веб-сервисов","titleHtml":"Тестирование веб-сервисов","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cblockquote\u003E\u003Ci\u003E\u003Cb\u003EФундаментальный строительный блок автоматизации – тестирование\u003C\u002Fb\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРод Джонсон\u003C\u002Fi\u003E\u003C\u002Fblockquote\u003E \u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fwe\u002Fbo\u002Fhc\u002Fwebohc2wdcta3-sndagvuqhbnwo.jpeg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fwe\u002Fbo\u002Fhc\u002Fwebohc2wdcta3-sndagvuqhbnwo.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЯ не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим опыт в этой сфере.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля совсем новичков также будет полезно, т.к. я предоставляю исходный код, где можно посмотреть, как в конечном продукте организовано взаимодействие с селениумом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЯ расскажу о том, как с нуля, имея небольшой опыт разработки, написал платформу для запуска тестов, и о самой платформе. Сам я считаю, что мой продукт получился весьма эффективным, а значит будет многим полезен и имеет место для рассмотрения.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКонцепции\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПроцесс тестирования зависит от информационной системы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля поминания моей концепции, необходимо понять на какие системы я ориентируюсь в первую очередь – это те системы, где обычно существуют конкретные линейные бизнес-процессы, которые и ставятся ключом при проведении регрессионных тестов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, система типа srm. Ключевая бизнес-сущность – коммерческие предложения поставщика. Ключевое внимание при проведении регрессионного тестирования – целостность бизнес-процесса.\u003Cbr\u002F\u003E\r\nБизнес-процесс начинается от регистрации поставщика в системе, далее идет создание коммерческого предложения – идет на этап рассмотрения, который производится различными типами внутренних пользователей (и для каждого пользователя уникальный интерфейс) до возврата решения о рассмотрения предложения поставщику.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПолучается, что мы проходим через ряд разных интерфейсов, и практически всегда работаем с разными. На деле – если просто взглянуть на это прямо – это похоже на просмотр видеокассеты – т.е. это именно процесс, имеющий начало и конец, и он абсолютно линейный – никаких ветвлений, при написании теста мы всегда знаем ожидаемый результат. Т.е. я хочу сказать, что уже глядя на это картину, можно заключить, что сделать тесты полиморфными вряд ли получится. Ввиду этого при создании платформы для запуска тестов, ключевым фактором я поставил скорость написания тестов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EКонцепции, которые я перед собой поставил:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EАвтотест должен создаваться максимально быстро на сколько это возможно. Если добиться этого качественно, то остальные аспекты, такие как надежность и удобство использования, должны прийти сами собой.\u003C\u002Fli\u003E\r\n\u003Cli\u003EТесты должны быть объявлены декларативно и жить отдельно от кода. Иного варианта я даже не увидел. Это увеличивает скорость написания, т.к. при наличие готового интерпретатора — нашей платформы, не надо потом ничего дописывать, не надо лезть лишний раз в код – вообще после готовой платформы по IDE можно забыть. Так тесты проще сопровождать. В таком виде их проще научить писать, т.к. не нужны навыки разработки, а лишь понимание языка разметки. В таком виде они понятны всем участникам процесса. \u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EОт чего я решил отказаться уже на старте:\u003Cbr\u002F\u003E\r\n\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EНЕ оборачивать свою систему в тестовый фреймворк. Запустить выполнение того или иного процесса можно и без тестового фреймворка. «Ты хочешь изобрести велосипед!», — скажут многие. Я рассуждаю по-другому. Популярные используемые тестовые фреймворки создавались в первую очередь для тестирования кода изнутри, а мы собираемся тестировать внешнюю часть системы снаружи. Это как если у меня есть шоссейный велосипед, а мне нужно спуститься с горы по бездорожью (грубо, но ход мыслей отражает). В общем фреймворк будем писать сами — с блек джеком и … (хотя я в курсе что, например, JUnit 5 уже в гораздо большей степени адаптирован под такого рода задач). \u003C\u002Fli\u003E\r\n\u003Cli\u003EОтказ от использования оберток для селениума. Собственно, ключевая библиотека сама по себе небольшая. Чтобы понять, что нужно использовать 5 процентов ее функциональности, при этом перелопатив ее полностью, потребуется несколько часов. Хватит везде искать способ писать меньше кода и приучать себя к горшку. В современном мире это желание часто приводит к абсурду и почти всегда дает ущерб гибкости (я имею ввиду именно подходы к «написать меньше кода» а не случаи архитектурных фреймворков). \u003C\u002Fli\u003E\r\n\u003Cli\u003EКрасивое оформление результатов не нужно. Внес данный пункт, т.к. уже не однократно сталкиваюсь с этим. Когда автотест выполнился, мне нужно знать 2 вещи: общий результат (положительный\u002Fотрицательный), и, если была ошибка – где именно. Возможно еще надо вести статистику. Все остальное в плане результатов – АБСОЛЮТНО не существенно. Рассматривать красивое оформление как существенный плюс, либо тратить на это красивое оформление время на начальных этапах – лишние понты. \u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nНемного еще расскажу об уровне разработки в компании и условиях создания инструмента дабы до конца внести в ясность в некоторые детали.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ силу неких конфиденциальных обстоятельств я не раскрываю компанию, где работаю.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ нашей компании разработка существует уже далеко не первый год, и стало быть все процессы уже давно налажены. Однако, они сильно отстают от современных тенденций. \u003Cbr\u002F\u003E\r\nВсе представители айти понимают, что надо покрывать код тестами, писать сценарии автотестов в момент согласования требований к будущей функциональности, гибкие технологии существенно экономят время и ресурсы, а CI который просто берет и упрощает жизнь. Но это все пока только медленно доходит до нас… \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТак и служба контроля качества ПО – все тесты выполняются мануально, если взглянуть на процесс «сверху» – то это «горлышко бутылки» всего процесса разработки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EОписание сборки\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПлатформа написана на языке Java с использогванием JDK 12 \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОсновные инфраструктурные инструменты — Selenium Web Driver, OJDBC\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля работы приложения на ПК должен быть установлен браузер FireFox версии выше 52\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EСостав сборки приложения\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F8f\u002Fsk\u002Fag\u002F8fskag6agt4vred-urcowwdxzfs.jpeg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8f\u002Fsk\u002Fag\u002F8fskag6agt4vred-urcowwdxzfs.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС приложением в обязательном порядке идет 3 папки и 2 файла:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n• папка \u003Cb\u003EBuildKit\u003C\u002Fb\u003E — содержит:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Ejdk12, при помощи которого осуществляется запуск приложения (JVM);\u003C\u002Fli\u003E\r\n\u003Cli\u003Egeckodriver.exe — для работы Selenium Web Driver с браузером FireFox;\u003C\u002Fli\u003E\r\n\u003Cli\u003ESprintAutoTest.jar — непосредственно инстанс приложения\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n• папка \u003Cb\u003EReports\u003C\u002Fb\u003E — в нее сохраняются отчеты после завершения выполнения приложением тест кейса. Также должна содержать папку ErrorScreens, куда сохраняется скриншот в случае возникновения ошибки\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n• папка \u003Cb\u003ETestSuite\u003C\u002Fb\u003E — веб пакеты, яваскрипты, набор тест кейсов (о заполнении данной папке будет подробно рассказано отдельно)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n• файл config.properties — содержит конфиг для подключения к БД Oracle и значения явных ожиданий для WebDriverWait\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n• starter.bat — файлик для запуска приложения (возможен автоматический запуск приложения без ручного указания TestCase если в конце ввести в качестве параметра ввести имя TestCase).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКраткое описание работы приложения\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПриложение может быть запущено с параметром (имя TestCase) либо без него — в этом случае необходимо ввести имя тест кейса в консоли самостоятельно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EПример общего содержания bat файла, для запуска \u003Cb\u003Eбез параметра\u003C\u002Fb\u003E: start «AutoTest launcher» %cd%\\BuildKit\\jdk-12\\bin\\java.exe -Xmx768M -jar --enable-preview %cd%\\BuildKit\\SprintAutoTest.jar\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри общем запуске приложения, оно просматривает xml файлы, находящиеся в директории \"\\TestSuite\\TestCase\" (без просмотра содержания вложенных папок). При этом происходит первичная валидация xml файлов на корректность структуры (т.е. что все теги с точки зрения разметки xml указаны верно), и берутся названия, указанные в теге «testCaseName», после чего пользователю предлагается ввести один из возможных вариантов имен имеющихся тест кейсов. В случае ошибочного ввода система попросит ввести имя повторно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле того как будет получено имя TestCase, выполняется построение внутренней модели, которая представляет из себя связку TestCase (тестовый сценарий) — WebPackage (хранилище элементов) в виде java объектов. После построения модели строится непосредственно TestCase (исполняемый объект программы). На этапе построения TestCase также происходит вторичная валидация — проверяется что все указанные формы в TestCase имеются в связанном WebPackage и что все элементы, указанные в action, имеются в WebPackage в рамках указанных страниц. (О структуре TestCase и WebPackage подробно описано ниже)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле того, как будет построен TestCase, происходит непосредственно запуск сценария\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EАлгоритм работы сценария (ключевая логика)\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nTestCase представляет из себя набор сущностей Action, который в свою очередь представляет из себя набор сущностей Event.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETestCase\u003Cbr\u002F\u003E\r\n -\u003E List{Action}\u003Cbr\u002F\u003E\r\n -\u003E List{Event}\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри запуске TestCase происходит последовательный запуск Action (каждый Action возвращает логический результат)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри запуске Action происходит последовательный запуск Event (каждый Event возвращает логический результат)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПо результату выполнения каждого Event сохраняется результат\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСоответственно тест завершается либо, когда все действия были выполнены успешно, либо если Action вернул false.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003E*Механизм сбоя\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТ.к. моя тестируемая система древняя и имеет отлавливаемые ошибки\u002Fглюги, которые не являются ошибками, и некоторые события не срабатывают с первого раза, в платформе реализован механизм, который может отходить от вышеописанной концепции жестко линейного теста (однако он жестко типизирован). При отлавливании таких ошибок предусмотрена возможность повторения кейсов сначала и выполнения дополнительных действий для возможности повтора действий\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПо окончанию работы приложения происходит формирование отчета, который сохраняется в директорию \"\\Reports\". В случае возникновение ошибки делается скриншот, который сохраняется в \"\\Reports\\ErrorScreens\"\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЗаполнение TestSuite\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nИтак, описание теста. Как уже говорилось, основной параметр, необходимый для запуска – имя теста, который следует запустить. Это имя хранится в xml файле в директории “\u002FTestSuite\u002FTestCase”. В данной директории хранятся все тестовые сценарии. Их здесь может быть сколько угодно. Имя тест кейса берется не из имени файла, а из тега “testCaseName” внутри файла. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ TestCase задается что именно будет делаться – т.е. действия. В директории “\u002FTestSuite\u002FWebPackage” в xml файлах хранятся все локаторы. Т.е. все в лучших традициях – действия хранятся отдельно, локаторы веб форм отдельно. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ TestCase также хранится имя WebPackage в теге “webPackageName”.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтого картина уже есть. Для запуска необходимо наличие 2-ух xml файлов: TestCase и WebPackage. Они составляют связку. WebPackage независим – в качестве идентификатора указывается имя в теге “webPackageName”. Соответственно вот и первое правило – имена TestCase и WebPackage должны быть уникальными. Т.е. еще раз – по сути наш тест — это связка файлов TestCase и WepPackage, которые связаны именем WebPackage, которое указывается в TestCase. На практике я автоматизирую одну систему и все свои тест кейсы вяжу к одному WebPackage в котором у меня до кучи описание всех форм.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСледующий слой логической декомпозиции основан на таком паттерне, как Page Object.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EPage Object\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Ci\u003E\u003Cb\u003EPage Object\u003C\u002Fb\u003E — один из наиболее полезных и используемых архитектурных решений в автоматизации. Данный шаблон проектирования помогает инкапсулировать работу с отдельными элементами страницы. Page Object как бы моделирует страницы тестируемого приложения в качестве объектов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EРазделение логики и реализации\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСуществует большая разница между логикой тестирования (что проверить) и его реализацией (как проверить). Пример тестового сценария: «Пользователь вводит неверный логин или пароль, нажимает кнопку входа, получает сообщение об ошибке». Этот сценарий описывает логику теста, в то время как реализация содержит в себе такие действия как поиск полей ввода на странице, их заполнение, проверку полученной ошибки и т.д. И если, например, измениться способ вывода сообщения об ошибке, то это никак не повлияет на сценарий теста, все также нужно будет ввести неверные данные, нажать кнопку входа и проверить ошибку. Но это напрямую затронет реализацию теста — необходимо будет изменить метод получающий и обрабатывающий сообщение об ошибке. При разделении логики теста от его реализации автотесты становятся более гибкими и их, как правило, легче поддерживать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E*!\u003C\u002Fb\u003E Нельзя говорить о том, что данный архитектурный подход применен полностью. Речь идет лишь о декомпозиции описания тестового сценария постранично, что помогает писать тесты быстрее и добавлять дополнительные автопроверки на всех страницах, стимулирует к правильному описанию локаторов (чтобы они не были одинаковыми на разных страницах) и строит «красивую» логическую структуру теста. Сама платформа реализована на принципах «Чистой архитектуры» \u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nДалее я постараюсь подробно не расписывать структуру WebPackage и TestCase. Для них я создал DTD схему для WebPackage и XSD 1.1 для TestCase. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003E! ВАЖНО\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EЗа счет ведения DTD и XSD схем осуществляется концепция быстрого написания теста. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри написании непосредственно WebPackage и TestCase необходимо использовать xml Editor со встроенными функциями валидации DTD и XSD в реальном времени с автогенерацией тегов, что сделает сам процесс написания авто теста в значительной мере автоматизированным (все обязательные теги будут подставлены автоматически, для значений атрибутов будут выданы выпадающие списки возможных значений, под тип ивента будут сгенерированы соответствующие теги)\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда эти схемы «прикручиваются» к самому xml файлу, то можно забыть про корректность структуры xml файла, если использовать специальную среду. Мой выбор пал на oXygen XLM Editor. Еще раз – без использования подобной проги, вы не поймете суть скорости написания. Idea для этого не очень подходит т.к. в ней не обрабатывается конструкция XSD 1.1 “alternative”, которое имеет ключевое значение для TestCase.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EWebPackage\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nWebPackaege — xml файл, описывающий элементы веб форм, находится в директории \"\\TestSuite\\WebPackage\". (может быть сколько угодно много файлов. Название файлов может быть любым — значение имеет только содержание).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EDTD (вставляется в начало документа):\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;!DOCTYPE webPackage [\n        &lt;!ELEMENT webPackage (webPackageName, forms)\u003E\n        &lt;!ELEMENT webPackageName (#PCDATA)\u003E\n        &lt;!ELEMENT forms (form+)\u003E\n            &lt;!ELEMENT form (formName, elements+)\u003E\n            &lt;!ELEMENT formName (#PCDATA)\u003E\n            &lt;!ELEMENT elements (element+)\u003E\n                &lt;!ELEMENT element (name, locator)\u003E\n                &lt;!ATTLIST element type (0|1|2|3|4|5|6|7) #REQUIRED\u003E\n                &lt;!ATTLIST element alwaysVisible (0|1) #IMPLIED\u003E\n                &lt;!ELEMENT name (#PCDATA)\u003E\n                &lt;!ELEMENT locator (#PCDATA)\u003E\n                &lt;!ATTLIST locator type (1|2) #IMPLIED\u003E\n        ]\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EВ общем виде выглядит примерно\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;webPackage\u003E\n    &lt;webPackageName\u003Eуникальное_название&lt;\u002FwebPackageName\u003E\n    &lt;forms\u003E\n        &lt;form\u003E\n            &lt;formName\u003Eпустая_форма_авторизации_при_открытии_тестового_приложения&lt;\u002FformName\u003E\n            &lt;elements\u003E\n                &lt;element type=\"2\" alwaysVisible=\"1\"\u003E\n                    &lt;name\u003Eнаименование_элемента&lt;\u002Fname\u003E\n                    &lt;locator type=\"2\"\u003E.\u002F\u002Fdiv\u002Fform\u002Fdiv\u002Fdiv\u002Fform\u002Ftable\u002Ftbody\u002Ftr\u002Ftd[text()=\"Логин\"]\u002Ffollowing-sibling::td\u002Finput&lt;\u002Flocator\u003E\n                &lt;\u002Felement\u003E\n               &lt;element type=\"2\"\u003E\n                    &lt;name\u003Eнаименование_другого_элемента&lt;\u002Fname\u003E\n                    &lt;locator\u003E.\u002F\u002Fdiv\u002Fform\u002Fdiv\u002Fdiv\u002Fform\u002Ftable\u002Ftbody\u002Ftr\u002Ftd[text()=\"Логин\"]\u002Ffollowing-sibling::td\u002Finput&lt;\u002Flocator\u003E\n                &lt;\u002Felement\u003E\n                .......\n            &lt;\u002Felements\u003E\n        &lt;\u002Fform\u003E\n        .......    \n    &lt;\u002Fforms\u003E\n&lt;\u002FwebPackage\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nКак уже говорилось, чтобы элементы были не в кучи – все декомпозировано по веб формам\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКлючевой сущностью является \u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;element\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТег element имеет 2 атрибута:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Etype \u003C\u002Fli\u003E\r\n\u003Cli\u003EalwaysVisible \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nАтрибут \u003Cb\u003Etype\u003C\u002Fb\u003E является обязательным и задает тип элемента. В платформе задается типом byte\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа текущей момент конкретно для себя в платформе реализовал следующие типы:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n• 0 — не имеет функционального смысла, обычно какая-то надпись\u003Cbr\u002F\u003E\r\n• 1 — кнопка (button)\u003Cbr\u002F\u003E\r\n• 2 — поле ввода (input)\u003Cbr\u002F\u003E\r\n• 3 — чекбокс (checkBox)\u003Cbr\u002F\u003E\r\n• 4 — выпадающий список (select) – на самом деле не реализован, но место под него оставил\u003Cbr\u002F\u003E\r\n• 5 — для выпадающего списка srm: пишем название, дожидаемся появления значения – выбираем по конкретному xpath шаблону – тип конкретно под мою систему\u003Cbr\u002F\u003E\r\n• 6 — srm select — используется на типовых функциях типа поиска и т.д. – тип конкретно под мою систему\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАтрибут \u003Cb\u003EalwaysVisible\u003C\u002Fb\u003E — необязательный — показывает присутствует ли элемент на форме всегда, может использоваться при начальной\u002Fконечной валидации Action (т.е. в автоматическом режиме можно проверить, что при открытии формы на ней присутствуют все элементы, которые есть на ней всегда, при закрытии формы, все эти элементы исчезли)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВозможные значения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E0 — по умолчанию (или если атрибут не задан) — элемент может отсутствовать на странице (не валидировать)\u003C\u002Fli\u003E\r\n\u003Cli\u003E1 — элемент всегда присутствует на странице \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nДополнительный необязательный атрибут \u003Cb\u003Etype\u003C\u002Fb\u003E реализован у тега locator\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВозможные значения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E1 — поиск элемента по id (соответственно в локаторе указать только id) \u003C\u002Fli\u003E\r\n\u003Cli\u003E2 — по умолчанию (или если атрибут не задан) — поиск по xpath — рекомендуется использовать только поиск по xpath, т.к. данный метод сочетает в себе практически все преимущества остальных и является универсальным \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ETestCase\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nTestCase — xml файл, описывающих непосредственно сценарий тестирования, находится в директории \"\\TestSuite\\TestCase\" (может быть сколько угодно много файлов. Название файлов может быть любым — значение имеет только содержание).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EXSD схема:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;xs:schema elementFormDefault=\"qualified\" xmlns:xs=\"http:\u002F\u002Fwww.w3.org\u002F2001\u002FXMLSchema\" version=\"1.1\"\u003E\n\t\n\t&lt;xs:element name=\"testCase\"\u003E\n\t\t&lt;xs:complexType\u003E\n\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t&lt;xs:element name=\"testCaseName\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t&lt;xs:element name=\"webPackageName\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t&lt;xs:element name=\"actions\" type=\"actionsType\"\u002F\u003E\n\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t&lt;\u002Fxs:complexType\u003E\n\t&lt;\u002Fxs:element\u003E\n\t\n\t&lt;xs:complexType name=\"actionsType\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"action\" type=\"actionType\" maxOccurs=\"unbounded\"\u002F\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"actionType\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"name\" type=\"xs:string\"\u002F\u003E\n\t\t\t&lt;xs:element name=\"orderNumber\" type=\"xs:positiveInteger\"\u002F\u003E\n\t\t\t&lt;xs:element name=\"runConfiguration\" type=\"runConfigurationType\"\u002F\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"runConfigurationType\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"formName\" type=\"xs:string\"\u002F\u003E\n\t\t\t&lt;xs:element name=\"repeatsOnError\" type=\"xs:positiveInteger\" minOccurs=\"0\"\u002F\u003E\n\t\t\t&lt;xs:element name=\"events\" type=\"eventsType\"\u002F\u003E\n\t\t\t&lt;xs:element name=\"exceptionBlock\" type=\"eventsType\" minOccurs=\"0\"\u002F\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t\t&lt;xs:attribute name=\"openValidation\" use=\"required\"\u003E\n\t\t\t&lt;xs:simpleType\u003E\n\t\t\t\t&lt;xs:restriction base=\"xs:byte\"\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"1\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"0\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:restriction\u003E\n\t\t\t&lt;\u002Fxs:simpleType\u003E\n\t\t&lt;\u002Fxs:attribute\u003E\n\t\t&lt;xs:attribute name=\"closeValidation\" use=\"required\"\u003E\n\t\t\t&lt;xs:simpleType\u003E\n\t\t\t\t&lt;xs:restriction base=\"xs:byte\"\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"1\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"0\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:restriction\u003E\n\t\t\t&lt;\u002Fxs:simpleType\u003E\n\t\t&lt;\u002Fxs:attribute\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventBaseType\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"orderNumber\" type=\"xs:positiveInteger\"\u002F\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t\t&lt;xs:attribute name=\"type\" use=\"required\"\u003E\n\t\t\t&lt;xs:simpleType\u003E\n\t\t\t\t&lt;xs:restriction base=\"xs:string\"\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"goToURL\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"checkElementsVisibility\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"checkElementsInVisibility\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"fillingFields\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"clickElement\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"dbUpdate\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"wait\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"scrollDown\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"userInput\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"checkInputValues\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"checkQueryResultWithUtilityValue\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"checkFieldsPresenceByQueryResult\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:restriction\u003E\n\t\t\t&lt;\u002Fxs:simpleType\u003E\n\t\t&lt;\u002Fxs:attribute\u003E\n\t\t&lt;xs:attribute name=\"invertResult\" use=\"optional\" default=\"0\"\u003E\n\t\t\t&lt;xs:simpleType\u003E\n\t\t\t\t&lt;xs:restriction base=\"xs:byte\"\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"1\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"0\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:restriction\u003E\n\t\t\t&lt;\u002Fxs:simpleType\u003E\n\t\t&lt;\u002Fxs:attribute\u003E\n\t\t&lt;xs:attribute name=\"hasExceptionBlock\" use=\"optional\" default=\"0\"\u003E\n\t\t\t&lt;xs:simpleType\u003E\n\t\t\t\t&lt;xs:restriction base=\"xs:byte\"\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"1\"\u002F\u003E\n\t\t\t\t\t&lt;xs:enumeration value=\"0\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:restriction\u003E\n\t\t\t&lt;\u002Fxs:simpleType\u003E\n\t\t&lt;\u002Fxs:attribute\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventsType\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"event\" type=\"eventBaseType\" maxOccurs=\"unbounded\"\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='goToURL'\" type=\"eventGoToURL\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='checkElementsVisibility'\" type=\"eventCheckElementsVisibility\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='checkElementsInVisibility'\" type=\"eventCheckElementsVisibility\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='fillingFields'\" type=\"eventFillingFields\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='checkInputValues'\" type=\"eventFillingFields\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='clickElement'\" type=\"eventClickElement\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@TYPE='dbUpdate'\" type=\"eventRequest\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='wait'\" type=\"utilityValueInteger\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='scrollDown'\" type=\"eventClickElement\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='userInput'\" type=\"eventClickElement\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='checkQueryResultWithUtilityValue'\" type=\"eventRequestWithValue\"\u002F\u003E\n\t\t\t\t&lt;xs:alternative test=\"@type='checkFieldsPresenceByQueryResult'\" type=\"eventRequestWithValue\"\u002F\u003E\n\t\t\t&lt;\u002Fxs:element\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;!-- ТИПЫ ДЛЯ EVENTS --\u003E\n\t\n\t&lt;xs:complexType name=\"eventGoToURL\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"url\" type=\"xs:anyURI\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventCheckElementsVisibility\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"fields\" type=\"fieldType\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventFillingFields\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"fields\" type=\"fieldTypeWithValue\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventClickElement\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"elementName\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventRequest\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"dbRequest\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"utilityValueInteger\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"utilityValue\" type=\"xs:positiveInteger\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"eventRequestWithValue\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"eventBaseType\"\u003E\n\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t&lt;xs:element name=\"dbRequest\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t\t&lt;xs:element name=\"utilityValue\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;!-- ТИПЫ ДЛЯ EVENTS --\u003E\n\t\n\t&lt;xs:complexType name=\"fieldType\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"field\" maxOccurs=\"unbounded\"\u003E\n\t\t\t\t&lt;xs:complexType\u003E\n\t\t\t\t\t&lt;xs:choice\u003E\n\t\t\t\t\t\t&lt;xs:element name=\"element\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t\t\t&lt;xs:element name=\"xpath\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t\t&lt;\u002Fxs:choice\u003E\n\t\t\t\t&lt;\u002Fxs:complexType\u003E\n\t\t\t&lt;\u002Fxs:element\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"fieldTypeWithValue\"\u003E\n\t\t&lt;xs:sequence\u003E\n\t\t\t&lt;xs:element name=\"field\" maxOccurs=\"unbounded\"\u003E\n\t\t\t\t&lt;xs:complexType\u003E\n\t\t\t\t\t&lt;xs:sequence\u003E\n\t\t\t\t\t\t&lt;xs:element name=\"element\" type=\"xs:string\"\u002F\u003E\n\t\t\t\t\t\t&lt;xs:element name=\"value\" type=\"valueType\"\u002F\u003E\n\t\t\t\t\t&lt;\u002Fxs:sequence\u003E\n\t\t\t\t&lt;\u002Fxs:complexType\u003E\n\t\t\t&lt;\u002Fxs:element\u003E\n\t\t&lt;\u002Fxs:sequence\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\t\n\t&lt;xs:complexType name=\"valueType\"\u003E\n\t\t&lt;xs:complexContent\u003E\n\t\t\t&lt;xs:extension base=\"xs:anyType\"\u003E\n\t\t\t\t&lt;xs:attribute name=\"type\" use=\"optional\" default=\"1\"\u003E\n\t\t\t\t\t&lt;xs:simpleType\u003E\n\t\t\t\t\t\t&lt;xs:restriction base=\"xs:byte\"\u003E\n\t\t\t\t\t\t\t&lt;xs:enumeration value=\"1\"\u002F\u003E\n\t\t\t\t\t\t\t&lt;xs:enumeration value=\"2\"\u002F\u003E\n\t\t\t\t\t\t\t&lt;xs:enumeration value=\"3\"\u002F\u003E\n\t\t\t\t\t\t&lt;\u002Fxs:restriction\u003E\n\t\t\t\t\t&lt;\u002Fxs:simpleType\u003E\n\t\t\t\t&lt;\u002Fxs:attribute\u003E\n\t\t\t&lt;\u002Fxs:extension\u003E\n\t\t&lt;\u002Fxs:complexContent\u003E\n\t&lt;\u002Fxs:complexType\u003E\n\n&lt;\u002Fxs:schema\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EОбщий вид:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;!DOCTYPE testCase SYSTEM \".\u002FTestSuite\u002FTestCase\u002Fentities.dtd\" []\u003E\n\n&lt;testCase xmlns:xsi=\"http:\u002F\u002Fwww.w3.org\u002F2001\u002FXMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"testShema.xsd\"\u003E\n    &lt;testCaseName\u003Eуникальное_наименование_testCase&lt;\u002FtestCaseName\u003E\n    &lt;webPackageName\u003Eназвание_webPackage_из_webPackageName&lt;\u002FwebPackageName\u003E\n    &lt;actions\u003E\n        \n        &lt;action\u003E\n            &lt;name\u003EВход через пустую форму авторизации в интерфейс КМа для инициализации приложения&lt;\u002Fname\u003E\n            &lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n            &lt;runConfiguration openValidation=\"1\" closeValidation=\"1\"\u003E\n                &lt;formName\u003Eпустая_форма_авторизации_при_открытии_тестового_приложения&lt;\u002FformName\u003E\n                &lt;events\u003E\n                    &lt;event type=\"goToURL\"\u003E\n                        &lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n                        &lt;url\u003E&amp;srmURL;&lt;\u002Furl\u003E\n                    &lt;\u002Fevent\u003E\n                    .......        \n                &lt;\u002Fevents\u003E\n            &lt;\u002FrunConfiguration\u003E\n        &lt;\u002Faction\u003E\n    .......\n    &lt;\u002Factions\u003E\n&lt;\u002FtestCase\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВот в этой строчке видно как прикрутить xsd схему чтобы XML Editor ее видел: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;testCase xmlns:xsi=\"http:\u002F\u002Fwww.w3.org\u002F2001\u002FXMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"testShema.xsd\"\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ TestCase я также использую сущности DTD, которые хранятся отдельно в той же директории – файлик с расширением .dtd. В нем я храню практически все данные – константы. Также я построил логику таким образом, что чтобы запустить новый тест, и по ходу всего теста создавались новые уникальные сущности, регистрировался новый КА, достаточно поменять 1 цифру в этом файле.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EСтруктура его очень проста - приведу пример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?\u003E\n&lt;!ENTITY mainNumber '040'\u003E\n&lt;!ENTITY mail '@mail.ru'\u003E\n&lt;!ENTITY srmURL 'https:\u002F\u002Fsrm-test.ru'\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВ значение тега такие константы вставляются так: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;url\u003E&amp;srmURL;&lt;\u002Furl\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E \u003Cbr\u002F\u003E\r\n — можно комбинировать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E! Рекомендация\u003C\u002Fb\u003E — при написании testCase следует указывать эти сущности DTD внутри документа, и уже после того, как все стабильно заработает, переносить в отдельный файлик. У моего xml editor-а с этим сложности – он не может найти DTD и не берет во внимание XSD, поэтому рекомендую так\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EtestCase\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\ntestCase — самый родительский тег содержит:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003EtestCaseName\u003C\u002Fb\u003E — имя нашего тест кейса, именно этот параметр передается на вход приложению \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EwebPackageName\u003C\u002Fb\u003E — имя WebPackage, которое указано в webPackageName (см пп выше о WebPackage) \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Eactions\u003C\u002Fb\u003E — контейнер сущностей action \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003Eaction\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСодержит:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Ename\u003C\u002Fb\u003E — имя — рекомендуется указывать имя формы и ключевые действия — что и зачем\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EorderNumber\u003C\u002Fb\u003E — порядковый номер — параметр необходимый для сортировки action (введен в связи с тем, что при разборе xml в java при использовании определенных инструментов разбор может быть осуществлен в многопоточной среде, в связи с чем порядок может поехать) — при указании следующего action можно перепрыгивать — т.е. имеет при сортировке имеет значение только «больше\u002Fменьше», а так можно доставлять action между уже описанными без необходимости менять всю нумерацию \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ErunConfiguration\u003C\u002Fb\u003E — собственно описание того, что будет происходить в рамках action \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ErunConfiguration\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСодержит:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eатрибут \u003Cb\u003EopenValidation\u003C\u002Fb\u003E — необязательный, по умолчанию «0» \u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E0 — не проводить начальную валидацию формы \u003C\u002Fli\u003E\r\n\u003Cli\u003E1 — произвести начальную валидацию формы \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003Eатрибут \u003Cb\u003EcloseValidation\u003C\u002Fb\u003E — необязательный, по умолчанию «0»\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E0 — не проводить конечную валидацию формы \u003C\u002Fli\u003E\r\n\u003Cli\u003E1 — произвести конечную валидацию формы \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EformName\u003C\u002Fb\u003E — имя формы в рамках которой будут проводиться действия — значение formName из WebPackage\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ErepeatsOnError\u003C\u002Fb\u003E — необязательный, указывается какое количество повторов необходимо произвести в случае сбоя\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Eevents\u003C\u002Fb\u003E — контейнер сущностей event\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EexceptionBlock\u003C\u002Fb\u003E — необязательный — контейнер сущностей event, которые выполняются в случае ошибки\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003Eevent\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМинимальная структурная единичка — данная сущность показывает, какие действия совершаются\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКаждый event особенный, может иметь уникальные теги и атрибуты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБазовый тип содержит:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eатрибут \u003Cb\u003Etype\u003C\u002Fb\u003E — указывается тип элемента\u003C\u002Fli\u003E\r\n\u003Cli\u003Eатрибут \u003Cb\u003EhasExceptionBlock\u003C\u002Fb\u003E — необязательный атрибут, по умолчанию «0» — необходим для реализации механизма сбоя — атрибут говорит о том, что на этом ивенте мы можем ожидать ошибку \u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003E0\u003C\u002Fb\u003E — не ожидается ошибка \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003E1\u003C\u002Fb\u003E — ожидается возможная ошибка на действии \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003Eатрибут \u003Cb\u003EinvertResult\u003C\u002Fb\u003E — необязательный атрибут, по умолчанию «0» — атрибут говорит о том, что необходимо поменять результат ивента \u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003E0\u003C\u002Fb\u003E — оставить результат выполнения ивента по факту \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003E1\u003C\u002Fb\u003E — изменить результат ивента на противоположный \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003E*! Механизм описания ожидаемой ошибки\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003EПриведу банальный пример где это было использовано мной в первый раз и что сделать, чтобы он сработал.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКейс: ввод капчи. Данный момент я не смог автоматизировать, так сказать проверка на робота пока подкашивает – не пишут мне тестовый сервис капчи (а мне самому уже проще сделать нейросеть для распознавания))) Так вот, мы можем ошибиться при вводе. На этот случай я делаю контрольный ивент, в котором проверяю, что у нас отсутствует элемент – уведомление о неверном контрольном коде, ставлю на нем атрибут hasExceptionBlock. Предварительно я задал на action, что у нас может быть несколько повторений (5) и после всего прописал exceptionBlock, в котором прописал, что надо нажать кнопку выхода из уведомления, после чего action повторяется. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПримеры из моего контекста.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот я как я прописал ивент:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"checkElementsInVisibility\" hasExceptionBlock=\"1\"\u003E\n\t&lt;orderNumber\u003E57&lt;\u002ForderNumber\u003E\n\t&lt;fields\u003E\n\t\t&lt;field\u003E\n\t\t\t&lt;element\u003Eуведомление_неверный_контрольный_код&lt;\u002Felement\u003E\n\t\t&lt;\u002Ffield\u003E\n\t&lt;\u002Ffields\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nА вот exceptionBlock после ивентов\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E &lt;exceptionBlock\u003E\n\t&lt;event type=\"clickElement\"\u003E\n\t\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t\t&lt;elementName\u003Eкнопка_ок_для_выхода_из_уведомления&lt;\u002FelementName\u003E\n\t&lt;\u002Fevent\u003E\n&lt;\u002FexceptionBlock\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИ да, действия на одной странице можно декомпозировать на несколько action.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n+ кто заметил в конфиге 2 параметра: defaultTimeOutsForWebDriverWait, lowTimeOutsForWebDriverWait. Так вот зачем они. Т.к. весь веб драйвер у меня в синглтоне, и я не захотел создавать каждый раз новый WebDriverWait, то у меня 1 быстрый, и он на случай ошибки (ну или если вы просто поставите hasExceptionBlock=«1», то он тупо будет с меньшим количеством времени явного ожидания) – ну согласитесь, ждать минуту чтобы убедиться, что сообщение не вылезло не комильфо, как и создавать каждый раз новый WebDriverWait. Ну и эта ситуация с какой стороны не ткнись требует костылька – я решил сделать так.\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EТипы event\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЗдесь я приведу минимальный набор моих ивентов, типа набора бойскаута, с помощью которых я по своей системе могу протестить практически все.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИ теперь плавненько к коду для понимания что такое ивент и как он строится. В коде по сути реализован фреймворк. У меня есть 2 класса – DataBaseWrapper и SeleniumWrapper. В этих классах описано взаимодействие с инфраструктурными компонентами, а также отражаются особенности платформы. Приведу интерфейс, который реализует SeleniumWrapper\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"java\"\u003Epackage logic.selenium;\n\nimport models.ElementWithStringValue;\nimport models.webpackage.Element;\nimport org.openqa.selenium.WebElement;\n\n\npublic interface SeleniumService {\n    void initialization(boolean webDriverWait);\n\n    void nacigateTo(String url);\n    void refreshPage();\n    boolean checkElementNotPresent(Element element);\n    WebElement findSingleVisibleElement(Element element);\n    WebElement findSingleElementInDOM(Element element);\n    void enterSingleValuesToWebField(ElementWithStringValue element);\n    void click(Element element);\n    String getInputValue(Element element);\n    Object jsReturnsValue(String jsFunction);\n    \u002F\u002FActions actions\n    void doubleClick(Element element);\n    void moveMouseToElement(Element element);\n    void pressKey(CharSequence charSequence);\n    void getScreenShot(String storage);\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ нем описываются все возможности селениума и накладываются фишки платформы – ну собственно основная фишка – это метод «enterSingleValuesToWebField». Помните, что мы в WebPackage указываем тип элемента. Так вот, то как на этот тип реагировать при заполнении полей прописано тут. Пишем 1 раз и забываем. Вышеуказанный метод стоит поправить под себя в первую очередь. К примеру типы 5 и 6, ныне действующие – подходят только для моей системы. А если у вас есть такая штука как фильтр и надо много фильтровать, и он типовой (в вашем веб приложении), но, чтобы им воспользоваться надо сначала навести мышку на поле, дождаться появления каких-то полей, перейти на какое-то, дождаться там чего-то, затем перейти туда и ввести… Тупо прописываете механизм действия 1 раз, даете уникальный тип этому всему в конструкции switch – далее не заморачиваетесь – получаете полиморфный метод на все аналогичные фильтры приложения. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, в пакете «package logic.testcase.events» есть абстрактный класс, описывающий общие действия ивента. Для того чтобы создать свой уникальный ивент, необходимо создать новый класс, унаследоваться от этого абстрактного класса, и у вас уже в комплекте есть и dataBaseService и seleniumService – а далее вы определяете какие данные вам нужны и что с ними делать. Как-то так. Ну и соответственно, после создания нового ивента надо допилить класс-фабрику TestCaseActionFactory и по возможности XSD схему. Ну и, если добавляется новый атрибут – доработать саму модель. На деле это очень легко и быстро.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИтак, набор бойскаута.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EgoToURL\u003C\u002Fb\u003E – обычно первое действие – переход по указанной ссылке\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"goToURL\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;url\u003EtestURL&lt;\u002Furl\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EfillingFields\u003C\u002Fb\u003E — Заполнение указанных элементов\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСпециальные теги:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Efields\u003C\u002Fb\u003E — контейнер сущности fiel \u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Efield\u003C\u002Fb\u003E — содержит тег element \u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003Eelement\u003C\u002Fb\u003E — указывается имя элемента из webPackage \u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003Evalue\u003C\u002Fb\u003E — какое значение указать, имеет необязательный атрибут \u003Cb\u003Etype\u003C\u002Fb\u003E (если елемент чекбокс, то указывается одно из значений: «check» или «uncheck») \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eатрибут \u003Cb\u003Etype\u003C\u002Fb\u003E — указывается каким образом взять значение, необязательный, значение по умолчанию — «1» \u003Cul\u003E\r\n\u003Cli\u003E1 — берется указанное значение \u003C\u002Fli\u003E\r\n\u003Cli\u003E2 — в этом случае выполняется указанная JS функция из директории \"\\TestSuite\\JS\"! ВАЖНО — указывается название txt файла, без \".txt\" (и я пока нашел применения js функциям пока только в таком виде – использую в одном месте для генерации случайного инн, однако спектр возможного применения широк) \u003C\u002Fli\u003E\r\n\u003Cli\u003E3 — в этом случае указывается в качестве значения указывается запрос в БД, а программа подставляет в 1-ый результат данного запроса \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"fillingFields\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;fields\u003E\n\t\t&lt;field\u003E\n\t\t\t&lt;element\u003Etest&lt;\u002Felement\u003E\n\t\t\t&lt;value\u003Etest&lt;\u002Fvalue\u003E\n\t\t&lt;\u002Ffield\u003E\n\t&lt;\u002Ffields\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EcheckElementsVisibility\u003C\u002Fb\u003E – проверяется, что указанные элементы присутствуют на форме (именно видимые, а не просто в DOM). В атрибуте field может быть указан или элемент из WebPackage или непосредственно xpath\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"checkElementsVisibility\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;fields\u003E\n\t\t&lt;field\u003E\n\t\t\t&lt;element\u003Etest&lt;\u002Felement\u003E\n\t\t&lt;\u002Ffield\u003E\n\t\t&lt;field\u003E\n\t\t\t&lt;xpath\u003Etest&lt;\u002Fxpath\u003E\n\t\t&lt;\u002Ffield\u003E\n\t&lt;\u002Ffields\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EcheckElementsInVisibility\u003C\u002Fb\u003E – аналогичный checkElementsVisibility, но наоборот\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EclickElement\u003C\u002Fb\u003E – клик по указанному элементу\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"clickElement\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;elementName\u003Etest&lt;\u002FelementName\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EcheckInputValues\u003C\u002Fb\u003E – проверка введенных значений\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"checkInputValues\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;fields\u003E\n\t\t&lt;field\u003E\n\t\t\t&lt;element\u003Etest&lt;\u002Felement\u003E\n\t\t\t&lt;value\u003Etest&lt;\u002Fvalue\u003E\n\t\t&lt;\u002Ffield\u003E\n\t&lt;\u002Ffields\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EdbUpdate\u003C\u002Fb\u003E – выполнить апдейт в базе (\u003Cb\u003E\u003Ci\u003EoXygen странно реагирует на 1 ивент типа dbUpdate – не знаю что с ним сделать и не понимаю почему\u003C\u002Fi\u003E\u003C\u002Fb\u003E)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"dbUpdate\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;dbRequest\u003Eupdate что-то там&lt;\u002FdbRequest\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECheckQueryResultWithUtilityValue\u003C\u002Fb\u003E — проверка введенного пользователем значения с значением из БД\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"checkQueryResultWithUtilityValue\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;dbRequest\u003Eselect ...&lt;\u002FdbRequest\u003E\n\t&lt;utilityValue\u003Etest&lt;\u002FutilityValue\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EcheckFieldsPresenceByQueryResult\u003C\u002Fb\u003E — проверка наличия элементов на форме по xpath по паттерну. Если желаемы паттерн не указан, то поиск произойдет по паттерну .\u002F\u002F*[text()[contains(normalize-space(.), \"$\")]], где вместо «$» будет значение из БД. При описании собственного паттерна, на то место, куда следует поставить значение из БД – надо указать «$». В моей системе есть так называемые гриды в которых бывают значения, которые как правило формируются из какой-то вьюхи. Этот ивент для проверки таких гридов\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"checkFieldsPresenceByQueryResult\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;dbRequest\u003Etest&lt;\u002FdbRequest\u003E\n\t&lt;utilityValue\u003E&lt;\u002FutilityValue\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EWait\u003C\u002Fb\u003E – все просто – ожидание указанного количества милисекунд. К сожалению, хоть это и принято считать костылем, скажу точно – иногда без него невозможно обойтись\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"wait\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;utilityValue\u003E1000&lt;\u002FutilityValue\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EscrollDown\u003C\u002Fb\u003E – скрол вниз от указанного элемента. Делается так: кликается по указанному элементу и типа нажимается клавиша «PgDn». В моих кейсах, где мне надо было скрольнуть вниз работает отлично:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"scrollDown\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;elementName\u003Etest&lt;\u002FelementName\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EuserInput\u003C\u002Fb\u003E – ввод значения в указанный элемент. Единственный полуавтомат в моей автоматизации, используется только для капчи. Указывается элемент, в который надо ввести значение. Значение вводится в всплывшее диалоговое окошко.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПример:\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;event type=\"userInput\"\u003E\n\t&lt;orderNumber\u003E10&lt;\u002ForderNumber\u003E\n\t&lt;elementName\u003Ecapch_input&lt;\u002FelementName\u003E\n&lt;\u002Fevent\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПро код\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЗначит, я старался сделать платформу в соответствии с принципами Чистой архитектуры дядюшки Боба. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПакеты:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\napplication – инициализация и запуск + конфиги и отчет (не ругайте меня за класс Report – вот что максимально на скорую руку, то максимально на скорую руку)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nlogic – ключевая логика + сервисы Селениума и БД. Тут же ивенты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nmodels – POJO на XML и все вспомогательные классы-объекты\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nutils – синглтоны для селениума и БД\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы код запустить, надо скачать jdk 12 и везде указать, чтобы включились ее фишки. В Idea это делается через Project Structure –\u003E Modules и Project. Также не забыть про Maven runner. И при запуске в бат файле дописать --enable-preview. Пример был.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНу и, чтобы все еще запустилось, по мимо JDK потребуется скачать ojdbc драйвер и закинуть джарник в директорию “SprintAutoTest\\src\\lib”. Я его не предоставляю, т.к. у оракла там щас все серьезно – чтобы скачать надо зарегаться, но я уверен, все желающие так или иначе справятся (ну и проверьте, чтобы все папки были созданы, а то отчет не сохранится)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EРезюме\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nИтак, мы имеем запускалку тестов, написание тестов на которую делается действительно быстро. За рабочую неделю мне удалось автоматизировать 1,5 часа ручной работы, которая выполняется роботом за 5 – 6 минут. Это примерно 3700 строчек конкатенированного тест кейса и 830 описанных элементов (более 4800 строчек). Цифры грубые, и так оно не меряется, но кто занимается автоматизацией должен понимать, что это весьма высокий показатель, тем более для недружелюбных к роботам систем. При этом я тестирую все – бизнес-логику, по ходу выполняю какие-то негативные тесты на корректность заполненных атрибутов, и как бонус проверяю полностью каждую веб-форму, по которой не лентяйничаю, и описываю все функциональные и ключевые элементы, в независимости нужны они мне или нет (Небольшое отступление – closeValidation я применяю в основном только при написании теста. Когда он стабилен, и понятно, что локаторы не пересекаются, я его отключаю для всех action, дабы процесс шел шустрее).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа первый взгляд кажется, что много строчек xml, однако на практике они генерируются полуавтоматически, при этом ошибку можно совершить только в непосредственно вводимых параметрах (т.к. по сути мы имеем 2 уровня валидации – 1-ый это xml схемы, 2-ой проверки наличия указанных форм и элементов при старте запуска TestCase). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИз минусов – нет четких границ тестов. Как таковые они отсутствуют и можно упрекнуть меня, что это просто запускалка макроса, а не тестов. Я оговариваю это так: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ платформе тесты концептуально с моей точки зрения делятся на несколько уровней абстракции:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eкак касета + конечный результат — тест завершается если «порвалась пленка» + как рекомендация — это валидация конечного результата (то к чему мы приходим по окончании тестирования функциональности – т.е. валидация конечного результата бизнес-процесса) \u003C\u002Fli\u003E\r\n\u003Cli\u003Eописание действий декомпозировано постранично (сущность action — это совокупность event в рамках одной страницы c промежуточной валидацией действий + начальная и конечная валидация страницы в автоматическом режиме) \u003C\u002Fli\u003E\r\n\u003Cli\u003Eописанными ивентами, мы не определяем сами тесты, однако они есть – их определяет тест-дизайнер. Да и никто не мешает развернуть платформу так, чтобы каждый ивент представлял из себя тест – но именно от этого я пытался уйти. У меня есть пару ивентов, содержащих ком. тайну, которые я убрал – которые просто было удобнее описать как ивент, но сути дела не меняет \u003C\u002Fli\u003E\r\n\u003Cli\u003Eкаждое действие на странице представляет из себя unit тест (возвращающий единственный результат true или false) \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nЕсли сравнивать мой подход с чем-то, то минусы, например, популярного Cucumber и самой концепции BDD для меня более существенны (именно когда мы тестируем подобные моей системы):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EМы не можем гарантировать выполнение тестов при тестировании нестабильного веб приложения. Т.е. в моем случаи для большинства тестов мы не можем гарантировать их исполнения, и они будут валиться на «When», что на мой взгляд не есть вообще приемлемо, если уж мы описываем тестирование набором тестов. \u003C\u002Fli\u003E\r\n\u003Cli\u003EНу и везде приводится этот уже бесящий пример с логином. Да за всю мою практику вот именно в логине никогда ошибок не было никогда (хотя он конечно должен быть покрыт, это точно). И пример хорош, но для остальных тестов надо лепить бесконечные костыли из Given и When – в приведенной мной системе для реальных тестов потребуется 99% на описание промежуточных условий, пока мы к этому самому тесту дойдем – много мороки, мало сути, да еще и надо в код лезть. \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nИз того что я хотел бы сделать, над чем подумать, но еще не дошли руки:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eзапуск не одного, а нескольких тестов последовательно в одном запуске \u003C\u002Fli\u003E\r\n\u003Cli\u003Eдумаю, прокачать сущности, чтобы можно было в них генерить значения по факту нового теста, и они сохранялись по ходу выполнения \u003C\u002Fli\u003E\r\n\u003Cli\u003Eсделать централизованный версионный контроль. Не просто git, а, чтобы указывать какую версию теста запустить, ну или опять же умный модуль, который бы понимал какая версия актуальна, какая еще нет \u003C\u002Fli\u003E\r\n\u003Cli\u003Eкак я уже говорил, для запуска нового теста с новыми значениями, мне надо поменять 1 цифру, автоматизировать как бы и это – сделать на это умный модуль \u003C\u002Fli\u003E\r\n\u003Cli\u003Eхоть меня и не сильно смущает, что у меня все локаторы хранятся в одном месте, все же по-хорошему надо бы сделать еще более user friendly структуру для их хранения \u003C\u002Fli\u003E\r\n\u003Cli\u003Eне баловался с selenium server. Думаю, стоит задуматься об этом, как и возможность дальнейшей адаптации к CI, Team City и пр. вкусностям \u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nНу в общем-то и все. Прилагаю ссылочку на github: \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FPetrovVladimir\u002FSprintAutoTest\"\u003Eисходники\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБуду крайне рад конструктивной критике, надеюсь этот проект действительно будет полезен.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"selenium"},{"titleHtml":"selenium-webdriver"},{"titleHtml":"автоматизация тестирования"},{"titleHtml":"тестирование веб-приложений"},{"titleHtml":"автотесты"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450726\u002F6459e8e7c8619431d61799861f78148c\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450726\u002F6459e8e7c8619431d61799861f78148c\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450726\\\u002F\"},\"headline\":\"Создание инструмента для быстрого и эффективного написания автотестов на Selenium\",\"datePublished\":\"2019-05-06T17:13:06+03:00\",\"dateModified\":\"2019-05-06T17:13:41+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Владимир\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Фундаментальный строительный блок автоматизации &ndash; тестирование Род Джонсон   Я не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450726\\\u002F#post-content-body\",\"about\":[\"h_it_testing\",\"h_java\",\"h_web_testing\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fwe\\\u002Fbo\\\u002Fhc\\\u002Fwebohc2wdcta3-sndagvuqhbnwo.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8f\\\u002Fsk\\\u002Fag\\\u002F8fskag6agt4vred-urcowwdxzfs.jpeg\"]}","metaDescription":"Фундаментальный строительный блок автоматизации – тестирование\r\nРод Джонсон \r\n\r\nЯ не амбассадор автоматизации тестирования веб интерфейсов, однако сей очерк скорее будет полезен камрадам, уже имеющим...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"it_testing,java,web_testing"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

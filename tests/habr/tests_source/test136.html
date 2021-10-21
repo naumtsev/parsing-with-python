@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Когда стены недостаточно. Как защитить конечные точки / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/trendmicro\/blog\/450136\/"},"headline":"Когда стены недостаточно. Как защитить конечные точки","datePublished":"2019-04-30T13:20:28+03:00","dateModified":"2019-04-30T18:42:44+03:00","author":{"@type":"Person","name":"Trend_Micro"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Думаете, самое важное в компании &mdash; обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищ...","url":"https:\/\/habr.com\/ru\/company\/trendmicro\/blog\/450136\/#post-content-body","about":["c_trendmicro","h_infosecurity","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/lg\/j6\/jm\/lgj6jmp_ne5cd8tekgpka-qxzf0.jpeg","https:\/\/habrastorage.org\/webt\/wz\/hs\/h3\/wzhsh3_j12kcsdi6ynbbqduyqnw.jpeg","https:\/\/habrastorage.org\/webt\/a7\/sc\/34\/a7sc34q369bzrbsmjnbwuk_nvq8.jpeg","https:\/\/habrastorage.org\/webt\/9j\/ed\/gp\/9jedgp9ueno5us8nmbxvb4dav_8.jpeg","https:\/\/habrastorage.org\/webt\/ep\/po\/tt\/eppottseheoyicn-y_0ajve-ly8.jpeg","https:\/\/habrastorage.org\/webt\/qn\/eg\/3g\/qneg3g8r1-vmmu_b-ffmyyfhlc8.jpeg","https:\/\/habrastorage.org\/webt\/m-\/mc\/fi\/m-mcfirl6w0xktnvydivhpjb9fu.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Когда стены недостаточно. Как защитить конечные точки" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Когда стены недостаточно. Как защитить конечные точки" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Когда стены недостаточно. Как защитить конечные точки" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450136/0c1c68cd9c8ab8b987f838243010bef6/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450136/0c1c68cd9c8ab8b987f838243010bef6/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450136/0c1c68cd9c8ab8b987f838243010bef6/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450136/0c1c68cd9c8ab8b987f838243010bef6/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450136/0c1c68cd9c8ab8b987f838243010bef6/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450136" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-30T10:20:28.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450136/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/trendmicro/blog/450136/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450136/0c1c68cd9c8ab8b987f838243010bef6/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450136/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="trendmicro" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/trendmicro/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/companies/4d0/638/83d/4d063883da90b17c65072c94eb137341.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">67.11</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/trendmicro/profile/" class="tm-company-card__name">
+        Trend Micro
+      </a> <div class="tm-company-card__description"></div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Trend_Micro/" title="Trend_Micro" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/218/450/aff/218450aff52b4032c6d9d61e81376cad.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Trend_Micro/" class="tm-user-info__username">
+      Trend_Micro
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-30T10:20:28.000Z" title="2019-04-30, 13:20">30  апреля  2019 в 13:20</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Когда стены недостаточно. Как защитить конечные точки</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/trendmicro/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Trend Micro</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/infosecurity/" class="tm-article-snippet__hubs-item-link"><span>Информационная безопасность</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/lg/j6/jm/lgj6jmp_ne5cd8tekgpka-qxzf0.jpeg" data-src="https://habrastorage.org/webt/lg/j6/jm/lgj6jmp_ne5cd8tekgpka-qxzf0.jpeg" data-blurred="true"/><br/>
+<br/>
+Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе невозможно, только если в компании не применяются строжайшие правила ИБ, «белый список» сайтов, исключительно бумажная переписка и запайка USB-портов на компьютерах, а со смартфоном дальше ресепшена вообще не пускают. Если это не про вашу компанию, то имейте в виду: сегодня главной зоной риска становятся как раз конечные устройства, и одного только антивируса для их защиты недостаточно. Да, антивирус заблокирует распаковку архива с опасным файлом, а браузер запретит посещение скомпрометированного сайта, но есть множество угроз, перед которыми базовые пакеты защиты бессильны. Дальше мы расскажем о некоторых из них — и о способах защиты.<br/>
+<a name="habracut"></a><br/>
+<b><i>C чем не может справиться обычный антивирус в компании</i></b><br/>
+ <br/>
+—<b> Бесфайловые атаки</b>. Вредоносные PowerShell-скрипты, попадающие сразу в оперативную память, невозможно обнаружить антивирусом на стадии проникновения в систему — это не исполняемые программы, а просто текстовый набор команд, который выполняется в существующей в ОС оболочке, вроде PowerShell. Чтобы не исчезнуть при выключении компьютера, трояны прописывают свои команды в реестр.<br/>
+<br/>
+Обнаружить традиционными методами бесфайловую атаку невозможно — троян может хранить вредоносный скрипт, например, в TXT-файлах ресурсных записей DNS. По данным исследования Trend Micro<a href="https://documents.trendmicro.com/assets/rpt/rpt-2018-Midyear-Security-Roundup-unseen-threats-imminent-losses.pdf"> 2018 Midyear Security Roundup</a>, количество бесфайловых атак в мире растёт: в январе 2018 года было зафиксировано 24 430 инцидентов, а в июне — уже более 38 тыс.<br/>
+<br/>
+— <b>Эксплойты в необновленных ОС</b>. Обновления операционных систем исправляют известные уязвимости, для которых уже могут быть написаны эксплойты. Перед развертыванием обновлений на сотнях и тысячах компьютеров его стоит сперва протестировать — иногда обновления содержат ошибки, из-за которых часть компьютеров временно выходит из строя. Переложить задачу установки обновлений на плечи пользователей — верный способ создать брешь в сети по вине необязательного или неумелого сотрудника.<br/>
+<br/>
+Нашумевшие WannaCry и NotPetya использовали для распространения уязвимости Windows, которые были закрыты обновлениям ещё за два месяца до начала эпидемии: первая ревизия WannaCry появилась 16 января 2017 года, 14 марта Microsoft распространила заплатку для протокола SMB во всех актуальных версиях Windows, а легендарная эпидемия началась только 12 мая. Проникнув на не обновленные компьютеры пользователей, вымогатель распространился внутри корпоративных сетей, парализовав деятельность компаний. Почему сотни тысяч корпоративных компьютеров в крупнейших компаниях два месяца оставались без критического обновления Windows — серьезный вопрос к соответствующим службам.<br/>
+<br/>
+—<b> Мобильные устройства</b>. Несмотря на проверку приложений перед публикацией в магазинах Play Market и App Store, к якобы полезным программам нередко прикручивают шпионов и даже майнеры. Например, анализ 283 VPN-приложений для Android выявил, что 43% из них содержат нежелательную рекламу, а в 17% реклама имеет вредоносные функции, 29% являются источником троянских модулей, потенциально опасное ПО содержится в 6% VPN, а ещё<a href="https://research.csiro.au/ng/wp-content/uploads/sites/106/2016/08/paper-1.pdf"> 5% шпионят за своими пользователями</a>.<br/>
+<br/>
+— <b>Сотрудники, незнающие базовые принципы ИБ</b>. Главной дырой в информационной безопасности любой компании остаются сотрудники, вернее, их<a href="https://habr.com/ru/company/trendmicro/blog/438250/"> незнание принципов ИБ</a>. Ни один вирус не сможет увести важную информацию и документы с той же изящностью и эффективностью, как сотрудник, скачивающий для собственного удобства в работе программу, которая в результате оказывается вредоносной.<br/>
+ <br/>
+<b><i>Как защитить конечные точки</i></b><br/>
+ <br/>
+Растущая сложность угроз приводит к тому, что традиционные методы защиты становятся неэффективными. Одного антивируса недостаточно, чтобы исключить утечку данных или проникновение злоумышленников в сеть, а установка нескольких узкоспециализированных решений часто приводит к конфликтам и ошибкам. К тому же настройка и сопровождение совместной работы нескольких защитных программ — задача не из лёгких. Требуется комплексное решение, которое позволит пользователям с комфортом выполнять свои рабочие функции, но при этом обеспечит сохранность информационных активов компании.<br/>
+ <br/>
+Идеальный комплекс защиты должен быть:<br/>
+    <ul>
+<li> многоплатформенный — работать на всех популярных десктопных и мобильных операционных системах; это особенно важно для компаний с политикой BYOD и возможностью удаленной работы;</li>
+<li> автоматический — обнаруживать угрозы и реагировать на них без участия пользователя;</li>
+<li> интеллектуальный — использовать не только традиционный сигнатурный, но и поведенческий анализ, обеспечивая выявление как файловых, так и бесфайловых вредоносов;</li>
+<li> централизованно управляемый — администраторы должны видеть состояние всех защищаемых устройств в реальном времени и иметь возможность изменять параметры безопасности в зависимости от местоположения устройства;</li>
+<li> обеспечивать интеграцию с системами поведенческого анализа и возможность расследования инцидентов;</li>
+<li> контролировать приложения на конечных устройствах, чтобы защитить корпоративную сеть от проникновения вредоносных программ и направленных атак с устройств в сети организации.</li>
+</ul><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/wz/hs/h3/wzhsh3_j12kcsdi6ynbbqduyqnw.jpeg" data-src="https://habrastorage.org/webt/wz/hs/h3/wzhsh3_j12kcsdi6ynbbqduyqnw.jpeg" data-blurred="true"/><br/>
+<br/>
+Традиционные решения класса EPP (Endpoint Protection Platform) хорошо защищают пользовательские устройства от известных угроз, но с новейшими разновидностями атак справляются значительно хуже. Они успешно справляются с фиксацией инцидентов на отдельных устройствах, но, как правило, не в состоянии выявить, что эти инциденты являются фрагментами сложной комплексной атаки, которая в перспективе способна нанести организации серьёзный ущерб. Возможности автоматического анализа инцидентов у них почти отсутствуют. Поэтому компании разработали решения класса EDR (Endpoint Detection and Response).<br/>
+<br/>
+<b><i>Как работает современное EDR-решение</i><br/>
+ </b><br/>
+Давайте разберем, как работает решение по защите конечных точек на примере Apex One от Trend Micro. Этот продукт — существенное перерождение уже известного решения по защите конечных точек OfficeScan.<br/>
+ <br/>
+Одной из ключевых возможностей Apex One является как раз многоэтапная защита конечных точек, не позволяющая зловредам распространяться по сети, влиять на работоспособность компьютера и красть конфиденциальные данные. Решение мгновенно блокирует угрозы «нулевого дня» на физических и виртуальных рабочих столах, а также ноутбуках как в сети, так и за ее пределами.<br/>
+<br/>
+<i><b>Что конкретно делает Apex One?</b></i><br/>
+<br/>
+<i>— Защищает от усовершенствованных угроз:</i><br/>
+<br/>
+<ul>
+<li>предотвращает возможность использования известных и неизвестных уязвимостей для проникновения в системы до выпуска пакетов исправлений;</li>
+<li>защищает неподдерживаемые и устаревшие операционные системы, для которых пакеты исправлений больше не выпускаются;</li>
+<li>автоматически оценивает риски и рекомендует активацию виртуальных заплат, необходимых для каждого индивидуального устройства;</li>
+<li>динамически изменяет параметры безопасности в зависимости от местоположения устройства;</li>
+<li>защищает конечные устройства с минимальным воздействием на пропускную способность сети, производительность и продуктивность пользователей.</li>
+</ul><br/>
+<i>— Блокирует недопустимые виды сетевого трафика:</i><br/>
+<br/>
+<ul>
+<li>применяет фильтры для уведомления об определенных видах трафика и его блокировки, например, мгновенных сообщений и потоковой передачи видео;</li>
+<li>использует глубокую проверку пакетов для определения трафика, который может быть вредоносным для приложений;</li>
+<li>фильтрует запрещенный сетевой трафик и проверяет разрешенный трафик с помощью контроля состояния соединений;</li>
+<li>обнаруживает вредоносный трафик, который скрыт с помощью использования известных протоколов на нестандартных портах;</li>
+<li>предотвращает проникновение бэкдоров в корпоративную сеть.</li>
+</ul><br/>
+<i>— Делает защиту своевременной:</i><br/>
+<br/>
+<ul>
+<li>обеспечивает защиту до выпуска и установки официальных пакетов исправлений;</li>
+<li>защищает операционные системы и типичные приложения от известных и неизвестных атак.</li>
+</ul><br/>
+<i>— Облегчает развертывание и управление в существующей инфраструктуре:</i><br/>
+<br/>
+<ul>
+<li>упрощенная панель управления делает удобным проведение детализированного контроля и мониторинга среды, в разрезе каждого отдельного пользователя.</li>
+<li>оценка наличия уязвимостей проводится на основании бюллетеней по безопасности Microsoft, данных CVE и других источников.</li>
+</ul><br/>
+<b>А теперь расскажем (и покажем), как это работает</b><br/>
+<br/>
+Вся информация о состоянии конечных точек, об угрозах собрана в единой панели Apex Central. Аналитики получают возможность детального мониторинга, в разрезе каждого отдельного пользователя, и управления политиками. Единая панель позволяет контролировать локальные, облачные и гибридные среды. Также обеспечивается доступ к оперативной информации из локальной «песочницы» или из инфраструктуры Trend Micro Smart Protection Network, которая использует облачные данные об угрозах со всего мира и в режиме реального времени обеспечивает информационную безопасность, блокируя угрозы до того, как они попадут на компьютеры.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/a7/sc/34/a7sc34q369bzrbsmjnbwuk_nvq8.jpeg" data-src="https://habrastorage.org/webt/a7/sc/34/a7sc34q369bzrbsmjnbwuk_nvq8.jpeg" data-blurred="true"/><br/>
+<i> Единая панель позволяет не переключаться между панелями управления. Здесь можно видеть, как в едином менеджере отражается интегрированное детектирование и реакция. Здесь же обеспечена единая интеграция с расследованиями EDR, автоматизированное обнаружение и реакция на угрозу</i><br/>
+<cut></cut><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/9j/ed/gp/9jedgp9ueno5us8nmbxvb4dav_8.jpeg" data-src="https://habrastorage.org/webt/9j/ed/gp/9jedgp9ueno5us8nmbxvb4dav_8.jpeg" data-blurred="true"/><br/>
+<br/>
+<i>Анализ масштаба последствий:<br/>
+<br/>
+<ol>
+<li>Заблокирован вредоносный IP, так как он уже обнаружен (красный) (1)</li>
+<li>«Нулевой пациент». Не известен (оранжевый) и не был заблокирован (2)</li>
+<li>«Нулевой пациент» изолируется и начинается поиск первопричины (3)</li>
+</ol><br/>
+</i><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ep/po/tt/eppottseheoyicn-y_0ajve-ly8.jpeg" data-src="https://habrastorage.org/webt/ep/po/tt/eppottseheoyicn-y_0ajve-ly8.jpeg" data-blurred="true"/><br/>
+<i> Поиск первопричины с использованим глобальных сведений об угрозах Trend Micro:<br/>
+<br/>
+ — Красный («плохой»);<br/>
+ — Оранжевый («подозрительный»);<br/>
+ — Черный («удовлетворительный»)<br/>
+<br/>
+</i><br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/qn/eg/3g/qneg3g8r1-vmmu_b-ffmyyfhlc8.jpeg" data-src="https://habrastorage.org/webt/qn/eg/3g/qneg3g8r1-vmmu_b-ffmyyfhlc8.jpeg" data-blurred="true"/><br/>
+<i>Имеются варианты реакции:<br/>
+-Прекратить выполнение;<br/>
+-Распространить сведения об угрозе;<br/>
+-Произвести расследование<br/>
+<br/>
+</i><br/>
+Endpoint Sensor из пакета Apex One мониторит состояние безопасности на конечном устройстве с учетом<a href="https://blog.trendmicro.com/the-endpoint-detection-and-response-edr-conversation/"> контекста, регистрирует действия на уровне системы и формирует отчеты для безопасников,</a> чтобы можно было оперативно оценить масштаб атаки на сеть. В том числе Endpoint Sensor отслеживает усовершенствованные угрозы, такие как пресловутые бесфайловые атаки. С помощью EDR можно проводить многоуровневый поиск зловредов по всем конечным устройствам с помощью таких критериев, как OpenIOC, Yara и подозрительных объектов. Также предусмотрена защита от бесфайловых атак.<br/>
+ <br/>
+Даже если зловред проник сквозь серверные системы сканирования, технология Trend Micro User Protection изучит исполняемый файл до его запуска, применяя машинное обучение. При запуске начинается анализ поведения на основе машинного обучения. Затем в ход идет анализ в «песочнице» — по результатам проверок приложение либо начинает свою работу, либо блокируется. Причем в целях безопасности в сети может автоматически блокироваться весь компьютер, чтобы локализовать зловреда и не дать ему проникнуть в сеть.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/m-/mc/fi/m-mcfirl6w0xktnvydivhpjb9fu.png"/><br/>
+<br/>
+В Apex One используется технология Trend Micro Vulnerability Protection, которая защищает все конечные устройства сети от эксплойтов даже при отсутствии на них обновлений с исправлениями. Для этого Apex One централизованно анализирует трафик на предмет эксплойтов/уязвимостей, сервисных атак, веб-зловредов и незаконного трафика. При этом сканирование происходит с высокой скоростью, работа Apex One практически не сказывается на скорости самой сети.<br/>
+ <br/>
+<b>Как обеспечивается защита от утечек</b><br/>
+<br/>
+Еще один полезный модуль в решении Apex One — Data Loss Prevention. Он мониторит и контролирует пересылку контента по всем возможным каналам связи, чтобы предотвратить утечку данных. Можно протоколировать или ограничить использование USB-носителей, CD/DVD, экзотических ИК-передатчиков, PCMCIA-устройств, модемов, облачных хранилищ и почтовых серверов. Пересылка данных контролируется как при работе с почтовым клиентом, так и через веб-интерфейс почты, в мессенджерах и большинстве сетевых протоколов, таких как HTTP/HTTPS, FTP и SMTP.<br/>
+<br/>
+Data Loss Protection имеет шаблоны для распознавания более трехсот типов файлов, в том числе в архивах, а остальные типы данных определяются по специфичным шаблонам, формулам и расположению. Можно также создать идентификатор данных самостоятельно.<br/>
+И, наконец, защита от «самых умных» контролирует буфер обмена, вставку из него и создаваемые снимки экрана. После грамотной настройки Data Loss Protection вероятность того, что из компании уведут ценные данные, существенно снижается.<br/>
+<b><cut></cut><br/>
+<i>Бонус: MDR — служба безопасности по подписке</i></b><br/>
+ <br/>
+В нынешних условиях содержание большой команды информационной безопасности становится роскошью. В то же время чрезвычайно важно грамотно оценить ущерб, который нанесён кибератакой, сформировать план мероприятий по устранению угрозы и предотвращению повторных атак — оставшиеся после «оптимизации» сотрудники едва ли найдут время для подобных расследований.<br/>
+<br/>
+Тут на помощь приходит Trend Micro Managed Detection and Response — это служба управления обнаружением угроз и реагирования, входящая в состав Apex One. MDR представляет собой удаленную команду профессионалов Trend Micro, которая может заниматься мониторингом безопасности в сети заказчика в круглосуточном режиме. Это отличное решение для тех компаний, у которых нет возможности поддерживать большой штат безопасников или наблюдается нехватка сотрудников высокой компетенции.<br/>
+<br/>
+Служба MDR следит за журналами, выявляя критичные уведомления, исследует их и сообщает заказчику информацию об угрозе. Используя данных конечных точек, группа MDR обнаружит первопричины и вектор атаки, а также оценит ее последствия. Заказчик всегда может обратиться с вопросами к команде экспертов, чтобы получить уточнения и объяснения. MDR составит подробный план действий восстановления сети после атаки.<br/>
+<br/>
+В подписку входит отслеживание как конечных точек, так и сети, серверов, даже принтеров и интернета вещей.<br/>
+<br/>
+По сути, Trend Micro MDR делает всё то, что делают профессиональные укомплектованные отделы информационной безопасности. Но удаленно, круглосуточно и по подписке.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Btrend%20micro%5D" class="tm-tags-list__link">trend micro</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F%20%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C%5D" class="tm-tags-list__link">информационная безопасность</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B7%D0%B0%D1%89%D0%B8%D1%82%D0%B0%20%D0%BA%D0%BE%D0%BD%D0%B5%D1%87%D0%BD%D1%8B%D1%85%20%D1%82%D0%BE%D1%87%D0%B5%D0%BA%5D" class="tm-tags-list__link">защита конечных точек</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bedr%5D" class="tm-tags-list__link">edr</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/trendmicro/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Trend Micro
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/infosecurity/" class="tm-hubs-list__link">
+    Информационная безопасность
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 13: ↑12 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 13: ↑12 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+11</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">3.6K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    28
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/trendmicro/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/companies/4d0/638/83d/4d063883da90b17c65072c94eb137341.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/trendmicro/profile/" class="tm-company-snippet__title">Trend Micro</a> <div class="tm-company-snippet__description">Компания</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <!----> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Trend_Micro/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/218/450/aff/218450aff52b4032c6d9d61e81376cad.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 58 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    16.5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">8</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/Trend_Micro/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Trend_Micro
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/trendmicro/blog/450136/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><span>
+      1988
+    </span></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Япония
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://www.trendmicro.com.ru/" target="_blank" class="tm-company-basic-info__link">
+      www.trendmicro.com.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    5 001–10 000 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2010-07-21T09:58:44.000Z" title="2010-07-21, 13:58">21  июля  2010</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/trendmicro/blog/450136/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/trendmicro/blog/450136/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450136":{"id":"450136","timePublished":"2019-04-30T10:20:28+00:00","isCorporative":true,"lang":"ru","titleHtml":"Когда стены недостаточно. Как защитить конечные точки","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flg\u002Fj6\u002Fjm\u002Flgj6jmp_ne5cd8tekgpka-qxzf0.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nДумаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе невозможно, только если в компании не применяются строжайшие правила ИБ, «белый список» сайтов, исключительно бумажная переписка и запайка USB-портов на компьютерах, а со смартфоном дальше ресепшена вообще не пускают. Если это не про вашу компанию, то имейте в виду: сегодня главной зоной риска становятся как раз конечные устройства, и одного только антивируса для их защиты недостаточно. Да, антивирус заблокирует распаковку архива с опасным файлом, а браузер запретит посещение скомпрометированного сайта, но есть множество угроз, перед которыми базовые пакеты защиты бессильны. Дальше мы расскажем о некоторых из них — и о способах защиты.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":16.5,"votesCount":58},"rating":8,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1919215","alias":"Trend_Micro","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F218\u002F450\u002Faff\u002F218450aff52b4032c6d9d61e81376cad.png","speciality":"Пользователь"},"statistics":{"commentsCount":0,"favoritesCount":28,"readingCount":3622,"score":11,"votesCount":13},"hubs":[{"relatedData":null,"id":"16452","alias":"trendmicro","type":"corporative","title":"Блог компании Trend Micro","titleHtml":"Блог компании Trend Micro","isProfiled":false},{"relatedData":null,"id":"50","alias":"infosecurity","type":"collective","title":"Информационная безопасность","titleHtml":"Информационная безопасность","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Flg\u002Fj6\u002Fjm\u002Flgj6jmp_ne5cd8tekgpka-qxzf0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Flg\u002Fj6\u002Fjm\u002Flgj6jmp_ne5cd8tekgpka-qxzf0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДумаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе невозможно, только если в компании не применяются строжайшие правила ИБ, «белый список» сайтов, исключительно бумажная переписка и запайка USB-портов на компьютерах, а со смартфоном дальше ресепшена вообще не пускают. Если это не про вашу компанию, то имейте в виду: сегодня главной зоной риска становятся как раз конечные устройства, и одного только антивируса для их защиты недостаточно. Да, антивирус заблокирует распаковку архива с опасным файлом, а браузер запретит посещение скомпрометированного сайта, но есть множество угроз, перед которыми базовые пакеты защиты бессильны. Дальше мы расскажем о некоторых из них — и о способах защиты.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003E\u003Ci\u003EC чем не может справиться обычный антивирус в компании\u003C\u002Fi\u003E\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n—\u003Cb\u003E Бесфайловые атаки\u003C\u002Fb\u003E. Вредоносные PowerShell-скрипты, попадающие сразу в оперативную память, невозможно обнаружить антивирусом на стадии проникновения в систему — это не исполняемые программы, а просто текстовый набор команд, который выполняется в существующей в ОС оболочке, вроде PowerShell. Чтобы не исчезнуть при выключении компьютера, трояны прописывают свои команды в реестр.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбнаружить традиционными методами бесфайловую атаку невозможно — троян может хранить вредоносный скрипт, например, в TXT-файлах ресурсных записей DNS. По данным исследования Trend Micro\u003Ca href=\"https:\u002F\u002Fdocuments.trendmicro.com\u002Fassets\u002Frpt\u002Frpt-2018-Midyear-Security-Roundup-unseen-threats-imminent-losses.pdf\"\u003E 2018 Midyear Security Roundup\u003C\u002Fa\u003E, количество бесфайловых атак в мире растёт: в январе 2018 года было зафиксировано 24 430 инцидентов, а в июне — уже более 38 тыс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n— \u003Cb\u003EЭксплойты в необновленных ОС\u003C\u002Fb\u003E. Обновления операционных систем исправляют известные уязвимости, для которых уже могут быть написаны эксплойты. Перед развертыванием обновлений на сотнях и тысячах компьютеров его стоит сперва протестировать — иногда обновления содержат ошибки, из-за которых часть компьютеров временно выходит из строя. Переложить задачу установки обновлений на плечи пользователей — верный способ создать брешь в сети по вине необязательного или неумелого сотрудника.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНашумевшие WannaCry и NotPetya использовали для распространения уязвимости Windows, которые были закрыты обновлениям ещё за два месяца до начала эпидемии: первая ревизия WannaCry появилась 16 января 2017 года, 14 марта Microsoft распространила заплатку для протокола SMB во всех актуальных версиях Windows, а легендарная эпидемия началась только 12 мая. Проникнув на не обновленные компьютеры пользователей, вымогатель распространился внутри корпоративных сетей, парализовав деятельность компаний. Почему сотни тысяч корпоративных компьютеров в крупнейших компаниях два месяца оставались без критического обновления Windows — серьезный вопрос к соответствующим службам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n—\u003Cb\u003E Мобильные устройства\u003C\u002Fb\u003E. Несмотря на проверку приложений перед публикацией в магазинах Play Market и App Store, к якобы полезным программам нередко прикручивают шпионов и даже майнеры. Например, анализ 283 VPN-приложений для Android выявил, что 43% из них содержат нежелательную рекламу, а в 17% реклама имеет вредоносные функции, 29% являются источником троянских модулей, потенциально опасное ПО содержится в 6% VPN, а ещё\u003Ca href=\"https:\u002F\u002Fresearch.csiro.au\u002Fng\u002Fwp-content\u002Fuploads\u002Fsites\u002F106\u002F2016\u002F08\u002Fpaper-1.pdf\"\u003E 5% шпионят за своими пользователями\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n— \u003Cb\u003EСотрудники, незнающие базовые принципы ИБ\u003C\u002Fb\u003E. Главной дырой в информационной безопасности любой компании остаются сотрудники, вернее, их\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002Ftrendmicro\u002Fblog\u002F438250\u002F\"\u003E незнание принципов ИБ\u003C\u002Fa\u003E. Ни один вирус не сможет увести важную информацию и документы с той же изящностью и эффективностью, как сотрудник, скачивающий для собственного удобства в работе программу, которая в результате оказывается вредоносной.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cb\u003E\u003Ci\u003EКак защитить конечные точки\u003C\u002Fi\u003E\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nРастущая сложность угроз приводит к тому, что традиционные методы защиты становятся неэффективными. Одного антивируса недостаточно, чтобы исключить утечку данных или проникновение злоумышленников в сеть, а установка нескольких узкоспециализированных решений часто приводит к конфликтам и ошибкам. К тому же настройка и сопровождение совместной работы нескольких защитных программ — задача не из лёгких. Требуется комплексное решение, которое позволит пользователям с комфортом выполнять свои рабочие функции, но при этом обеспечит сохранность информационных активов компании.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nИдеальный комплекс защиты должен быть:\u003Cbr\u002F\u003E\r\n    \u003Cul\u003E\r\n\u003Cli\u003E многоплатформенный — работать на всех популярных десктопных и мобильных операционных системах; это особенно важно для компаний с политикой BYOD и возможностью удаленной работы;\u003C\u002Fli\u003E\r\n\u003Cli\u003E автоматический — обнаруживать угрозы и реагировать на них без участия пользователя;\u003C\u002Fli\u003E\r\n\u003Cli\u003E интеллектуальный — использовать не только традиционный сигнатурный, но и поведенческий анализ, обеспечивая выявление как файловых, так и бесфайловых вредоносов;\u003C\u002Fli\u003E\r\n\u003Cli\u003E централизованно управляемый — администраторы должны видеть состояние всех защищаемых устройств в реальном времени и иметь возможность изменять параметры безопасности в зависимости от местоположения устройства;\u003C\u002Fli\u003E\r\n\u003Cli\u003E обеспечивать интеграцию с системами поведенческого анализа и возможность расследования инцидентов;\u003C\u002Fli\u003E\r\n\u003Cli\u003E контролировать приложения на конечных устройствах, чтобы защитить корпоративную сеть от проникновения вредоносных программ и направленных атак с устройств в сети организации.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fwz\u002Fhs\u002Fh3\u002Fwzhsh3_j12kcsdi6ynbbqduyqnw.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fwz\u002Fhs\u002Fh3\u002Fwzhsh3_j12kcsdi6ynbbqduyqnw.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТрадиционные решения класса EPP (Endpoint Protection Platform) хорошо защищают пользовательские устройства от известных угроз, но с новейшими разновидностями атак справляются значительно хуже. Они успешно справляются с фиксацией инцидентов на отдельных устройствах, но, как правило, не в состоянии выявить, что эти инциденты являются фрагментами сложной комплексной атаки, которая в перспективе способна нанести организации серьёзный ущерб. Возможности автоматического анализа инцидентов у них почти отсутствуют. Поэтому компании разработали решения класса EDR (Endpoint Detection and Response).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E\u003Ci\u003EКак работает современное EDR-решение\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n \u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\nДавайте разберем, как работает решение по защите конечных точек на примере Apex One от Trend Micro. Этот продукт — существенное перерождение уже известного решения по защите конечных точек OfficeScan.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nОдной из ключевых возможностей Apex One является как раз многоэтапная защита конечных точек, не позволяющая зловредам распространяться по сети, влиять на работоспособность компьютера и красть конфиденциальные данные. Решение мгновенно блокирует угрозы «нулевого дня» на физических и виртуальных рабочих столах, а также ноутбуках как в сети, так и за ее пределами.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EЧто конкретно делает Apex One?\u003C\u002Fb\u003E\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003E— Защищает от усовершенствованных угроз:\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eпредотвращает возможность использования известных и неизвестных уязвимостей для проникновения в системы до выпуска пакетов исправлений;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eзащищает неподдерживаемые и устаревшие операционные системы, для которых пакеты исправлений больше не выпускаются;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eавтоматически оценивает риски и рекомендует активацию виртуальных заплат, необходимых для каждого индивидуального устройства;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eдинамически изменяет параметры безопасности в зависимости от местоположения устройства;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eзащищает конечные устройства с минимальным воздействием на пропускную способность сети, производительность и продуктивность пользователей.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E— Блокирует недопустимые виды сетевого трафика:\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eприменяет фильтры для уведомления об определенных видах трафика и его блокировки, например, мгновенных сообщений и потоковой передачи видео;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eиспользует глубокую проверку пакетов для определения трафика, который может быть вредоносным для приложений;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eфильтрует запрещенный сетевой трафик и проверяет разрешенный трафик с помощью контроля состояния соединений;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eобнаруживает вредоносный трафик, который скрыт с помощью использования известных протоколов на нестандартных портах;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпредотвращает проникновение бэкдоров в корпоративную сеть.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E— Делает защиту своевременной:\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eобеспечивает защиту до выпуска и установки официальных пакетов исправлений;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eзащищает операционные системы и типичные приложения от известных и неизвестных атак.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E— Облегчает развертывание и управление в существующей инфраструктуре:\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eупрощенная панель управления делает удобным проведение детализированного контроля и мониторинга среды, в разрезе каждого отдельного пользователя.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eоценка наличия уязвимостей проводится на основании бюллетеней по безопасности Microsoft, данных CVE и других источников.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EА теперь расскажем (и покажем), как это работает\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВся информация о состоянии конечных точек, об угрозах собрана в единой панели Apex Central. Аналитики получают возможность детального мониторинга, в разрезе каждого отдельного пользователя, и управления политиками. Единая панель позволяет контролировать локальные, облачные и гибридные среды. Также обеспечивается доступ к оперативной информации из локальной «песочницы» или из инфраструктуры Trend Micro Smart Protection Network, которая использует облачные данные об угрозах со всего мира и в режиме реального времени обеспечивает информационную безопасность, блокируя угрозы до того, как они попадут на компьютеры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fa7\u002Fsc\u002F34\u002Fa7sc34q369bzrbsmjnbwuk_nvq8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fa7\u002Fsc\u002F34\u002Fa7sc34q369bzrbsmjnbwuk_nvq8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E Единая панель позволяет не переключаться между панелями управления. Здесь можно видеть, как в едином менеджере отражается интегрированное детектирование и реакция. Здесь же обеспечена единая интеграция с расследованиями EDR, автоматизированное обнаружение и реакция на угрозу\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ccut\u003E\u003C\u002Fcut\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F9j\u002Fed\u002Fgp\u002F9jedgp9ueno5us8nmbxvb4dav_8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9j\u002Fed\u002Fgp\u002F9jedgp9ueno5us8nmbxvb4dav_8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EАнализ масштаба последствий:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EЗаблокирован вредоносный IP, так как он уже обнаружен (красный) (1)\u003C\u002Fli\u003E\r\n\u003Cli\u003E«Нулевой пациент». Не известен (оранжевый) и не был заблокирован (2)\u003C\u002Fli\u003E\r\n\u003Cli\u003E«Нулевой пациент» изолируется и начинается поиск первопричины (3)\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fep\u002Fpo\u002Ftt\u002Feppottseheoyicn-y_0ajve-ly8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fep\u002Fpo\u002Ftt\u002Feppottseheoyicn-y_0ajve-ly8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E Поиск первопричины с использованим глобальных сведений об угрозах Trend Micro:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n — Красный («плохой»);\u003Cbr\u002F\u003E\r\n — Оранжевый («подозрительный»);\u003Cbr\u002F\u003E\r\n — Черный («удовлетворительный»)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fqn\u002Feg\u002F3g\u002Fqneg3g8r1-vmmu_b-ffmyyfhlc8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqn\u002Feg\u002F3g\u002Fqneg3g8r1-vmmu_b-ffmyyfhlc8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EИмеются варианты реакции:\u003Cbr\u002F\u003E\r\n-Прекратить выполнение;\u003Cbr\u002F\u003E\r\n-Распространить сведения об угрозе;\u003Cbr\u002F\u003E\r\n-Произвести расследование\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\nEndpoint Sensor из пакета Apex One мониторит состояние безопасности на конечном устройстве с учетом\u003Ca href=\"https:\u002F\u002Fblog.trendmicro.com\u002Fthe-endpoint-detection-and-response-edr-conversation\u002F\"\u003E контекста, регистрирует действия на уровне системы и формирует отчеты для безопасников,\u003C\u002Fa\u003E чтобы можно было оперативно оценить масштаб атаки на сеть. В том числе Endpoint Sensor отслеживает усовершенствованные угрозы, такие как пресловутые бесфайловые атаки. С помощью EDR можно проводить многоуровневый поиск зловредов по всем конечным устройствам с помощью таких критериев, как OpenIOC, Yara и подозрительных объектов. Также предусмотрена защита от бесфайловых атак.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nДаже если зловред проник сквозь серверные системы сканирования, технология Trend Micro User Protection изучит исполняемый файл до его запуска, применяя машинное обучение. При запуске начинается анализ поведения на основе машинного обучения. Затем в ход идет анализ в «песочнице» — по результатам проверок приложение либо начинает свою работу, либо блокируется. Причем в целях безопасности в сети может автоматически блокироваться весь компьютер, чтобы локализовать зловреда и не дать ему проникнуть в сеть.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fm-\u002Fmc\u002Ffi\u002Fm-mcfirl6w0xktnvydivhpjb9fu.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ Apex One используется технология Trend Micro Vulnerability Protection, которая защищает все конечные устройства сети от эксплойтов даже при отсутствии на них обновлений с исправлениями. Для этого Apex One централизованно анализирует трафик на предмет эксплойтов\u002Fуязвимостей, сервисных атак, веб-зловредов и незаконного трафика. При этом сканирование происходит с высокой скоростью, работа Apex One практически не сказывается на скорости самой сети.\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\n\u003Cb\u003EКак обеспечивается защита от утечек\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕще один полезный модуль в решении Apex One — Data Loss Prevention. Он мониторит и контролирует пересылку контента по всем возможным каналам связи, чтобы предотвратить утечку данных. Можно протоколировать или ограничить использование USB-носителей, CD\u002FDVD, экзотических ИК-передатчиков, PCMCIA-устройств, модемов, облачных хранилищ и почтовых серверов. Пересылка данных контролируется как при работе с почтовым клиентом, так и через веб-интерфейс почты, в мессенджерах и большинстве сетевых протоколов, таких как HTTP\u002FHTTPS, FTP и SMTP.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nData Loss Protection имеет шаблоны для распознавания более трехсот типов файлов, в том числе в архивах, а остальные типы данных определяются по специфичным шаблонам, формулам и расположению. Можно также создать идентификатор данных самостоятельно.\u003Cbr\u002F\u003E\r\nИ, наконец, защита от «самых умных» контролирует буфер обмена, вставку из него и создаваемые снимки экрана. После грамотной настройки Data Loss Protection вероятность того, что из компании уведут ценные данные, существенно снижается.\u003Cbr\u002F\u003E\r\n\u003Cb\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EБонус: MDR — служба безопасности по подписке\u003C\u002Fi\u003E\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n \u003Cbr\u002F\u003E\r\nВ нынешних условиях содержание большой команды информационной безопасности становится роскошью. В то же время чрезвычайно важно грамотно оценить ущерб, который нанесён кибератакой, сформировать план мероприятий по устранению угрозы и предотвращению повторных атак — оставшиеся после «оптимизации» сотрудники едва ли найдут время для подобных расследований.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТут на помощь приходит Trend Micro Managed Detection and Response — это служба управления обнаружением угроз и реагирования, входящая в состав Apex One. MDR представляет собой удаленную команду профессионалов Trend Micro, которая может заниматься мониторингом безопасности в сети заказчика в круглосуточном режиме. Это отличное решение для тех компаний, у которых нет возможности поддерживать большой штат безопасников или наблюдается нехватка сотрудников высокой компетенции.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСлужба MDR следит за журналами, выявляя критичные уведомления, исследует их и сообщает заказчику информацию об угрозе. Используя данных конечных точек, группа MDR обнаружит первопричины и вектор атаки, а также оценит ее последствия. Заказчик всегда может обратиться с вопросами к команде экспертов, чтобы получить уточнения и объяснения. MDR составит подробный план действий восстановления сети после атаки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ подписку входит отслеживание как конечных точек, так и сети, серверов, даже принтеров и интернета вещей.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПо сути, Trend Micro MDR делает всё то, что делают профессиональные укомплектованные отделы информационной безопасности. Но удаленно, круглосуточно и по подписке.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"trend micro"},{"titleHtml":"информационная безопасность"},{"titleHtml":"защита конечных точек"},{"titleHtml":"edr"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450136\u002F0c1c68cd9c8ab8b987f838243010bef6\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450136\u002F0c1c68cd9c8ab8b987f838243010bef6\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Ftrendmicro\\\u002Fblog\\\u002F450136\\\u002F\"},\"headline\":\"Когда стены недостаточно. Как защитить конечные точки\",\"datePublished\":\"2019-04-30T13:20:28+03:00\",\"dateModified\":\"2019-04-30T18:42:44+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Trend_Micro\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Думаете, самое важное в компании &mdash; обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищ...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Ftrendmicro\\\u002Fblog\\\u002F450136\\\u002F#post-content-body\",\"about\":[\"c_trendmicro\",\"h_infosecurity\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Flg\\\u002Fj6\\\u002Fjm\\\u002Flgj6jmp_ne5cd8tekgpka-qxzf0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fwz\\\u002Fhs\\\u002Fh3\\\u002Fwzhsh3_j12kcsdi6ynbbqduyqnw.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa7\\\u002Fsc\\\u002F34\\\u002Fa7sc34q369bzrbsmjnbwuk_nvq8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F9j\\\u002Fed\\\u002Fgp\\\u002F9jedgp9ueno5us8nmbxvb4dav_8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fep\\\u002Fpo\\\u002Ftt\\\u002Feppottseheoyicn-y_0ajve-ly8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqn\\\u002Feg\\\u002F3g\\\u002Fqneg3g8r1-vmmu_b-ffmyyfhlc8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fm-\\\u002Fmc\\\u002Ffi\\\u002Fm-mcfirl6w0xktnvydivhpjb9fu.png\"]}","metaDescription":"Думаете, самое важное в компании — обеспечить безопасность корпоративного сетевого периметра и серверной инфраструктуры? Это правда лишь отчасти: создать защищенный периметр сейчас в принципе...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"trendmicro":{"alias":"trendmicro","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompanies\u002F4d0\u002F638\u002F83d\u002F4d063883da90b17c65072c94eb137341.png","titleHtml":"Trend Micro","descriptionHtml":null,"relatedData":null,"statistics":{"postsCount":68,"newsCount":0,"vacanciesCount":0,"employeesCount":4,"careerRating":null,"subscribersCount":1232,"rating":67.11,"invest":null},"foundationDate":{"year":"1988","month":null,"day":null},"location":{"city":null,"region":null,"country":{"id":"246","title":"Япония"}},"siteUrl":"http:\u002F\u002Fwww.trendmicro.com.ru\u002F","staffNumber":"5 001–10 000 человек","registrationDate":"2010-07-21T09:58:44+00:00","representativeUser":null,"contacts":[],"settings":{"analyticsSettings":[],"branding":null,"status":"active"},"metadata":{"titleHtml":"Trend Micro, Япония -  с 1988 год","title":"Trend Micro, Япония -  с 1988 год","keywords":["Информационная безопасность","Исследования и прогнозы в IT","Антивирусная защита","Автомобильные гаджеты","IT-компании"],"descriptionHtml":"68 статей от авторов компании Trend Micro","description":"68 статей от авторов компании Trend Micro"},"aDeskSettings":null,"careerAlias":null,"maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

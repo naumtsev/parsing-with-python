@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>UML&amp;Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450288\/"},"headline":"UML&Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы","datePublished":"2019-05-01T22:57:06+03:00","dateModified":"2019-05-03T15:31:50+03:00","author":{"@type":"Person","name":"KSA (Красникова Светлана А.)"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Советский плакат &laquo;Автоматическую систему управления производством &mdash; народному хозяйству!&raquo;, художник Р. Сурьянинов, 1972 &laquo;Рассказ о моделировании именно сложных...","url":"https:\/\/habr.com\/ru\/post\/450288\/#post-content-body","about":["h_analysis_design","h_uml","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/0d\/4n\/s8\/0d4ns8b_om4rsq31guqhukqcgfk.jpeg","https:\/\/habrastorage.org\/webt\/bs\/h2\/wl\/bsh2wlkuh-i2qeelqntxcfk90es.jpeg","https:\/\/habrastorage.org\/webt\/8c\/0f\/78\/8c0f78vw1pyj0ijycvlxvf58mra.jpeg","https:\/\/habrastorage.org\/webt\/bb\/10\/nr\/bb10nrkqgatm3zldnv5_ub0n5um.jpeg","https:\/\/habrastorage.org\/webt\/yt\/tx\/pp\/yttxppyqdiad-9ol-ype5vhv_a8.jpeg","https:\/\/habrastorage.org\/webt\/yh\/vy\/ao\/yhvyaoz9mexunb8zyjmzwe8nfjm.jpeg","https:\/\/habrastorage.org\/webt\/bw\/ej\/x5\/bwejx5qp8kbxxzld2r08y9qkxhg.jpeg","https:\/\/habrastorage.org\/webt\/mb\/or\/w1\/mborw1n8o26xqkz9vwxz-hdoyl4.jpeg","https:\/\/habrastorage.org\/webt\/1a\/s_\/9t\/1as_9tltwpiucfy5r7-d3vdcfow.jpeg","https:\/\/habrastorage.org\/webt\/qr\/rk\/da\/qrrkda_klrc6grdhxpdbhmdls4i.jpeg","https:\/\/habrastorage.org\/webt\/mk\/vl\/st\/mkvlstpljbqxapyljuk_tr8_rom.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="UML&amp;Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="UML&amp;Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="UML&amp;Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972
+«Рассказ о моделировании именно сложных систем»
+Предыстория
+К одной из моих..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972
+«Рассказ о моделировании именно сложных систем»
+Предыстория
+К одной из моих..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972
+«Рассказ о моделировании именно сложных систем»
+Предыстория
+К одной из моих..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972
+«Рассказ о моделировании именно сложных систем»
+Предыстория
+К одной из моих..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972
+«Рассказ о моделировании именно сложных систем»
+Предыстория
+К одной из моих..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450288/aadbf84d6d187683b94c0a41d7bd5949/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450288/aadbf84d6d187683b94c0a41d7bd5949/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450288/aadbf84d6d187683b94c0a41d7bd5949/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450288/aadbf84d6d187683b94c0a41d7bd5949/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450288/aadbf84d6d187683b94c0a41d7bd5949/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450288" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T19:57:06.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450288/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450288/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450288/aadbf84d6d187683b94c0a41d7bd5949/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450288/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/krasni/" title="krasni" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/dcf/064/39b/dcf06439bd646a68a66e04e9ad092e71.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/krasni/" class="tm-user-info__username">
+      krasni
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T19:57:06.000Z" title="2019-05-01, 22:57">1  мая  2019 в 22:57</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>UML&Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/analysis_design/" class="tm-article-snippet__hubs-item-link"><span>Анализ и проектирование систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/uml/" class="tm-article-snippet__hubs-item-link"><span>UML Design</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p><img src="https://habrastorage.org/r/w780q1/webt/0d/4n/s8/0d4ns8b_om4rsq31guqhukqcgfk.jpeg" data-src="https://habrastorage.org/webt/0d/4n/s8/0d4ns8b_om4rsq31guqhukqcgfk.jpeg" data-blurred="true"/><br/>
+<em>Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972</em></p><br/>
+<h2 id="rasskaz-o-modelirovanii-imenno-slozhnyh-sistem">«Рассказ о моделировании именно сложных систем»</h2><br/>
+<h3 id="predystoriya">Предыстория</h3><br/>
+<p>К одной из моих статей по моделированию «сказочной» предметной области (<a href="https://habr.com/ru/post/448146/">часть 1</a>, <a href="https://habr.com/ru/post/448186/">часть 2</a>) был оставлен комментарий, цитирую:</p><br/>
+<blockquote><a href="https://habr.com/ru/post/448186/#comment_20030944">«Было бы здорово увидеть рассказ о моделировании именно сложных систем»</a>.</blockquote><p>И я пообещала подобрать что-то из реальной жизни.</p><a name="habracut"></a><br/>
+<h3 id="neskolko-slov-o-yazyke-modelirovaniya-srede-modelirovaniya-metodologii-i-soglashenii-po-modelirovaniyu">Несколько слов о языке моделирования, среде моделирования, методологии и соглашении по моделированию</h3><br/>
+<p><strong>Язык моделирования </strong><br/>
+Для моделирования применяется <a href="https://www.omg.org/spec/UML/2.5.1/PDF">UML – Unified Modeling Language, унифицированный язык моделирования</a> [1].</p><br/>
+<p><strong>Среда моделирования</strong><br/>
+В качестве инструмента моделирования используется Enterprise Architect от австралийской компании <a href="https://sparxsystems.com">Sparx Systems</a> [2].</p><cut></cut><br/>
+<p><strong>Методология и соглашение по моделированию </strong><br/>
+До начала проектирования необходимо установить определенные правила и подходы, которым мы будем следовать при разработке диаграмм, эти же правила будут использоваться при «чтении» диаграмм. Подробно основные подходы описаны в [3, 4].</p><br/>
+<p><strong>Этап 1. </strong>Разрабатываем карту процессов с помощью Use-case диаграммы, на нее помещаем все выявленные целевые процессы – элементы Use-case, а также участников процессов – элементы Actor, стараемся процессы сразу сгруппировать по смыслу (по возможности, конечно).</p><br/>
+<p><strong>Этап 2. </strong>Описываем каждый процесс в виде диаграммы Activity. Для процесса, в котором выделено более 10 шагов, имеет смысл применить принцип декомпозиции шагов процесса, чтобы повысить читабельность диаграммы. Для диаграмм Activity нижнего уровня применяем структурирование поля диаграммы с помощью «плавательных» дорожек – Swim lanes. Имя дорожки будет соответствовать типу элементов диаграммы, которые будут размещены на этой дорожке. «Вх./вых. объекты»: на этой дорожке будут располагаться элементы Objects – объекты, которые используются или являются результатом выполнения некоторого шага процесса. «Деятельность»: сюда поместим элементы Activity – действия участников процесса. «Роль»: дорожка для элементов, которые будут обозначать роли исполнителей действий в нашем процессе, для них мы будем использовать все тот же моделирующий элемент Object – объект, но добавим ему стереотип «Actor». Следующая дорожка называется «Правила» и на этой дорожке разместим в текстовом виде правила выполнения шагов процесса, а использовать для этого будем моделирующий элемент Note – примечание. Дорожку «Инструменты» будем использовать для сбора сведений об уровне автоматизации процесса. </p><cut></cut><br/>
+<p><strong>Этап 3. </strong>Выделяем то, что можно автоматизировать. У нас будет три типа шагов: ручное выполнение, автоматизированное и полностью автоматическое.</p><br/>
+<p><strong>Этап 4. </strong>Автоматизируемому шагу нужно поставить в соответствие функцию или функции системы (отношение может быть многие-ко-многим), рисуем Use-case диаграмму. Это функции нашей системы.</p><br/>
+<p><strong>Этап 5. </strong>Опишем внутреннюю организацию системы с помощью диаграммы классов – Class. Плавательная дорожа «Вх./вых. объекты» на диаграмме Activity – это основа для построения объектной модели и модели сущность-связь. </p><br/>
+<p><strong>Этап 6. </strong>Проанализируем заметки на дорожке «Правила», они дают различного рода ограничения и условия, которые постепенно трансформируется в нефункциональные требования.</p><br/>
+<p><strong>Этап 7. </strong>Элементы на дорожке «Инструменты» говорят нам об уровне автоматизации процесса.<br/>
+Полученная совокупность диаграмм дает формализованное описание в достаточно строгой нотации, т.е. имеет однозначное прочтение. Теперь можно разрабатывать техническое задание, уточнять спецификацию требований и т.д.</p><cut></cut><br/>
+<p><strong>Моделирующие элементы диаграммы Use-case для карты процессов</strong></p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/bs/h2/wl/bsh2wlkuh-i2qeelqntxcfk90es.jpeg" data-src="https://habrastorage.org/webt/bs/h2/wl/bsh2wlkuh-i2qeelqntxcfk90es.jpeg" data-blurred="true"/></p><br/>
+<p><strong>Моделирующие элементы диаграммы Activity</strong></p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/8c/0f/78/8c0f78vw1pyj0ijycvlxvf58mra.jpeg" data-src="https://habrastorage.org/webt/8c/0f/78/8c0f78vw1pyj0ijycvlxvf58mra.jpeg" data-blurred="true"/><cut></cut></p><br/>
+<h3 id="kratkie-svedeniya-ob-obekte-avtomatizacii">Краткие сведения об объекте автоматизации</h3><br/>
+<p>Объектом автоматизации являются процессы обеспечения качества производства медицинских изделий.</p><br/>
+<p>Процесс изготовления медицинских изделий характеризуется наличием большого количества ручных операций. Управление качеством регламентировано в соответствии со стандартом ГОСТ ISO 13485-2011. Изделия медицинские. Системы менеджмента качества. Системные требования для целей регулирования.</p><br/>
+<p>Для осуществления контроля качества необходимо осуществлять контроль и регистрацию всех операций при производстве медицинского изделия для последующего расследования возможных происшествий.</p><br/>
+<p>В качестве носителя регистрационной информации используется штрих-код. Для считывания информации используется дистанционный считыватель штрих-кодов.</p><br/>
+<p>Разрабатываемая автоматизированная система (АС) контроля изготовления медицинских изделий предназначена для:</p><br/>
+<ul>
+<li>контроля и регистрации всех операций при производстве медицинского изделия;</li>
+<li>мониторинга процесса создания изделия;</li>
+<li>получение отчетности по проделанным операциям.<cut></cut></li>
+</ul><br/>
+<h3 id="karta-processov---diagramma-use-case">Карта процессов — диаграмма Use-case</h3><br/>
+<p>На Рисунке 1 представлена карта процессов АС контроля изготовления медицинских изделий. Зеленым цветом выделены процессы, для которых далее будут приведены сценарии выполнения.</p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/bb/10/nr/bb10nrkqgatm3zldnv5_ub0n5um.jpeg" data-src="https://habrastorage.org/webt/bb/10/nr/bb10nrkqgatm3zldnv5_ub0n5um.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 1. Карта процессов автоматизируемой системы контроля изготовления медицинских изделий</em><cut></cut></p><br/>
+<h3 id="primery-scenariev-vypolneniya-processov--diagrammy-activity">Примеры сценариев выполнения процессов – диаграммы Activity</h3><br/>
+<p>На Рисунках 2-5 представлены примеры сценариев выполнения процессов АС контроля изготовления медицинских изделий. </p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/yt/tx/pp/yttxppyqdiad-9ol-ype5vhv_a8.jpeg" data-src="https://habrastorage.org/webt/yt/tx/pp/yttxppyqdiad-9ol-ype5vhv_a8.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 2. Подготовка к работе (начало смены)</em></p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/yh/vy/ao/yhvyaoz9mexunb8zyjmzwe8nfjm.jpeg" data-src="https://habrastorage.org/webt/yh/vy/ao/yhvyaoz9mexunb8zyjmzwe8nfjm.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 3. Изготовление мед. изделия (макрошаги)</em><cut></cut></p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/bw/ej/x5/bwejx5qp8kbxxzld2r08y9qkxhg.jpeg" data-src="https://habrastorage.org/webt/bw/ej/x5/bwejx5qp8kbxxzld2r08y9qkxhg.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 4. Начало изготовления мед.изделия</em></p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/mb/or/w1/mborw1n8o26xqkz9vwxz-hdoyl4.jpeg" data-src="https://habrastorage.org/webt/mb/or/w1/mborw1n8o26xqkz9vwxz-hdoyl4.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 5. Изготовление мед.изделия</em></p><br/>
+<h3 id="zhiznennyy-cikl-obekta--diagramma-state-chart">Жизненный цикл объекта – диаграмма State Chart</h3><br/>
+<p>На диаграммах Activity состояния обозначены в квадратных скобках до или после имен объектов. </p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/1a/s_/9t/1as_9tltwpiucfy5r7-d3vdcfow.jpeg" data-src="https://habrastorage.org/webt/1a/s_/9t/1as_9tltwpiucfy5r7-d3vdcfow.jpeg" data-blurred="true"/></p><br/>
+<p>Полный жизненный цикл изготовления медицинского изделия представлен на диаграмме состояний – State Chart (Рисунок 6). </p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/qr/rk/da/qrrkda_klrc6grdhxpdbhmdls4i.jpeg" data-src="https://habrastorage.org/webt/qr/rk/da/qrrkda_klrc6grdhxpdbhmdls4i.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 6. Диаграмма состояний изготовления мед.изделия</em><cut></cut></p><br/>
+<h3 id="struktura-sistemy">Структура системы</h3><br/>
+<p>Система логически разделена на подсистемы по функциональному признаку:</p><br/>
+<ul>
+<li>Подсистема «Изготовление мед.изделий»;</li>
+<li>Подсистема «Справочники и реестры (НСИ)»;</li>
+<li>Подсистема «Мониторинг и контроль» (включая модули «Мониторинг технологических операций» и «Отчетность»);</li>
+<li>Подсистема «Безопасность»;</li>
+<li>Подсистема «Администрирование».</li>
+</ul><br/>
+<p>Автоматизируемые процессы в разрезе подсистем и модулей представлены на рисунке ниже (Рисунок 7). </p><br/>
+<p><img src="https://habrastorage.org/r/w780q1/webt/mk/vl/st/mkvlstpljbqxapyljuk_tr8_rom.jpeg" data-src="https://habrastorage.org/webt/mk/vl/st/mkvlstpljbqxapyljuk_tr8_rom.jpeg" data-blurred="true"/><br/>
+<em>Рисунок 7. Автоматизируемые процессы в разрезе подсистем и модулей</em></p><br/>
+<p>Это, конечно, не все диаграммы, но для того, чтобы дать представление о модели, думаю, достаточно.</p><br/>
+<h3 id="vmesto-zaklyucheniya">Вместо заключения</h3><br/>
+<p>Когда приступали к разработке системы, знания о предметной области основывались только на упомянутом в начале ГОСТ ISO 13485-2011 про медицинские изделия и описании потребностей заказчика на полстраницы. Модели обсуждали с заказчиком, особых трудностей в «чтении» моделей не наблюдалось.</p><br/>
+<p>АС разработана в 2016-2017гг. под SQL Server 2014 Express, на C#, платформа ASP.NET MVC 5, для front-end – Javascript и JQuery. В качестве дистанционных считывателей штрих-кодов применялись беспроводные сканеры Mercury CL600R.<cut></cut></p><br/>
+<h3 id="spisok-istochnikov">Список источников</h3><br/>
+<ol>
+<li>OMG Unified Modeling Language (OMG UML) Specification. Version 2.5.1. [Электронный ресурс] Режим доступа: Интернет: <a href="https://www.omg.org/spec/UML/2.5.1/PDF">https://www.omg.org/spec/UML/2.5.1/PDF</a></li>
+<li>Сайт Sparx Systems. [Электронный ресурс] Режим доступа: Интернет: <a href="https://sparxsystems.com">https://sparxsystems.com</a></li>
+<li>Свидетельство № 18249 о регистрации и депонировании произведения результата интеллектуальной деятельности. Алфимов Р.В., Золотухина Е.Б., Красникова С.А. Рукопись учебно-методического пособия под названием «Моделирование предметной области с использованием Enterprise Architect» // 2011г.</li>
+<li>Золотухина Е.Б., Вишня А.С., Красникова С.А. Моделирование бизнес-процессов. — М.: КУРС, НИЦ ИНФРА-М, ЭБС Znanium.com. — 2017.</li>
+</ol></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%BE%D0%B4%D0%B5%D0%BB%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">моделирование</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">проектирование</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Benterprise%20architect%5D" class="tm-tags-list__link">enterprise architect</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Buml%5D" class="tm-tags-list__link">uml</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bactivity%20diagram%5D" class="tm-tags-list__link">activity diagram</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Buse-case%20diagram%5D" class="tm-tags-list__link">use-case diagram</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bstate%20chart%20diagram%5D" class="tm-tags-list__link">state chart diagram</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/analysis_design/" class="tm-hubs-list__link">
+    Анализ и проектирование систем
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/uml/" class="tm-hubs-list__link">
+    UML Design
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 13: ↑12 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 13: ↑12 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+11</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">14K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    76
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/krasni/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/dcf/064/39b/dcf06439bd646a68a66e04e9ad092e71.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 16 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    14
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">KSA (Красникова Светлана А.)</span> <a href="/ru/users/krasni/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @krasni
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Бизнес- и системный анализ</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450288/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 10 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450288/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450288/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450288":{"id":"450288","timePublished":"2019-05-01T19:57:06+00:00","isCorporative":false,"lang":"ru","titleHtml":"UML&Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы","leadData":{"textHtml":"\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F0d\u002F4n\u002Fs8\u002F0d4ns8b_om4rsq31guqhukqcgfk.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cem\u003EСоветский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Ch2 id=\"rasskaz-o-modelirovanii-imenno-slozhnyh-sistem\"\u003E«Рассказ о моделировании именно сложных систем»\u003C\u002Fh2\u003E\u003Cbr\u003E\r\n\u003Ch3 id=\"predystoriya\"\u003EПредыстория\u003C\u002Fh3\u003E\u003Cbr\u003E\r\n\u003Cp\u003EК одной из моих статей по моделированию «сказочной» предметной области (\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448146\u002F\"\u003Eчасть 1\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448186\u002F\"\u003Eчасть 2\u003C\u002Fa\u003E) был оставлен комментарий, цитирую:\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cblockquote\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448186\u002F#comment_20030944\"\u003E«Было бы здорово увидеть рассказ о моделировании именно сложных систем»\u003C\u002Fa\u003E.\u003C\u002Fblockquote\u003E\u003Cp\u003EИ я пообещала подобрать что-то из реальной жизни.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":14,"votesCount":16},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"2027527","alias":"krasni","fullname":"KSA (Красникова Светлана А.)","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fdcf\u002F064\u002F39b\u002Fdcf06439bd646a68a66e04e9ad092e71.jpg","speciality":"Бизнес- и системный анализ"},"statistics":{"commentsCount":10,"favoritesCount":76,"readingCount":13907,"score":11,"votesCount":13},"hubs":[{"relatedData":null,"id":"397","alias":"analysis_design","type":"collective","title":"Анализ и проектирование систем","titleHtml":"Анализ и проектирование систем","isProfiled":true},{"relatedData":null,"id":"17715","alias":"uml","type":"collective","title":"UML Design","titleHtml":"UML Design","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F0d\u002F4n\u002Fs8\u002F0d4ns8b_om4rsq31guqhukqcgfk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F0d\u002F4n\u002Fs8\u002F0d4ns8b_om4rsq31guqhukqcgfk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EСоветский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"rasskaz-o-modelirovanii-imenno-slozhnyh-sistem\"\u003E«Рассказ о моделировании именно сложных систем»\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"predystoriya\"\u003EПредыстория\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EК одной из моих статей по моделированию «сказочной» предметной области (\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448146\u002F\"\u003Eчасть 1\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448186\u002F\"\u003Eчасть 2\u003C\u002Fa\u003E) был оставлен комментарий, цитирую:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F448186\u002F#comment_20030944\"\u003E«Было бы здорово увидеть рассказ о моделировании именно сложных систем»\u003C\u002Fa\u003E.\u003C\u002Fblockquote\u003E\u003Cp\u003EИ я пообещала подобрать что-то из реальной жизни.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"neskolko-slov-o-yazyke-modelirovaniya-srede-modelirovaniya-metodologii-i-soglashenii-po-modelirovaniyu\"\u003EНесколько слов о языке моделирования, среде моделирования, методологии и соглашении по моделированию\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЯзык моделирования \u003C\u002Fstrong\u003E\u003Cbr\u002F\u003E\r\nДля моделирования применяется \u003Ca href=\"https:\u002F\u002Fwww.omg.org\u002Fspec\u002FUML\u002F2.5.1\u002FPDF\"\u003EUML – Unified Modeling Language, унифицированный язык моделирования\u003C\u002Fa\u003E [1].\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EСреда моделирования\u003C\u002Fstrong\u003E\u003Cbr\u002F\u003E\r\nВ качестве инструмента моделирования используется Enterprise Architect от австралийской компании \u003Ca href=\"https:\u002F\u002Fsparxsystems.com\"\u003ESparx Systems\u003C\u002Fa\u003E [2].\u003C\u002Fp\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EМетодология и соглашение по моделированию \u003C\u002Fstrong\u003E\u003Cbr\u002F\u003E\r\nДо начала проектирования необходимо установить определенные правила и подходы, которым мы будем следовать при разработке диаграмм, эти же правила будут использоваться при «чтении» диаграмм. Подробно основные подходы описаны в [3, 4].\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 1. \u003C\u002Fstrong\u003EРазрабатываем карту процессов с помощью Use-case диаграммы, на нее помещаем все выявленные целевые процессы – элементы Use-case, а также участников процессов – элементы Actor, стараемся процессы сразу сгруппировать по смыслу (по возможности, конечно).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 2. \u003C\u002Fstrong\u003EОписываем каждый процесс в виде диаграммы Activity. Для процесса, в котором выделено более 10 шагов, имеет смысл применить принцип декомпозиции шагов процесса, чтобы повысить читабельность диаграммы. Для диаграмм Activity нижнего уровня применяем структурирование поля диаграммы с помощью «плавательных» дорожек – Swim lanes. Имя дорожки будет соответствовать типу элементов диаграммы, которые будут размещены на этой дорожке. «Вх.\u002Fвых. объекты»: на этой дорожке будут располагаться элементы Objects – объекты, которые используются или являются результатом выполнения некоторого шага процесса. «Деятельность»: сюда поместим элементы Activity – действия участников процесса. «Роль»: дорожка для элементов, которые будут обозначать роли исполнителей действий в нашем процессе, для них мы будем использовать все тот же моделирующий элемент Object – объект, но добавим ему стереотип «Actor». Следующая дорожка называется «Правила» и на этой дорожке разместим в текстовом виде правила выполнения шагов процесса, а использовать для этого будем моделирующий элемент Note – примечание. Дорожку «Инструменты» будем использовать для сбора сведений об уровне автоматизации процесса. \u003C\u002Fp\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 3. \u003C\u002Fstrong\u003EВыделяем то, что можно автоматизировать. У нас будет три типа шагов: ручное выполнение, автоматизированное и полностью автоматическое.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 4. \u003C\u002Fstrong\u003EАвтоматизируемому шагу нужно поставить в соответствие функцию или функции системы (отношение может быть многие-ко-многим), рисуем Use-case диаграмму. Это функции нашей системы.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 5. \u003C\u002Fstrong\u003EОпишем внутреннюю организацию системы с помощью диаграммы классов – Class. Плавательная дорожа «Вх.\u002Fвых. объекты» на диаграмме Activity – это основа для построения объектной модели и модели сущность-связь. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 6. \u003C\u002Fstrong\u003EПроанализируем заметки на дорожке «Правила», они дают различного рода ограничения и условия, которые постепенно трансформируется в нефункциональные требования.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЭтап 7. \u003C\u002Fstrong\u003EЭлементы на дорожке «Инструменты» говорят нам об уровне автоматизации процесса.\u003Cbr\u002F\u003E\r\nПолученная совокупность диаграмм дает формализованное описание в достаточно строгой нотации, т.е. имеет однозначное прочтение. Теперь можно разрабатывать техническое задание, уточнять спецификацию требований и т.д.\u003C\u002Fp\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EМоделирующие элементы диаграммы Use-case для карты процессов\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fbs\u002Fh2\u002Fwl\u002Fbsh2wlkuh-i2qeelqntxcfk90es.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fbs\u002Fh2\u002Fwl\u002Fbsh2wlkuh-i2qeelqntxcfk90es.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EМоделирующие элементы диаграммы Activity\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F8c\u002F0f\u002F78\u002F8c0f78vw1pyj0ijycvlxvf58mra.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F8c\u002F0f\u002F78\u002F8c0f78vw1pyj0ijycvlxvf58mra.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"kratkie-svedeniya-ob-obekte-avtomatizacii\"\u003EКраткие сведения об объекте автоматизации\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбъектом автоматизации являются процессы обеспечения качества производства медицинских изделий.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПроцесс изготовления медицинских изделий характеризуется наличием большого количества ручных операций. Управление качеством регламентировано в соответствии со стандартом ГОСТ ISO 13485-2011. Изделия медицинские. Системы менеджмента качества. Системные требования для целей регулирования.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля осуществления контроля качества необходимо осуществлять контроль и регистрацию всех операций при производстве медицинского изделия для последующего расследования возможных происшествий.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ качестве носителя регистрационной информации используется штрих-код. Для считывания информации используется дистанционный считыватель штрих-кодов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРазрабатываемая автоматизированная система (АС) контроля изготовления медицинских изделий предназначена для:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eконтроля и регистрации всех операций при производстве медицинского изделия;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмониторинга процесса создания изделия;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eполучение отчетности по проделанным операциям.\u003Ccut\u003E\u003C\u002Fcut\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"karta-processov---diagramma-use-case\"\u003EКарта процессов — диаграмма Use-case\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа Рисунке 1 представлена карта процессов АС контроля изготовления медицинских изделий. Зеленым цветом выделены процессы, для которых далее будут приведены сценарии выполнения.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fbb\u002F10\u002Fnr\u002Fbb10nrkqgatm3zldnv5_ub0n5um.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fbb\u002F10\u002Fnr\u002Fbb10nrkqgatm3zldnv5_ub0n5um.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 1. Карта процессов автоматизируемой системы контроля изготовления медицинских изделий\u003C\u002Fem\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"primery-scenariev-vypolneniya-processov--diagrammy-activity\"\u003EПримеры сценариев выполнения процессов – диаграммы Activity\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа Рисунках 2-5 представлены примеры сценариев выполнения процессов АС контроля изготовления медицинских изделий. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fyt\u002Ftx\u002Fpp\u002Fyttxppyqdiad-9ol-ype5vhv_a8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyt\u002Ftx\u002Fpp\u002Fyttxppyqdiad-9ol-ype5vhv_a8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 2. Подготовка к работе (начало смены)\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fyh\u002Fvy\u002Fao\u002Fyhvyaoz9mexunb8zyjmzwe8nfjm.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fyh\u002Fvy\u002Fao\u002Fyhvyaoz9mexunb8zyjmzwe8nfjm.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 3. Изготовление мед. изделия (макрошаги)\u003C\u002Fem\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fbw\u002Fej\u002Fx5\u002Fbwejx5qp8kbxxzld2r08y9qkxhg.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fbw\u002Fej\u002Fx5\u002Fbwejx5qp8kbxxzld2r08y9qkxhg.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 4. Начало изготовления мед.изделия\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmb\u002For\u002Fw1\u002Fmborw1n8o26xqkz9vwxz-hdoyl4.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmb\u002For\u002Fw1\u002Fmborw1n8o26xqkz9vwxz-hdoyl4.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 5. Изготовление мед.изделия\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"zhiznennyy-cikl-obekta--diagramma-state-chart\"\u003EЖизненный цикл объекта – диаграмма State Chart\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа диаграммах Activity состояния обозначены в квадратных скобках до или после имен объектов. \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F1a\u002Fs_\u002F9t\u002F1as_9tltwpiucfy5r7-d3vdcfow.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F1a\u002Fs_\u002F9t\u002F1as_9tltwpiucfy5r7-d3vdcfow.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолный жизненный цикл изготовления медицинского изделия представлен на диаграмме состояний – State Chart (Рисунок 6). \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fqr\u002Frk\u002Fda\u002Fqrrkda_klrc6grdhxpdbhmdls4i.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqr\u002Frk\u002Fda\u002Fqrrkda_klrc6grdhxpdbhmdls4i.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 6. Диаграмма состояний изготовления мед.изделия\u003C\u002Fem\u003E\u003Ccut\u003E\u003C\u002Fcut\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"struktura-sistemy\"\u003EСтруктура системы\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСистема логически разделена на подсистемы по функциональному признаку:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EПодсистема «Изготовление мед.изделий»;\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодсистема «Справочники и реестры (НСИ)»;\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодсистема «Мониторинг и контроль» (включая модули «Мониторинг технологических операций» и «Отчетность»);\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодсистема «Безопасность»;\u003C\u002Fli\u003E\r\n\u003Cli\u003EПодсистема «Администрирование».\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EАвтоматизируемые процессы в разрезе подсистем и модулей представлены на рисунке ниже (Рисунок 7). \u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fmk\u002Fvl\u002Fst\u002Fmkvlstpljbqxapyljuk_tr8_rom.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fmk\u002Fvl\u002Fst\u002Fmkvlstpljbqxapyljuk_tr8_rom.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cem\u003EРисунок 7. Автоматизируемые процессы в разрезе подсистем и модулей\u003C\u002Fem\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЭто, конечно, не все диаграммы, но для того, чтобы дать представление о модели, думаю, достаточно.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"vmesto-zaklyucheniya\"\u003EВместо заключения\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКогда приступали к разработке системы, знания о предметной области основывались только на упомянутом в начале ГОСТ ISO 13485-2011 про медицинские изделия и описании потребностей заказчика на полстраницы. Модели обсуждали с заказчиком, особых трудностей в «чтении» моделей не наблюдалось.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EАС разработана в 2016-2017гг. под SQL Server 2014 Express, на C#, платформа ASP.NET MVC 5, для front-end – Javascript и JQuery. В качестве дистанционных считывателей штрих-кодов применялись беспроводные сканеры Mercury CL600R.\u003Ccut\u003E\u003C\u002Fcut\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"spisok-istochnikov\"\u003EСписок источников\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EOMG Unified Modeling Language (OMG UML) Specification. Version 2.5.1. [Электронный ресурс] Режим доступа: Интернет: \u003Ca href=\"https:\u002F\u002Fwww.omg.org\u002Fspec\u002FUML\u002F2.5.1\u002FPDF\"\u003Ehttps:\u002F\u002Fwww.omg.org\u002Fspec\u002FUML\u002F2.5.1\u002FPDF\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EСайт Sparx Systems. [Электронный ресурс] Режим доступа: Интернет: \u003Ca href=\"https:\u002F\u002Fsparxsystems.com\"\u003Ehttps:\u002F\u002Fsparxsystems.com\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003EСвидетельство № 18249 о регистрации и депонировании произведения результата интеллектуальной деятельности. Алфимов Р.В., Золотухина Е.Б., Красникова С.А. Рукопись учебно-методического пособия под названием «Моделирование предметной области с использованием Enterprise Architect» \u002F\u002F 2011г.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЗолотухина Е.Б., Вишня А.С., Красникова С.А. Моделирование бизнес-процессов. — М.: КУРС, НИЦ ИНФРА-М, ЭБС Znanium.com. — 2017.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"моделирование"},{"titleHtml":"проектирование"},{"titleHtml":"enterprise architect"},{"titleHtml":"uml"},{"titleHtml":"activity diagram"},{"titleHtml":"use-case diagram"},{"titleHtml":"state chart diagram"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450288\u002Faadbf84d6d187683b94c0a41d7bd5949\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450288\u002Faadbf84d6d187683b94c0a41d7bd5949\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450288\\\u002F\"},\"headline\":\"UML&Enterprise Architect: проектируем целевой процесс при создании автоматизированной системы\",\"datePublished\":\"2019-05-01T22:57:06+03:00\",\"dateModified\":\"2019-05-03T15:31:50+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"KSA (Красникова Светлана А.)\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Советский плакат &laquo;Автоматическую систему управления производством &mdash; народному хозяйству!&raquo;, художник Р. Сурьянинов, 1972 &laquo;Рассказ о моделировании именно сложных...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450288\\\u002F#post-content-body\",\"about\":[\"h_analysis_design\",\"h_uml\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F0d\\\u002F4n\\\u002Fs8\\\u002F0d4ns8b_om4rsq31guqhukqcgfk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fbs\\\u002Fh2\\\u002Fwl\\\u002Fbsh2wlkuh-i2qeelqntxcfk90es.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F8c\\\u002F0f\\\u002F78\\\u002F8c0f78vw1pyj0ijycvlxvf58mra.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fbb\\\u002F10\\\u002Fnr\\\u002Fbb10nrkqgatm3zldnv5_ub0n5um.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyt\\\u002Ftx\\\u002Fpp\\\u002Fyttxppyqdiad-9ol-ype5vhv_a8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fyh\\\u002Fvy\\\u002Fao\\\u002Fyhvyaoz9mexunb8zyjmzwe8nfjm.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fbw\\\u002Fej\\\u002Fx5\\\u002Fbwejx5qp8kbxxzld2r08y9qkxhg.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmb\\\u002For\\\u002Fw1\\\u002Fmborw1n8o26xqkz9vwxz-hdoyl4.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F1a\\\u002Fs_\\\u002F9t\\\u002F1as_9tltwpiucfy5r7-d3vdcfow.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqr\\\u002Frk\\\u002Fda\\\u002Fqrrkda_klrc6grdhxpdbhmdls4i.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fmk\\\u002Fvl\\\u002Fst\\\u002Fmkvlstpljbqxapyljuk_tr8_rom.jpeg\"]}","metaDescription":"Советский плакат «Автоматическую систему управления производством — народному хозяйству!», художник Р. Сурьянинов, 1972\r\n«Рассказ о моделировании именно сложных систем»\r\nПредыстория\r\nК одной из моих...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"analysis_design,uml"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

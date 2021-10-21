@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Детальный обзор 3CX v16 / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/3cx\/blog\/450264\/"},"headline":"Детальный обзор 3CX v16","datePublished":"2019-05-01T16:07:15+03:00","dateModified":"2019-05-02T17:21:44+03:00","author":{"@type":"Person","name":"Игорь Снежко"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение произво...","url":"https:\/\/habr.com\/ru\/company\/3cx\/blog\/450264\/#post-content-body","about":["c_3cx","h_sys_admin","h_it-infrastructure","h_s_admin","h_netdev","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b0d\/56f\/81b\/b0d56f81b9aa2515b25c43747615c881.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/428\/6ae\/572\/4286ae572744b55aa59172e0c46de21e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b89\/2d1\/649\/b892d1649157ffa7331cbca946596df1.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/19b\/32f\/563\/19b32f563cf3b45a60d8aebc8d1592e5.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/10a\/7fd\/12f\/10a7fd12f3da55a6bda02341c8a8f9d2.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/34a\/ded\/60c\/34aded60c625e9aa40a42ac577fb8ada.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/654\/3ce\/bb9\/6543cebb970afc066c2ad99d2a4baa6e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/f95\/013\/6f3\/f950136f3cbb3cb3fae6b8c7cca072a2.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Детальный обзор 3CX v16" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Детальный обзор 3CX v16" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Детальный обзор 3CX v16" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450264/cdc971c7a13eb14ae6778bfe324daaf5/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450264/cdc971c7a13eb14ae6778bfe324daaf5/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450264/cdc971c7a13eb14ae6778bfe324daaf5/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450264/cdc971c7a13eb14ae6778bfe324daaf5/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450264/cdc971c7a13eb14ae6778bfe324daaf5/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450264" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T13:07:15.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450264/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/3cx/blog/450264/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450264/cdc971c7a13eb14ae6778bfe324daaf5/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450264/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="3cx" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><!----></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/3cx/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/0dc/168/ab6/0dc168ab6f671170d5f0c0be62bc1148.png" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/3cx/profile/" class="tm-company-card__name">
+        3CX Ltd.
+      </a> <div class="tm-company-card__description">Windows VoIP АТС с видеоконференциями Webmeeting</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/snezhko/" title="snezhko" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/6a5/809/e18/6a5809e1852c823ea0a485d201b5916e.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/snezhko/" class="tm-user-info__username">
+      snezhko
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T13:07:15.000Z" title="2019-05-01, 16:07">1  мая  2019 в 16:07</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Детальный обзор 3CX v16</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/3cx/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании 3CX Ltd.</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sys_admin/" class="tm-article-snippet__hubs-item-link"><span>Системное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it-infrastructure/" class="tm-article-snippet__hubs-item-link"><span>IT-инфраструктура</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/s_admin/" class="tm-article-snippet__hubs-item-link"><span>Серверное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/netdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка систем связи</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">В этой статье мы сделаем детальный обзор возможностей <a href="https://www.3cx.ru/blog/company-communications-v16/">3CX v16</a>. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже время заметно облегчена работа системного инженера, обслуживающего систему.<br/>
+<br/>
+В v16 мы расширили возможности объединенной работы. Теперь система позволяет коммуницировать не только между сотрудниками, но и с вашими клиентами и заказчиками. К встроенному колл-центру 3CX добавлен новый интерфейс контакт-центра. Также расширена интеграция с CRM-системами, добавлены новые средства мониторинга качества сервиса, включая новую Операторскую панель АТС.<a name="habracut"></a><br/>
+<br/>
+<h3>Новый контакт-центр 3CX</h3><br/>
+Собрав отзывы более 170000 клиентов по всему миру, мы с нуля разработали новый модуль колл-центра, который гораздо производительнее и лучше масштабируется. Одно из важных нововведений — маршрутизация вызовов по квалификации оператора. Такая маршрутизация встречаются только в дорогих специализированных колл-центрах, а 3CX предлагает ее за небольшую часть стоимости такого решения от конкурентов. Эта функция доступна в редакции 3CX Enterprise. Отметим, что маршрутизация вызовов по квалификации — только начало разработки нового колл-центра 3CX. Новые возможности «настоящих» колл-центров появятся в следующих обновлениях.<br/>
+<br/>
+В наше время покупатели часто не хотят звонить в компанию — им удобнее связаться с вами через окно чата на сайте. Учтя пожелания клиентов, мы создали новый виджет контакт-центра, который позволяет посетителю сайта писать в чат и даже позвонить к вам через браузер! Выглядит это так — операторы, которые начали чат, тут же могут перейти на общение голосом, а затем даже видео. Такой сквозной канал общения обеспечивает превосходный сервис — без разрывов коммуникации покупателя и вашего сотрудника.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/b0d/56f/81b/b0d56f81b9aa2515b25c43747615c881.png"/><br/>
+<br/>
+Коммуникационный виджет для веб-сайта <a href="https://www.3cx.ru/ip-pbx/wordpress-live-chat-talk/">3CX Live Chat &amp; Talk</a> предлагается бесплатно со всеми редакциям 3CX (даже с бесплатной!). Преимущество нашего виджета перед похожими сторонними сервисами чата в том, что посетителю сайта не нужно перезванивать к вам по обычному телефону — он начинает в чате и сразу продолжает голосом. Ваши операторы не должны изучать интерфейс сторонних сервисов, а системный администратор не должен их поддерживать. К тому же, вы экономите немалые деньги на ежемесячной оплате сторонних сервисов связи для вашего сайта. <br/>
+<br/>
+Для подключения виджета к сайту <a href="https://www.3cx.com/docs/live-chat-talk-wordpress-plugin/">установите плагин для WordPress</a> и добавить блок кода на ваш сайт (если сайт не на Wordpress, <a href="https://www.3cx.com/docs/website-live-chat-talk/">следуйте этой инструкции</a>). Затем настройте подключение к АТС, внешний вид окна чата и укажите, на каких страницах должен появляться виджет. Операторы будут получать сообщения и отвечать посетителям непосредственно через веб-клиент 3CX. Заметим, что эта технология находится в стадии бета-тестирования и новые функции будут добавлены очередных обновлениях.<br/>
+<br/>
+В 3CX v16 мы также улучшили серверную <a href="https://www.3cx.ru/crm-integration/">CRM-интеграцию</a>. Добавлены новые CRM-системы, а для поддерживаемых CRM появилась фиксация звонков, дополнительные опции и  CRM-дайлеры (номеронабиратели). Это позволяет полностью интегрировать телефонию в интерфейс CRM. Поддержка исходящих вызовов через CRM-номеронабиратели в данный реализована только для CRM Salesforce, но будет подключена и для остальных CRM по мере совершенствования REST API.<br/>
+<br/>
+Для обеспечения качественного сервиса, важно понимать, как именно обслуживаются ваши клиенты. В v16 для этого сделано важное улучшение — новая Операторская панель мониторинга звонков и чатов.  Кроме того, улучшены отчеты <a href="https://www.3cx.ru/ip-pbx/call-center/">колл-центра</a> и добавлена возможность архивирования записей разговоров. Руководители колл-центров давно запрашивали такие возможности!<br/>
+<br/>
+Новая Операторская панель колл-центра обеспечивает удобный мониторинг событий в отдельном всплывающем окне. Со временем в нее будут добавлены новые режимы отображения информации, например, лидерборд (leaderboard) для оценки KPI операторов.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/428/6ae/572/4286ae572744b55aa59172e0c46de21e.png"/><br/>
+<br/>
+Отчеты о вызовах были слабым звеном 3CX именно из-за устаревшей архитектуры колл-центра. Новая архитектура сервиса Очередей в v16 значительно улучшила качество отчетов. Разумеется, исправлено множество неточностей и ошибок, замеченных ранее. В следующих обновлениях появятся новые типы отчетов.<br/>
+<br/>
+Запись разговоров операторов используется в любом колл-центре как для контроля качества обслуживания, так и, иногда, по требованиям законодательства. В v16 мы значительно улучшили эту функцию. Все данные о записи вызова, включая ссылку на аудиофайл записи, теперь хранятся в базе данных. Кроме того, система распознаёт (переводит в текст с помощью сервисов Google) первую минуту каждой записи — теперь вы можете быстро найти нужный разговор по ключевым словам. Как было сказано, записи разговоров могут архивироваться на внешнем <a href="https://www.3cx.ru/docs/manual/pbx-management/#h.regwb5464gsv">NAS-хранилище или Google-диске</a>. Серьезное количество записей теперь не требует большого локального диска. Это не только позволяет использовать дешёвый VPS-хостинг, но и значительно ускоряет резервирование и восстановление сервера 3CX.<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/b89/2d1/649/b892d1649157ffa7331cbca946596df1.png"/><br/>
+<h3>UC и совместная работа</h3><br/>
+В v16 появились новые технологии совместной работы сотрудников — полноценная <a href="https://www.3cx.com/docs/office-365-integration/">интеграция с Office 365</a>, встроенный веб-софтфон и CRM-интеграция для исходящих вызовов. Мы также улучшили интерфейс веб-клиента, расширили возможности корпоративного чата и видеоконференций.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/19b/32f/563/19b32f563cf3b45a60d8aebc8d1592e5.png"/><br/>
+<br/>
+Новая система использует последнюю версию Microsoft Office API и поддерживает все подписки Office 365, начиная от недорогой Business Essentials. Реализована синхронизация пользователей Office 365 с 3CX — добавление или удаление пользователей в Office 365 создаёт и удаляет соответствующие добавочные номера в АТС. Так же работает синхронизация контактов Office. А синхронизация календарей позволяет автоматически устанавливать статус добавочного номера 3CX в зависимости от вашего статуса в календаре Outlook.<br/>
+<br/>
+Браузерный софтфон WebRTC, который был доступен в v15.5 как бета, теперь выпущен в релиз. Пользователь 3CX может звонить прямо из браузера, независимо от ОС и без установки каких-либо локальных приложений. Кстати, в нём реализована интеграция с гарнитурами Sennheiser — поддерживается работа кнопки ответа на вызов.<br/>
+<br/>
+В v16 значительно улучшена функциональность чата. Мобильный корпоративный чат приближается к лидирующим приложениям наподобие WhatsApp. Чат 3CX имеет схожую функциональность и работает примерно так же — пользователям будет легко с ним освоиться. Появилась отправка файлов, изображений и эмоджи. В ближайшее время появится переадресация сообщений между пользователями и архивирование чатов. Также будут доступны отчёты по чатам — важная функция для администраторов колл-центра. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/10a/7fd/12f/10a7fd12f3da55a6bda02341c8a8f9d2.png"/><br/>
+<br/>
+Функция, которая была в клиенте 3CX для Windows и отсутствовала в веб-клиенте — настройка BLF-индикаторов непосредственно самим пользователем. Благодаря ей сотрудники могут самостоятельно устанавливать BLF-индикаторы без привлечения системного администратора. Теперь настройка BLF работает и в веб-клиенте. Также во всплывающей карточке вызова добавлена дополнительная информация об абоненте. Одним словом, теперь гораздо проще переключаться между веб-софтфоном, IP-телефоном и приложениями для Android и iOS.<br/>
+<br/>
+<h3>Веб-конференции 3CX WebMeeting</h3><br/>
+Если вы всё ещё тратите деньги на веб-конференции Webex или Zoom, пора переходить на 3CX! MCU WebMeeting перенесены на инфраструктуру Amazon. Это позволило обеспечить высокую надежность, оптимизировать передачу трафика, обеспечить отличное качество видео и аудио с большим количеством участников. Также отметим, что теперь демонстрация своего экрана не требуют установки расширения для браузера. И еще одна новая функция — теперь участники могут звонить в веб-конференцию WebRTC с обычных телефонов — и участвовать голосом, без использования ПК и браузера.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/34a/ded/60c/34aded60c625e9aa40a42ac577fb8ada.png"/><br/>
+<br/>
+<h3>Новые возможности для администраторов</h3><br/>
+Конечно, мы не забыли о системных администраторах. Значительно улучшена безопасность и производительность АТС. Настолько, что мы смогли <a href="https://habr.com/ru/company/3cx/blog/440478/">запустить ее на Raspberry Pi</a>! Ещё одна интересная функция v16 — новый сервис — Менеджер экземпляров 3CX, который позволяет администрировать все ваши АТС из единого интерфейса.<br/>
+<br/>
+Небольшим компаниям будет выгоднее разместить АТС не в облаке, а локально на стандартном устройстве Raspberry Pi 3B+, которое стоит в районе 50$. Чтобы этого добиться, мы значительно снизили требования к процессору и памяти, и запустили v16 на самых нетребовательных ARM-устройствах Raspberry и самых дешевых VPS-серверах.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/654/3ce/bb9/6543cebb970afc066c2ad99d2a4baa6e.png"/><br/>
+<br/>
+Менеджер экземпляров 3CX позволяет централизованно управлять всеми установленными экземплярами АТС. Это отличное решение для интеграторов — партнеров 3CX и крупных клиентов. Можно устанавливать обновления одновременно на все системы, мониторить статус сервисов, контролировать ошибки, например нехватку места на диске. В следующих обновлениях появится управление SIP-транками и устройствами, подключенными через сервис 3CX SBC, мониторинг событий безопасности и удаленное тестирование качества VoIP-трафика.<br/>
+<br/>
+Мы постоянно работаем над технологиями безопасности корпоративной связи. 3CX v16 добавляет интересную функцию защиты — глобальный список подозрительных IP-адресов, собираемых со всех установленных систем 3CX в мире. Затем этот список проверяется (выделяются IP-адреса, которые стабильно блокируются) и передается обратно на все серверы 3CX, в том числе, и на вашу систему. Таким образом реализуется эффективная облачная защита от хакеров. Разумеется, все open-source компоненты 3CX обновлены до последних версий. Обращаем ваше внимание, что использование устаревших систем со старыми версиями компонентов — базы данных, веб-сервера и т.п. значительно увеличивает риски вторжения. Кстати, теперь вы можете ограничить доступ к интерфейсу 3CX по IP-адресам.<br/>
+<br/>
+Из других возможностей для администраторов отметим статистику протокола RTCP, которая помогает в поиске проблем с качеством связи; копирование добавочного номера — теперь его можно создать как копию уже существующего, изменив только основные параметры. Весь интерфейс 3CX переведен на редактирование «в один клик», а менять порядок BLF-индикаторов теперь можно простым перетаскиванием мышкой.<br/>
+<br/>
+<h3>Лицензии и цены</h3><br/>
+Несмотря на и так довольно доступные цены, мы пересмотрели их в сторону уменьшения. Редакция 3CX Standard подешевела на 40% (а бесплатная версия расширена до 8 одновременных вызовов). Несколько изменился <a href="https://www.3cx.ru/ip-pbx/edition-comparison/">набор возможностей</a>, доступных в разных редакциях. Также добавлены промежуточные размеры лицензий, которые позволят вам подобрать наиболее оптимальную емкость АТС для конкретной организации.<br/>
+<br/>
+Дополнительные размеры лицензий позволят заказчику не покупать лицензию большего размера, только потому, что нет более подходящего промежуточного. Заметим, что лицензии промежуточного размера предлагаются только как годовые. Также, такие лицензии могут быть расширены в любое время без так называемого штрафа — оплачивается только фактическая разница между емкостью.<br/>
+<br/>
+Редакция 3CX Standard теперь лучше подходит для небольших компаний, которым не требуются Очереди вызовов, отчёты и запись разговоров. Такие компании заплатят за АТС самый минимум; к тому же Standard на 8 одновременных вызовов теперь бесплатна навсегда. Обратите внимание, что установленные АТС редакции Standard с коммерческим ключом автоматически перейдут на Pro при обновлении на версию 16. Если вас не устраивает такой переход — воздержитесь от обновления на v16.<br/>
+<br/>
+Возможности редакции Pro остались прежними. Для небольших и средних лицензий цена снижена на 20%! Важное улучшение — теперь при получении новой лицензии (ключа) с сайта 3CX, она будет работать как редакция Pro первые 40 дней. Емкость лицензии вы указываете самостоятельно! Это позволяет клиенту и партнеру полноценно протестировать все возможности АТС. Напомним, что по сравнению с редакцией Standard, реакция Pro добавляет Очереди вызовов, отчёты, запись разговоров, интеграцию с Office 365 и другими CRM-системами.<br/>
+<br/>
+В редакцию Enterprise мы продолжаем добавлять возможности, за которые раньше компаниям приходилось платить на порядок больше. Например, мы добавили опцию, позволяющую запретить отключение записи разговора сотрудником. Следующая давно запрашиваемая опция — маршрутизация вызова в Очереди по квалификации оператора. Напоминаем, что только в 3CX Enterprise поддерживается встроенный отказоустойчивый кластер телефонии.<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/f95/013/6f3/f950136f3cbb3cb3fae6b8c7cca072a2.png"/> <br/>
+Если говорить об общей стоимости владения 3CX, — <a href="https://www.3cx.ru/ordering/pricing/">годовая подписка</a> теперь выгоднее <a href="https://www.3cx.ru/ordering/pricing/perpetual/">бессрочной</a>, особенно из расчета на 3 года. Бессрочная лицензия стоит как 3 годовых лицензии, но для такой лицензии вам еще потребуется <a href="https://www.3cx.com/ordering/pricing/3cx-maintenance/">опциональная подписка на обновления</a> на 2 года (первый год включен в стоимость бессрочной лицензии). Обратите внимание — лицензии на 4 и 8 одновременных вызовов теперь доступны только как годовые.<br/>
+<br/>
+Ещё раз хотим напомнить, что подписка на обновления (актуально только для бессрочных лицензий) стоит своих денег! Даже простая покупка SSL-сертификатов и надежного DNS-сервиса будет дороже и сложнее в настройке, чем продление подписки. Кроме того, подписка обеспечивает установку последних обновлений безопасности, новые <a href="https://www.3cx.com/support/phone-firmwares/">прошивки для IP-телефонов</a>, сервис <a href="https://www.3cx.ru/webmeeting/">веб-конференций 3CX WebMeeting</a> и право на использование приложений для смартфонов (проще говоря — обновленные мобильные приложения могут перестать работать со старым сервером АТС).<br/>
+<br/>
+В ближайшее время мы выпустим v16 Update 1, который будет включать обновленную среду разработки голосовых приложений <a href="https://www.3cx.ru/blog/call-flow-designer-v16/">3CX Call Flow Designer</a>, генерирующую скрипты на C#. Кроме того, появятся улучшения чата и поддержка баз данных SQL для получения информации о контакте через REST запросы.<br/>
+<br/>
+v16 Update 2 будет включать обновленный <a href="https://www.3cx.com/docs/3cx-sbc-windows/">3CX Session Border Controller</a> с централизованным мониторингом удаленных устройств (IP-телефонов) из консоли управления 3CX (до 100 телефонов за одним SBC). Также появится поддержка некоторых технологий DNS для упрощенной настройки VoIP-операторов.<br/>
+<br/>
+Возможности, которые планируется включить в следующие обновления: упрощенная настройка отказоустойчивого кластера (в редакции Enterprise), ввод блоков DID-номеров в интерфейсе сервера, новый REST API для автоматизации исходящего обзвона и новая панель мониторинга KPI операторов колл-центра (Leaderboard).<br/>
+<br/>
+Вот такой обзор. <a href="https://www.3cx.ru/ip-pbx/download-atc/">Качайте</a>, <a href="https://www.3cx.ru/docs/manual/installing-debian-linux-pbx/">устанавливаете</a>, пользуйтесь!</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B3cx%20v16%5D" class="tm-tags-list__link">3cx v16</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%5D" class="tm-tags-list__link">обзор</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B2%D0%B8%D0%B4%D0%B6%D0%B5%D1%82%20%D0%B4%D0%BB%D1%8F%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%5D" class="tm-tags-list__link">виджет для сайта</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D1%80%D1%85%D0%B8%D0%B2%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D0%B5%D0%B9%5D" class="tm-tags-list__link">архивирование записей</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BA%D0%BE%D0%BD%D1%82%D0%B0%D0%BA%D1%82-%D1%86%D0%B5%D0%BD%D1%82%D1%80%5D" class="tm-tags-list__link">контакт-центр</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D1%8C%20%D1%80%D0%B0%D0%B7%D0%B3%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B2%5D" class="tm-tags-list__link">запись разговоров</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B5%D0%BD%D0%B5%D0%B4%D0%B6%D0%B5%D1%80%20%D1%8D%D0%BA%D0%B7%D0%B5%D0%BC%D0%BF%D0%BB%D1%8F%D1%80%D0%BE%D0%B2%203cx%5D" class="tm-tags-list__link">менеджер экземпляров 3cx</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B1%D0%B5%D1%81%D0%BF%D0%BB%D0%B0%D1%82%D0%BD%D0%B0%D1%8F%20%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F%5D" class="tm-tags-list__link">бесплатная лицензия</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/3cx/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании 3CX Ltd.
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/sys_admin/" class="tm-hubs-list__link">
+    Системное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/it-infrastructure/" class="tm-hubs-list__link">
+    IT-инфраструктура
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/s_admin/" class="tm-hubs-list__link">
+    Серверное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/netdev/" class="tm-hubs-list__link">
+    Разработка систем связи
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 20: ↑19 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 20: ↑19 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+18</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">3.6K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    3
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/3cx/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/0dc/168/ab6/0dc168ab6f671170d5f0c0be62bc1148.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/3cx/profile/" class="tm-company-snippet__title">3CX Ltd.</a> <div class="tm-company-snippet__description">Windows VoIP АТС с видеоконференциями Webmeeting</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <!----> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/snezhko/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/6a5/809/e18/6a5809e1852c823ea0a485d201b5916e.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 39 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    3
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Игорь Снежко</span> <a href="/ru/users/snezhko/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @snezhko
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/3cx/blog/450264/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2005-12-31T21:00:00.000Z" title="2006-01-01, 00:00">1  января  2006</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Кипр
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://3cx.ru/" target="_blank" class="tm-company-basic-info__link">
+      3cx.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    51–100 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2013-03-26T07:55:41.000Z" title="2013-03-26, 11:55">26  марта  2013</time></dd></dl> <!----></div></div> <!----></section> <!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/3cx/blog/450264/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/3cx/blog/450264/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450264":{"id":"450264","timePublished":"2019-05-01T13:07:15+00:00","isCorporative":true,"lang":"ru","titleHtml":"Детальный обзор 3CX v16","leadData":{"textHtml":"В этой статье мы сделаем детальный обзор возможностей \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fblog\u002Fcompany-communications-v16\u002F\"\u003E3CX v16\u003C\u002Fa\u003E. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже время заметно облегчена работа системного инженера, обслуживающего систему.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ v16 мы расширили возможности объединенной работы. Теперь система позволяет коммуницировать не только между сотрудниками, но и с вашими клиентами и заказчиками. К встроенному колл-центру 3CX добавлен новый интерфейс контакт-центра. Также расширена интеграция с CRM-системами, добавлены новые средства мониторинга качества сервиса, включая новую Операторскую панель АТС.","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":3,"votesCount":39},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"395722","alias":"snezhko","fullname":"Игорь Снежко","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F6a5\u002F809\u002Fe18\u002F6a5809e1852c823ea0a485d201b5916e.jpg","speciality":null},"statistics":{"commentsCount":0,"favoritesCount":3,"readingCount":3578,"score":18,"votesCount":20},"hubs":[{"relatedData":null,"id":"18047","alias":"3cx","type":"corporative","title":"Блог компании 3CX Ltd.","titleHtml":"Блог компании 3CX Ltd.","isProfiled":false},{"relatedData":null,"id":"221","alias":"sys_admin","type":"collective","title":"Системное администрирование","titleHtml":"Системное администрирование","isProfiled":true},{"relatedData":null,"id":"6398","alias":"it-infrastructure","type":"collective","title":"IT-инфраструктура","titleHtml":"IT-инфраструктура","isProfiled":true},{"relatedData":null,"id":"17350","alias":"s_admin","type":"collective","title":"Серверное администрирование","titleHtml":"Серверное администрирование","isProfiled":true},{"relatedData":null,"id":"19395","alias":"netdev","type":"collective","title":"Разработка систем связи","titleHtml":"Разработка систем связи","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EВ этой статье мы сделаем детальный обзор возможностей \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fblog\u002Fcompany-communications-v16\u002F\"\u003E3CX v16\u003C\u002Fa\u003E. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже время заметно облегчена работа системного инженера, обслуживающего систему.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ v16 мы расширили возможности объединенной работы. Теперь система позволяет коммуницировать не только между сотрудниками, но и с вашими клиентами и заказчиками. К встроенному колл-центру 3CX добавлен новый интерфейс контакт-центра. Также расширена интеграция с CRM-системами, добавлены новые средства мониторинга качества сервиса, включая новую Операторскую панель АТС.\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EНовый контакт-центр 3CX\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nСобрав отзывы более 170000 клиентов по всему миру, мы с нуля разработали новый модуль колл-центра, который гораздо производительнее и лучше масштабируется. Одно из важных нововведений — маршрутизация вызовов по квалификации оператора. Такая маршрутизация встречаются только в дорогих специализированных колл-центрах, а 3CX предлагает ее за небольшую часть стоимости такого решения от конкурентов. Эта функция доступна в редакции 3CX Enterprise. Отметим, что маршрутизация вызовов по квалификации — только начало разработки нового колл-центра 3CX. Новые возможности «настоящих» колл-центров появятся в следующих обновлениях.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ наше время покупатели часто не хотят звонить в компанию — им удобнее связаться с вами через окно чата на сайте. Учтя пожелания клиентов, мы создали новый виджет контакт-центра, который позволяет посетителю сайта писать в чат и даже позвонить к вам через браузер! Выглядит это так — операторы, которые начали чат, тут же могут перейти на общение голосом, а затем даже видео. Такой сквозной канал общения обеспечивает превосходный сервис — без разрывов коммуникации покупателя и вашего сотрудника.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb0d\u002F56f\u002F81b\u002Fb0d56f81b9aa2515b25c43747615c881.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКоммуникационный виджет для веб-сайта \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fip-pbx\u002Fwordpress-live-chat-talk\u002F\"\u003E3CX Live Chat &amp; Talk\u003C\u002Fa\u003E предлагается бесплатно со всеми редакциям 3CX (даже с бесплатной!). Преимущество нашего виджета перед похожими сторонними сервисами чата в том, что посетителю сайта не нужно перезванивать к вам по обычному телефону — он начинает в чате и сразу продолжает голосом. Ваши операторы не должны изучать интерфейс сторонних сервисов, а системный администратор не должен их поддерживать. К тому же, вы экономите немалые деньги на ежемесячной оплате сторонних сервисов связи для вашего сайта. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля подключения виджета к сайту \u003Ca href=\"https:\u002F\u002Fwww.3cx.com\u002Fdocs\u002Flive-chat-talk-wordpress-plugin\u002F\"\u003Eустановите плагин для WordPress\u003C\u002Fa\u003E и добавить блок кода на ваш сайт (если сайт не на Wordpress, \u003Ca href=\"https:\u002F\u002Fwww.3cx.com\u002Fdocs\u002Fwebsite-live-chat-talk\u002F\"\u003Eследуйте этой инструкции\u003C\u002Fa\u003E). Затем настройте подключение к АТС, внешний вид окна чата и укажите, на каких страницах должен появляться виджет. Операторы будут получать сообщения и отвечать посетителям непосредственно через веб-клиент 3CX. Заметим, что эта технология находится в стадии бета-тестирования и новые функции будут добавлены очередных обновлениях.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ 3CX v16 мы также улучшили серверную \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fcrm-integration\u002F\"\u003ECRM-интеграцию\u003C\u002Fa\u003E. Добавлены новые CRM-системы, а для поддерживаемых CRM появилась фиксация звонков, дополнительные опции и  CRM-дайлеры (номеронабиратели). Это позволяет полностью интегрировать телефонию в интерфейс CRM. Поддержка исходящих вызовов через CRM-номеронабиратели в данный реализована только для CRM Salesforce, но будет подключена и для остальных CRM по мере совершенствования REST API.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля обеспечения качественного сервиса, важно понимать, как именно обслуживаются ваши клиенты. В v16 для этого сделано важное улучшение — новая Операторская панель мониторинга звонков и чатов.  Кроме того, улучшены отчеты \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fip-pbx\u002Fcall-center\u002F\"\u003Eколл-центра\u003C\u002Fa\u003E и добавлена возможность архивирования записей разговоров. Руководители колл-центров давно запрашивали такие возможности!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНовая Операторская панель колл-центра обеспечивает удобный мониторинг событий в отдельном всплывающем окне. Со временем в нее будут добавлены новые режимы отображения информации, например, лидерборд (leaderboard) для оценки KPI операторов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F428\u002F6ae\u002F572\u002F4286ae572744b55aa59172e0c46de21e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОтчеты о вызовах были слабым звеном 3CX именно из-за устаревшей архитектуры колл-центра. Новая архитектура сервиса Очередей в v16 значительно улучшила качество отчетов. Разумеется, исправлено множество неточностей и ошибок, замеченных ранее. В следующих обновлениях появятся новые типы отчетов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗапись разговоров операторов используется в любом колл-центре как для контроля качества обслуживания, так и, иногда, по требованиям законодательства. В v16 мы значительно улучшили эту функцию. Все данные о записи вызова, включая ссылку на аудиофайл записи, теперь хранятся в базе данных. Кроме того, система распознаёт (переводит в текст с помощью сервисов Google) первую минуту каждой записи — теперь вы можете быстро найти нужный разговор по ключевым словам. Как было сказано, записи разговоров могут архивироваться на внешнем \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fdocs\u002Fmanual\u002Fpbx-management\u002F#h.regwb5464gsv\"\u003ENAS-хранилище или Google-диске\u003C\u002Fa\u003E. Серьезное количество записей теперь не требует большого локального диска. Это не только позволяет использовать дешёвый VPS-хостинг, но и значительно ускоряет резервирование и восстановление сервера 3CX.\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb89\u002F2d1\u002F649\u002Fb892d1649157ffa7331cbca946596df1.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EUC и совместная работа\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВ v16 появились новые технологии совместной работы сотрудников — полноценная \u003Ca href=\"https:\u002F\u002Fwww.3cx.com\u002Fdocs\u002Foffice-365-integration\u002F\"\u003Eинтеграция с Office 365\u003C\u002Fa\u003E, встроенный веб-софтфон и CRM-интеграция для исходящих вызовов. Мы также улучшили интерфейс веб-клиента, расширили возможности корпоративного чата и видеоконференций.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F19b\u002F32f\u002F563\u002F19b32f563cf3b45a60d8aebc8d1592e5.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНовая система использует последнюю версию Microsoft Office API и поддерживает все подписки Office 365, начиная от недорогой Business Essentials. Реализована синхронизация пользователей Office 365 с 3CX — добавление или удаление пользователей в Office 365 создаёт и удаляет соответствующие добавочные номера в АТС. Так же работает синхронизация контактов Office. А синхронизация календарей позволяет автоматически устанавливать статус добавочного номера 3CX в зависимости от вашего статуса в календаре Outlook.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБраузерный софтфон WebRTC, который был доступен в v15.5 как бета, теперь выпущен в релиз. Пользователь 3CX может звонить прямо из браузера, независимо от ОС и без установки каких-либо локальных приложений. Кстати, в нём реализована интеграция с гарнитурами Sennheiser — поддерживается работа кнопки ответа на вызов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ v16 значительно улучшена функциональность чата. Мобильный корпоративный чат приближается к лидирующим приложениям наподобие WhatsApp. Чат 3CX имеет схожую функциональность и работает примерно так же — пользователям будет легко с ним освоиться. Появилась отправка файлов, изображений и эмоджи. В ближайшее время появится переадресация сообщений между пользователями и архивирование чатов. Также будут доступны отчёты по чатам — важная функция для администраторов колл-центра. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F10a\u002F7fd\u002F12f\u002F10a7fd12f3da55a6bda02341c8a8f9d2.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФункция, которая была в клиенте 3CX для Windows и отсутствовала в веб-клиенте — настройка BLF-индикаторов непосредственно самим пользователем. Благодаря ей сотрудники могут самостоятельно устанавливать BLF-индикаторы без привлечения системного администратора. Теперь настройка BLF работает и в веб-клиенте. Также во всплывающей карточке вызова добавлена дополнительная информация об абоненте. Одним словом, теперь гораздо проще переключаться между веб-софтфоном, IP-телефоном и приложениями для Android и iOS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EВеб-конференции 3CX WebMeeting\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nЕсли вы всё ещё тратите деньги на веб-конференции Webex или Zoom, пора переходить на 3CX! MCU WebMeeting перенесены на инфраструктуру Amazon. Это позволило обеспечить высокую надежность, оптимизировать передачу трафика, обеспечить отличное качество видео и аудио с большим количеством участников. Также отметим, что теперь демонстрация своего экрана не требуют установки расширения для браузера. И еще одна новая функция — теперь участники могут звонить в веб-конференцию WebRTC с обычных телефонов — и участвовать голосом, без использования ПК и браузера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F34a\u002Fded\u002F60c\u002F34aded60c625e9aa40a42ac577fb8ada.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EНовые возможности для администраторов\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nКонечно, мы не забыли о системных администраторах. Значительно улучшена безопасность и производительность АТС. Настолько, что мы смогли \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fcompany\u002F3cx\u002Fblog\u002F440478\u002F\"\u003Eзапустить ее на Raspberry Pi\u003C\u002Fa\u003E! Ещё одна интересная функция v16 — новый сервис — Менеджер экземпляров 3CX, который позволяет администрировать все ваши АТС из единого интерфейса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНебольшим компаниям будет выгоднее разместить АТС не в облаке, а локально на стандартном устройстве Raspberry Pi 3B+, которое стоит в районе 50$. Чтобы этого добиться, мы значительно снизили требования к процессору и памяти, и запустили v16 на самых нетребовательных ARM-устройствах Raspberry и самых дешевых VPS-серверах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F654\u002F3ce\u002Fbb9\u002F6543cebb970afc066c2ad99d2a4baa6e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМенеджер экземпляров 3CX позволяет централизованно управлять всеми установленными экземплярами АТС. Это отличное решение для интеграторов — партнеров 3CX и крупных клиентов. Можно устанавливать обновления одновременно на все системы, мониторить статус сервисов, контролировать ошибки, например нехватку места на диске. В следующих обновлениях появится управление SIP-транками и устройствами, подключенными через сервис 3CX SBC, мониторинг событий безопасности и удаленное тестирование качества VoIP-трафика.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы постоянно работаем над технологиями безопасности корпоративной связи. 3CX v16 добавляет интересную функцию защиты — глобальный список подозрительных IP-адресов, собираемых со всех установленных систем 3CX в мире. Затем этот список проверяется (выделяются IP-адреса, которые стабильно блокируются) и передается обратно на все серверы 3CX, в том числе, и на вашу систему. Таким образом реализуется эффективная облачная защита от хакеров. Разумеется, все open-source компоненты 3CX обновлены до последних версий. Обращаем ваше внимание, что использование устаревших систем со старыми версиями компонентов — базы данных, веб-сервера и т.п. значительно увеличивает риски вторжения. Кстати, теперь вы можете ограничить доступ к интерфейсу 3CX по IP-адресам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИз других возможностей для администраторов отметим статистику протокола RTCP, которая помогает в поиске проблем с качеством связи; копирование добавочного номера — теперь его можно создать как копию уже существующего, изменив только основные параметры. Весь интерфейс 3CX переведен на редактирование «в один клик», а менять порядок BLF-индикаторов теперь можно простым перетаскиванием мышкой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EЛицензии и цены\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nНесмотря на и так довольно доступные цены, мы пересмотрели их в сторону уменьшения. Редакция 3CX Standard подешевела на 40% (а бесплатная версия расширена до 8 одновременных вызовов). Несколько изменился \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fip-pbx\u002Fedition-comparison\u002F\"\u003Eнабор возможностей\u003C\u002Fa\u003E, доступных в разных редакциях. Также добавлены промежуточные размеры лицензий, которые позволят вам подобрать наиболее оптимальную емкость АТС для конкретной организации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДополнительные размеры лицензий позволят заказчику не покупать лицензию большего размера, только потому, что нет более подходящего промежуточного. Заметим, что лицензии промежуточного размера предлагаются только как годовые. Также, такие лицензии могут быть расширены в любое время без так называемого штрафа — оплачивается только фактическая разница между емкостью.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРедакция 3CX Standard теперь лучше подходит для небольших компаний, которым не требуются Очереди вызовов, отчёты и запись разговоров. Такие компании заплатят за АТС самый минимум; к тому же Standard на 8 одновременных вызовов теперь бесплатна навсегда. Обратите внимание, что установленные АТС редакции Standard с коммерческим ключом автоматически перейдут на Pro при обновлении на версию 16. Если вас не устраивает такой переход — воздержитесь от обновления на v16.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВозможности редакции Pro остались прежними. Для небольших и средних лицензий цена снижена на 20%! Важное улучшение — теперь при получении новой лицензии (ключа) с сайта 3CX, она будет работать как редакция Pro первые 40 дней. Емкость лицензии вы указываете самостоятельно! Это позволяет клиенту и партнеру полноценно протестировать все возможности АТС. Напомним, что по сравнению с редакцией Standard, реакция Pro добавляет Очереди вызовов, отчёты, запись разговоров, интеграцию с Office 365 и другими CRM-системами.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ редакцию Enterprise мы продолжаем добавлять возможности, за которые раньше компаниям приходилось платить на порядок больше. Например, мы добавили опцию, позволяющую запретить отключение записи разговора сотрудником. Следующая давно запрашиваемая опция — маршрутизация вызова в Очереди по квалификации оператора. Напоминаем, что только в 3CX Enterprise поддерживается встроенный отказоустойчивый кластер телефонии.\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff95\u002F013\u002F6f3\u002Ff950136f3cbb3cb3fae6b8c7cca072a2.png\"\u002F\u003E \u003Cbr\u002F\u003E\r\nЕсли говорить об общей стоимости владения 3CX, — \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fordering\u002Fpricing\u002F\"\u003Eгодовая подписка\u003C\u002Fa\u003E теперь выгоднее \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fordering\u002Fpricing\u002Fperpetual\u002F\"\u003Eбессрочной\u003C\u002Fa\u003E, особенно из расчета на 3 года. Бессрочная лицензия стоит как 3 годовых лицензии, но для такой лицензии вам еще потребуется \u003Ca href=\"https:\u002F\u002Fwww.3cx.com\u002Fordering\u002Fpricing\u002F3cx-maintenance\u002F\"\u003Eопциональная подписка на обновления\u003C\u002Fa\u003E на 2 года (первый год включен в стоимость бессрочной лицензии). Обратите внимание — лицензии на 4 и 8 одновременных вызовов теперь доступны только как годовые.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕщё раз хотим напомнить, что подписка на обновления (актуально только для бессрочных лицензий) стоит своих денег! Даже простая покупка SSL-сертификатов и надежного DNS-сервиса будет дороже и сложнее в настройке, чем продление подписки. Кроме того, подписка обеспечивает установку последних обновлений безопасности, новые \u003Ca href=\"https:\u002F\u002Fwww.3cx.com\u002Fsupport\u002Fphone-firmwares\u002F\"\u003Eпрошивки для IP-телефонов\u003C\u002Fa\u003E, сервис \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fwebmeeting\u002F\"\u003Eвеб-конференций 3CX WebMeeting\u003C\u002Fa\u003E и право на использование приложений для смартфонов (проще говоря — обновленные мобильные приложения могут перестать работать со старым сервером АТС).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ ближайшее время мы выпустим v16 Update 1, который будет включать обновленную среду разработки голосовых приложений \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fblog\u002Fcall-flow-designer-v16\u002F\"\u003E3CX Call Flow Designer\u003C\u002Fa\u003E, генерирующую скрипты на C#. Кроме того, появятся улучшения чата и поддержка баз данных SQL для получения информации о контакте через REST запросы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nv16 Update 2 будет включать обновленный \u003Ca href=\"https:\u002F\u002Fwww.3cx.com\u002Fdocs\u002F3cx-sbc-windows\u002F\"\u003E3CX Session Border Controller\u003C\u002Fa\u003E с централизованным мониторингом удаленных устройств (IP-телефонов) из консоли управления 3CX (до 100 телефонов за одним SBC). Также появится поддержка некоторых технологий DNS для упрощенной настройки VoIP-операторов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВозможности, которые планируется включить в следующие обновления: упрощенная настройка отказоустойчивого кластера (в редакции Enterprise), ввод блоков DID-номеров в интерфейсе сервера, новый REST API для автоматизации исходящего обзвона и новая панель мониторинга KPI операторов колл-центра (Leaderboard).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот такой обзор. \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fip-pbx\u002Fdownload-atc\u002F\"\u003EКачайте\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.3cx.ru\u002Fdocs\u002Fmanual\u002Finstalling-debian-linux-pbx\u002F\"\u003Eустанавливаете\u003C\u002Fa\u003E, пользуйтесь!\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"3cx v16"},{"titleHtml":"обзор"},{"titleHtml":"виджет для сайта"},{"titleHtml":"архивирование записей"},{"titleHtml":"контакт-центр"},{"titleHtml":"запись разговоров"},{"titleHtml":"менеджер экземпляров 3cx"},{"titleHtml":"бесплатная лицензия"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450264\u002Fcdc971c7a13eb14ae6778bfe324daaf5\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450264\u002Fcdc971c7a13eb14ae6778bfe324daaf5\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002F3cx\\\u002Fblog\\\u002F450264\\\u002F\"},\"headline\":\"Детальный обзор 3CX v16\",\"datePublished\":\"2019-05-01T16:07:15+03:00\",\"dateModified\":\"2019-05-02T17:21:44+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Игорь Снежко\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение произво...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002F3cx\\\u002Fblog\\\u002F450264\\\u002F#post-content-body\",\"about\":[\"c_3cx\",\"h_sys_admin\",\"h_it-infrastructure\",\"h_s_admin\",\"h_netdev\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb0d\\\u002F56f\\\u002F81b\\\u002Fb0d56f81b9aa2515b25c43747615c881.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F428\\\u002F6ae\\\u002F572\\\u002F4286ae572744b55aa59172e0c46de21e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb89\\\u002F2d1\\\u002F649\\\u002Fb892d1649157ffa7331cbca946596df1.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F19b\\\u002F32f\\\u002F563\\\u002F19b32f563cf3b45a60d8aebc8d1592e5.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F10a\\\u002F7fd\\\u002F12f\\\u002F10a7fd12f3da55a6bda02341c8a8f9d2.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F34a\\\u002Fded\\\u002F60c\\\u002F34aded60c625e9aa40a42ac577fb8ada.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F654\\\u002F3ce\\\u002Fbb9\\\u002F6543cebb970afc066c2ad99d2a4baa6e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ff95\\\u002F013\\\u002F6f3\\\u002Ff950136f3cbb3cb3fae6b8c7cca072a2.png\"]}","metaDescription":"В этой статье мы сделаем детальный обзор возможностей 3CX v16. Новая версия АТС предлагает различные улучшения качества обслуживания клиентов и повышение производительности труда сотрудников. В тоже...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"3cx":{"alias":"3cx","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F0dc\u002F168\u002Fab6\u002F0dc168ab6f671170d5f0c0be62bc1148.png","titleHtml":"3CX Ltd.","descriptionHtml":"Windows VoIP АТС с видеоконференциями Webmeeting","relatedData":null,"statistics":{"postsCount":260,"newsCount":0,"vacanciesCount":0,"employeesCount":4,"careerRating":null,"subscribersCount":215,"rating":0,"invest":null},"foundationDate":{"year":"2006","month":"01","day":"01"},"location":{"city":null,"region":{"id":"487","title":"Government controlled area"},"country":{"id":"96","title":"Кипр"}},"siteUrl":"http:\u002F\u002F3cx.ru\u002F","staffNumber":"51–100 человек","registrationDate":"2013-03-26T07:55:41+00:00","representativeUser":null,"contacts":[],"settings":{"analyticsSettings":[],"branding":null,"status":"expired"},"metadata":{"titleHtml":"3CX Ltd., Кипр - Windows VoIP АТС с видеоконференциями Webmeeting с 1 января 2006 г.","title":"3CX Ltd., Кипр - Windows VoIP АТС с видеоконференциями Webmeeting с 1 января 2006 г.","keywords":[],"descriptionHtml":"260 статей от авторов компании 3CX Ltd.","description":"260 статей от авторов компании 3CX Ltd."},"aDeskSettings":null,"careerAlias":null,"maxCustomTrackerLinks":0}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

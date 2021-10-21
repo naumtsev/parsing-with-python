@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Внедрение зависимостей с DITranquillity / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450788\/"},"headline":"Внедрение зависимостей с DITranquillity","datePublished":"2019-05-07T07:52:04+03:00","dateModified":"2019-05-07T10:46:38+03:00","author":{"@type":"Person","name":"Nekitosss"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Dependency Injection &mdash; довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг о...","url":"https:\/\/habr.com\/ru\/post\/450788\/#post-content-body","about":["h_ios_dev","h_swift","h_osx_dev","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/w-\/pn\/ro\/w-pnroiey2c8xri9o3erqm9er_0.gif","https:\/\/habrastorage.org\/webt\/jw\/li\/s8\/jwlis8txyhuzn1m5swacqvrixe4.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Внедрение зависимостей с DITranquillity" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Внедрение зависимостей с DITranquillity" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Внедрение зависимостей с DITranquillity" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450788/2955ea7d45babe378b0a8d6fb0070662/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450788/2955ea7d45babe378b0a8d6fb0070662/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450788/2955ea7d45babe378b0a8d6fb0070662/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450788/2955ea7d45babe378b0a8d6fb0070662/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450788/2955ea7d45babe378b0a8d6fb0070662/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450788" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T04:52:04.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450788/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450788/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450788/2955ea7d45babe378b0a8d6fb0070662/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Nekitosss/" title="Nekitosss" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/Nekitosss/" class="tm-user-info__username">
+      Nekitosss
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T04:52:04.000Z" title="2019-05-07, 07:52">7  мая  2019 в 07:52</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Внедрение зависимостей с DITranquillity</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/ios_dev/" class="tm-article-snippet__hubs-item-link"><span>Разработка под iOS</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/swift/" class="tm-article-snippet__hubs-item-link"><span>Swift</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/osx_dev/" class="tm-article-snippet__hubs-item-link"><span>Разработка под MacOS</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p>Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift позволяет использовать удобные фреймворки с помощью которых можно очень коротко описать граф зависимостей. Сегодня я хочу немного рассказать об одном из таких фреймворков — <code>DITranquillity</code>.</p><a name="habracut"></a><br/>
+<p>В данном туториале будут рассмотрены следующие возможности библиотеки:</p><br/>
+<ul>
+<li>Регистрация типов</li>
+<li>Внедрение с помощью инициализатора</li>
+<li>Внедрение в переменную</li>
+<li>Циклические зависимости компонентов</li>
+<li>Использование библиотеки с <code>UIStoryboard</code></li>
+</ul><br/>
+<h3 id="opisanie-komponentov">Описание компонентов</h3><br/>
+<p>Приложение будет состоять из следующих основных компонентов: <code>ViewController</code>, <code>Router</code>, <code>Presenter</code>, <code>Networking</code> — это довольно общие компоненты в любом iOS приложении.</p><br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" alt="Component Structure" data-src="https://habrastorage.org/webt/w-/pn/ro/w-pnroiey2c8xri9o3erqm9er_0.gif"/></div><br/>
+<p><code>ViewController</code> и <code>Router</code> будут внедряться друг в друга циклически.</p><br/>
+<h3 id="podgotovka">Подготовка</h3><br/>
+<p>Для начала создадим Single View Application в XCode, добавим DITranquillity с помощью <a href="https://github.com/ivlevAstef/DITranquillity#via-cocoapods">CocoaPods</a>. Создадим необходимую иерархию файлов, затем добавим на Main.storyboard второй контроллер и соединим его с помощью <code>StoryboardSegue</code>. В итоге должна получиться следующая структура файлов:</p><br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" alt="File Structure" data-src="https://habrastorage.org/webt/jw/li/s8/jwlis8txyhuzn1m5swacqvrixe4.png"/></div><br/>
+<p>Создадим зависимости в классах следующим образом:</p><br/>
+<div class="spoiler"><b class="spoiler_title">Объявление компонентов</b><div class="spoiler_text"><pre><code class="swift">protocol Presenter: class {
+    func getCounter(completion: @escaping (Int) -> Void)
+}
+
+class MyPresenter: Presenter {
+
+    private let networking: Networking
+
+    init(networking: Networking) {
+        self.networking = networking
+    }
+
+    func getCounter(completion: @escaping (Int) -> Void) {
+        // Implementation
+    }
+}</code></pre><br/>
+<pre><code class="swift">protocol Networking: class {
+    func fetchData(completion: @escaping (Result&lt;Int, Error>) -> Void)
+}
+
+class MyNetworking: Networking {
+    func fetchData(completion: @escaping (Result&lt;Int, Error>) -> Void) {
+        // Implementation
+    }
+}</code></pre><br/>
+<pre><code class="swift">protocol Router: class {
+    func presentNewController()
+}
+
+class MyRouter: Router {
+    unowned let viewController: ViewController
+
+    init(viewController: ViewController) {
+        self.viewController = viewController
+    }
+
+    func presentNewController() {
+        // Implementation
+    }
+}</code></pre><br/>
+<pre><code class="swift">class ViewController: UIViewController {
+    var presenter: Presenter!
+    var router: Router!
+}</code></pre></div></div><br/>
+<h4 id="ogranicheniya">Ограничения</h4><br/>
+<p>В отличие от других классов, <code>ViewController</code> создается не нами, а библиотекой UIKit внутри реализации <code>UIStoryboard.instantiateViewController</code>, поэтому, пользуясь сторибордом, мы не можем внедрять зависимости в наследников <code>UIViewController</code> с помощью инициализатора. Так же дела обстоят и с наследниками <code>UIView</code> и <code>UITableViewCell</code>.</p><br/>
+<p>Заметьте, что во все классы внедряются объекты, скрытые за протоколами. В этом одна из основных задачь внедрения зависимостей — сделать зависимости не от реализаций, а от интерфейсов. Это поможет в будущем предоставить разные реализации протоколов для переиспользования или тестирования компонентов.</p><br/>
+<h3 id="vnedrenie-zavisimostey">Внедрение зависимостей</h3><br/>
+<p>После того, как все компоненты системы созданы, приступим к связи объектов между собой. В DITranquillity отправной точной является <code>DIContainer</code>, который добавляет в себя регистрации с помощью метода <code>container.register(...)</code>. Для разделения зависимостей на части используются <code>DIFramework</code> и <code>DIPart</code>, которые необходимо реализовать. Для удобства создадим только один класс <code>ApplicationDependency</code>, который будет реализовывать <code>DIFramework</code> и будет служить местом регистраций всех зависимостей. Интерфейс <code>DIFramework</code> обязывает реализовать только один метод — <code>load(container:)</code>.</p><br/>
+<pre><code class="swift">class ApplicationDependency: DIFramework {
+    static func load(container: DIContainer) {
+        // registrations will be placed here
+    }
+}</code></pre><br/>
+<p>Начнём с самой простой регистрации, у которой нет своих зависимостей — <code>MyNetworking</code></p><br/>
+<pre><code class="swift">container.register(MyNetworking.init)</code></pre><br/>
+<p>Данная регистрация использует внедрение через инициализатор. Несмотря на то, что у самого компонента нет зависимостей, ининциализатор необходимо предоставить, чтобы дать понять библиотеке, как создавать компонент.</p><br/>
+<p>Аналогичным образом зарегистрируем <code>MyPresenter</code> и <code>MyRouter</code>.</p><br/>
+<pre><code class="swift">container.register1(MyPresenter.init)
+container.register1(MyRouter.init)</code></pre><br/>
+<p><strong>Note:</strong> Заметьте, что используется не <code>register</code>, а <code>register1</code>. К сожалению, так необходимо указывать, если объект имеет в инициализаторе одну и только одну зависимость. То есть, если зависимостей 0 или две и больше, необходимо использовать просто <code>register</code>. Данное ограничение является багом Swift версии 4.0 и больше.</p><br/>
+<p>Пришла пора регистрировать наш <code>ViewController</code>. Он внедряет объекты не через инициализатор, а напрямую в переменную, поэтому описание регистрации получится чуть больше.</p><br/>
+<pre><code class="swift">container.register(ViewController.self)
+    .injection(cycle: true, \.router)
+    .injection(\.presenter)</code></pre><br/>
+<p>Синтаксис вида <code>\.presenter</code> является SwiftKeyPath, благодаря которому можно лаконично внедрить зависимость. Так как <code>Router</code> и <code>ViewController</code> циклически зависят друг от друга, необходимо явно это указать с помощью <code>cycle: true</code>. Библиотека и сама может разрешить эти зависимости без явного указания, но данное требование было введено, чтобы человек, читающий граф, сразу понимал, что в цепочке зависимостей есть циклы. Так же обратите внимание, что используется <strong>НЕ</strong> <code>ViewController.init</code>, <strong>но</strong> <code>ViewController.self</code>. Об этом писалось выше в разделе <em>Ограничения</em>.</p><br/>
+<p>Также необходимо зарегистрировать <code>UIStoryboard</code> с помощью специального метода.</p><br/>
+<pre><code class="swift">container.registerStoryboard(name: "Main")</code></pre><br/>
+<p>Теперь у нас описан весь граф зависимостей для одного экрана. Но доступа к этому графу пока нет. Необходимо создать <code>DIContainer</code>, позволяющий получить доступ к объектам в нём.</p><br/>
+<pre><code class="swift">static let container: DIContainer = {
+    let container = DIContainer() // 1
+    container.append(framework: ApplicationDependency.self) // 2
+    assert(container.validate(checkGraphCycles: true)) // 3
+    return container
+}()</code></pre><br/>
+<ol>
+<li>Инициализируем контейнер</li>
+<li>Добавляем описание графа к нему</li>
+<li>Проверяем, что мы всё сделали правильно. Если допущена ошибка, приложение упадёт не во время резолва зависимостей, а сразу при создании графа</li>
+</ol><br/>
+<p>Затем необходимо сделать контейнер отправной точкой старта приложения. Для этого в <code>AppDelegate</code> реализовываем метод <code>didFinishLaunchingWithOptions</code> вместо указания <code>Main.storyboard</code> как точко запуска в настройках проекта.</p><br/>
+<pre><code class="swift">func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    window = UIWindow(frame: UIScreen.main.bounds)
+    let storyboard: UIStoryboard = ApplicationDependency.container.resolve()
+    window?.rootViewController = storyboard.instantiateInitialViewController()
+    window?.makeKeyAndVisible()
+    return true
+}</code></pre><br/>
+<h3 id="zapusk">Запуск</h3><br/>
+<p>При первом запуске произойдёт падение и валидация не пройдёт по следующим причинам:</p><br/>
+<ul>
+<li>Контейнер не найдёт типы <code>Router</code>, <code>Presenter</code>, <code>Networking</code>, потому что мы зарегистрировали только объекты. Если мы хотим дать доступ не к реализациям, а к интерфейсам, необходимо явно указать интерфейсы</li>
+<li>Контейнер не понимает, как ему разрешить циклическую зависимость, потому что необходимо явно указать, какие объекты при резолве графа не должны каждый раз пересоздаваться</li>
+</ul><br/>
+<p>Исправить первую ошибку просто — есть специальный метод, позволяющий указать, под какими протоколами доступен метод в контейнере.</p><br/>
+<pre><code class="swift">container.register(MyNetworking.init)
+    .as(check: Networking.self) {$0}</code></pre><br/>
+<p>Описывая регистрацию так, мы говорим: объект <code>MyNetworking</code> доступен по протоколу <code>Networking</code>. Так нужно сделать для всех объектов, спрятанных под протоколами. <code>{$0}</code> добавляем для правильной проверки типов компилятором.</p><br/>
+<p>Со второй ошибкой чуть сложнее. Необходимо использовать так называемые <code>scope</code>, которые описывают, как часто создаётся и сколько живеёт объект. Для каждой регистрации, участвующей в циклической зависимости, необходимо указать <code>scope</code> равный <code>objectGraph</code>. Это даст понять контейнеру, что во время резолва необходимо переиспользовать одни и те же созданные объекты, а не создавать каждый раз заного. Таким образом, получится:</p><br/>
+<pre><code class="swift">container.register(ViewController.self)
+    .injection(cycle: true, \.router)
+    .injection(\.presenter)
+    .lifetime(.objectGraph)
+
+container.register1(MyRouter.init)
+    .as(check: Router.self) {$0}
+    .lifetime(.objectGraph)</code></pre><br/>
+<p>После повторного запуска контейнер успешно проходит валидацию и откроется наш ViewController с созданными зависимостями. Можете поставить брейкпоинт во <code>viewDidLoad</code> и удостовериться.</p><br/>
+<h3 id="perehod-mezhdu-ekranami">Переход между экранами</h3><br/>
+<p>Далее создадим два небольших класса <code>SecondViewController</code> и <code>SecondPresenter</code>, добавим <code>SecondViewController</code> на сториборд и создадим между ними <code>Segue</code> с идентификатором <code>"RouteToSecond"</code>, позволяющий открыть второй контроллер из первого.</p><br/>
+<p>Добавим в наш <code>ApplicationDependency</code> ещё две регистрации для каждого из новых классов:</p><br/>
+<pre><code class="swift">container.register(SecondViewController.self)
+    .injection(\.secondPresenter)
+
+container.register(SecondPresenter.init)</code></pre><br/>
+<p>Указывать <code>.as</code> нет необходимости, потому что мы не прятали <code>SecondPresenter</code> за протоколом, а пользуемся непосредственно реализацией. Затем в методе <code>viewDidAppear</code> первого контроллера вызываем <code>performSegue(withIdentifier: "RouteToSecond", sender: self)</code>, запускаем, открывается второй контроллер, в котором котором должна быть проставлена зависимость <code>secondPresenter</code>. Как видно, контейнер увидел создание второго контроллера из <code>UIStoryboard</code> и успешно проставил зависимости.</p><br/>
+<h3 id="zaklyuchenie">Заключение</h3><br/>
+<p>Данная библиотека позволяет удобно работать с циклическими зависимостями, сторибордом и полностью пользуется автовыводом типов в Swift, что даеёт очень короткий и гибкий синтаксис описания графа зависимостей.</p><br/>
+<h4 id="ssylki">Ссылки</h4><br/>
+<p>Полный пример кода в <a href="https://github.com/Nekitosss/DITranquillityTutorial">библиотеке на github</a></p><br/>
+<p>DITranquillity <a href="https://github.com/ivlevAstef/DITranquillity">на github</a></p><br/>
+<p><a href="https://nekitosss.github.io/2019-05-06-ditranquillity/">Статья на английском</a></p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BSwift%5D" class="tm-tags-list__link">Swift</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BiOS%5D" class="tm-tags-list__link">iOS</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BmacOS%5D" class="tm-tags-list__link">macOS</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BDependency%20injection%5D" class="tm-tags-list__link">Dependency injection</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/ios_dev/" class="tm-hubs-list__link">
+    Разработка под iOS
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/swift/" class="tm-hubs-list__link">
+    Swift
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/osx_dev/" class="tm-hubs-list__link">
+    Разработка под MacOS
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 4: ↑4 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 4: ↑4 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+4</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">2.3K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    10
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Nekitosss/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_green"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 9 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    9
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0.1</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/Nekitosss/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Nekitosss
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450788/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 2 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450788/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450788/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450788":{"id":"450788","timePublished":"2019-05-07T04:52:04+00:00","isCorporative":false,"lang":"ru","titleHtml":"Внедрение зависимостей с DITranquillity","leadData":{"textHtml":"\u003Cp\u003EDependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift позволяет использовать удобные фреймворки с помощью которых можно очень коротко описать граф зависимостей. Сегодня я хочу немного рассказать об одном из таких фреймворков — \u003Ccode\u003EDITranquillity\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":9,"votesCount":9},"rating":0.1,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"596483","alias":"Nekitosss","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":2,"favoritesCount":10,"readingCount":2260,"score":4,"votesCount":4},"hubs":[{"relatedData":null,"id":"548","alias":"ios_dev","type":"collective","title":"Разработка под iOS","titleHtml":"Разработка под iOS","isProfiled":true},{"relatedData":null,"id":"19039","alias":"swift","type":"collective","title":"Swift","titleHtml":"Swift","isProfiled":true},{"relatedData":null,"id":"19253","alias":"osx_dev","type":"collective","title":"Разработка под MacOS","titleHtml":"Разработка под MacOS","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003EDependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift позволяет использовать удобные фреймворки с помощью которых можно очень коротко описать граф зависимостей. Сегодня я хочу немного рассказать об одном из таких фреймворков — \u003Ccode\u003EDITranquillity\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ данном туториале будут рассмотрены следующие возможности библиотеки:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EРегистрация типов\u003C\u002Fli\u003E\r\n\u003Cli\u003EВнедрение с помощью инициализатора\u003C\u002Fli\u003E\r\n\u003Cli\u003EВнедрение в переменную\u003C\u002Fli\u003E\r\n\u003Cli\u003EЦиклические зависимости компонентов\u003C\u002Fli\u003E\r\n\u003Cli\u003EИспользование библиотеки с \u003Ccode\u003EUIStoryboard\u003C\u002Fcode\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"opisanie-komponentov\"\u003EОписание компонентов\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПриложение будет состоять из следующих основных компонентов: \u003Ccode\u003EViewController\u003C\u002Fcode\u003E, \u003Ccode\u003ERouter\u003C\u002Fcode\u003E, \u003Ccode\u003EPresenter\u003C\u002Fcode\u003E, \u003Ccode\u003ENetworking\u003C\u002Fcode\u003E — это довольно общие компоненты в любом iOS приложении.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"Component Structure\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fw-\u002Fpn\u002Fro\u002Fw-pnroiey2c8xri9o3erqm9er_0.gif\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ccode\u003EViewController\u003C\u002Fcode\u003E и \u003Ccode\u003ERouter\u003C\u002Fcode\u003E будут внедряться друг в друга циклически.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"podgotovka\"\u003EПодготовка\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля начала создадим Single View Application в XCode, добавим DITranquillity с помощью \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FivlevAstef\u002FDITranquillity#via-cocoapods\"\u003ECocoaPods\u003C\u002Fa\u003E. Создадим необходимую иерархию файлов, затем добавим на Main.storyboard второй контроллер и соединим его с помощью \u003Ccode\u003EStoryboardSegue\u003C\u002Fcode\u003E. В итоге должна получиться следующая структура файлов:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"File Structure\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fjw\u002Fli\u002Fs8\u002Fjwlis8txyhuzn1m5swacqvrixe4.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСоздадим зависимости в классах следующим образом:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EОбъявление компонентов\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eprotocol Presenter: class {\n    func getCounter(completion: @escaping (Int) -\u003E Void)\n}\n\nclass MyPresenter: Presenter {\n\n    private let networking: Networking\n\n    init(networking: Networking) {\n        self.networking = networking\n    }\n\n    func getCounter(completion: @escaping (Int) -\u003E Void) {\n        \u002F\u002F Implementation\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eprotocol Networking: class {\n    func fetchData(completion: @escaping (Result&lt;Int, Error\u003E) -\u003E Void)\n}\n\nclass MyNetworking: Networking {\n    func fetchData(completion: @escaping (Result&lt;Int, Error\u003E) -\u003E Void) {\n        \u002F\u002F Implementation\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eprotocol Router: class {\n    func presentNewController()\n}\n\nclass MyRouter: Router {\n    unowned let viewController: ViewController\n\n    init(viewController: ViewController) {\n        self.viewController = viewController\n    }\n\n    func presentNewController() {\n        \u002F\u002F Implementation\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eclass ViewController: UIViewController {\n    var presenter: Presenter!\n    var router: Router!\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"ogranicheniya\"\u003EОграничения\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ отличие от других классов, \u003Ccode\u003EViewController\u003C\u002Fcode\u003E создается не нами, а библиотекой UIKit внутри реализации \u003Ccode\u003EUIStoryboard.instantiateViewController\u003C\u002Fcode\u003E, поэтому, пользуясь сторибордом, мы не можем внедрять зависимости в наследников \u003Ccode\u003EUIViewController\u003C\u002Fcode\u003E с помощью инициализатора. Так же дела обстоят и с наследниками \u003Ccode\u003EUIView\u003C\u002Fcode\u003E и \u003Ccode\u003EUITableViewCell\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗаметьте, что во все классы внедряются объекты, скрытые за протоколами. В этом одна из основных задачь внедрения зависимостей — сделать зависимости не от реализаций, а от интерфейсов. Это поможет в будущем предоставить разные реализации протоколов для переиспользования или тестирования компонентов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"vnedrenie-zavisimostey\"\u003EВнедрение зависимостей\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле того, как все компоненты системы созданы, приступим к связи объектов между собой. В DITranquillity отправной точной является \u003Ccode\u003EDIContainer\u003C\u002Fcode\u003E, который добавляет в себя регистрации с помощью метода \u003Ccode\u003Econtainer.register(...)\u003C\u002Fcode\u003E. Для разделения зависимостей на части используются \u003Ccode\u003EDIFramework\u003C\u002Fcode\u003E и \u003Ccode\u003EDIPart\u003C\u002Fcode\u003E, которые необходимо реализовать. Для удобства создадим только один класс \u003Ccode\u003EApplicationDependency\u003C\u002Fcode\u003E, который будет реализовывать \u003Ccode\u003EDIFramework\u003C\u002Fcode\u003E и будет служить местом регистраций всех зависимостей. Интерфейс \u003Ccode\u003EDIFramework\u003C\u002Fcode\u003E обязывает реализовать только один метод — \u003Ccode\u003Eload(container:)\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eclass ApplicationDependency: DIFramework {\n    static func load(container: DIContainer) {\n        \u002F\u002F registrations will be placed here\n    }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНачнём с самой простой регистрации, у которой нет своих зависимостей — \u003Ccode\u003EMyNetworking\u003C\u002Fcode\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.register(MyNetworking.init)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДанная регистрация использует внедрение через инициализатор. Несмотря на то, что у самого компонента нет зависимостей, ининциализатор необходимо предоставить, чтобы дать понять библиотеке, как создавать компонент.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EАналогичным образом зарегистрируем \u003Ccode\u003EMyPresenter\u003C\u002Fcode\u003E и \u003Ccode\u003EMyRouter\u003C\u002Fcode\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.register1(MyPresenter.init)\ncontainer.register1(MyRouter.init)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003ENote:\u003C\u002Fstrong\u003E Заметьте, что используется не \u003Ccode\u003Eregister\u003C\u002Fcode\u003E, а \u003Ccode\u003Eregister1\u003C\u002Fcode\u003E. К сожалению, так необходимо указывать, если объект имеет в инициализаторе одну и только одну зависимость. То есть, если зависимостей 0 или две и больше, необходимо использовать просто \u003Ccode\u003Eregister\u003C\u002Fcode\u003E. Данное ограничение является багом Swift версии 4.0 и больше.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПришла пора регистрировать наш \u003Ccode\u003EViewController\u003C\u002Fcode\u003E. Он внедряет объекты не через инициализатор, а напрямую в переменную, поэтому описание регистрации получится чуть больше.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.register(ViewController.self)\n    .injection(cycle: true, \\.router)\n    .injection(\\.presenter)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСинтаксис вида \u003Ccode\u003E\\.presenter\u003C\u002Fcode\u003E является SwiftKeyPath, благодаря которому можно лаконично внедрить зависимость. Так как \u003Ccode\u003ERouter\u003C\u002Fcode\u003E и \u003Ccode\u003EViewController\u003C\u002Fcode\u003E циклически зависят друг от друга, необходимо явно это указать с помощью \u003Ccode\u003Ecycle: true\u003C\u002Fcode\u003E. Библиотека и сама может разрешить эти зависимости без явного указания, но данное требование было введено, чтобы человек, читающий граф, сразу понимал, что в цепочке зависимостей есть циклы. Так же обратите внимание, что используется \u003Cstrong\u003EНЕ\u003C\u002Fstrong\u003E \u003Ccode\u003EViewController.init\u003C\u002Fcode\u003E, \u003Cstrong\u003Eно\u003C\u002Fstrong\u003E \u003Ccode\u003EViewController.self\u003C\u002Fcode\u003E. Об этом писалось выше в разделе \u003Cem\u003EОграничения\u003C\u002Fem\u003E.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТакже необходимо зарегистрировать \u003Ccode\u003EUIStoryboard\u003C\u002Fcode\u003E с помощью специального метода.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.registerStoryboard(name: \"Main\")\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь у нас описан весь граф зависимостей для одного экрана. Но доступа к этому графу пока нет. Необходимо создать \u003Ccode\u003EDIContainer\u003C\u002Fcode\u003E, позволяющий получить доступ к объектам в нём.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Estatic let container: DIContainer = {\n    let container = DIContainer() \u002F\u002F 1\n    container.append(framework: ApplicationDependency.self) \u002F\u002F 2\n    assert(container.validate(checkGraphCycles: true)) \u002F\u002F 3\n    return container\n}()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EИнициализируем контейнер\u003C\u002Fli\u003E\r\n\u003Cli\u003EДобавляем описание графа к нему\u003C\u002Fli\u003E\r\n\u003Cli\u003EПроверяем, что мы всё сделали правильно. Если допущена ошибка, приложение упадёт не во время резолва зависимостей, а сразу при создании графа\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗатем необходимо сделать контейнер отправной точкой старта приложения. Для этого в \u003Ccode\u003EAppDelegate\u003C\u002Fcode\u003E реализовываем метод \u003Ccode\u003EdidFinishLaunchingWithOptions\u003C\u002Fcode\u003E вместо указания \u003Ccode\u003EMain.storyboard\u003C\u002Fcode\u003E как точко запуска в настройках проекта.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -\u003E Bool {\n    window = UIWindow(frame: UIScreen.main.bounds)\n    let storyboard: UIStoryboard = ApplicationDependency.container.resolve()\n    window?.rootViewController = storyboard.instantiateInitialViewController()\n    window?.makeKeyAndVisible()\n    return true\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"zapusk\"\u003EЗапуск\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПри первом запуске произойдёт падение и валидация не пройдёт по следующим причинам:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EКонтейнер не найдёт типы \u003Ccode\u003ERouter\u003C\u002Fcode\u003E, \u003Ccode\u003EPresenter\u003C\u002Fcode\u003E, \u003Ccode\u003ENetworking\u003C\u002Fcode\u003E, потому что мы зарегистрировали только объекты. Если мы хотим дать доступ не к реализациям, а к интерфейсам, необходимо явно указать интерфейсы\u003C\u002Fli\u003E\r\n\u003Cli\u003EКонтейнер не понимает, как ему разрешить циклическую зависимость, потому что необходимо явно указать, какие объекты при резолве графа не должны каждый раз пересоздаваться\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EИсправить первую ошибку просто — есть специальный метод, позволяющий указать, под какими протоколами доступен метод в контейнере.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.register(MyNetworking.init)\n    .as(check: Networking.self) {$0}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОписывая регистрацию так, мы говорим: объект \u003Ccode\u003EMyNetworking\u003C\u002Fcode\u003E доступен по протоколу \u003Ccode\u003ENetworking\u003C\u002Fcode\u003E. Так нужно сделать для всех объектов, спрятанных под протоколами. \u003Ccode\u003E{$0}\u003C\u002Fcode\u003E добавляем для правильной проверки типов компилятором.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСо второй ошибкой чуть сложнее. Необходимо использовать так называемые \u003Ccode\u003Escope\u003C\u002Fcode\u003E, которые описывают, как часто создаётся и сколько живеёт объект. Для каждой регистрации, участвующей в циклической зависимости, необходимо указать \u003Ccode\u003Escope\u003C\u002Fcode\u003E равный \u003Ccode\u003EobjectGraph\u003C\u002Fcode\u003E. Это даст понять контейнеру, что во время резолва необходимо переиспользовать одни и те же созданные объекты, а не создавать каждый раз заного. Таким образом, получится:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.register(ViewController.self)\n    .injection(cycle: true, \\.router)\n    .injection(\\.presenter)\n    .lifetime(.objectGraph)\n\ncontainer.register1(MyRouter.init)\n    .as(check: Router.self) {$0}\n    .lifetime(.objectGraph)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПосле повторного запуска контейнер успешно проходит валидацию и откроется наш ViewController с созданными зависимостями. Можете поставить брейкпоинт во \u003Ccode\u003EviewDidLoad\u003C\u002Fcode\u003E и удостовериться.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"perehod-mezhdu-ekranami\"\u003EПереход между экранами\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДалее создадим два небольших класса \u003Ccode\u003ESecondViewController\u003C\u002Fcode\u003E и \u003Ccode\u003ESecondPresenter\u003C\u002Fcode\u003E, добавим \u003Ccode\u003ESecondViewController\u003C\u002Fcode\u003E на сториборд и создадим между ними \u003Ccode\u003ESegue\u003C\u002Fcode\u003E с идентификатором \u003Ccode\u003E\"RouteToSecond\"\u003C\u002Fcode\u003E, позволяющий открыть второй контроллер из первого.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДобавим в наш \u003Ccode\u003EApplicationDependency\u003C\u002Fcode\u003E ещё две регистрации для каждого из новых классов:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Econtainer.register(SecondViewController.self)\n    .injection(\\.secondPresenter)\n\ncontainer.register(SecondPresenter.init)\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EУказывать \u003Ccode\u003E.as\u003C\u002Fcode\u003E нет необходимости, потому что мы не прятали \u003Ccode\u003ESecondPresenter\u003C\u002Fcode\u003E за протоколом, а пользуемся непосредственно реализацией. Затем в методе \u003Ccode\u003EviewDidAppear\u003C\u002Fcode\u003E первого контроллера вызываем \u003Ccode\u003EperformSegue(withIdentifier: \"RouteToSecond\", sender: self)\u003C\u002Fcode\u003E, запускаем, открывается второй контроллер, в котором котором должна быть проставлена зависимость \u003Ccode\u003EsecondPresenter\u003C\u002Fcode\u003E. Как видно, контейнер увидел создание второго контроллера из \u003Ccode\u003EUIStoryboard\u003C\u002Fcode\u003E и успешно проставил зависимости.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"zaklyuchenie\"\u003EЗаключение\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДанная библиотека позволяет удобно работать с циклическими зависимостями, сторибордом и полностью пользуется автовыводом типов в Swift, что даеёт очень короткий и гибкий синтаксис описания графа зависимостей.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4 id=\"ssylki\"\u003EСсылки\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПолный пример кода в \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FNekitosss\u002FDITranquillityTutorial\"\u003Eбиблиотеке на github\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EDITranquillity \u003Ca href=\"https:\u002F\u002Fgithub.com\u002FivlevAstef\u002FDITranquillity\"\u003Eна github\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Ca href=\"https:\u002F\u002Fnekitosss.github.io\u002F2019-05-06-ditranquillity\u002F\"\u003EСтатья на английском\u003C\u002Fa\u003E\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"Swift"},{"titleHtml":"iOS"},{"titleHtml":"macOS"},{"titleHtml":"Dependency injection"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450788\u002F2955ea7d45babe378b0a8d6fb0070662\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450788\u002F2955ea7d45babe378b0a8d6fb0070662\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450788\\\u002F\"},\"headline\":\"Внедрение зависимостей с DITranquillity\",\"datePublished\":\"2019-05-07T07:52:04+03:00\",\"dateModified\":\"2019-05-07T10:46:38+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Nekitosss\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Dependency Injection &mdash; довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг о...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450788\\\u002F#post-content-body\",\"about\":[\"h_ios_dev\",\"h_swift\",\"h_osx_dev\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fw-\\\u002Fpn\\\u002Fro\\\u002Fw-pnroiey2c8xri9o3erqm9er_0.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fjw\\\u002Fli\\\u002Fs8\\\u002Fjwlis8txyhuzn1m5swacqvrixe4.png\"]}","metaDescription":"Dependency Injection — довольно популярный паттерн, позволяющий гибко конфигурировать систему и правильно выстраивать зависимости компонентов этой системы друг от друга. Благодаря типизации, Swift...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"ios_dev,swift,osx_dev"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

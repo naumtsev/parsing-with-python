@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450236\/"},"headline":"Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени","datePublished":"2019-05-01T05:10:59+03:00","dateModified":"2019-05-08T21:27:43+03:00","author":{"@type":"Person","name":"LeJay"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (...","url":"https:\/\/habr.com\/ru\/post\/450236\/#post-content-body","about":["h_gtd","h_freelance","f_management"],"image":["https:\/\/habrastorage.org\/webt\/_n\/wh\/wj\/_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/7f2\/aec\/59f\/7f2aec59fcd908ed1e0e99bf12469762.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/716\/b36\/bee\/716b36beeb799171dad51a3f1676125e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/352\/adc\/fe7\/352adcfe71b967e566cabf651c1b981d.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/128\/853\/0ca\/1288530cabb37464a7b27509314e8bb8.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2a4\/691\/1b0\/2a46911b05a8b969c60f78621578e4fc.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/433\/cba\/e15\/433cbae154453f95092cc2acf71ec261.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/f6f\/f37\/a0b\/f6ff37a0b43ce4056c088f0623f7428c.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/800\/541\/d73\/800541d73d06e5a0cc7584f91d2d44b8.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/cfb\/edb\/31d\/cfbedb31dd8bee9b4c86d7159ff5df8f.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/cd5\/a49\/9bb\/cd5a499bb98a0d3413fa5bbe80e10586.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/8e0\/519\/f26\/8e0519f26566f8278af1febb7ee8c681.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/9dc\/5ed\/8c6\/9dc5ed8c69f941d552a72b66852fc00e.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d61\/474\/593\/d61474593cbc06309ed69662f9d270b0.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2ed\/b17\/7ad\/2edb177ad6323dc624ff6cdc3b9bdef1.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/254\/fa4\/b31\/254fa4b3132bb664a2646d94a4c5f65c.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/35d\/178\/66f\/35d17866fedd6c616486b98474bcab46.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a88\/f4e\/81c\/a88f4e81c75546e20a342ce765384dee.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3cd\/f67\/23a\/3cdf6723a021fe55c6b9acc3c0dc04e5.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e62\/f9c\/e06\/e62f9ce06edbd3ff2ae3c6e033db1bd4.jpg","https:\/\/habrastorage.org\/webt\/tx\/l9\/fa\/txl9faiasrx-ia2k-mqtdvkabqa.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/330\/465\/5ae\/3304655ae912807a33561c311a2cf816.png","https:\/\/habrastorage.org\/webt\/op\/jz\/d6\/opjzd60nxcexaapnwjvhsgaulm0.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/86b\/1a4\/e8d\/86b1a4e8df4af38b581936f7f9ca7dd9.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/0b4\/fb2\/2fe\/0b4fb22fe7745922df83f7e7ca7a07a6.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e36\/579\/3d3\/e365793d389e679176e366bdab9891e4.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/8d4\/e87\/da5\/8d4e87da592e1055f871f93597b8bc73.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a30\/18a\/a6a\/a3018aa6a8886aa7ab6924ad98d85cef.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/da5\/c75\/977\/da5c7597784dff245a63a32554d97081.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/d05\/2a5\/cdb\/d052a5cdb150485343591bee6de9f832.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/20c\/bf5\/dce\/20cbf5dce2b39ac949302c4494f69c9c.jpg","https:\/\/habrastorage.org\/webt\/nz\/ri\/pq\/nzripqozc_6_o-cdhozmrj5rxak.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/c15\/917\/17e\/c1591717e07b0ecad830f6e327b904d2.png","https:\/\/habrastorage.org\/webt\/rl\/bs\/hz\/rlbshzs-favwwbfmzlgjve38r_y.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2a2\/12b\/974\/2a212b974b7b6304cfceeec92feb8385.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/27c\/b05\/ff7\/27cb05ff75973bc764006ebea08cfe30.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/fa0\/351\/b51\/fa0351b5159651265d82d99bedf430c8.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/519\/ff1\/6b3\/519ff16b37cfc9bd161cbef471c8c3d0.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/b83\/6aa\/5cb\/b836aa5cb58eeeaa8c3d73d2c7404b33.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/6a8\/1e4\/ff2\/6a81e4ff27f5a16dae65bf824a769f3c.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/06b\/6d9\/2df\/06b6d92df450ad9b16dc6a86aba1eb20.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/a80\/e28\/847\/a80e28847bbea2a25b17a9a71ff097e4.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/702\/123\/d9a\/702123d9afc5ac109a31af93577c5aa8.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450236/68503ae17b6503b655b598e3f3b0b8ef/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450236/68503ae17b6503b655b598e3f3b0b8ef/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450236/68503ae17b6503b655b598e3f3b0b8ef/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450236/68503ae17b6503b655b598e3f3b0b8ef/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450236/68503ae17b6503b655b598e3f3b0b8ef/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450236" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-01T02:10:59.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450236/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450236/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450236/68503ae17b6503b655b598e3f3b0b8ef/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450236/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/LeJay/" title="LeJay" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/4d2/4c6/d79/4d24c6d7909920b1f959dc2be2ed963b.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/LeJay/" class="tm-user-info__username">
+      LeJay
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-01T02:10:59.000Z" title="2019-05-01, 05:10">1  мая  2019 в 05:10</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/gtd/" class="tm-article-snippet__hubs-item-link"><span>GTD</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/freelance/" class="tm-article-snippet__hubs-item-link"><span>Фриланс</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не так уж сильно поменялся). Потому что офис, и работа на «дядю», и даже на родное государство уже тогда ассоциировались с несвободой и даже, в какой-то мере, принуждением. Для превращения этих грустных будней пост-советского инженера в настоящую тоталитарную антиутопию только слежки за тем, что я делаю за компьютером, и не хватало.<br/>
+<br/>
+Но времена менялись. Постепенно становясь крепче как специалист, приобретаешь некоторую свободу выбора задач и проектов, и, как следствие, работа становится интереснее, а условия труда эволюционируют в сторону поддержки продуктивности, а не посещаемости. Впрочем, не все должны быть фрилансерами, вот и я не стал, но удалённые проекты средней продолжительности стали моей более-менее регулярной подработкой. И отношение к трекерам, внезапно, тоже поменялось: я уже не только лояльнее отношусь к условию работы с трекером, но и сам могу предложить это в определённых случаях. Дело не только в требованиях рынка, который вынуждает подстраиваться — так я могу продемонстрировать и своё отношение к работе, и саму работу, включая её трудоёмкость, реальное количество времени, которое она требует. <br/>
+<br/>
+Один из заказчиков прислал мне собственный разбор-анализ приложений следящего софта <a href="https://clevercontrol.ru/">CleverControl</a>, <a href="https://www.kickidler.com/ru/">Kickidler</a>, <a href="https://www.staffcop.ru/">StaffCop</a>, <a href="https://www.teramind.co/">Teramind</a>, <a href="https://www.timedoctor.com/ru/">Time Doctor</a> и «<a href="https://stakhanovets.ru/">Стахановец</a>». Они выбирали софт для контроля за сотрудниками для собственного офиса, поэтому, кроме прочего, в списке пунктов анализа есть «невидимость пользователям». <br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/_n/wh/wj/_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg" data-src="https://habrastorage.org/webt/_n/wh/wj/_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg" data-blurred="true"/><br/>
+<br/>
+В принципе, если не давать заказчику удалённо админского доступа к своему компу, то простым подрядчикам волноваться особо не о чем.<br/>
+<a name="habracut"></a><br/>
+<h2>1. Установка</h2><br/>
+<b>CleverControl.</b><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/7f2/aec/59f/7f2aec59fcd908ed1e0e99bf12469762.png"/><br/>
+<br/>
+<b>Kickidler</b><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/716/b36/bee/716b36beeb799171dad51a3f1676125e.png"/><br/>
+<br/>
+Здесь подробно: <a href="https://kurets.ru/zanudnye-obzory/134-obzor-kickidler">kurets.ru/zanudnye-obzory/134-obzor-kickidler</a> <br/>
+<br/>
+<b>StaffCop.</b> После регистрации приходит письмо с ссылками на дистрибутив с сервером. Сервер базируется на ОС Ubuntu 16.04. Вариантов поставить на сервер с ОС от Microsoft нет. Кроме как использовать гипервизор Hyper-V или VmWare. Для простоты был выбран образ для VmWare. После запуска виртуального сервера настраивается сетевой интерфейс, если не знаком в ОС линукс могут возникнуть проблемы. После все настроек на виртуальном сервере, переходим на веб-интерфейс по адресу сервера. Выставляем пароль для администратора. На следующем шаге активируем программу. После можно приступать к работе.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/352/adc/fe7/352adcfe71b967e566cabf651c1b981d.png"/><br/>
+<br/>
+Для установки агента на компьютере, за которым будет вестись контроль, нужно скачать установочный файл из раздела “Панель управления” <br/>
+<br/>
+Сама установка агента трудностей не вызывает.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/128/853/0ca/1288530cabb37464a7b27509314e8bb8.png"/><br/>
+<br/>
+<b>Teramind.</b> Есть возможность использовать сервер в облаке от Терамайнд, но стоимость лицензий в два раза выше, чем на Сервере. Поэтому выбрал вариант установки локального сервера.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/2a4/691/1b0/2a46911b05a8b969c60f78621578e4fc.png"/><br/>
+<br/>
+Устанавливается только как виртуальные сервер на гипервизоры Hyper-V или VmWare. При первом запуске виртуалки нужно выполнить настройки сети, выполняются настройки скриптом, который запускается при логине пользователя консольно на сервере. Установочный файл агента скачивается с веб-интерфейса сервера, установка простая.<br/>
+<br/>
+<b>«Стахановец».</b> После регистрации пришло письмо, ссылки в котором были не активны. Для перехода по ним пришлось залезть в тело сообщения и вытаскивать ссылки из него. На этом трудности не закончились. Прочитав инструкцию и то, что для работы необходимо иметь SQL сервер. Был выбран вариант установки “в один клик”. Скачав пакет установки и запустив его, кстати двумя кликами. Запустилась окно консоли виндовс и я стал ждать. В окне долго ничего не происходило, для проверки, а работает ли оно был нажат пробел. И о чудо в консоли появились сообщение о выполнении шагов скрипта. По ходу установки пришлось после каждого шага скрипта нажимать пробел для продолжения установки. После установки сервера на рабочем столе компьютера появилась папка с дистрибутивом агента. Установка самого агента трудностей не вызывает.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/433/cba/e15/433cbae154453f95092cc2acf71ec261.png"/><br/>
+<br/>
+При работе с веб интерфейсов необходимо установить дополнительный модуль, для использования полного функционала, который работает только на ОС Windows. А значит работать с веб-интерфейсом на MacOS не получится.<br/>
+<br/>
+В программе есть 2 веб-интерфейса: Босс-онлайн – для функций онлайн-просмотра и Босс-оффлайн (для функций просмотра истории).<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/f6f/f37/a0b/f6ff37a0b43ce4056c088f0623f7428c.png"/><br/>
+<i>Наблюдение за экраном в «Стахановце»</i><br/>
+<br/>
+<h2>2. Мониторинг происходящего на экране</h2><br/>
+<b>CleverControl.</b> Онлайн-мониторинг в принципе удобный. Как и в терамайнде экраны добавляются на дашборд (до 16 экранов). Можно настроить что будет показываться рядом с экраном.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/800/541/d73/800541d73d06e5a0cc7584f91d2d44b8.png"/><br/>
+<br/>
+Можно настроить список показываемых уведомлений.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/cfb/edb/31d/cfbedb31dd8bee9b4c86d7159ff5df8f.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/cfb/edb/31d/cfbedb31dd8bee9b4c86d7159ff5df8f.jpg" data-blurred="true"/><br/>
+<br/>
+<b>Kickidler.</b> Функция онлайн-мониторинга есть. Можно мониторить одновременно очень много пк, создавая вкладки по отделам. Можно настраивать алерты. Которые будут показываться под экраном пользователя. Например при посещении подозрительного сайта. Программы, файла с подозрительным заголовком. <br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/cd5/a49/9bb/cd5a499bb98a0d3413fa5bbe80e10586.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/cd5/a49/9bb/cd5a499bb98a0d3413fa5bbe80e10586.jpg" data-blurred="true"/><br/>
+<br/>
+Можно переключиться на экран определенного сотрудника и увидеть, какие программы и сайты у него открыты. Онлайн-мониторинг доступен только во вьюере (программа просмотрщик). В веб-интерфейсе он недоступен. Вообще отличие кикидлера от других прог в том, что у него есть и вьюер и веб-интерфейс. Это и хорошо и плохо. Хорошо потому что можно мониторить сколько угодно экранов, вьюер дает дополнительные возможности. Плохо, что это лишние заморочки. <br/>
+<br/>
+<b>StaffCop.</b> До 9 мониторов, можно подключиться к любому из них, реалтайм алертов, уведомляющих о нарушениях, нет. Есть интеграция с AD – юзеры создаются автоматически. Главный минус – ограниченное число мониторов, за которыми можно наблюдать. Плюс – можно удаленно подключиться к любому из мониторов. <br/>
+<br/>
+<b>Teramind.</b> Мониторы всех сотрудников показываются на дашборде. Можно посмотреть, что делает сотрудник онлайн, растянуть его экран, не переключаясь на него. Уникальность функции в том, что сразу из онлайн-просмотрщика можно посмотреть, что делал сотрудник в прошлом. Как в плеере.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/8e0/519/f26/8e0519f26566f8278af1febb7ee8c681.png"/><br/>
+<i>Онлайн-мониторинг в Teramind</i><br/>
+<br/>
+<b>«Стахановец».</b> Есть возможность, но подключение только к одному монитору. Открывается на все окно. Никаких алертов нет, да и они не нужны. Когда смотришь на 1 экран. Можно открыть список скриншотов на данный момент активных экранов.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/9dc/5ed/8c6/9dc5ed8c69f941d552a72b66852fc00e.png"/><br/>
+<i>Скриншоты экранов в «Стахановце»</i><br/>
+<br/>
+<h2>3. Скринкасты с экранов сотрудников</h2><br/>
+<b>CleverControl.</b> Видеозаписи экранов нет, есть только скриншоты. Делаются автоматически при смене окон (сайт, программа). Есть фильтр по используемым приложениям.<br/>
+<br/>
+Вот в таких случаях могут делаться снимки:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/d61/474/593/d61474593cbc06309ed69662f9d270b0.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/d61/474/593/d61474593cbc06309ed69662f9d270b0.jpg" data-blurred="true"/><br/>
+<br/>
+<b>Kickidler.</b> Программа записывает на видео всю историю действий персонала за пк. Уникальность ее в том, что видео хранятся в проиндексированной базе данных, то есть, к сохраненному видео можно применять фильтр по сайтам или программам. Это очень удобно, не нужно смотреть всю запись рабочего дня, чтобы что-то найти определенное. <br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/2ed/b17/7ad/2edb177ad6323dc624ff6cdc3b9bdef1.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/2ed/b17/7ad/2edb177ad6323dc624ff6cdc3b9bdef1.jpg" data-blurred="true"/><br/>
+<br/>
+<b>StaffCop.</b> Программа делает скриншоты, с настраиваемой периодичностью. Возможно настроить программу так. Чтобы она делала скриншоты при смене окон (сайт, программа). <br/>
+<br/>
+Запись видео есть, по умолчанию выключено, нужно включить через панель управления. Видео нужно скачивать для просмотра, просмотр через веб-интерфейс программы невозможен.<br/>
+Видео пишется кусками по 1-10 минут, при необходимости посмотреть нужный отрезок – нужно выбрать его на шкале времени и скачать. Немного неудобно, особенно когда не знаешь точно, в какое время происходило событие.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/254/fa4/b31/254fa4b3132bb664a2646d94a4c5f65c.png"/><br/>
+<i>Видео рабочего стола в StaffCop</i><br/>
+<br/>
+<b>Teramind.</b> По умолчанию программа каждые 10 минут делает скриншоты экранов. Их можно посмотреть в разделе Screen snapshots. Также скрины можно распечатать. Видимо чтобы ткнуть нерадивого сотрудника в каку.<br/>
+<br/>
+Из скриншота можно выгрузить видео. Например, если вы нашли скиншот, на котором открыт сайт по поиску работы, можно ткнуть по нему и посмотреть видос, что реально искал на сайте сотрудник. Также можно посмотреть видео почти по каждому событию на дашборде, будь то сайт или приложение. Достаточно кликнуть на значок видео и прога покажет видео с момента начала взаимодействия с этим сайтом. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/35d/178/66f/35d17866fedd6c616486b98474bcab46.png"/><br/>
+<br/>
+<b>«Стахановец».</b> Скриншоты с заданной периодичностью делаются. Из них можно соорудить видео (ну если быть честным, то просмотр слайдшоу). Слайдшоу можно посмотреть в вебинтерфейсе программы. Слайдшоу можно посмотреть за выбранное время. Фильтра по взаимодействию с сайтами или программами нет. <br/>
+<br/>
+При необходимости можно опционально подключить запись видео. Которое в зашифрованном формате будет складироваться на ПК подопытного. Опять же – нет возможности смотреть это видео через веб интерфейс, — только конвертировать и смотреть в мп4.<br/>
+<br/>
+<h2>4. Учет рабочего времени</h2><br/>
+<b>CleverControl.</b> Стандартного учета рабочего времени (с прогулами опозданиями и перерывом) в программе нет. Есть отчет по времени, с учетом активности, а также различные отчеты по использованию сайтов, приложений, принтеров, внешних носителей и т.д.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/a88/f4e/81c/a88f4e81c75546e20a342ce765384dee.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/a88/f4e/81c/a88f4e81c75546e20a342ce765384dee.jpg" data-blurred="true"/><br/>
+<br/>
+<b>Kickidler.</b> Функция есть, неудобство в том, что она не интегрирована с рабочим календарем и в ней нельзя задавать перерывы.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/3cd/f67/23a/3cdf6723a021fe55c6b9acc3c0dc04e5.png"/><br/>
+<br/>
+<b>StaffCop.</b> Все стандартно – назначаешь расписание каждому сотруднику: начало, конец дня, начало перерыва, конец перерыва, есть календарь, где можно назначать праздники и выходные. В целом – удобно. Есть отдельные отчеты по опозданиям и сверхурочным.<br/>
+<br/>
+<b>Teramind.</b> Данная функция есть, она объединена сразу с функцией анализа эффективности. То есть, отчет показывает приходы и уходы сотрудника вместе с тем, насколько продуктивно сотрудник использовал рабочее время. Там же можно задать индивидуальный шаблон рабочего дня для каждого сотрудника.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/e62/f9c/e06/e62f9ce06edbd3ff2ae3c6e033db1bd4.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/e62/f9c/e06/e62f9ce06edbd3ff2ae3c6e033db1bd4.jpg" data-blurred="true"/><br/>
+<i>График работы сотрудника в Teramind</i><br/>
+<br/>
+<b>Time Doctor.</b><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/tx/l9/fa/txl9faiasrx-ia2k-mqtdvkabqa.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/330/465/5ae/3304655ae912807a33561c311a2cf816.png"/><br/>
+<br/>
+Зазкачик или начальник может посмотреть не только, сколько времени вы уделяли работе, но и где:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/op/jz/d6/opjzd60nxcexaapnwjvhsgaulm0.png"/><br/>
+<br/>
+<b>«Стахановец».</b> Есть интеграция со СКУД, что неплохо. При подключении к СКУД показывается, например, время когда включил комп и когда пришел на работу. И все это в веб интерфейсе программы. <br/>
+<br/>
+Индивидуальный календарь для каждого сотрудника можно задать через глобальные настройки или через мастер отчетов. Время начала и время окончания перерыва не назначается, просто задается перерыв, например. 60 минут. <br/>
+<br/>
+<h2>5. Уведомления об аномалиях и инцидентах</h2><br/>
+<b>CleverControl.</b> Функции уведомлений об аномалиях я не нашел, есть вкладка «Тревога», но она не настраивается и на сайте о ней не сказано. <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/86b/1a4/e8d/86b1a4e8df4af38b581936f7f9ca7dd9.png"/><br/>
+<br/>
+Единственный плюс программы в этом направлении – с помощью нее можно блокировать нежелательные сайты.<br/>
+<br/>
+<b>Kickidler.</b> Есть функция «Контроль нарушений», которая фиксирует посещение нежелательных сайтов, открытие программ и файлы с установленными заранее заголовками. Есть небольшой преднастроенный список. Уведомления о нарушениях видны в панели нарушений, при онлайн-мониторинге (внизу экранов сотрудников), а также при просмотре видео.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/0b4/fb2/2fe/0b4fb22fe7745922df83f7e7ca7a07a6.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/0b4/fb2/2fe/0b4fb22fe7745922df83f7e7ca7a07a6.jpg" data-blurred="true"/><br/>
+<br/>
+Любопытно, что при тестовом заходе на xvideos программа отнесла сайт к категории “funny”. Видимо, так прога отреагировала на «video» в заголовке.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/e36/579/3d3/e365793d389e679176e366bdab9891e4.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/e36/579/3d3/e365793d389e679176e366bdab9891e4.jpg" data-blurred="true"/><br/>
+<br/>
+<b>StaffCop.</b> Нашел только алерты на долгую неактивность и удаленное подключение. Наверняка есть что-то еще, но где спрятано – хз.<br/>
+<br/>
+<b>Teramind.</b> В принципе в программе это все интересно реализовано, можно для каждого сотрудника или отдела создать личный список аномалий и также настроить что делать с сотрудником при обнаружении аномалии. Либо уведомить шефа либо заблочить нахрен комп сотрудника. Есть 26 преднастроенных правил. Например, 50 минут сидишь в соцсетях или напечатал 20 страниц.<br/>
+Вот такие могут быть аномалии:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/8d4/e87/da5/8d4e87da592e1055f871f93597b8bc73.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/8d4/e87/da5/8d4e87da592e1055f871f93597b8bc73.jpg" data-blurred="true"/><br/>
+<br/>
+А вот такое атата за них:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/a30/18a/a6a/a3018aa6a8886aa7ab6924ad98d85cef.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/a30/18a/a6a/a3018aa6a8886aa7ab6924ad98d85cef.jpg" data-blurred="true"/><br/>
+<br/>
+<b>«Стахановец».</b> Есть анализатор рисков, с преднастроенной базой. Терроризм, наркотики, религия вот это все. Файлоообменники. Показываются уведомления, когда человек производит подозрительные действия или набирает подозрительный текст. Уведомления могут приходить на почту через смс или в телегу. Был реальный прикол, когда по слову «план» прилетали алерты на бухгалтерию. Программа отнесла это слово к нарко сленгу.<br/>
+<br/>
+Вот как это выглядит:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/da5/c75/977/da5c7597784dff245a63a32554d97081.png"/><br/>
+<br/>
+<h2>6. Кейлоггер. Автоматический поиск по ключевым словам</h2><br/>
+<b>CleverControl.</b> Кейлоггер в программе есть, есть поиск по словам. Настройки уведомлений, что сотрудник написал &lt;начальникнейм козел> нет.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/d05/2a5/cdb/d052a5cdb150485343591bee6de9f832.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/d05/2a5/cdb/d052a5cdb150485343591bee6de9f832.jpg" data-blurred="true"/><br/>
+<br/>
+<b>Kickidler.</b> Кейлоггер есть, он интегрирован с просмотром истории. То есть, можно одновременно смотреть видео что делал сотрудник и видеть, какие клавиши при этом он нажимал. Уведомлений при наборе слов &lt;начальникнейм козел> не приходит, но есть поиск по ключевым словам.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/20c/bf5/dce/20cbf5dce2b39ac949302c4494f69c9c.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/20c/bf5/dce/20cbf5dce2b39ac949302c4494f69c9c.jpg" data-blurred="true"/><br/>
+<br/>
+<b>StaffCop.</b> Кейлоггер есть, поиск по ключевым словам есть. Есть возможность выгрузить в эксель логи всех нажатий клавиш.<br/>
+<br/>
+<b>Teramind.</b> Функция кейлоггера в программе есть. Его можно разместить на дашборде в любом удобном месте. И поиск по ключевым словам – тоже есть. Единственная проблема – программа через раз схватывает кириллицу. Для нас это критическое замечание.<br/>
+<br/>
+<b>«Стахановец».</b> Отдельного кейлоггера как такового нет, но есть общая лента активности, где видно что сотрудник набирал на клаве. Ну и анализатор рисков присылает алерты по ключевым словам.<br/>
+<br/>
+<h2>7. Другие функции</h2><br/>
+<b>CleverControl.</b> Запись диалогов в скайпе, скриншоты и видеозапись с вебки, отслеживание активности в соцсетях, запись микрофонов, мониторинг съемных носителей, контроль печати на принтере, удаленная деинсталляция. <br/>
+<br/>
+<b>Kickidler.</b> Анализ продуктивности, динамика продуктивности, рейтинг сотрудников, удаленный контроль пк, детали дня и т.д.<br/>
+<br/>
+<b>StaffCop.</b> Просмотр переписок, контроль файлов и процессов за ПК. Программа действительно показывает все запущенные даже системные процессы на ПК сотрудника, перехват паролей, перехват буфера обмена, Контроль сетевого трафика по протоколам HTTP/HTTPS, этакая мини DLP-система. Перехват писем и вложений, отправленных из почтовых веб-сервисов. Контроль файловых операций. Контроль подключений и отключений USB-устройств.<br/>
+<br/>
+<b>Teramind.</b> Анализ продуктивности, контроль передаваемых файлов, контроль почты, удаленный доступ к рабочему столу, контроль мессенджеров. Еще бы программа была русифицированной и схватывала кириллицу – цены бы ей не было. Самая современная, на мой взгляд, архитектура. Дашборды, на которых можно помещать удобные вам отчеты. <br/>
+<br/>
+<b>Time Doctor.</b> Куча разных интеграций:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/nz/ri/pq/nzripqozc_6_o-cdhozmrj5rxak.png"/><br/>
+<br/>
+Включая пресловутый «Битрикс-24»:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/c15/917/17e/c1591717e07b0ecad830f6e327b904d2.png"/><br/>
+<br/>
+Но для меня главным бонусом оказался Payoneer: <br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/rl/bs/hz/rlbshzs-favwwbfmzlgjve38r_y.png"/><br/>
+<br/>
+<b>«Стахановец».</b> Программа по функциональности похожа на Стаффкоп. Это этакая СУРВ и недо-DLP. Есть анализатор сайтов, программ, контроль буфера обмена, запись звонков, запись с вебкамеры, контроль usb, геолокация (показывает, где находится владелец ноута), и еще одна громкая функция – клавиатурный почерк, которая должна определять пьян человек или трезв. На самом деле пустышка – срабатывает, когда просто начинаешь медленнее печатать.<br/>
+<br/>
+<h2>8. Невидимость пользователям</h2><br/>
+<b>CleverControl.</b> Скрытого режима нет, но прога хитро прячется. Обнаружить так:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/2a2/12b/974/2a212b974b7b6304cfceeec92feb8385.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/27c/b05/ff7/27cb05ff75973bc764006ebea08cfe30.png"/><br/>
+<br/>
+<b>Kickidler.</b> У программы есть два режима работы: скрытый и открытый. При скрытом режиме прога в процессах не видна. Однако ее можно найти в службах;)<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/fa0/351/b51/fa0351b5159651265d82d99bedf430c8.jpg" data-src="https://habrastorage.org/getpro/habr/post_images/fa0/351/b51/fa0351b5159651265d82d99bedf430c8.jpg" data-blurred="true"/><br/>
+<br/>
+<b>StaffCop.</b> Скрытого режима нет! Агент программы и директория вот такие :-)<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/519/ff1/6b3/519ff16b37cfc9bd161cbef471c8c3d0.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/b83/6aa/5cb/b836aa5cb58eeeaa8c3d73d2c7404b33.png"/><br/>
+<br/>
+<b>Teramind.</b> Скрытого режима у программы нет. Подобно Стахановцу, прога прячется в реестре. Но следы ее найти удалось. Вот они:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/6a8/1e4/ff2/6a81e4ff27f5a16dae65bf824a769f3c.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/06b/6d9/2df/06b6d92df450ad9b16dc6a86aba1eb20.png"/><br/>
+<br/>
+<b>«Стахановец».</b> Программа хитра и следов в процессах не оставляет. Прописывается в реестре. Но следы ее найти можно. Вот они:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/a80/e28/847/a80e28847bbea2a25b17a9a71ff097e4.png"/><br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/702/123/d9a/702123d9afc5ac109a31af93577c5aa8.png"/></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BCleverControl%5D" class="tm-tags-list__link">CleverControl</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BKickidler%5D" class="tm-tags-list__link">Kickidler</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BStaffCop%5D" class="tm-tags-list__link">StaffCop</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BTeramind%5D" class="tm-tags-list__link">Teramind</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BTime%20Doctor%5D" class="tm-tags-list__link">Time Doctor</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%A1%D1%82%D0%B0%D1%85%D0%B0%D0%BD%D0%BE%D0%B2%D0%B5%D1%86%5D" class="tm-tags-list__link">Стахановец</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%9F%D0%B0%D0%B2%D0%BB%D0%B8%D0%BA%20%D0%9C%D0%BE%D1%80%D0%BE%D0%B7%D0%BE%D0%B2%5D" class="tm-tags-list__link">Павлик Морозов</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BA%D0%B0%D0%BF%D0%B8%D1%82%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC%5D" class="tm-tags-list__link">капитализм</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%5D" class="tm-tags-list__link">работа</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/gtd/" class="tm-hubs-list__link">
+    GTD
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/freelance/" class="tm-hubs-list__link">
+    Фриланс
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 58: ↑30 и ↓28</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 58: ↑30 и ↓28" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+2</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">18K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    61
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/LeJay/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/4d2/4c6/d79/4d24c6d7909920b1f959dc2be2ed963b.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 25 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    5
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/LeJay/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @LeJay
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Инженер-программист</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450236/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 58 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450236/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450236/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450236":{"id":"450236","timePublished":"2019-05-01T02:10:59+00:00","isCorporative":false,"lang":"ru","titleHtml":"Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени","leadData":{"textHtml":"Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не так уж сильно поменялся). Потому что офис, и работа на «дядю», и даже на родное государство уже тогда ассоциировались с несвободой и даже, в какой-то мере, принуждением. Для превращения этих грустных будней пост-советского инженера в настоящую тоталитарную антиутопию только слежки за тем, что я делаю за компьютером, и не хватало.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nНо времена менялись. Постепенно становясь крепче как специалист, приобретаешь некоторую свободу выбора задач и проектов, и, как следствие, работа становится интереснее, а условия труда эволюционируют в сторону поддержки продуктивности, а не посещаемости. Впрочем, не все должны быть фрилансерами, вот и я не стал, но удалённые проекты средней продолжительности стали моей более-менее регулярной подработкой. И отношение к трекерам, внезапно, тоже поменялось: я уже не только лояльнее отношусь к условию работы с трекером, но и сам могу предложить это в определённых случаях. Дело не только в требованиях рынка, который вынуждает подстраиваться — так я могу продемонстрировать и своё отношение к работе, и саму работу, включая её трудоёмкость, реальное количество времени, которое она требует. \u003Cbr\u003E\r\n\u003Cbr\u003E\r\nОдин из заказчиков прислал мне собственный разбор-анализ приложений следящего софта \u003Ca href=\"https:\u002F\u002Fclevercontrol.ru\u002F\"\u003ECleverControl\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.kickidler.com\u002Fru\u002F\"\u003EKickidler\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.staffcop.ru\u002F\"\u003EStaffCop\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.teramind.co\u002F\"\u003ETeramind\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.timedoctor.com\u002Fru\u002F\"\u003ETime Doctor\u003C\u002Fa\u003E и «\u003Ca href=\"https:\u002F\u002Fstakhanovets.ru\u002F\"\u003EСтахановец\u003C\u002Fa\u003E». Они выбирали софт для контроля за сотрудниками для собственного офиса, поэтому, кроме прочего, в списке пунктов анализа есть «невидимость пользователям». \u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_n\u002Fwh\u002Fwj\u002F_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ принципе, если не давать заказчику удалённо админского доступа к своему компу, то простым подрядчикам волноваться особо не о чем.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":5,"votesCount":25},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"41001178171050","paymentPayPalMe":null,"paymentWebmoney":null},"id":"35010","alias":"LeJay","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F4d2\u002F4c6\u002Fd79\u002F4d24c6d7909920b1f959dc2be2ed963b.jpg","speciality":"Инженер-программист"},"statistics":{"commentsCount":58,"favoritesCount":61,"readingCount":18415,"score":2,"votesCount":58},"hubs":[{"relatedData":null,"id":"20690","alias":"gtd","type":"collective","title":"GTD","titleHtml":"GTD","isProfiled":true},{"relatedData":null,"id":"20694","alias":"freelance","type":"collective","title":"Фриланс","titleHtml":"Фриланс","isProfiled":false}],"flows":[{"id":"3","alias":"management","title":"Менеджмент"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EПомню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не так уж сильно поменялся). Потому что офис, и работа на «дядю», и даже на родное государство уже тогда ассоциировались с несвободой и даже, в какой-то мере, принуждением. Для превращения этих грустных будней пост-советского инженера в настоящую тоталитарную антиутопию только слежки за тем, что я делаю за компьютером, и не хватало.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо времена менялись. Постепенно становясь крепче как специалист, приобретаешь некоторую свободу выбора задач и проектов, и, как следствие, работа становится интереснее, а условия труда эволюционируют в сторону поддержки продуктивности, а не посещаемости. Впрочем, не все должны быть фрилансерами, вот и я не стал, но удалённые проекты средней продолжительности стали моей более-менее регулярной подработкой. И отношение к трекерам, внезапно, тоже поменялось: я уже не только лояльнее отношусь к условию работы с трекером, но и сам могу предложить это в определённых случаях. Дело не только в требованиях рынка, который вынуждает подстраиваться — так я могу продемонстрировать и своё отношение к работе, и саму работу, включая её трудоёмкость, реальное количество времени, которое она требует. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОдин из заказчиков прислал мне собственный разбор-анализ приложений следящего софта \u003Ca href=\"https:\u002F\u002Fclevercontrol.ru\u002F\"\u003ECleverControl\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.kickidler.com\u002Fru\u002F\"\u003EKickidler\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.staffcop.ru\u002F\"\u003EStaffCop\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.teramind.co\u002F\"\u003ETeramind\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fwww.timedoctor.com\u002Fru\u002F\"\u003ETime Doctor\u003C\u002Fa\u003E и «\u003Ca href=\"https:\u002F\u002Fstakhanovets.ru\u002F\"\u003EСтахановец\u003C\u002Fa\u003E». Они выбирали софт для контроля за сотрудниками для собственного офиса, поэтому, кроме прочего, в списке пунктов анализа есть «невидимость пользователям». \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F_n\u002Fwh\u002Fwj\u002F_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_n\u002Fwh\u002Fwj\u002F_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ принципе, если не давать заказчику удалённо админского доступа к своему компу, то простым подрядчикам волноваться особо не о чем.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E1. Установка\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F7f2\u002Faec\u002F59f\u002F7f2aec59fcd908ed1e0e99bf12469762.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F716\u002Fb36\u002Fbee\u002F716b36beeb799171dad51a3f1676125e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗдесь подробно: \u003Ca href=\"https:\u002F\u002Fkurets.ru\u002Fzanudnye-obzory\u002F134-obzor-kickidler\"\u003Ekurets.ru\u002Fzanudnye-obzory\u002F134-obzor-kickidler\u003C\u002Fa\u003E \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E После регистрации приходит письмо с ссылками на дистрибутив с сервером. Сервер базируется на ОС Ubuntu 16.04. Вариантов поставить на сервер с ОС от Microsoft нет. Кроме как использовать гипервизор Hyper-V или VmWare. Для простоты был выбран образ для VmWare. После запуска виртуального сервера настраивается сетевой интерфейс, если не знаком в ОС линукс могут возникнуть проблемы. После все настроек на виртуальном сервере, переходим на веб-интерфейс по адресу сервера. Выставляем пароль для администратора. На следующем шаге активируем программу. После можно приступать к работе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F352\u002Fadc\u002Ffe7\u002F352adcfe71b967e566cabf651c1b981d.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля установки агента на компьютере, за которым будет вестись контроль, нужно скачать установочный файл из раздела “Панель управления” \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСама установка агента трудностей не вызывает.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F128\u002F853\u002F0ca\u002F1288530cabb37464a7b27509314e8bb8.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E Есть возможность использовать сервер в облаке от Терамайнд, но стоимость лицензий в два раза выше, чем на Сервере. Поэтому выбрал вариант установки локального сервера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2a4\u002F691\u002F1b0\u002F2a46911b05a8b969c60f78621578e4fc.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУстанавливается только как виртуальные сервер на гипервизоры Hyper-V или VmWare. При первом запуске виртуалки нужно выполнить настройки сети, выполняются настройки скриптом, который запускается при логине пользователя консольно на сервере. Установочный файл агента скачивается с веб-интерфейса сервера, установка простая.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E После регистрации пришло письмо, ссылки в котором были не активны. Для перехода по ним пришлось залезть в тело сообщения и вытаскивать ссылки из него. На этом трудности не закончились. Прочитав инструкцию и то, что для работы необходимо иметь SQL сервер. Был выбран вариант установки “в один клик”. Скачав пакет установки и запустив его, кстати двумя кликами. Запустилась окно консоли виндовс и я стал ждать. В окне долго ничего не происходило, для проверки, а работает ли оно был нажат пробел. И о чудо в консоли появились сообщение о выполнении шагов скрипта. По ходу установки пришлось после каждого шага скрипта нажимать пробел для продолжения установки. После установки сервера на рабочем столе компьютера появилась папка с дистрибутивом агента. Установка самого агента трудностей не вызывает.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F433\u002Fcba\u002Fe15\u002F433cbae154453f95092cc2acf71ec261.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри работе с веб интерфейсов необходимо установить дополнительный модуль, для использования полного функционала, который работает только на ОС Windows. А значит работать с веб-интерфейсом на MacOS не получится.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ программе есть 2 веб-интерфейса: Босс-онлайн – для функций онлайн-просмотра и Босс-оффлайн (для функций просмотра истории).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff6f\u002Ff37\u002Fa0b\u002Ff6ff37a0b43ce4056c088f0623f7428c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EНаблюдение за экраном в «Стахановце»\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E2. Мониторинг происходящего на экране\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Онлайн-мониторинг в принципе удобный. Как и в терамайнде экраны добавляются на дашборд (до 16 экранов). Можно настроить что будет показываться рядом с экраном.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F800\u002F541\u002Fd73\u002F800541d73d06e5a0cc7584f91d2d44b8.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМожно настроить список показываемых уведомлений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcfb\u002Fedb\u002F31d\u002Fcfbedb31dd8bee9b4c86d7159ff5df8f.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcfb\u002Fedb\u002F31d\u002Fcfbedb31dd8bee9b4c86d7159ff5df8f.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E Функция онлайн-мониторинга есть. Можно мониторить одновременно очень много пк, создавая вкладки по отделам. Можно настраивать алерты. Которые будут показываться под экраном пользователя. Например при посещении подозрительного сайта. Программы, файла с подозрительным заголовком. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcd5\u002Fa49\u002F9bb\u002Fcd5a499bb98a0d3413fa5bbe80e10586.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fcd5\u002Fa49\u002F9bb\u002Fcd5a499bb98a0d3413fa5bbe80e10586.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМожно переключиться на экран определенного сотрудника и увидеть, какие программы и сайты у него открыты. Онлайн-мониторинг доступен только во вьюере (программа просмотрщик). В веб-интерфейсе он недоступен. Вообще отличие кикидлера от других прог в том, что у него есть и вьюер и веб-интерфейс. Это и хорошо и плохо. Хорошо потому что можно мониторить сколько угодно экранов, вьюер дает дополнительные возможности. Плохо, что это лишние заморочки. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E До 9 мониторов, можно подключиться к любому из них, реалтайм алертов, уведомляющих о нарушениях, нет. Есть интеграция с AD – юзеры создаются автоматически. Главный минус – ограниченное число мониторов, за которыми можно наблюдать. Плюс – можно удаленно подключиться к любому из мониторов. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E Мониторы всех сотрудников показываются на дашборде. Можно посмотреть, что делает сотрудник онлайн, растянуть его экран, не переключаясь на него. Уникальность функции в том, что сразу из онлайн-просмотрщика можно посмотреть, что делал сотрудник в прошлом. Как в плеере.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F8e0\u002F519\u002Ff26\u002F8e0519f26566f8278af1febb7ee8c681.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EОнлайн-мониторинг в Teramind\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Есть возможность, но подключение только к одному монитору. Открывается на все окно. Никаких алертов нет, да и они не нужны. Когда смотришь на 1 экран. Можно открыть список скриншотов на данный момент активных экранов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F9dc\u002F5ed\u002F8c6\u002F9dc5ed8c69f941d552a72b66852fc00e.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EСкриншоты экранов в «Стахановце»\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E3. Скринкасты с экранов сотрудников\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Видеозаписи экранов нет, есть только скриншоты. Делаются автоматически при смене окон (сайт, программа). Есть фильтр по используемым приложениям.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот в таких случаях могут делаться снимки:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd61\u002F474\u002F593\u002Fd61474593cbc06309ed69662f9d270b0.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd61\u002F474\u002F593\u002Fd61474593cbc06309ed69662f9d270b0.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E Программа записывает на видео всю историю действий персонала за пк. Уникальность ее в том, что видео хранятся в проиндексированной базе данных, то есть, к сохраненному видео можно применять фильтр по сайтам или программам. Это очень удобно, не нужно смотреть всю запись рабочего дня, чтобы что-то найти определенное. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2ed\u002Fb17\u002F7ad\u002F2edb177ad6323dc624ff6cdc3b9bdef1.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2ed\u002Fb17\u002F7ad\u002F2edb177ad6323dc624ff6cdc3b9bdef1.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E Программа делает скриншоты, с настраиваемой периодичностью. Возможно настроить программу так. Чтобы она делала скриншоты при смене окон (сайт, программа). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗапись видео есть, по умолчанию выключено, нужно включить через панель управления. Видео нужно скачивать для просмотра, просмотр через веб-интерфейс программы невозможен.\u003Cbr\u002F\u003E\r\nВидео пишется кусками по 1-10 минут, при необходимости посмотреть нужный отрезок – нужно выбрать его на шкале времени и скачать. Немного неудобно, особенно когда не знаешь точно, в какое время происходило событие.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F254\u002Ffa4\u002Fb31\u002F254fa4b3132bb664a2646d94a4c5f65c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EВидео рабочего стола в StaffCop\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E По умолчанию программа каждые 10 минут делает скриншоты экранов. Их можно посмотреть в разделе Screen snapshots. Также скрины можно распечатать. Видимо чтобы ткнуть нерадивого сотрудника в каку.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИз скриншота можно выгрузить видео. Например, если вы нашли скиншот, на котором открыт сайт по поиску работы, можно ткнуть по нему и посмотреть видос, что реально искал на сайте сотрудник. Также можно посмотреть видео почти по каждому событию на дашборде, будь то сайт или приложение. Достаточно кликнуть на значок видео и прога покажет видео с момента начала взаимодействия с этим сайтом. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F35d\u002F178\u002F66f\u002F35d17866fedd6c616486b98474bcab46.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Скриншоты с заданной периодичностью делаются. Из них можно соорудить видео (ну если быть честным, то просмотр слайдшоу). Слайдшоу можно посмотреть в вебинтерфейсе программы. Слайдшоу можно посмотреть за выбранное время. Фильтра по взаимодействию с сайтами или программами нет. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри необходимости можно опционально подключить запись видео. Которое в зашифрованном формате будет складироваться на ПК подопытного. Опять же – нет возможности смотреть это видео через веб интерфейс, — только конвертировать и смотреть в мп4.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E4. Учет рабочего времени\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Стандартного учета рабочего времени (с прогулами опозданиями и перерывом) в программе нет. Есть отчет по времени, с учетом активности, а также различные отчеты по использованию сайтов, приложений, принтеров, внешних носителей и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa88\u002Ff4e\u002F81c\u002Fa88f4e81c75546e20a342ce765384dee.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa88\u002Ff4e\u002F81c\u002Fa88f4e81c75546e20a342ce765384dee.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E Функция есть, неудобство в том, что она не интегрирована с рабочим календарем и в ней нельзя задавать перерывы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F3cd\u002Ff67\u002F23a\u002F3cdf6723a021fe55c6b9acc3c0dc04e5.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E Все стандартно – назначаешь расписание каждому сотруднику: начало, конец дня, начало перерыва, конец перерыва, есть календарь, где можно назначать праздники и выходные. В целом – удобно. Есть отдельные отчеты по опозданиям и сверхурочным.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E Данная функция есть, она объединена сразу с функцией анализа эффективности. То есть, отчет показывает приходы и уходы сотрудника вместе с тем, насколько продуктивно сотрудник использовал рабочее время. Там же можно задать индивидуальный шаблон рабочего дня для каждого сотрудника.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe62\u002Ff9c\u002Fe06\u002Fe62f9ce06edbd3ff2ae3c6e033db1bd4.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe62\u002Ff9c\u002Fe06\u002Fe62f9ce06edbd3ff2ae3c6e033db1bd4.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EГрафик работы сотрудника в Teramind\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETime Doctor.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ftx\u002Fl9\u002Ffa\u002Ftxl9faiasrx-ia2k-mqtdvkabqa.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F330\u002F465\u002F5ae\u002F3304655ae912807a33561c311a2cf816.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗазкачик или начальник может посмотреть не только, сколько времени вы уделяли работе, но и где:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fop\u002Fjz\u002Fd6\u002Fopjzd60nxcexaapnwjvhsgaulm0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Есть интеграция со СКУД, что неплохо. При подключении к СКУД показывается, например, время когда включил комп и когда пришел на работу. И все это в веб интерфейсе программы. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИндивидуальный календарь для каждого сотрудника можно задать через глобальные настройки или через мастер отчетов. Время начала и время окончания перерыва не назначается, просто задается перерыв, например. 60 минут. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E5. Уведомления об аномалиях и инцидентах\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Функции уведомлений об аномалиях я не нашел, есть вкладка «Тревога», но она не настраивается и на сайте о ней не сказано. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F86b\u002F1a4\u002Fe8d\u002F86b1a4e8df4af38b581936f7f9ca7dd9.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕдинственный плюс программы в этом направлении – с помощью нее можно блокировать нежелательные сайты.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E Есть функция «Контроль нарушений», которая фиксирует посещение нежелательных сайтов, открытие программ и файлы с установленными заранее заголовками. Есть небольшой преднастроенный список. Уведомления о нарушениях видны в панели нарушений, при онлайн-мониторинге (внизу экранов сотрудников), а также при просмотре видео.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F0b4\u002Ffb2\u002F2fe\u002F0b4fb22fe7745922df83f7e7ca7a07a6.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F0b4\u002Ffb2\u002F2fe\u002F0b4fb22fe7745922df83f7e7ca7a07a6.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЛюбопытно, что при тестовом заходе на xvideos программа отнесла сайт к категории “funny”. Видимо, так прога отреагировала на «video» в заголовке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe36\u002F579\u002F3d3\u002Fe365793d389e679176e366bdab9891e4.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fe36\u002F579\u002F3d3\u002Fe365793d389e679176e366bdab9891e4.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E Нашел только алерты на долгую неактивность и удаленное подключение. Наверняка есть что-то еще, но где спрятано – хз.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E В принципе в программе это все интересно реализовано, можно для каждого сотрудника или отдела создать личный список аномалий и также настроить что делать с сотрудником при обнаружении аномалии. Либо уведомить шефа либо заблочить нахрен комп сотрудника. Есть 26 преднастроенных правил. Например, 50 минут сидишь в соцсетях или напечатал 20 страниц.\u003Cbr\u002F\u003E\r\nВот такие могут быть аномалии:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F8d4\u002Fe87\u002Fda5\u002F8d4e87da592e1055f871f93597b8bc73.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F8d4\u002Fe87\u002Fda5\u002F8d4e87da592e1055f871f93597b8bc73.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА вот такое атата за них:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa30\u002F18a\u002Fa6a\u002Fa3018aa6a8886aa7ab6924ad98d85cef.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa30\u002F18a\u002Fa6a\u002Fa3018aa6a8886aa7ab6924ad98d85cef.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Есть анализатор рисков, с преднастроенной базой. Терроризм, наркотики, религия вот это все. Файлоообменники. Показываются уведомления, когда человек производит подозрительные действия или набирает подозрительный текст. Уведомления могут приходить на почту через смс или в телегу. Был реальный прикол, когда по слову «план» прилетали алерты на бухгалтерию. Программа отнесла это слово к нарко сленгу.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВот как это выглядит:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fda5\u002Fc75\u002F977\u002Fda5c7597784dff245a63a32554d97081.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E6. Кейлоггер. Автоматический поиск по ключевым словам\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Кейлоггер в программе есть, есть поиск по словам. Настройки уведомлений, что сотрудник написал &lt;начальникнейм козел\u003E нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd05\u002F2a5\u002Fcdb\u002Fd052a5cdb150485343591bee6de9f832.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fd05\u002F2a5\u002Fcdb\u002Fd052a5cdb150485343591bee6de9f832.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E Кейлоггер есть, он интегрирован с просмотром истории. То есть, можно одновременно смотреть видео что делал сотрудник и видеть, какие клавиши при этом он нажимал. Уведомлений при наборе слов &lt;начальникнейм козел\u003E не приходит, но есть поиск по ключевым словам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F20c\u002Fbf5\u002Fdce\u002F20cbf5dce2b39ac949302c4494f69c9c.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F20c\u002Fbf5\u002Fdce\u002F20cbf5dce2b39ac949302c4494f69c9c.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E Кейлоггер есть, поиск по ключевым словам есть. Есть возможность выгрузить в эксель логи всех нажатий клавиш.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E Функция кейлоггера в программе есть. Его можно разместить на дашборде в любом удобном месте. И поиск по ключевым словам – тоже есть. Единственная проблема – программа через раз схватывает кириллицу. Для нас это критическое замечание.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Отдельного кейлоггера как такового нет, но есть общая лента активности, где видно что сотрудник набирал на клаве. Ну и анализатор рисков присылает алерты по ключевым словам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E7. Другие функции\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Запись диалогов в скайпе, скриншоты и видеозапись с вебки, отслеживание активности в соцсетях, запись микрофонов, мониторинг съемных носителей, контроль печати на принтере, удаленная деинсталляция. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E Анализ продуктивности, динамика продуктивности, рейтинг сотрудников, удаленный контроль пк, детали дня и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E Просмотр переписок, контроль файлов и процессов за ПК. Программа действительно показывает все запущенные даже системные процессы на ПК сотрудника, перехват паролей, перехват буфера обмена, Контроль сетевого трафика по протоколам HTTP\u002FHTTPS, этакая мини DLP-система. Перехват писем и вложений, отправленных из почтовых веб-сервисов. Контроль файловых операций. Контроль подключений и отключений USB-устройств.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E Анализ продуктивности, контроль передаваемых файлов, контроль почты, удаленный доступ к рабочему столу, контроль мессенджеров. Еще бы программа была русифицированной и схватывала кириллицу – цены бы ей не было. Самая современная, на мой взгляд, архитектура. Дашборды, на которых можно помещать удобные вам отчеты. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETime Doctor.\u003C\u002Fb\u003E Куча разных интеграций:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnz\u002Fri\u002Fpq\u002Fnzripqozc_6_o-cdhozmrj5rxak.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВключая пресловутый «Битрикс-24»:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fc15\u002F917\u002F17e\u002Fc1591717e07b0ecad830f6e327b904d2.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо для меня главным бонусом оказался Payoneer: \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Frl\u002Fbs\u002Fhz\u002Frlbshzs-favwwbfmzlgjve38r_y.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Программа по функциональности похожа на Стаффкоп. Это этакая СУРВ и недо-DLP. Есть анализатор сайтов, программ, контроль буфера обмена, запись звонков, запись с вебкамеры, контроль usb, геолокация (показывает, где находится владелец ноута), и еще одна громкая функция – клавиатурный почерк, которая должна определять пьян человек или трезв. На самом деле пустышка – срабатывает, когда просто начинаешь медленнее печатать.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E8. Невидимость пользователям\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECleverControl.\u003C\u002Fb\u003E Скрытого режима нет, но прога хитро прячется. Обнаружить так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2a2\u002F12b\u002F974\u002F2a212b974b7b6304cfceeec92feb8385.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F27c\u002Fb05\u002Fff7\u002F27cb05ff75973bc764006ebea08cfe30.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EKickidler.\u003C\u002Fb\u003E У программы есть два режима работы: скрытый и открытый. При скрытом режиме прога в процессах не видна. Однако ее можно найти в службах;)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ffa0\u002F351\u002Fb51\u002Ffa0351b5159651265d82d99bedf430c8.jpg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ffa0\u002F351\u002Fb51\u002Ffa0351b5159651265d82d99bedf430c8.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EStaffCop.\u003C\u002Fb\u003E Скрытого режима нет! Агент программы и директория вот такие :-)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F519\u002Fff1\u002F6b3\u002F519ff16b37cfc9bd161cbef471c8c3d0.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fb83\u002F6aa\u002F5cb\u002Fb836aa5cb58eeeaa8c3d73d2c7404b33.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETeramind.\u003C\u002Fb\u003E Скрытого режима у программы нет. Подобно Стахановцу, прога прячется в реестре. Но следы ее найти удалось. Вот они:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F6a8\u002F1e4\u002Fff2\u002F6a81e4ff27f5a16dae65bf824a769f3c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F06b\u002F6d9\u002F2df\u002F06b6d92df450ad9b16dc6a86aba1eb20.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E«Стахановец».\u003C\u002Fb\u003E Программа хитра и следов в процессах не оставляет. Прописывается в реестре. Но следы ее найти можно. Вот они:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fa80\u002Fe28\u002F847\u002Fa80e28847bbea2a25b17a9a71ff097e4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F702\u002F123\u002Fd9a\u002F702123d9afc5ac109a31af93577c5aa8.png\"\u002F\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"CleverControl"},{"titleHtml":"Kickidler"},{"titleHtml":"StaffCop"},{"titleHtml":"Teramind"},{"titleHtml":"Time Doctor"},{"titleHtml":"Стахановец"},{"titleHtml":"Павлик Морозов"},{"titleHtml":"капитализм"},{"titleHtml":"работа"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450236\u002F68503ae17b6503b655b598e3f3b0b8ef\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450236\u002F68503ae17b6503b655b598e3f3b0b8ef\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450236\\\u002F\"},\"headline\":\"Как я перестал беспокоиться и по-другому взглянул на системы учёта рабочего времени\",\"datePublished\":\"2019-05-01T05:10:59+03:00\",\"dateModified\":\"2019-05-08T21:27:43+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"LeJay\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450236\\\u002F#post-content-body\",\"about\":[\"h_gtd\",\"h_freelance\",\"f_management\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_n\\\u002Fwh\\\u002Fwj\\\u002F_nwhwjfcjllpgx3gdz3mzkxxedk.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F7f2\\\u002Faec\\\u002F59f\\\u002F7f2aec59fcd908ed1e0e99bf12469762.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F716\\\u002Fb36\\\u002Fbee\\\u002F716b36beeb799171dad51a3f1676125e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F352\\\u002Fadc\\\u002Ffe7\\\u002F352adcfe71b967e566cabf651c1b981d.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F128\\\u002F853\\\u002F0ca\\\u002F1288530cabb37464a7b27509314e8bb8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2a4\\\u002F691\\\u002F1b0\\\u002F2a46911b05a8b969c60f78621578e4fc.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F433\\\u002Fcba\\\u002Fe15\\\u002F433cbae154453f95092cc2acf71ec261.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ff6f\\\u002Ff37\\\u002Fa0b\\\u002Ff6ff37a0b43ce4056c088f0623f7428c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F800\\\u002F541\\\u002Fd73\\\u002F800541d73d06e5a0cc7584f91d2d44b8.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fcfb\\\u002Fedb\\\u002F31d\\\u002Fcfbedb31dd8bee9b4c86d7159ff5df8f.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fcd5\\\u002Fa49\\\u002F9bb\\\u002Fcd5a499bb98a0d3413fa5bbe80e10586.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F8e0\\\u002F519\\\u002Ff26\\\u002F8e0519f26566f8278af1febb7ee8c681.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F9dc\\\u002F5ed\\\u002F8c6\\\u002F9dc5ed8c69f941d552a72b66852fc00e.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd61\\\u002F474\\\u002F593\\\u002Fd61474593cbc06309ed69662f9d270b0.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2ed\\\u002Fb17\\\u002F7ad\\\u002F2edb177ad6323dc624ff6cdc3b9bdef1.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F254\\\u002Ffa4\\\u002Fb31\\\u002F254fa4b3132bb664a2646d94a4c5f65c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F35d\\\u002F178\\\u002F66f\\\u002F35d17866fedd6c616486b98474bcab46.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa88\\\u002Ff4e\\\u002F81c\\\u002Fa88f4e81c75546e20a342ce765384dee.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3cd\\\u002Ff67\\\u002F23a\\\u002F3cdf6723a021fe55c6b9acc3c0dc04e5.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe62\\\u002Ff9c\\\u002Fe06\\\u002Fe62f9ce06edbd3ff2ae3c6e033db1bd4.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ftx\\\u002Fl9\\\u002Ffa\\\u002Ftxl9faiasrx-ia2k-mqtdvkabqa.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F330\\\u002F465\\\u002F5ae\\\u002F3304655ae912807a33561c311a2cf816.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fop\\\u002Fjz\\\u002Fd6\\\u002Fopjzd60nxcexaapnwjvhsgaulm0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F86b\\\u002F1a4\\\u002Fe8d\\\u002F86b1a4e8df4af38b581936f7f9ca7dd9.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F0b4\\\u002Ffb2\\\u002F2fe\\\u002F0b4fb22fe7745922df83f7e7ca7a07a6.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe36\\\u002F579\\\u002F3d3\\\u002Fe365793d389e679176e366bdab9891e4.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F8d4\\\u002Fe87\\\u002Fda5\\\u002F8d4e87da592e1055f871f93597b8bc73.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa30\\\u002F18a\\\u002Fa6a\\\u002Fa3018aa6a8886aa7ab6924ad98d85cef.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fda5\\\u002Fc75\\\u002F977\\\u002Fda5c7597784dff245a63a32554d97081.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fd05\\\u002F2a5\\\u002Fcdb\\\u002Fd052a5cdb150485343591bee6de9f832.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F20c\\\u002Fbf5\\\u002Fdce\\\u002F20cbf5dce2b39ac949302c4494f69c9c.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnz\\\u002Fri\\\u002Fpq\\\u002Fnzripqozc_6_o-cdhozmrj5rxak.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fc15\\\u002F917\\\u002F17e\\\u002Fc1591717e07b0ecad830f6e327b904d2.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Frl\\\u002Fbs\\\u002Fhz\\\u002Frlbshzs-favwwbfmzlgjve38r_y.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2a2\\\u002F12b\\\u002F974\\\u002F2a212b974b7b6304cfceeec92feb8385.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F27c\\\u002Fb05\\\u002Fff7\\\u002F27cb05ff75973bc764006ebea08cfe30.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ffa0\\\u002F351\\\u002Fb51\\\u002Ffa0351b5159651265d82d99bedf430c8.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F519\\\u002Fff1\\\u002F6b3\\\u002F519ff16b37cfc9bd161cbef471c8c3d0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fb83\\\u002F6aa\\\u002F5cb\\\u002Fb836aa5cb58eeeaa8c3d73d2c7404b33.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F6a8\\\u002F1e4\\\u002Fff2\\\u002F6a81e4ff27f5a16dae65bf824a769f3c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F06b\\\u002F6d9\\\u002F2df\\\u002F06b6d92df450ad9b16dc6a86aba1eb20.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fa80\\\u002Fe28\\\u002F847\\\u002Fa80e28847bbea2a25b17a9a71ff097e4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F702\\\u002F123\\\u002Fd9a\\\u002F702123d9afc5ac109a31af93577c5aa8.png\"]}","metaDescription":"Помню, как, будучи офисным ещё, по большей части, работником, я читал и хейтил обзоры подобных программ, включая некоторые из тех, про которые сам сегодня пишу (за 10 лет рынок софта этой категории не...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"gtd,freelance"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

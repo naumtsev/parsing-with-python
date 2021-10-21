@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Разработка микросервисов с помощью BDD и IOD / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/oleg-bunin\/blog\/450800\/"},"headline":"Разработка микросервисов с помощью BDD и IOD","datePublished":"2019-05-16T15:36:28+03:00","dateModified":"2019-05-16T17:01:01+03:00","author":{"@type":"Person","name":"Асеева-Нгуен Анастасия"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"BDD&nbsp;&mdash; разработка через поведение. BDD для микросервисов&nbsp;&mdash; это сотрудничество клиента, разработчиков и&nbsp;тестировщиков. BDD&nbsp;&mdash; это разработка, которая учитывает и&nbsp;те...","url":"https:\/\/habr.com\/ru\/company\/oleg-bunin\/blog\/450800\/#post-content-body","about":["c_oleg-bunin","h_it_testing","h_web_testing","h_dev_management","h_microservices","f_develop","f_management"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/f26\/3c7\/342\/f263c73424408d44668d6f9362266293.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/fb4\/822\/287\/fb4822287600a790f360e925c47595f3.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/1db\/6e9\/2d6\/1db6e92d6fb46168b5d87f02589f2fd5.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/4e3\/0c5\/a0d\/4e30c5a0d8d9e86c0175b5edeeed158f.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/ae7\/91e\/fd4\/ae791efd4918ee1d09e6f7c3cba6932f.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Разработка микросервисов с помощью BDD и IOD" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Разработка микросервисов с помощью BDD и IOD" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Разработка микросервисов с помощью BDD и IOD" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования...." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования...." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования...." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования...." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования...." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450800/9c05d367ef690be72f35a1a22aab5f52/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450800/9c05d367ef690be72f35a1a22aab5f52/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450800/9c05d367ef690be72f35a1a22aab5f52/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450800/9c05d367ef690be72f35a1a22aab5f52/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450800/9c05d367ef690be72f35a1a22aab5f52/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450800" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-16T12:36:28.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450800/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/oleg-bunin/blog/450800/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450800/9c05d367ef690be72f35a1a22aab5f52/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="oleg-bunin" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://www.highload.ru/moscow/2021/?utm_source=habr&amp;utm_medium=cpc&amp;utm_campaign=title&amp;utm_content=banner"><img src="//habrastorage.org/getpro/habr/branding/673/a67/310/673a67310118a40a792e1eb97151fd97.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/7c3/ad4/7b2/7c3ad47b2aae71b56795f618534e7a51.jpg" width="48" class="tm-entity-image__pic"></div></a> <!----> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">374.29</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-card__name">
+        Конференции Олега Бунина (Онтико)
+      </a> <div class="tm-company-card__description">Профессиональные конференции для IT-разработчиков</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Travieso/" title="Travieso" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/268/07a/c67/26807ac6777f5f70286de927bc989e76.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Travieso/" class="tm-user-info__username">
+      Travieso
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-16T12:36:28.000Z" title="2019-05-16, 15:36">16  мая  2019 в 15:36</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Разработка микросервисов с помощью BDD и IOD</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/oleg-bunin/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Конференции Олега Бунина (Онтико)</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование IT-систем</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/web_testing/" class="tm-article-snippet__hubs-item-link"><span>Тестирование веб-сервисов</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/dev_management/" class="tm-article-snippet__hubs-item-link"><span>Управление разработкой</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/microservices/" class="tm-article-snippet__hubs-item-link"><span>Микросервисы</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://www.infoq.com/articles/microservices-bdd-interface-oriented" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Ken Pugh
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования. Этот подход обычно применяется для описания интерфейсов приложений, а так как микросервисы — детали реализации системы, то BDD прекрасно походит и для разработки микросервисов. Как это сделать — в переводе материала Ken Pugh.<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/f26/3c7/342/f263c73424408d44668d6f9362266293.jpg" alt="image" data-src="https://habrastorage.org/getpro/habr/post_images/f26/3c7/342/f263c73424408d44668d6f9362266293.jpg" data-blurred="true"/><br/>
+<br/>
+<b>Об авторе: Ken Pugh</b> обучает компании развивать гибкость, создает высококачественные системы с помощью Acceptance Test-Driven Development, BDD, ускорения DevOps. Кен написал несколько книг по разработке ПО, был лауреатом премии Jolt Award 2006 Prefactoring, один из создателей курса SAFe Agile Software Engineering.<br/>
+<a name="habracut"></a><br/>
+<blockquote>Поведение в BDD часто выражается конструкцией <b>Given/When/Then. </b>Нам <b>дано</b> определенное состояние, <b>когда</b> происходит действие или событие, <b>тогда</b> состояние изменяется и/или возвращается информация.</blockquote><br/>
+К примеру, stateless логика, такая как бизнес-правила и вычисления, просто описывает преобразование входных данных к выходным.<br/>
+<br/>
+Интерфейсно-ориентированный дизайн — Interface Oriented Design, использует принцип <b>«проектирования относительно интерфейсов, а не реализаций»</b>. Потребители сервиса используют интерфейс, который он предоставляет, а не внутренности. Это значит, что такой интерфейс должен быть четко продуман, включая поведение при ошибках. Для определения терминов в описании интерфейса или его поведения можно использовать DDD — Domain Driven Design.<br/>
+<br/>
+Микросервисы могут быть синхронными, когда потребитель <b>напрямую вызывает другой сервис</b> и ожидает результата, либо асинхронными, когда <b>сервис отвечает на сообщение, которое клиент поместил в очередь</b>.<br/>
+<br/>
+Рассмотрим пример синхронного сервиса.<br/>
+<br/>
+<h2>Синхронный сервис</h2><br/>
+Представим сервис, который вычисляет скидку на заказ клиента.Весь процесс — набор связанных операций.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/fb4/822/287/fb4822287600a790f360e925c47595f3.png"/><br/>
+<br/>
+Поведение этого сервиса можно описать так:<br/>
+<br/>
+<pre><code class="plaintext">Get discount for a customer 
+Given these inputs
+Customer category 
+Order Amount 
+Then service outputs 
+Discount Amount </code></pre><br/>
+Сервис может вычислить скидку используя алгоритмы в коде, на основании локальной базы данных данных или связавшись с другими сервисами.<br/>
+<br/>
+Он может использовать JSON или XML в качестве формата сообщений. Однако, описание сервиса без указания деталей реализации помогает отделить семантику операций от синтаксиса.<br/>
+<br/>
+<h2>Что такое поведение?</h2><br/>
+Используя BDD, можно начать проектирование с примера данных, чтобы получить представление о требуемом поведении. Разработчики сервиса, клиента и тестировщик могут прийти к такому примеру. Первые два столбца — входные данные для сервиса, а столбец справа — выходные.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Сумма заказа<br/>
+</td>
+<td>Сумма скидки?<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>1,00 USD<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>2,00 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+Пример показывает доменные термины, которым может потребоваться дальнейшее уточнение — например, описать допустимые значения.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/1db/6e9/2d6/1db6e92d6fb46168b5d87f02589f2fd5.png"/><br/>
+<br/>
+Подразумевается, что сервис возвращает правильный результат, если входные данные попадают в диапазон допустимых значений.<br/>
+<br/>
+Описание поведения, особенно для микросервисов, часто включает ответы в случае сбоев и ошибок. Описание потенциальных сбоев помогает потребителю понять, что ему делать в таких случаях. Клиенты сервиса могут использовать специальные библиотеки, например, Hystrix от Netflix, для устранения некоторых из этих сбоев.<br/>
+<br/>
+Некоторые потенциальные ошибки нашего сервиса:<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Сбой<br/>
+</td>
+</tr>
+<tr>
+<td>Неверный синтаксис запроса<br/>
+</td>
+</tr>
+<tr>
+<td>Таймаут вызова зависимых сервисов<br/>
+</td>
+</tr>
+<tr>
+<td>Неверное значение параметров запроса<br/>
+</td>
+</tr>
+</table></div><br/>
+Сбои могут быть выражены в виде числовых или символьных констант в протоколе связи.<br/>
+<br/>
+<blockquote>Использование значимых имен в BDD помогает подчеркнуть семантику сбоя, а не его синтаксис.</blockquote><br/>
+Если значения, которое передали в качестве категории, нет в списке допустимых значений, то сервис вернет индикатор сбоя: «Неверное значение параметров запроса». Это может быть представлено, например, возвратом HTTP c кодом 400 и соответствующим текстовым описанием.<br/>
+<br/>
+Альтернативно, можно определить значение скидки, которое будет возвращаться, например, 0, если какой-либо из параметров неверен. Сервис в таком случае должен нести ответственность за регистрацию этой проблемы, чтобы можно было проанализировать ее последствия.<br/>
+<br/>
+BDD-тесты сервиса могут формировать контекст для его модульных тестов. В процессе проектирования <b>ответственность за прохождение тестов BDD возлагается на классы и методы</b>. Модульные тесты определяют эти обязанности.<br/>
+<br/>
+<h2>Заглушки</h2><br/>
+При тестировании сервиса часто требуются заглушки зависимых сервисов, которые он вызывает. Они особенно нужны для медленных, дорогих или случайных сервисов. Если поведение сервиса скидок никогда не менялось, то при тестировании клиента можно использовать боевой инстанс.<br/>
+<br/>
+<blockquote>Изменения часто неизбежны, поэтому обычно заглушки нужны.</blockquote><br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/4e3/0c5/a0d/4e30c5a0d8d9e86c0175b5edeeed158f.png"/><br/>
+<br/>
+Заглушка может всегда отдавать одни и те же значения, например:<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Сумма заказа<br/>
+</td>
+<td>Сумма скидки?<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>1,00 USD<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>2,00 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+Тесты клиента могут опираться на эти значения. В этом примере постоянного поведения может быть достаточно. Для других тестов предпочтительнее настраиваемый ответ заглушки.<br/>
+<br/>
+В качестве альтернативы, заглушка сервиса скидок может просто возвращать одну и ту же сумму, независимо от входных данных.<br/>
+<br/>
+Как эта заглушка может вписаться в более широкий сценарий? Рассмотрим поведение системы для заказа, который включает в себя как скидку, так и налог. Налог рассчитывается микросервисом, аналогичным скидке.<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/getpro/habr/post_images/ae7/91e/fd4/ae791efd4918ee1d09e6f7c3cba6932f.png"/><br/>
+<br/>
+Есть покупатель.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория покупателя<br/>
+</td>
+<td>Локация<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>Северная Каролина<br/>
+</td>
+</tr>
+</table></div><br/>
+Настраивается скидка.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Customer Category<br/>
+</td>
+<td>Order Amount<br/>
+</td>
+<td>Discount Amount?<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>1,00 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+Устанавливается налог.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Место нахождения<br/>
+</td>
+<td>Количество<br/>
+</td>
+<td>Налог?<br/>
+</td>
+</tr>
+<tr>
+<td>Северная Каролина<br/>
+</td>
+<td>99,00 USD<br/>
+</td>
+<td>6,60 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+Когда клиент размещает заказ:<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Сумма заказа<br/>
+</td>
+</tr>
+<tr>
+<td>100,00 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+Тогда параметры заказа.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Сумма заказа<br/>
+</td>
+<td>скидка<br/>
+</td>
+<td>Сумма после скидки<br/>
+</td>
+<td>налог<br/>
+</td>
+<td>Итого к оплате<br/>
+</td>
+</tr>
+<tr>
+<td>100 USD<br/>
+</td>
+<td>1,00 USD<br/>
+</td>
+<td>99,00 USD<br/>
+</td>
+<td>6,60 USD<br/>
+</td>
+<td>105,60 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+<h2>Сервисы с состоянием</h2><br/>
+Если сервис скидок использует БД, чтобы получить информацию для расчета скидки, то ее содержимое — это состояние сервиса. Изменения состояния в ответ на обновления данных, должно быть задокументировано. Предположим, что сервис имел такое состояние.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Пороговый уровень<br/>
+</td>
+<td>Процент скидки<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>1%<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>50,00 USD<br/>
+</td>
+<td>2%<br/>
+</td>
+</tr>
+</table></div><br/>
+В таком случае, сервис должен позволять менять эти данные. Обновление может быть организовано так, чтобы обновляемыми были отдельные элементы или чтобы обновлялась вся таблица сразу. Вот пример поведенческого теста для индивидуального обновления.<br/>
+<br/>
+Даны текущие данные.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Пороговый уровень<br/>
+</td>
+<td>Процент скидки<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>1%<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>50,00 USD<br/>
+</td>
+<td>2%<br/>
+</td>
+</tr>
+</table></div><br/>
+Когда элемент обновляется.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Пороговый уровень<br/>
+</td>
+<td>Процент скидки<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>50,00 USD<br/>
+</td>
+<td>3,5%<br/>
+</td>
+</tr>
+</table></div><br/>
+Тогда обновленные данные.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Пороговый уровень<br/>
+</td>
+<td>Процент скидки<br/>
+</td>
+</tr>
+<tr>
+<td>Good<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>1%<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>50,00 USD<br/>
+</td>
+<td>3,5%<br/>
+</td>
+</tr>
+</table></div><br/>
+Можно также проверить, что обновленные данные используются для расчета скидки.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Категория клиентов<br/>
+</td>
+<td>Пороговый уровень<br/>
+</td>
+<td>Сумма скидки?<br/>
+</td>
+</tr>
+<tr>
+<td>Excellent<br/>
+</td>
+<td>100,00 USD<br/>
+</td>
+<td>3,50 USD<br/>
+</td>
+</tr>
+</table></div><br/>
+У сервиса скидок может быть локальное хранилище для сохранения данных в этом примере, но он может зависеть и от отдельного сервиса хранения этих данных. Если так, то тесты из предыдущего раздела применяются и к отдельному сервису. Но каждая зависимость добавляет проблемы. Каким должно быть поведение службы, если ее зависимости недоступны? Для сервиса скидок это должно указывать на сбой или он должен просто возвращать значение по-умолчанию, тот же 0? Иногда можно использовать глобальные политики обработки ошибок, но <b>часто решение зависит от контекста сервиса</b>.<br/>
+<br/>
+<h2>Формулирование тестов и автоматизация</h2><br/>
+После того, как поведение микросервиса согласовано, его можно сформулировать в виде автоматизированных тестов. Существует несколько систем тестирования микросервисов, таких как PACT или Karate. Кроме того, вы можете использовать BDD-фреймворки, такие как Cucumber или FIT.<br/>
+<br/>
+Например Cucumber, использует библиотеки для запросов к сервисам. Тогда дополнительная информация об окружении может быть представлена ​​как часть сценария. <br/>
+<br/>
+Например, файл объектов Cucumber может включать. <br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Scenario: Compute discount for an order amount <br/>
+Given setup is: <br/>
+| URL | <a href="http://myrestservice.com">myrestservice.com</a> |<br/>
+When discount computed with: <br/>
+| Method | GET |<br/>
+| Path | discount |<br/>
+| Version| 1 |<br/>
+Then results for each instance are:<br/>
+| Customer Category | Order Amount | Discount Amount? |<br/>
+| Good | 100.00 USD | 1.00 USD |<br/>
+| Excellent | 100.00 USD | 2.00 USD | <br/>
+</td>
+</tr>
+</table></div><br/>
+Варианты шагов зависят от ваших соглашений тестирования.<br/>
+<br/>
+Значения в первых двух столбцах могут быть перенесены в любое соглашение о вызовах, например, в параметры запроса. Результат в body должен соответствовать третьему столбцу. Если имена и значения запроса — это имена и значения столбцов, это уменьшает различия между тестом и реализацией.<br/>
+<br/>
+Для повторного использования шаги могут быть написаны для произвольного сервиса, который делает вычисления или определяет результат выполнения бизнес-правила. В приведенном выше примере использование символа «?», как в «Discount Amount» выше, помогает анализатору различать входные и выходные данные.<br/>
+<br/>
+Тесты также должны включать проверки на отказы, например.<br/>
+<br/>
+<div class="scrollable-table"><table>
+<tr>
+<td>Customer Category</td>
+<td>Order Amount&amp;nbsp</td>
+<td>Discount Amount?&amp;nbsp</td>
+<td>Result</td>
+</tr>
+<tr>
+<td>Good&amp;nbsp</td>
+<td>100.00 USD&amp;nbsp<br/>
+</td>
+<td>1.00 USD&amp;nbsp<br/>
+</td>
+<td> OK</td>
+</tr>
+<tr>
+<td>Not so Good&amp;nbsp</td>
+<td> 100.00 USD&amp;nbsp</td>
+<td>2.00 USD&amp;nbsp</td>
+<td> Parameter value invalid</td>
+</tr>
+<tr>
+<td>Excellent&amp;nbsp</td>
+<td> 100.00 ZZZ&amp;nbsp</td>
+<td> 2.00 USD&amp;nbsp</td>
+<td> Parameter value invalid</td>
+</tr>
+</table></div><br/>
+<h2>Заключение</h2><br/>
+Микросервисы зависят от других сервисов и систем, что требует четкой спецификации интерфейсов и их аккуратное тестирование. Этого можно добиться с помощью описания поведения и интерфейсов, заданных с помощью тестов. С помощью BDD, функциональность сервисов описывается исполняемыми тестами, которые фокусируются <b>на семантике операций, а не на синтаксисе</b>. Автоматизация таких тестов обычно требует настройки заглушек других сервисов, поведение которых описываются их отдельными BDD-тестами.<br/>
+<br/>
+Интерфейсно-ориентированное проектирование — IOD, включает дополнительные обязательства сервиса: ограничение на использование ресурсов, пропускная способность и отчеты об ошибках. Вместе BDD и IOD помогают описать поведение сервиса, чтобы клиенты могли легко понять и положиться на него.<br/>
+<br/>
+<ul>
+<li>BDD для микросервисов концентрируется на сотрудничестве триады — разработчика сервиса, разработчика клиента и тестировщика.<br/>
+</li>
+<li>Создавайте четко-описанные соглашения для интерфейсов микросервисов, используя IOD.<br/>
+</li>
+<li>Микросервисы обычно требуют тестовые заглушки для ускорения тестирования.<br/>
+</li>
+<li>Тесты должны быть независимые.<br/>
+</li>
+<li>Проверяйте в тестах негативные сценарии.<br/>
+</li>
+</ul><blockquote>27-28 мая, в рамках фестиваля <a href="https://ritfest.ru/">РИТ++</a> на конференции <a href="http://qualityconf.ru/2019">QualityConf</a> <b>Артём Малышев</b> расскажет про важность ясного выражения доменной модели в коде и покажет как это делать на примерах.<br/>
+<br/>
+Приходите общаться про разработку качественных продуктов и делиться своими идеями!</blockquote></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BC%D0%B8%D0%BA%D1%80%D0%BE%D1%81%D0%B5%D1%80%D0%B2%D0%B8%D1%81%D1%8B%5D" class="tm-tags-list__link">микросервисы</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bbdd%5D" class="tm-tags-list__link">bdd</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bacceptance%20testing%5D" class="tm-tags-list__link">acceptance testing</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bqualityconf%5D" class="tm-tags-list__link">qualityconf</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/oleg-bunin/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Конференции Олега Бунина (Онтико)
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/it_testing/" class="tm-hubs-list__link">
+    Тестирование IT-систем
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/web_testing/" class="tm-hubs-list__link">
+    Тестирование веб-сервисов
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/dev_management/" class="tm-hubs-list__link">
+    Управление разработкой
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/microservices/" class="tm-hubs-list__link">
+    Микросервисы
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 18: ↑18 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 18: ↑18 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+18</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">5.5K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    42
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/7c3/ad4/7b2/7c3ad47b2aae71b56795f618534e7a51.jpg" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/oleg-bunin/profile/" class="tm-company-snippet__title">Конференции Олега Бунина (Онтико)</a> <div class="tm-company-snippet__description">Профессиональные конференции для IT-разработчиков</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://facebook.com/oleg.bunin" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://facebook.com/HighLoadConference" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a><a href="https://facebook.com/ritfest" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Facebook
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Travieso/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/268/07a/c67/26807ac6777f5f70286de927bc989e76.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 52 голоса " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    32
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Асеева-Нгуен Анастасия</span> <a href="/ru/users/Travieso/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Travieso
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">engineering practices</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/oleg-bunin/blog/450800/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2007-12-31T21:00:00.000Z" title="2008-01-01, 00:00">1  января  2008</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="http://www.ontico.ru/" target="_blank" class="tm-company-basic-info__link">
+      www.ontico.ru
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    11–30 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2010-02-24T19:37:40.000Z" title="2010-02-24, 22:37">24  февраля  2010</time></dd></dl> <!----></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/oleg-bunin/blog/450800/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/oleg-bunin/blog/450800/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450800":{"id":"450800","timePublished":"2019-05-16T12:36:28+00:00","isCorporative":true,"lang":"ru","titleHtml":"Разработка микросервисов с помощью BDD и IOD","leadData":{"textHtml":"BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования. Этот подход обычно применяется для описания интерфейсов приложений, а так как микросервисы — детали реализации системы, то BDD прекрасно походит и для разработки микросервисов. Как это сделать — в переводе материала Ken Pugh.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff26\u002F3c7\u002F342\u002Ff263c73424408d44668d6f9362266293.jpg\" alt=\"image\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\n\u003Cb\u003EОб авторе: Ken Pugh\u003C\u002Fb\u003E обучает компании развивать гибкость, создает высококачественные системы с помощью Acceptance Test-Driven Development, BDD, ускорения DevOps. Кен написал несколько книг по разработке ПО, был лауреатом премии Jolt Award 2006 Prefactoring, один из создателей курса SAFe Agile Software Engineering.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Ken Pugh","originalUrl":"https:\u002F\u002Fwww.infoq.com\u002Farticles\u002Fmicroservices-bdd-interface-oriented"}}],"author":{"scoreStats":{"score":32,"votesCount":52},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"311427","alias":"Travieso","fullname":"Асеева-Нгуен Анастасия","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F268\u002F07a\u002Fc67\u002F26807ac6777f5f70286de927bc989e76.jpg","speciality":"engineering practices"},"statistics":{"commentsCount":0,"favoritesCount":42,"readingCount":5454,"score":18,"votesCount":18},"hubs":[{"relatedData":null,"id":"14332","alias":"oleg-bunin","type":"corporative","title":"Блог компании Конференции Олега Бунина (Онтико)","titleHtml":"Блог компании Конференции Олега Бунина (Онтико)","isProfiled":false},{"relatedData":null,"id":"210","alias":"it_testing","type":"collective","title":"Тестирование IT-систем","titleHtml":"Тестирование IT-систем","isProfiled":true},{"relatedData":null,"id":"19279","alias":"web_testing","type":"collective","title":"Тестирование веб-сервисов","titleHtml":"Тестирование веб-сервисов","isProfiled":true},{"relatedData":null,"id":"19583","alias":"dev_management","type":"collective","title":"Управление разработкой","titleHtml":"Управление разработкой","isProfiled":true},{"relatedData":null,"id":"22115","alias":"microservices","type":"collective","title":"Микросервисы","titleHtml":"Микросервисы","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"3","alias":"management","title":"Менеджмент"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EBDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования. Этот подход обычно применяется для описания интерфейсов приложений, а так как микросервисы — детали реализации системы, то BDD прекрасно походит и для разработки микросервисов. Как это сделать — в переводе материала Ken Pugh.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff26\u002F3c7\u002F342\u002Ff263c73424408d44668d6f9362266293.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ff26\u002F3c7\u002F342\u002Ff263c73424408d44668d6f9362266293.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EОб авторе: Ken Pugh\u003C\u002Fb\u003E обучает компании развивать гибкость, создает высококачественные системы с помощью Acceptance Test-Driven Development, BDD, ускорения DevOps. Кен написал несколько книг по разработке ПО, был лауреатом премии Jolt Award 2006 Prefactoring, один из создателей курса SAFe Agile Software Engineering.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EПоведение в BDD часто выражается конструкцией \u003Cb\u003EGiven\u002FWhen\u002FThen. \u003C\u002Fb\u003EНам \u003Cb\u003Eдано\u003C\u002Fb\u003E определенное состояние, \u003Cb\u003Eкогда\u003C\u002Fb\u003E происходит действие или событие, \u003Cb\u003Eтогда\u003C\u002Fb\u003E состояние изменяется и\u002Fили возвращается информация.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nК примеру, stateless логика, такая как бизнес-правила и вычисления, просто описывает преобразование входных данных к выходным.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнтерфейсно-ориентированный дизайн — Interface Oriented Design, использует принцип \u003Cb\u003E«проектирования относительно интерфейсов, а не реализаций»\u003C\u002Fb\u003E. Потребители сервиса используют интерфейс, который он предоставляет, а не внутренности. Это значит, что такой интерфейс должен быть четко продуман, включая поведение при ошибках. Для определения терминов в описании интерфейса или его поведения можно использовать DDD — Domain Driven Design.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМикросервисы могут быть синхронными, когда потребитель \u003Cb\u003Eнапрямую вызывает другой сервис\u003C\u002Fb\u003E и ожидает результата, либо асинхронными, когда \u003Cb\u003Eсервис отвечает на сообщение, которое клиент поместил в очередь\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРассмотрим пример синхронного сервиса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EСинхронный сервис\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПредставим сервис, который вычисляет скидку на заказ клиента.Весь процесс — набор связанных операций.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Ffb4\u002F822\u002F287\u002Ffb4822287600a790f360e925c47595f3.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоведение этого сервиса можно описать так:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003EGet discount for a customer \nGiven these inputs\nCustomer category \nOrder Amount \nThen service outputs \nDiscount Amount \u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nСервис может вычислить скидку используя алгоритмы в коде, на основании локальной базы данных данных или связавшись с другими сервисами.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОн может использовать JSON или XML в качестве формата сообщений. Однако, описание сервиса без указания деталей реализации помогает отделить семантику операций от синтаксиса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЧто такое поведение?\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nИспользуя BDD, можно начать проектирование с примера данных, чтобы получить представление о требуемом поведении. Разработчики сервиса, клиента и тестировщик могут прийти к такому примеру. Первые два столбца — входные данные для сервиса, а столбец справа — выходные.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСумма заказа\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСумма скидки?\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nПример показывает доменные термины, которым может потребоваться дальнейшее уточнение — например, описать допустимые значения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F1db\u002F6e9\u002F2d6\u002F1db6e92d6fb46168b5d87f02589f2fd5.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПодразумевается, что сервис возвращает правильный результат, если входные данные попадают в диапазон допустимых значений.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОписание поведения, особенно для микросервисов, часто включает ответы в случае сбоев и ошибок. Описание потенциальных сбоев помогает потребителю понять, что ему делать в таких случаях. Клиенты сервиса могут использовать специальные библиотеки, например, Hystrix от Netflix, для устранения некоторых из этих сбоев.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНекоторые потенциальные ошибки нашего сервиса:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСбой\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EНеверный синтаксис запроса\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EТаймаут вызова зависимых сервисов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EНеверное значение параметров запроса\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nСбои могут быть выражены в виде числовых или символьных констант в протоколе связи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EИспользование значимых имен в BDD помогает подчеркнуть семантику сбоя, а не его синтаксис.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nЕсли значения, которое передали в качестве категории, нет в списке допустимых значений, то сервис вернет индикатор сбоя: «Неверное значение параметров запроса». Это может быть представлено, например, возвратом HTTP c кодом 400 и соответствующим текстовым описанием.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nАльтернативно, можно определить значение скидки, которое будет возвращаться, например, 0, если какой-либо из параметров неверен. Сервис в таком случае должен нести ответственность за регистрацию этой проблемы, чтобы можно было проанализировать ее последствия.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nBDD-тесты сервиса могут формировать контекст для его модульных тестов. В процессе проектирования \u003Cb\u003Eответственность за прохождение тестов BDD возлагается на классы и методы\u003C\u002Fb\u003E. Модульные тесты определяют эти обязанности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЗаглушки\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПри тестировании сервиса часто требуются заглушки зависимых сервисов, которые он вызывает. Они особенно нужны для медленных, дорогих или случайных сервисов. Если поведение сервиса скидок никогда не менялось, то при тестировании клиента можно использовать боевой инстанс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EИзменения часто неизбежны, поэтому обычно заглушки нужны.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F4e3\u002F0c5\u002Fa0d\u002F4e30c5a0d8d9e86c0175b5edeeed158f.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗаглушка может всегда отдавать одни и те же значения, например:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСумма заказа\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСумма скидки?\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nТесты клиента могут опираться на эти значения. В этом примере постоянного поведения может быть достаточно. Для других тестов предпочтительнее настраиваемый ответ заглушки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ качестве альтернативы, заглушка сервиса скидок может просто возвращать одну и ту же сумму, независимо от входных данных.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак эта заглушка может вписаться в более широкий сценарий? Рассмотрим поведение системы для заказа, который включает в себя как скидку, так и налог. Налог рассчитывается микросервисом, аналогичным скидке.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fae7\u002F91e\u002Ffd4\u002Fae791efd4918ee1d09e6f7c3cba6932f.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЕсть покупатель.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория покупателя\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EЛокация\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСеверная Каролина\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНастраивается скидка.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003ECustomer Category\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EOrder Amount\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EDiscount Amount?\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nУстанавливается налог.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EМесто нахождения\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EКоличество\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EНалог?\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСеверная Каролина\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E99,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E6,60 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nКогда клиент размещает заказ:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСумма заказа\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nТогда параметры заказа.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EСумма заказа\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003Eскидка\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСумма после скидки\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003Eналог\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EИтого к оплате\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003E100 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E99,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E6,60 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E105,60 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EСервисы с состоянием\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЕсли сервис скидок использует БД, чтобы получить информацию для расчета скидки, то ее содержимое — это состояние сервиса. Изменения состояния в ответ на обновления данных, должно быть задокументировано. Предположим, что сервис имел такое состояние.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПороговый уровень\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПроцент скидки\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E50,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВ таком случае, сервис должен позволять менять эти данные. Обновление может быть организовано так, чтобы обновляемыми были отдельные элементы или чтобы обновлялась вся таблица сразу. Вот пример поведенческого теста для индивидуального обновления.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДаны текущие данные.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПороговый уровень\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПроцент скидки\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E50,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nКогда элемент обновляется.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПороговый уровень\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПроцент скидки\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E50,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E3,5%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nТогда обновленные данные.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПороговый уровень\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПроцент скидки\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E50,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E3,5%\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nМожно также проверить, что обновленные данные используются для расчета скидки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EКатегория клиентов\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EПороговый уровень\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EСумма скидки?\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100,00 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E3,50 USD\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nУ сервиса скидок может быть локальное хранилище для сохранения данных в этом примере, но он может зависеть и от отдельного сервиса хранения этих данных. Если так, то тесты из предыдущего раздела применяются и к отдельному сервису. Но каждая зависимость добавляет проблемы. Каким должно быть поведение службы, если ее зависимости недоступны? Для сервиса скидок это должно указывать на сбой или он должен просто возвращать значение по-умолчанию, тот же 0? Иногда можно использовать глобальные политики обработки ошибок, но \u003Cb\u003Eчасто решение зависит от контекста сервиса\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EФормулирование тестов и автоматизация\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nПосле того, как поведение микросервиса согласовано, его можно сформулировать в виде автоматизированных тестов. Существует несколько систем тестирования микросервисов, таких как PACT или Karate. Кроме того, вы можете использовать BDD-фреймворки, такие как Cucumber или FIT.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример Cucumber, использует библиотеки для запросов к сервисам. Тогда дополнительная информация об окружении может быть представлена ​​как часть сценария. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНапример, файл объектов Cucumber может включать. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EScenario: Compute discount for an order amount \u003Cbr\u002F\u003E\r\nGiven setup is: \u003Cbr\u002F\u003E\r\n| URL | \u003Ca href=\"http:\u002F\u002Fmyrestservice.com\"\u003Emyrestservice.com\u003C\u002Fa\u003E |\u003Cbr\u002F\u003E\r\nWhen discount computed with: \u003Cbr\u002F\u003E\r\n| Method | GET |\u003Cbr\u002F\u003E\r\n| Path | discount |\u003Cbr\u002F\u003E\r\n| Version| 1 |\u003Cbr\u002F\u003E\r\nThen results for each instance are:\u003Cbr\u002F\u003E\r\n| Customer Category | Order Amount | Discount Amount? |\u003Cbr\u002F\u003E\r\n| Good | 100.00 USD | 1.00 USD |\u003Cbr\u002F\u003E\r\n| Excellent | 100.00 USD | 2.00 USD | \u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВарианты шагов зависят от ваших соглашений тестирования.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗначения в первых двух столбцах могут быть перенесены в любое соглашение о вызовах, например, в параметры запроса. Результат в body должен соответствовать третьему столбцу. Если имена и значения запроса — это имена и значения столбцов, это уменьшает различия между тестом и реализацией.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля повторного использования шаги могут быть написаны для произвольного сервиса, который делает вычисления или определяет результат выполнения бизнес-правила. В приведенном выше примере использование символа «?», как в «Discount Amount» выше, помогает анализатору различать входные и выходные данные.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТесты также должны включать проверки на отказы, например.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"scrollable-table\"\u003E\u003Ctable\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003ECustomer Category\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EOrder Amount&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EDiscount Amount?&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003EResult\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EGood&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E100.00 USD&amp;nbsp\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E1.00 USD&amp;nbsp\u003Cbr\u002F\u003E\r\n\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E OK\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003ENot so Good&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E 100.00 USD&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E2.00 USD&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E Parameter value invalid\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003Ctr\u003E\r\n\u003Ctd\u003EExcellent&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E 100.00 ZZZ&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E 2.00 USD&amp;nbsp\u003C\u002Ftd\u003E\r\n\u003Ctd\u003E Parameter value invalid\u003C\u002Ftd\u003E\r\n\u003C\u002Ftr\u003E\r\n\u003C\u002Ftable\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЗаключение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nМикросервисы зависят от других сервисов и систем, что требует четкой спецификации интерфейсов и их аккуратное тестирование. Этого можно добиться с помощью описания поведения и интерфейсов, заданных с помощью тестов. С помощью BDD, функциональность сервисов описывается исполняемыми тестами, которые фокусируются \u003Cb\u003Eна семантике операций, а не на синтаксисе\u003C\u002Fb\u003E. Автоматизация таких тестов обычно требует настройки заглушек других сервисов, поведение которых описываются их отдельными BDD-тестами.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИнтерфейсно-ориентированное проектирование — IOD, включает дополнительные обязательства сервиса: ограничение на использование ресурсов, пропускная способность и отчеты об ошибках. Вместе BDD и IOD помогают описать поведение сервиса, чтобы клиенты могли легко понять и положиться на него.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EBDD для микросервисов концентрируется на сотрудничестве триады — разработчика сервиса, разработчика клиента и тестировщика.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EСоздавайте четко-описанные соглашения для интерфейсов микросервисов, используя IOD.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EМикросервисы обычно требуют тестовые заглушки для ускорения тестирования.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EТесты должны быть независимые.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003EПроверяйте в тестах негативные сценарии.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cblockquote\u003E27-28 мая, в рамках фестиваля \u003Ca href=\"https:\u002F\u002Fritfest.ru\u002F\"\u003EРИТ++\u003C\u002Fa\u003E на конференции \u003Ca href=\"http:\u002F\u002Fqualityconf.ru\u002F2019\"\u003EQualityConf\u003C\u002Fa\u003E \u003Cb\u003EАртём Малышев\u003C\u002Fb\u003E расскажет про важность ясного выражения доменной модели в коде и покажет как это делать на примерах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПриходите общаться про разработку качественных продуктов и делиться своими идеями!\u003C\u002Fblockquote\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"микросервисы"},{"titleHtml":"bdd"},{"titleHtml":"acceptance testing"},{"titleHtml":"qualityconf"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450800\u002F9c05d367ef690be72f35a1a22aab5f52\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450800\u002F9c05d367ef690be72f35a1a22aab5f52\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Foleg-bunin\\\u002Fblog\\\u002F450800\\\u002F\"},\"headline\":\"Разработка микросервисов с помощью BDD и IOD\",\"datePublished\":\"2019-05-16T15:36:28+03:00\",\"dateModified\":\"2019-05-16T17:01:01+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Асеева-Нгуен Анастасия\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"BDD&nbsp;&mdash; разработка через поведение. BDD для микросервисов&nbsp;&mdash; это сотрудничество клиента, разработчиков и&nbsp;тестировщиков. BDD&nbsp;&mdash; это разработка, которая учитывает и&nbsp;те...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Foleg-bunin\\\u002Fblog\\\u002F450800\\\u002F#post-content-body\",\"about\":[\"c_oleg-bunin\",\"h_it_testing\",\"h_web_testing\",\"h_dev_management\",\"h_microservices\",\"f_develop\",\"f_management\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ff26\\\u002F3c7\\\u002F342\\\u002Ff263c73424408d44668d6f9362266293.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ffb4\\\u002F822\\\u002F287\\\u002Ffb4822287600a790f360e925c47595f3.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F1db\\\u002F6e9\\\u002F2d6\\\u002F1db6e92d6fb46168b5d87f02589f2fd5.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F4e3\\\u002F0c5\\\u002Fa0d\\\u002F4e30c5a0d8d9e86c0175b5edeeed158f.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fae7\\\u002F91e\\\u002Ffd4\\\u002Fae791efd4918ee1d09e6f7c3cba6932f.png\"]}","metaDescription":"BDD — разработка через поведение. BDD для микросервисов — это сотрудничество клиента, разработчиков и тестировщиков. BDD — это разработка, которая учитывает и технические интересы и бизнес-требования....","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"oleg-bunin":{"alias":"oleg-bunin","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F7c3\u002Fad4\u002F7b2\u002F7c3ad47b2aae71b56795f618534e7a51.jpg","titleHtml":"Конференции Олега Бунина (Онтико)","descriptionHtml":"Профессиональные конференции для IT-разработчиков","relatedData":null,"statistics":{"postsCount":676,"newsCount":7,"vacanciesCount":0,"employeesCount":83,"careerRating":null,"subscribersCount":48348,"rating":374.29,"invest":null},"foundationDate":{"year":"2008","month":"01","day":"01"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"http:\u002F\u002Fwww.ontico.ru\u002F","staffNumber":"11–30 человек","registrationDate":"2010-02-24T19:37:40+00:00","representativeUser":null,"contacts":[{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Foleg.bunin"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002FHighLoadConference"},{"title":"Facebook","url":"https:\u002F\u002Ffacebook.com\u002Fritfest"}],"settings":{"analyticsSettings":[{"type":"ym","trackingId":"55760638"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F673\u002Fa67\u002F310\u002F673a67310118a40a792e1eb97151fd97.png","linkUrl":"https:\u002F\u002Fwww.highload.ru\u002Fmoscow\u002F2021\u002F?utm_source=habr&utm_medium=cpc&utm_campaign=title&utm_content=banner","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"Конференции Олега Бунина (Онтико), Москва - Профессиональные конференции для IT-разработчиков с 1 января 2008 г.","title":"Конференции Олега Бунина (Онтико), Москва - Профессиональные конференции для IT-разработчиков с 1 января 2008 г.","keywords":["Конференции","Управление разработкой","Программирование","DevOps","Карьера в IT-индустрии"],"descriptionHtml":"676 статей от авторов компании Конференции Олега Бунина (Онтико)","description":"676 статей от авторов компании Конференции Олега Бунина (Онтико)"},"aDeskSettings":null,"careerAlias":"ontico","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

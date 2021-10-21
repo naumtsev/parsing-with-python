@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Стримим экран на несколько устройств по сети / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450118\/"},"headline":"Стримим экран на несколько устройств по сети","datePublished":"2019-04-30T15:09:53+03:00","dateModified":"2019-06-18T16:01:22+03:00","author":{"@type":"Person","name":"Andrei Kvapil"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и...","url":"https:\/\/habr.com\/ru\/post\/450118\/#post-content-body","about":["h_linux","h_it-infrastructure","h_nix","h_DIY","f_admin","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/ef\/qk\/de\/efqkdemwmhhniofkklcjvayvmm0.png"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Стримим экран на несколько устройств по сети" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Стримим экран на несколько устройств по сети" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Стримим экран на несколько устройств по сети" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450118/023ed2da02b6c0b66c42825ab78cd6ed/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450118/023ed2da02b6c0b66c42825ab78cd6ed/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450118/023ed2da02b6c0b66c42825ab78cd6ed/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450118/023ed2da02b6c0b66c42825ab78cd6ed/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450118/023ed2da02b6c0b66c42825ab78cd6ed/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450118" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-04-30T12:09:53.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450118/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450118/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450118/023ed2da02b6c0b66c42825ab78cd6ed/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/kvaps/" title="kvaps" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/6b0/66b/bd0/6b066bbd0dd29407f3204245325adcf1.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/kvaps/" class="tm-user-info__username">
+      kvaps
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-04-30T12:09:53.000Z" title="2019-04-30, 15:09">30  апреля  2019 в 15:09</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Стримим экран на несколько устройств по сети</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/linux/" class="tm-article-snippet__hubs-item-link"><span>Настройка Linux</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/it-infrastructure/" class="tm-article-snippet__hubs-item-link"><span>IT-инфраструктура</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/nix/" class="tm-article-snippet__hubs-item-link"><span>*nix</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/DIY/" class="tm-article-snippet__hubs-item-link"><span>DIY или Сделай сам</span> <!----></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://medium.com/@kvaps/screen-streaming-to-multiple-devices-via-network-7c8d267bdaad" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  kvaps
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ef/qk/de/efqkdemwmhhniofkklcjvayvmm0.png"/></p><br/>
+<p>Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически неограниченным количеством ресурсов.</p><br/>
+<p>По видимому Raspberry Pi Model B+ не обладает достаточной произвольностью чтобы держать постоянно запущенным браузер и отрисовывать большое количество графики в нем, из-за чего бывает, что страница частично глючит и часто вылетает.</p><br/>
+<p>Нашлось достаточно простое и элегантное решение, которым я и хочу с вами поделиться.</p><a name="habracut"></a> <br/>
+<p>Как известно все Raspberry имеют достаточно мощный видеопроцессор, который отлично подходит для аппаратного декодирования видео. Так появилась идея запускать браузер с дашбордом где-нибудь ещё, а на малинку передавать готовый поток с отрендеренной картинкой.</p><br/>
+<p>Плюс ко всему это должно было упростить управление, так как в данном случае вся настройка будет выполняться на одной виртуалке, которую проще обновлять и бэкапить.</p><br/>
+<p>Сказано – сделано.</p><br/>
+<h2 id="servernaya-chast">Серверная часть</h2><br/>
+<p>Мы воспользуемся готовым <a href="https://cloud-images.ubuntu.com/">Cloud Image для Ubuntu</a>. Не требуя установки, он содержит всё необходимое для быстрого развертывания виртуальной машины, а <a href="https://pve.proxmox.com/wiki/Cloud-Init_Support">поддержка Cloud-Init</a> помогает моментально настроить сеть, добавить ssh-ключи и быстро ввести ее в строй.</p><br/>
+<p>Разворачиваем новую виртуалку и первым делом установим на ней <a href="https://ru.wikipedia.org/wiki/X.Org_Server">Xorg</a>, <a href="https://github.com/spanezz/nodm">nodm</a> и <a href="https://ru.wikipedia.org/wiki/Fluxbox">fluxbox</a>:</p><br/>
+<pre><code class="bash">apt-get update
+apt-get install -y xserver-xorg nodm fluxbox
+sed -i 's/^NODM_USER=.*/NODM_USER=ubuntu/' /etc/default/nodm</code></pre><br/>
+<p>Так же воспользуемся конфигом для Xorg, любезно <a href="https://ongardie.net/blog/qemu-xorg/">предоставленным</a> нам Diego Ongaro, добавив только новое разрешение <strong>1920x1080</strong>, так как все наши мониторы будут использовать именно его:</p><br/>
+<pre><code class="bash">cat > /etc/X11/xorg.conf &lt;&lt;\EOT
+Section "Device"
+    Identifier      "device"
+    Driver          "vesa"
+EndSection
+
+Section "Screen"
+    Identifier      "screen"
+    Device          "device"
+    Monitor         "monitor"
+    DefaultDepth    16
+    SubSection "Display"
+        Modes       "1920x1080" "1280x1024" "1024x768" "800x600"
+    EndSubSection
+EndSection
+
+Section "Monitor"
+    Identifier      "monitor"
+    HorizSync       20.0 - 50.0
+    VertRefresh     40.0 - 80.0
+    Option          "DPMS"
+EndSection
+
+Section "ServerLayout"
+    Identifier      "layout"
+    Screen          "screen"
+EndSection
+EOT
+
+systemctl restart nodm</code></pre><br/>
+<p>Теперь установим Firefox, запускать мы его будем как system сервис, так что заодно и напишем unit-файл для него:</p><br/>
+<pre><code class="bash">apt-get install -y firefox xdotool
+
+cat > /etc/systemd/system/firefox.service &lt;&lt;\EOT
+[Unit]
+Description=Firefox
+After=network.target
+
+[Service]
+Restart=always
+User=ubuntu
+Environment="DISPLAY=:0"
+Environment="XAUTHORITY=/home/ubuntu/.Xauthority"
+ExecStart=/usr/bin/firefox -url 'http://example.org/mydashboard'
+ExecStartPost=/usr/bin/xdotool search --sync --onlyvisible --class "Firefox" windowactivate key F11
+
+[Install]
+WantedBy=graphical.target
+EOT
+
+systemctl enable firefox
+systemctl start firefox</code></pre><br/>
+<p>Xdotool необходим нам для того чтобы запускать firefox сразу в полноэкранном режиме.<br/>
+Используя параметр <code>-url</code> можно указать любую страницу чтобы она открывалась автоматически при запуске браузера.</p><br/>
+<p>На этом этапе наш киоск уже готов, но теперь нам нужно экспортировать картинку по сети на другие мониторы и устройства. Для этого мы воспользуемся возможностями <a href="https://ru.wikipedia.org/wiki/MJPEG">Motion JPEG</a>, формата который чаще используется для стриминга видео с большинства web-камер.</p><br/>
+<p>Для этого нам понадобится две вещи: <a href="https://ru.wikipedia.org/wiki/FFmpeg">FFmpeg</a> с модулем <a href="https://trac.ffmpeg.org/wiki/Capture/Desktop">x11grab</a>, для захвата картинки с иксов и <a href="https://github.com/ccrisan/streameye">streamEye</a>, который будет раздавать ее нашим клиентам:</p><br/>
+<pre><code class="bash">apt-get install -y make gcc ffmpeg 
+
+cd /tmp/
+wget https://github.com/ccrisan/streameye/archive/master.tar.gz
+tar xvf master.tar.gz 
+cd streameye-master/
+make
+make install
+
+cat > /etc/systemd/system/streameye.service &lt;&lt;\EOT
+[Unit]
+Description=streamEye
+After=network.target
+
+[Service]
+Restart=always
+User=ubuntu
+Environment="DISPLAY=:0"
+Environment="XAUTHORITY=/home/ubuntu/.Xauthority"
+ExecStart=/bin/sh -c 'ffmpeg -f x11grab -s 1920x1080 -r 1 -i :0 -f mjpeg -q:v 5 - 2>/dev/null | streameye'
+
+[Install]
+WantedBy=graphical.target
+EOT
+
+systemctl enable streameye
+systemctl start streameye</code></pre><br/>
+<p>Так как наша картинка не требует быстрого обновления, я указал частоту обновления: 1 фрейм в секунду (параметр <code>-r 1</code>) и качество сжатия: 5 (параметр <code>-q:v 5</code>)</p><br/>
+<p>Теперь пробуем зайти на <a href="http://your-vm:8080/">http://your-vm:8080/</a>, в ответ вы увидите постоянно обновляемый скриншот рабочего стола. Отлично! — то что и было нужно.</p><br/>
+<h2 id="klientskaya-chast">Клиентская часть</h2><br/>
+<p>Здесь все еще проще, как я уже сказал использовать мы будем Raspberry Pi Model B+.</p><br/>
+<p>Первым делом установим на нее <a href="https://archlinuxarm.org/">Arch Linux ARM</a>, для этого следуем <a href="https://archlinuxarm.org/platforms/armv6/raspberry-pi">инструкции</a> на официальном сайте.</p><br/>
+<p>Нам также потребуется выделить больше памяти для нашего видеочипа, для этого отредактируем в <code>/boot/config.txt</code></p><br/>
+<pre><code class="bash">gpu_mem=128</code></pre><br/>
+<p>Загрузим нашу новую систему и не забыв инициализировать pacman keyring, установим <a href="https://www.raspberrypi.org/documentation/raspbian/applications/omxplayer.md">OMXPlayer</a>:</p><br/>
+<pre><code class="bash">pacman -Sy omxplayer</code></pre><br/>
+<p>Что примечательно, OMXPlayer может работать без иксов, по этому все что нам требуется — это написать unit-файл для него и запустить:</p><br/>
+<pre><code class="bash">cat > /etc/systemd/system/omxplayer.service &lt;&lt;\EOT
+[Unit]
+Description=OMXPlayer
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/omxplayer -r --live -b http://your-vm:8080/ --aspect-mode full
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+systemctl enable omxplayer
+systemctl start omxplayer</code></pre><br/>
+<p>В качестве параметра <code>-b http://your-vm:8080/</code> мы передаем URL с нашего сервера.</p><br/>
+<p>На этом все, на подключенном экране сразу должна появиться картинка с нашего сервера. В случае возникновения каких либо проблем, стрим будет автоматически перезапущен, а клиенты переподключатся к нему.</p><br/>
+<p>В качестве бонуса можно установить полученную картинку в качестве скринсейвера на все компьютеры в офисе. Для этого вам понадобятся <a href="https://ru.wikipedia.org/wiki/MPV">MPV</a> и <a href="https://en.wikipedia.org/wiki/XScreenSaver">XScreenSaver</a>:</p><br/>
+<pre><code class="bash">mode:  one
+selected: 0
+programs:              \
+     "Monitoring Screen"  mpv --really-quiet --no-audio --fs       \
+      --loop=inf --no-stop-screensaver       \
+      --wid=$XSCREENSAVER_WINDOW        \
+      http://your-vm:8080/      \n\
+    maze -root        \n\
+    electricsheep --root 1       \n\</code></pre><br/>
+<p>Теперь ваши коллеги будут очень довольны :)</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Braspberry%20pi%5D" class="tm-tags-list__link">raspberry pi</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bstreaming%5D" class="tm-tags-list__link">streaming</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bvideo%5D" class="tm-tags-list__link">video</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bscreen%20sharing%5D" class="tm-tags-list__link">screen sharing</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmjpeg%5D" class="tm-tags-list__link">mjpeg</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bxorg%5D" class="tm-tags-list__link">xorg</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bkiosk%20mode%5D" class="tm-tags-list__link">kiosk mode</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bkiosk%5D" class="tm-tags-list__link">kiosk</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bstreameye%5D" class="tm-tags-list__link">streameye</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/linux/" class="tm-hubs-list__link">
+    Настройка Linux
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/it-infrastructure/" class="tm-hubs-list__link">
+    IT-инфраструктура
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/nix/" class="tm-hubs-list__link">
+    *nix
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/DIY/" class="tm-hubs-list__link">
+    DIY или Сделай сам
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 11: ↑11 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 11: ↑11 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+11</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">8K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    124
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/kvaps/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/6b0/66b/bd0/6b066bbd0dd29407f3204245325adcf1.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 141 голос " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    99.7
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Andrei Kvapil</span> <a href="/ru/users/kvaps/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @kvaps
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Суперпользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450118/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 5 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450118/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450118/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450118":{"id":"450118","timePublished":"2019-04-30T12:09:53+00:00","isCorporative":false,"lang":"ru","titleHtml":"Стримим экран на несколько устройств по сети","leadData":{"textHtml":"\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fef\u002Fqk\u002Fde\u002Fefqkdemwmhhniofkklcjvayvmm0.png\"\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EВозникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически неограниченным количеством ресурсов.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EПо видимому Raspberry Pi Model B+ не обладает достаточной произвольностью чтобы держать постоянно запущенным браузер и отрисовывать большое количество графики в нем, из-за чего бывает, что страница частично глючит и часто вылетает.\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cp\u003EНашлось достаточно простое и элегантное решение, которым я и хочу с вами поделиться.\u003C\u002Fp\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"kvaps","originalUrl":"https:\u002F\u002Fmedium.com\u002F@kvaps\u002Fscreen-streaming-to-multiple-devices-via-network-7c8d267bdaad"}},{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":99.7,"votesCount":141},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"22042","alias":"kvaps","fullname":"Andrei Kvapil","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F6b0\u002F66b\u002Fbd0\u002F6b066bbd0dd29407f3204245325adcf1.jpg","speciality":"Суперпользователь"},"statistics":{"commentsCount":5,"favoritesCount":124,"readingCount":7975,"score":11,"votesCount":11},"hubs":[{"relatedData":null,"id":"36","alias":"linux","type":"collective","title":"Настройка Linux","titleHtml":"Настройка Linux","isProfiled":true},{"relatedData":null,"id":"6398","alias":"it-infrastructure","type":"collective","title":"IT-инфраструктура","titleHtml":"IT-инфраструктура","isProfiled":true},{"relatedData":null,"id":"7289","alias":"nix","type":"collective","title":"*nix","titleHtml":"*nix","isProfiled":true},{"relatedData":null,"id":"21976","alias":"DIY","type":"collective","title":"DIY или Сделай сам","titleHtml":"DIY или Сделай сам","isProfiled":false}],"flows":[{"id":"6","alias":"admin","title":"Администрирование"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fef\u002Fqk\u002Fde\u002Fefqkdemwmhhniofkklcjvayvmm0.png\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВозникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически неограниченным количеством ресурсов.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПо видимому Raspberry Pi Model B+ не обладает достаточной произвольностью чтобы держать постоянно запущенным браузер и отрисовывать большое количество графики в нем, из-за чего бывает, что страница частично глючит и часто вылетает.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНашлось достаточно простое и элегантное решение, которым я и хочу с вами поделиться.\u003C\u002Fp\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E \u003Cbr\u002F\u003E\r\n\u003Cp\u003EКак известно все Raspberry имеют достаточно мощный видеопроцессор, который отлично подходит для аппаратного декодирования видео. Так появилась идея запускать браузер с дашбордом где-нибудь ещё, а на малинку передавать готовый поток с отрендеренной картинкой.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПлюс ко всему это должно было упростить управление, так как в данном случае вся настройка будет выполняться на одной виртуалке, которую проще обновлять и бэкапить.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСказано – сделано.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"servernaya-chast\"\u003EСерверная часть\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы воспользуемся готовым \u003Ca href=\"https:\u002F\u002Fcloud-images.ubuntu.com\u002F\"\u003ECloud Image для Ubuntu\u003C\u002Fa\u003E. Не требуя установки, он содержит всё необходимое для быстрого развертывания виртуальной машины, а \u003Ca href=\"https:\u002F\u002Fpve.proxmox.com\u002Fwiki\u002FCloud-Init_Support\"\u003Eподдержка Cloud-Init\u003C\u002Fa\u003E помогает моментально настроить сеть, добавить ssh-ключи и быстро ввести ее в строй.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EРазворачиваем новую виртуалку и первым делом установим на ней \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002FX.Org_Server\"\u003EXorg\u003C\u002Fa\u003E, \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fspanezz\u002Fnodm\"\u003Enodm\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002FFluxbox\"\u003Efluxbox\u003C\u002Fa\u003E:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eapt-get update\napt-get install -y xserver-xorg nodm fluxbox\nsed -i 's\u002F^NODM_USER=.*\u002FNODM_USER=ubuntu\u002F' \u002Fetc\u002Fdefault\u002Fnodm\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТак же воспользуемся конфигом для Xorg, любезно \u003Ca href=\"https:\u002F\u002Fongardie.net\u002Fblog\u002Fqemu-xorg\u002F\"\u003Eпредоставленным\u003C\u002Fa\u003E нам Diego Ongaro, добавив только новое разрешение \u003Cstrong\u003E1920x1080\u003C\u002Fstrong\u003E, так как все наши мониторы будут использовать именно его:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Ecat \u003E \u002Fetc\u002FX11\u002Fxorg.conf &lt;&lt;\\EOT\nSection \"Device\"\n    Identifier      \"device\"\n    Driver          \"vesa\"\nEndSection\n\nSection \"Screen\"\n    Identifier      \"screen\"\n    Device          \"device\"\n    Monitor         \"monitor\"\n    DefaultDepth    16\n    SubSection \"Display\"\n        Modes       \"1920x1080\" \"1280x1024\" \"1024x768\" \"800x600\"\n    EndSubSection\nEndSection\n\nSection \"Monitor\"\n    Identifier      \"monitor\"\n    HorizSync       20.0 - 50.0\n    VertRefresh     40.0 - 80.0\n    Option          \"DPMS\"\nEndSection\n\nSection \"ServerLayout\"\n    Identifier      \"layout\"\n    Screen          \"screen\"\nEndSection\nEOT\n\nsystemctl restart nodm\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь установим Firefox, запускать мы его будем как system сервис, так что заодно и напишем unit-файл для него:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eapt-get install -y firefox xdotool\n\ncat \u003E \u002Fetc\u002Fsystemd\u002Fsystem\u002Ffirefox.service &lt;&lt;\\EOT\n[Unit]\nDescription=Firefox\nAfter=network.target\n\n[Service]\nRestart=always\nUser=ubuntu\nEnvironment=\"DISPLAY=:0\"\nEnvironment=\"XAUTHORITY=\u002Fhome\u002Fubuntu\u002F.Xauthority\"\nExecStart=\u002Fusr\u002Fbin\u002Ffirefox -url 'http:\u002F\u002Fexample.org\u002Fmydashboard'\nExecStartPost=\u002Fusr\u002Fbin\u002Fxdotool search --sync --onlyvisible --class \"Firefox\" windowactivate key F11\n\n[Install]\nWantedBy=graphical.target\nEOT\n\nsystemctl enable firefox\nsystemctl start firefox\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EXdotool необходим нам для того чтобы запускать firefox сразу в полноэкранном режиме.\u003Cbr\u002F\u003E\r\nИспользуя параметр \u003Ccode\u003E-url\u003C\u002Fcode\u003E можно указать любую страницу чтобы она открывалась автоматически при запуске браузера.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа этом этапе наш киоск уже готов, но теперь нам нужно экспортировать картинку по сети на другие мониторы и устройства. Для этого мы воспользуемся возможностями \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002FMJPEG\"\u003EMotion JPEG\u003C\u002Fa\u003E, формата который чаще используется для стриминга видео с большинства web-камер.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EДля этого нам понадобится две вещи: \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002FFFmpeg\"\u003EFFmpeg\u003C\u002Fa\u003E с модулем \u003Ca href=\"https:\u002F\u002Ftrac.ffmpeg.org\u002Fwiki\u002FCapture\u002FDesktop\"\u003Ex11grab\u003C\u002Fa\u003E, для захвата картинки с иксов и \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fccrisan\u002Fstreameye\"\u003EstreamEye\u003C\u002Fa\u003E, который будет раздавать ее нашим клиентам:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Eapt-get install -y make gcc ffmpeg \n\ncd \u002Ftmp\u002F\nwget https:\u002F\u002Fgithub.com\u002Fccrisan\u002Fstreameye\u002Farchive\u002Fmaster.tar.gz\ntar xvf master.tar.gz \ncd streameye-master\u002F\nmake\nmake install\n\ncat \u003E \u002Fetc\u002Fsystemd\u002Fsystem\u002Fstreameye.service &lt;&lt;\\EOT\n[Unit]\nDescription=streamEye\nAfter=network.target\n\n[Service]\nRestart=always\nUser=ubuntu\nEnvironment=\"DISPLAY=:0\"\nEnvironment=\"XAUTHORITY=\u002Fhome\u002Fubuntu\u002F.Xauthority\"\nExecStart=\u002Fbin\u002Fsh -c 'ffmpeg -f x11grab -s 1920x1080 -r 1 -i :0 -f mjpeg -q:v 5 - 2\u003E\u002Fdev\u002Fnull | streameye'\n\n[Install]\nWantedBy=graphical.target\nEOT\n\nsystemctl enable streameye\nsystemctl start streameye\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТак как наша картинка не требует быстрого обновления, я указал частоту обновления: 1 фрейм в секунду (параметр \u003Ccode\u003E-r 1\u003C\u002Fcode\u003E) и качество сжатия: 5 (параметр \u003Ccode\u003E-q:v 5\u003C\u002Fcode\u003E)\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь пробуем зайти на \u003Ca href=\"http:\u002F\u002Fyour-vm:8080\u002F\"\u003Ehttp:\u002F\u002Fyour-vm:8080\u002F\u003C\u002Fa\u003E, в ответ вы увидите постоянно обновляемый скриншот рабочего стола. Отлично! — то что и было нужно.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2 id=\"klientskaya-chast\"\u003EКлиентская часть\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗдесь все еще проще, как я уже сказал использовать мы будем Raspberry Pi Model B+.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПервым делом установим на нее \u003Ca href=\"https:\u002F\u002Farchlinuxarm.org\u002F\"\u003EArch Linux ARM\u003C\u002Fa\u003E, для этого следуем \u003Ca href=\"https:\u002F\u002Farchlinuxarm.org\u002Fplatforms\u002Farmv6\u002Fraspberry-pi\"\u003Eинструкции\u003C\u002Fa\u003E на официальном сайте.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНам также потребуется выделить больше памяти для нашего видеочипа, для этого отредактируем в \u003Ccode\u003E\u002Fboot\u002Fconfig.txt\u003C\u002Fcode\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Egpu_mem=128\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗагрузим нашу новую систему и не забыв инициализировать pacman keyring, установим \u003Ca href=\"https:\u002F\u002Fwww.raspberrypi.org\u002Fdocumentation\u002Fraspbian\u002Fapplications\u002Fomxplayer.md\"\u003EOMXPlayer\u003C\u002Fa\u003E:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Epacman -Sy omxplayer\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЧто примечательно, OMXPlayer может работать без иксов, по этому все что нам требуется — это написать unit-файл для него и запустить:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Ecat \u003E \u002Fetc\u002Fsystemd\u002Fsystem\u002Fomxplayer.service &lt;&lt;\\EOT\n[Unit]\nDescription=OMXPlayer\nWants=network-online.target\nAfter=network-online.target\n\n[Service]\nType=simple\nRestart=always\nExecStart=\u002Fusr\u002Fbin\u002Fomxplayer -r --live -b http:\u002F\u002Fyour-vm:8080\u002F --aspect-mode full\n\n[Install]\nWantedBy=multi-user.target\nEOT\n\nsystemctl enable omxplayer\nsystemctl start omxplayer\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ качестве параметра \u003Ccode\u003E-b http:\u002F\u002Fyour-vm:8080\u002F\u003C\u002Fcode\u003E мы передаем URL с нашего сервера.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНа этом все, на подключенном экране сразу должна появиться картинка с нашего сервера. В случае возникновения каких либо проблем, стрим будет автоматически перезапущен, а клиенты переподключатся к нему.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ качестве бонуса можно установить полученную картинку в качестве скринсейвера на все компьютеры в офисе. Для этого вам понадобятся \u003Ca href=\"https:\u002F\u002Fru.wikipedia.org\u002Fwiki\u002FMPV\"\u003EMPV\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FXScreenSaver\"\u003EXScreenSaver\u003C\u002Fa\u003E:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Emode:  one\nselected: 0\nprograms:              \\\n     \"Monitoring Screen\"  mpv --really-quiet --no-audio --fs       \\\n      --loop=inf --no-stop-screensaver       \\\n      --wid=$XSCREENSAVER_WINDOW        \\\n      http:\u002F\u002Fyour-vm:8080\u002F      \\n\\\n    maze -root        \\n\\\n    electricsheep --root 1       \\n\\\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EТеперь ваши коллеги будут очень довольны :)\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"raspberry pi"},{"titleHtml":"streaming"},{"titleHtml":"video"},{"titleHtml":"screen sharing"},{"titleHtml":"mjpeg"},{"titleHtml":"xorg"},{"titleHtml":"kiosk mode"},{"titleHtml":"kiosk"},{"titleHtml":"streameye"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450118\u002F023ed2da02b6c0b66c42825ab78cd6ed\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450118\u002F023ed2da02b6c0b66c42825ab78cd6ed\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450118\\\u002F\"},\"headline\":\"Стримим экран на несколько устройств по сети\",\"datePublished\":\"2019-04-30T15:09:53+03:00\",\"dateModified\":\"2019-06-18T16:01:22+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Andrei Kvapil\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450118\\\u002F#post-content-body\",\"about\":[\"h_linux\",\"h_it-infrastructure\",\"h_nix\",\"h_DIY\",\"f_admin\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fef\\\u002Fqk\\\u002Fde\\\u002Fefqkdemwmhhniofkklcjvayvmm0.png\"]}","metaDescription":"Возникла у меня необходимость выводить дашборд с мониторингом на несколько экранов в офисе. В распоряжении имеется несколько стареньких Raspberry Pi Model B+ и гипервизор с практически...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"linux,it-infrastructure,nix,DIY"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

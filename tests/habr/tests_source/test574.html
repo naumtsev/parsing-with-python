@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Создание многопользовательской веб-игры в жанре .io / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450574\/"},"headline":"Создание многопользовательской веб-игры в жанре .io","datePublished":"2019-05-08T12:49:48+03:00","dateModified":"2019-05-08T14:13:31+03:00","author":{"@type":"Person","name":"PatientZero"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на се...","url":"https:\/\/habr.com\/ru\/post\/450574\/#post-content-body","about":["h_javascript","h_gamedev","h_network_technologies","f_develop","f_admin"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/c7c\/405\/7a7\/c7c4057a7ab7333ee3cb9aba5ecc8c37.jpg","https:\/\/habrastorage.org\/webt\/um\/yq\/qj\/umyqqjon22wmshrz8o8wtyeaxl0.png","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/bc3\/815\/7c9\/bc38157c91d436b5fedf948b60c8a213.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/836\/45f\/75e\/83645f75e556bc5c1c38111a69510734.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/788\/1b5\/c78\/7881b5c789321648ff1ff70d15b881d4.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/c1e\/494\/615\/c1e4946159c599c7a2a9196968755e4b.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2ca\/1c8\/91c\/2ca1c891ce7db0341dc78c2f88e16ce4.svg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/63f\/e73\/2c8\/63fe732c87ed1872522787e3cc4d5ab2.svg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Создание многопользовательской веб-игры в жанре .io" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Создание многопользовательской веб-игры в жанре .io" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Создание многопользовательской веб-игры в жанре .io" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я создал и..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я создал и..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я создал и..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я создал и..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я создал и..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450574/abb87bd64d6df1d2a2ef54320f7b10c2/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450574/abb87bd64d6df1d2a2ef54320f7b10c2/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450574/abb87bd64d6df1d2a2ef54320f7b10c2/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450574/abb87bd64d6df1d2a2ef54320f7b10c2/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450574/abb87bd64d6df1d2a2ef54320f7b10c2/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450574" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-08T09:49:48.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450574/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450574/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450574/abb87bd64d6df1d2a2ef54320f7b10c2/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/PatientZero/" title="PatientZero" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/8de/9c5/34a/8de9c534a18a6cb8693270a2b528d4c0.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/PatientZero/" class="tm-user-info__username">
+      PatientZero
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-08T09:49:48.000Z" title="2019-05-08, 12:49">8  мая  2019 в 12:49</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Создание многопользовательской веб-игры в жанре .io</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/javascript/" class="tm-article-snippet__hubs-item-link"><span>JavaScript</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/gamedev/" class="tm-article-snippet__hubs-item-link"><span>Разработка игр</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/network_technologies/" class="tm-article-snippet__hubs-item-link"><span>Сетевые технологии</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://victorzhou.com/blog/build-an-io-game-part-1/" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Victor Zhou
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><div style="text-align:center;"><img src="https://habrastorage.org/r/w780q1/getpro/habr/post_images/c7c/405/7a7/c7c4057a7ab7333ee3cb9aba5ecc8c37.jpg" alt="image" data-src="https://habrastorage.org/getpro/habr/post_images/c7c/405/7a7/c7c4057a7ab7333ee3cb9aba5ecc8c37.jpg" data-blurred="true"/></div><br/>
+Вышедшая в 2015 году <a href="https://agar.io" rel="noopener noreferrer">Agar.io</a> стала прародителем нового жанра <a href="https://www.google.com/search?q=.io+game" rel="noopener noreferrer"><strong>игр .io</strong></a>, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я <a href="https://victorzhou.com/about/">создал и продал две игры этого жанра.</a>.<br/>
+<br/>
+На случай, если вы никогда раньше не слышали о таких играх: это бесплатные многопользовательские веб-игры, в которых легко участвовать (не требуется учётная запись). Обычно они сталкивают на одной арене множество противоборствующих игроков. Другие знаменитые игры жанра .io: <a href="https://slither.io" rel="noopener noreferrer">Slither.io</a> и <a href="https://diep.io" rel="noopener noreferrer">Diep.io</a>.<br/>
+<br/>
+В этом посте мы будем разбираться, как <strong>с нуля создать игру .io</strong>. Для этого достаточно будет только знания Javascript: вам нужно понимать такие вещи, как синтаксис <a href="https://www.w3schools.com/js/js_es6.asp" rel="noopener noreferrer">ES6</a>, ключевое слово <code>this</code> и <a href="https://developers.google.com/web/fundamentals/primers/promises" rel="noopener noreferrer">Promises</a>. Даже если вы знаете Javascript не в совершенстве, то всё равно сможете разобраться в большей части поста.<br/>
+<a name="habracut"></a><br/>
+<h2>Пример игры .io</h2><br/>
+Для помощи в обучении мы будем ссылаться на <a href="https://example-io-game.victorzhou.com">пример игры .io</a>. Попробуйте в сыграть в неё!<br/>
+<br/>
+<div style="text-align:center;"><img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/um/yq/qj/umyqqjon22wmshrz8o8wtyeaxl0.png"/></div><br/>
+Игра довольно проста: вы управляете кораблём на арене, где есть другие игроки. Ваш корабль автоматически стреляет снарядами и вы пытаетесь попасть в других игроков, в то же время избегая их снарядов.<br/>
+<br/>
+<h2>1. Краткий обзор/структура проекта</h2><br/>
+<blockquote>Рекомендую <a href="https://github.com/vzhou842/example-.io-game" rel="noopener noreferrer"><strong>скачать исходный код</strong></a> примера игры, чтобы вы могли следовать за мной.</blockquote><br/>
+В примере используется следующее:<br/>
+<br/>
+<ul>
+<li><a href="https://expressjs.com/" rel="noopener noreferrer">Express</a> — самый популярный веб-фреймворк для Node.js, управляющий веб-сервером игры.</li>
+<li><a href="https://socket.io/" rel="noopener noreferrer">socket.io</a> — библиотека websocket для обмена данными между браузером и сервером.</li>
+<li><a href="https://webpack.js.org/">Webpack</a> — менеджер модулей. О том, зачем использовать Webpack, можно прочитать <a href="https://victorzhou.com/blog/why-you-should-use-webpack/">здесь</a>.</li>
+</ul><br/>
+Вот как выглядит структура каталога проекта:<br/>
+<br/>
+<code><pre>public/
+    assets/
+        ...
+src/
+    client/
+        css/
+            ...
+        html/
+            index.html
+        index.js
+        ...
+    server/
+        server.js
+        ...
+    shared/
+        constants.js</pre></code><br/>
+<h3>public/</h3><br/>
+Всё в папке <code>public/</code> будет статически передаваться сервером. В <code>public/assets/</code> содержатся используемые нашим проектом изображения.<br/>
+<br/>
+<h3>src/</h3><br/>
+Весь исходный код находится в папке <code>src/</code>. Названия <code>client/</code> и <code>server/</code> говорят сами за себя, а <code>shared/</code> содержит файл констант, импортируемый и клиентом, и сервером.<br/>
+<br/>
+<h2>2. Сборки/параметры проекта</h2><br/>
+Как сказано выше, для сборки проекта мы используем менеджер модулей <a href="https://webpack.js.org/">Webpack</a>. Давайте взглянем на нашу конфигурацию Webpack:<br/>
+<br/>
+<h5>webpack.common.js:</h5><br/>
+<pre><code class="cpp">const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+module.exports = {
+  entry: {
+    game: './src/client/index.js',
+  },
+  output: {
+    filename: '[name].[contenthash].js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ['@babel/preset-env'],
+          },
+        },
+      },
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          'css-loader',
+        ],
+      },
+    ],
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css',
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      template: 'src/client/html/index.html',
+    }),
+  ],
+};</code></pre><br/>
+Самыми важными здесь являются следующие строки:<br/>
+<br/>
+<ul>
+<li><code>src/client/index.js</code> — это входная точка клиента Javascript (JS). Webpack будет начинать отсюда и станет рекурсивно искать другие импортированные файлы.</li>
+<li>Выходной JS нашей сборки Webpack будет располагаться в каталоге <code>dist/</code>. Я буду называть этот файл нашим <strong>пакетом JS</strong>.</li>
+<li>Мы используем <a href="https://babeljs.io/" rel="noopener noreferrer">Babel</a>, и в частности конфигурацию <a href="https://babeljs.io/docs/en/babel-preset-env" rel="noopener noreferrer">@babel/preset-env</a> для транспиляции (transpiling) нашего кода JS для старых браузеров.</li>
+<li>Мы используем плагин для извлечения всех CSS, на которые ссылаются файлы JS, и для объединения их в одном месте. Я буду называть его нашим <strong>пакетом CSS</strong>.</li>
+</ul><br/>
+Вы могли заметить странные имена файлов пакетов <code>'[name].[contenthash].ext'</code>. В них содержатся <a href="https://webpack.js.org/configuration/output/#output-filename" rel="noopener noreferrer">подстановки имён файлов</a> Webpack: <code>[name]</code> будет заменён на имя входной точки (в нашем случае это <code>game</code>), а <code>[contenthash]</code> будет заменён на хеш содержимого файла. Мы делаем это, чтобы <a href="https://webpack.js.org/guides/caching/#output-filenames" rel="noopener noreferrer">оптимизировать проект для хеширования</a> — можно приказать браузерам бесконечно кешировать наши пакеты JS, потому что <strong>если пакет изменяется, то меняется и его имя файла</strong> (изменяется <code>contenthash</code>). Готовым результатом будет имя файла вида <code>game.dbeee76e91a97d0c7207.js</code>.<br/>
+<br/>
+Файл <code>webpack.common.js</code> — это базовый файл конфигурации, который мы импортируем в конфигурации разработки и готового проекта. Вот, например, конфигурация разработки:<br/>
+<br/>
+<h5>webpack.dev.js</h5><br/>
+<pre><code class="cpp">const merge = require('webpack-merge');
+const common = require('./webpack.common.js');
+
+module.exports = merge(common, {
+  mode: 'development',
+});</code></pre><br/>
+Для эффективности мы используем в процессе разработки <code>webpack.dev.js</code>, и переключается на <code>webpack.prod.js</code>, чтобы оптимизировать размеры пакетов при развёртывании в продакшен.<br/>
+<br/>
+<h3>Локальная настройка</h3><br/>
+Рекомендую устанавливать проект на локальной машине, чтобы вы могли следовать за этапами, перечисленными в этом посте. Настройка проста: во-первых, в системе должны быть установлены <a href="https://nodejs.org/en/download/">Node</a> и <a href="https://www.npmjs.com/get-npm">NPM</a>. Далее нужно выполнить<br/>
+<br/>
+<pre><code class="cpp">$ git clone https://github.com/vzhou842/example-.io-game.git
+$ cd example-.io-game
+$ npm install</code></pre><br/>
+и вы готовы к работе! Для запуска сервера разработки достаточно выполнить<br/>
+<br/>
+<pre><code class="cpp">$ npm run develop</code></pre><br/>
+и зайти в веб-браузере на <a href="http://localhost:3000" rel="noopener noreferrer">localhost:3000</a>. Сервер разработки будет автоматически пересобирать заново пакеты JS и CSS в процессе изменения кода — просто обновите страницу, чтобы увидеть все изменения!<br/>
+<br/>
+<h2>3. Входные точки клиента</h2><br/>
+Давайте приступим к самому коду игры. Для начала нам потребуется страница <code>index.html</code>, при посещении сайта браузер будет загружать её первой. Наша страница будет довольно простой:<br/>
+<br/>
+<h5>index.html</h5><br/>
+<pre>&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+  &lt;title>An example .io game&lt;/title>
+  &lt;link type="text/css" rel="stylesheet" href="/game.bundle.css">
+&lt;/head>
+&lt;body>
+  &lt;canvas id="game-canvas">&lt;/canvas>
+  &lt;script async src="/game.bundle.js">&lt;/script>
+  &lt;div id="play-menu" class="hidden">
+    &lt;input type="text" id="username-input" placeholder="Username" />
+    &lt;button id="play-button">PLAY&lt;/button>
+  &lt;/div>
+&lt;/body>
+&lt;/html></pre><br/>
+<i>Этот пример кода слегка упрощён для понятности, то же самое я сделаю и со многими другими примерами поста. Полный код всегда можно посмотреть на <a href="https://github.com/vzhou842/example-.io-game">Github</a>.</i><br/>
+<br/>
+У нас есть:<br/>
+<br/>
+<ul>
+<li><a href="https://www.w3schools.com/html/html5_canvas.asp">Элемент HTML5 Canvas</a> (<code>&lt;canvas></code>), который мы будем использовать для рендеринга игры.</li>
+<li><code>&lt;link></code> для добавления нашего пакета CSS.</li>
+<li><code>&lt;script></code> для добавления нашего пакета Javascript.</li>
+<li>Главное меню с именем пользователя <code>&lt;input></code> и кнопкой «PLAY» (<code>&lt;button></code>).</li>
+</ul><br/>
+После загрузки домашней страницы в браузере начнёт выполняться Javascript-код, начиная с файла JS входной точки: <code>src/client/index.js</code>.<br/>
+<br/>
+<h5>index.js</h5><br/>
+<pre><code class="javascript">import { connect, play } from './networking';
+import { startRendering, stopRendering } from './render';
+import { startCapturingInput, stopCapturingInput } from './input';
+import { downloadAssets } from './assets';
+import { initState } from './state';
+import { setLeaderboardHidden } from './leaderboard';
+
+import './css/main.css';
+
+const playMenu = document.getElementById('play-menu');
+const playButton = document.getElementById('play-button');
+const usernameInput = document.getElementById('username-input');
+
+Promise.all([
+  connect(),
+  downloadAssets(),
+]).then(() => {
+  playMenu.classList.remove('hidden');
+  usernameInput.focus();
+  playButton.onclick = () => {
+    // Play!
+    play(usernameInput.value);
+    playMenu.classList.add('hidden');
+    initState();
+    startCapturingInput();
+    startRendering();
+    setLeaderboardHidden(false);
+  };
+});</code></pre><br/>
+Это может показаться сложным, но на самом деле здесь происходит не так много действий:<br/>
+<br/>
+<ol>
+<li>Импорт нескольких других JS-файлов.</li>
+<li>Импорт CSS (чтобы Webpack знал, что нужно включить их в наш пакет CSS).</li>
+<li>Запуск <code>connect()</code> для установки соединения с сервером и запуск <code>downloadAssets()</code> для скачивания изображений, необходимых для рендеринга игры.</li>
+<li><em>После завершения этапа 3 </em> отображается главное меню (<code>playMenu</code>).</li>
+<li>Настройка обработчика нажатия кнопки «PLAY». При нажатии кнопки код инициализирует игру и сообщает серверу, что мы готовы играть.</li>
+</ol><br/>
+Основное «мясо» нашей клиент-серверной логики находится в тех файлах, которые были импортированы файлом <code>index.js</code>. Сейчас мы рассмотрим их все по порядку.<br/>
+<br/>
+<h2>4. Обмен данными клиента</h2><br/>
+В этой игре для общения с сервером мы используем хорошо известную библиотеку <a href="https://socket.io/">socket.io</a>. В Socket.io есть встроенная поддержка <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API">WebSockets</a>, которые хорошо подходят для двусторонней коммуникации: мы можем отправлять сообщения серверу <em>и</em> сервер может отправлять сообщения нам по тому же соединению.<br/>
+<br/>
+У нас будет один файл <code>src/client/networking.js</code>, который займётся <strong>всеми</strong> коммуникациями с сервером:<br/>
+<br/>
+<h5>networking.js</h5><br/>
+<pre><code class="javascript">import io from 'socket.io-client';
+import { processGameUpdate } from './state';
+
+const Constants = require('../shared/constants');
+
+const socket = io(`ws://${window.location.host}`);
+const connectedPromise = new Promise(resolve => {
+  socket.on('connect', () => {
+    console.log('Connected to server!');
+    resolve();
+  });
+});
+
+export const connect = onGameOver => (
+  connectedPromise.then(() => {
+    // Register callbacks
+    socket.on(Constants.MSG_TYPES.GAME_UPDATE, processGameUpdate);
+    socket.on(Constants.MSG_TYPES.GAME_OVER, onGameOver);
+  })
+);
+
+export const play = username => {
+  socket.emit(Constants.MSG_TYPES.JOIN_GAME, username);
+};
+
+export const updateDirection = dir => {
+  socket.emit(Constants.MSG_TYPES.INPUT, dir);
+};</code></pre><br/>
+<i>Этот код для понятности тоже слегка сокращён.</i><br/>
+<br/>
+В этом файле происходят три основных действия:<br/>
+<br/>
+<ul>
+<li>Мы пробуем подключиться к серверу. <code>connectedPromise</code> разрешается только тогда, когда мы установили соединение.</li>
+<li>Если соединение успешно установлено, мы регистрируем callback-функции (<code>processGameUpdate()</code> и <code>onGameOver()</code>) для сообщений, которые мы можем получать от сервера.</li>
+<li>Экспортируем <code>play()</code> и <code>updateDirection()</code>, чтобы их могли использовать другие файлы.</li>
+</ul><br/>
+<h2>5. Рендеринг клиента</h2><br/>
+Настало время отобразить на экране картинку!<br/>
+<br/>
+…но прежде чем мы сможем это сделать, нужно скачать все изображения (ресурсы), которые для этого необходимы. Давайте напишем менеджер ресурсов:<br/>
+<br/>
+<h5>assets.js</h5><br/>
+<pre><code class="javascript">const ASSET_NAMES = ['ship.svg', 'bullet.svg'];
+
+const assets = {};
+const downloadPromise = Promise.all(ASSET_NAMES.map(downloadAsset));
+
+function downloadAsset(assetName) {
+  return new Promise(resolve => {
+    const asset = new Image();
+    asset.onload = () => {
+      console.log(`Downloaded ${assetName}`);
+      assets[assetName] = asset;
+      resolve();
+    };
+    asset.src = `/assets/${assetName}`;
+  });
+}
+
+export const downloadAssets = () => downloadPromise;
+export const getAsset = assetName => assets[assetName];</code></pre><br/>
+Управление ресурсами реализовать не так сложно! Основной смысл заключается в том, чтобы хранить объект <code>assets</code>, который будет привязывать ключ имени файла к значению объекта <code>Image</code>. Когда ресурс загрузится, мы сохраняем его в объект <code>assets</code> для быстрого получения в будущем. Когда будет разрешено скачивание каждого отдельного ресурса (то есть будут загружены <strong>все</strong> ресурсы), мы разрешаем <code>downloadPromise</code>.<br/>
+<br/>
+Скачав ресурсы, можно приступать к рендерингу. Как сказано ранее, для рисования на веб-странице мы используем <a href="https://www.w3schools.com/html/html5_canvas.asp">HTML5 Canvas</a> (<code>&lt;canvas></code>). Наша игра довольно проста, поэтому нам достаточно отрисовывать только следующее:<br/>
+<br/>
+<ol>
+<li>Фон</li>
+<li>Корабль игрока</li>
+<li>Других игроков, находящихся в игре</li>
+<li>Снаряды</li>
+</ol><br/>
+Вот важные фрагменты <code>src/client/render.js</code>, которые отрисовывают именно перечисленные выше четыре пункта:<br/>
+<br/>
+<h5>render.js</h5><br/>
+<pre><code class="javascript">import { getAsset } from './assets';
+import { getCurrentState } from './state';
+
+const Constants = require('../shared/constants');
+const { PLAYER_RADIUS, PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = Constants;
+
+// Get the canvas graphics context
+const canvas = document.getElementById('game-canvas');
+const context = canvas.getContext('2d');
+
+// Make the canvas fullscreen
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+function render() {
+  const { me, others, bullets } = getCurrentState();
+  if (!me) {
+    return;
+  }
+
+  // Draw background
+  renderBackground(me.x, me.y);
+
+  // Draw all bullets
+  bullets.forEach(renderBullet.bind(null, me));
+
+  // Draw all players
+  renderPlayer(me, me);
+  others.forEach(renderPlayer.bind(null, me));
+}
+
+// ... Helper functions here excluded
+
+let renderInterval = null;
+export function startRendering() {
+  renderInterval = setInterval(render, 1000 / 60);
+}
+export function stopRendering() {
+  clearInterval(renderInterval);
+}</code></pre><br/>
+<i>Этот код тоже сокращён для понятности.</i><br/>
+<br/>
+<code>render()</code> — основная функция этого файла. <code>startRendering()</code> и <code>stopRendering()</code> управляют активацией циклом рендеринга с частотой 60 FPS.<br/>
+<br/>
+Конкретные реализации отдельных вспомогательных функций рендеринга (например <code>renderBullet()</code>) не так важны, но вот один простой пример:<br/>
+<br/>
+<h5>render.js</h5><br/>
+<pre><code class="javascript">function renderBullet(me, bullet) {
+  const { x, y } = bullet;
+  context.drawImage(
+    getAsset('bullet.svg'),
+    canvas.width / 2 + x - me.x - BULLET_RADIUS,
+    canvas.height / 2 + y - me.y - BULLET_RADIUS,
+    BULLET_RADIUS * 2,
+    BULLET_RADIUS * 2,
+  );
+}</code></pre><br/>
+Заметьте, что мы используем метод <code>getAsset()</code>, который ранее видели в <code>asset.js</code>!<br/>
+<br/>
+<blockquote>Если вам интересно изучить другие вспомогательные функции рендеринга, то прочитайте оставшуюся часть <a href="https://github.com/vzhou842/example-.io-game/blob/master/src/client/render.js">src/client/render.js</a>.</blockquote><br/>
+<h2>6. Клиентский ввод</h2><br/>
+Настало время сделать игру <em>играбельной</em>! Схема управления будет очень простой: для изменения направления движения можно использовать мышь (на компьютере) или касание экрана (на мобильном устройстве). Чтобы реализовать это, мы зарегистрируем <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventListener">Event Listeners</a> для событий Mouse и Touch.<br/>
+Всем этим займётся <code>src/client/input.js</code>:<br/>
+<br/>
+<h5>input.js</h5><br/>
+<pre><code class="javascript">import { updateDirection } from './networking';
+
+function onMouseInput(e) {
+  handleInput(e.clientX, e.clientY);
+}
+
+function onTouchInput(e) {
+  const touch = e.touches[0];
+  handleInput(touch.clientX, touch.clientY);
+}
+
+function handleInput(x, y) {
+  const dir = Math.atan2(x - window.innerWidth / 2, window.innerHeight / 2 - y);
+  updateDirection(dir);
+}
+
+export function startCapturingInput() {
+  window.addEventListener('mousemove', onMouseInput);
+  window.addEventListener('touchmove', onTouchInput);
+}
+
+export function stopCapturingInput() {
+  window.removeEventListener('mousemove', onMouseInput);
+  window.removeEventListener('touchmove', onTouchInput);
+}</code></pre><br/>
+<code>onMouseInput()</code> и <code>onTouchInput()</code> — это Event Listeners, вызывающие <code>updateDirection()</code> (из <code>networking.js</code>) при совершении события ввода (например, при перемещении мыши). <code>updateDirection()</code> занимается обменом сообщениями с сервером, который обрабатывает событие ввода и соответствующим образом обновляет состояние игры.<br/>
+<br/>
+<h2>7. Состояние клиента</h2><br/>
+<blockquote>Этот раздел — самый сложный в первой части поста. Не расстраивайтесь, если не поймёте его с первого прочтения! Можете даже пропустить его и вернуться к нему позже.</blockquote><br/>
+Последний кусок пазла, который нужен для завершения клиент-серверного кода — это <strong>state</strong>. Помните фрагмент кода из раздела «Рендеринг клиента»?<br/>
+<br/>
+<h5>render.js</h5><br/>
+<pre><code class="javascript">import { getCurrentState } from './state';
+
+function render() {
+  const { me, others, bullets } = getCurrentState();
+
+  // Do the rendering
+  // ...
+}</code></pre><br/>
+<code>getCurrentState()</code> должен иметь возможность предоставить нам текущее состояние игры в клиенте <strong>в любой момент времени</strong> на основании обновлений, получаемых от сервера. Вот пример обновления игры, которое может отправлять сервер:<br/>
+<br/>
+<pre><code class="cpp">{
+  "t": 1555960373725,
+  "me": {
+    "x": 2213.8050880413657,
+    "y": 1469.370893425012,
+    "direction": 1.3082443894581433,
+    "id": "AhzgAtklgo2FJvwWAADO",
+    "hp": 100
+  },
+  "others": [],
+  "bullets": [
+    {
+      "id": "RUJfJ8Y18n",
+      "x": 2354.029197099604,
+      "y": 1431.6848318262666
+    },
+    {
+      "id": "ctg5rht5s",
+      "x": 2260.546457727445,
+      "y": 1456.8088728920968
+    }
+  ],
+  "leaderboard": [
+    {
+      "username": "Player",
+      "score": 3
+    }
+  ]
+}</code></pre><br/>
+Каждое обновление игры содержит пять одинаковых полей:<br/>
+<br/>
+<ul>
+<li><strong>t</strong>: метка времени сервера, обозначающая момент создания этого обновления.</li>
+<li><strong>me</strong>: информация об игроке, получающего это обновление.</li>
+<li><strong>others</strong>: массив информации о других игроках, участвующих в той же игре.</li>
+<li><strong>bullets</strong>: массив информации о снарядах в игре.</li>
+<li><strong>leaderboard</strong>: текущие данные таблицы лидеров. В этом посте мы их учитывать не будем.</li>
+</ul><br/>
+<h3>7.1 Наивное состояние клиента</h3><br/>
+Наивная реализация <code>getCurrentState()</code> может только непосредственно возвращать данные самого последнего полученного обновления игры.<br/>
+<br/>
+<h5>naive-state.js</h5><br/>
+<pre><code class="javascript">let lastGameUpdate = null;
+
+// Handle a newly received game update.
+export function processGameUpdate(update) {
+  lastGameUpdate = update;
+}
+
+export function getCurrentState() {
+  return lastGameUpdate;
+}</code></pre><br/>
+Красиво и понятно! Но если бы всё было так просто. Одна из причин, по которым такая реализация проблематична: <strong>она ограничивает частоту кадров рендеринга частотой тактов сервера</strong>.<br/>
+<br/>
+<blockquote><strong>Частота кадров (Frame Rate)</strong>: количество кадров (т.е. вызовов <code>render()</code>) в секунду, или FPS. В играх обычно стремятся достичь не менее 60 FPS.</blockquote><br/>
+<blockquote><strong>Частота тактов (Tick Rate)</strong>: частота, с которой сервер отправляет обновления игры клиентам. <strong>Часто она ниже, чем частота кадров</strong>. В нашей игре сервер работает с частотой 30 тактов в секунду.</blockquote><br/>
+Если мы просто будем рендерить последнее обновление игры, то FPS по сути никогда не сможет превысить 30, потому что <em>мы никогда не получаем от сервера больше 30 обновлений в секунду</em>. Даже если мы будем вызывать <code>render()</code> 60 раз в секунду, то половина этих вызовов будет просто перерисовывать то же самое, по сути не делая ничего. Ещё одна проблема наивной реализации заключается в том, что она <strong>подвержена задержкам</strong>. При идеальной скорости Интернета клиент будет получать обновление игры ровно через каждые 33 мс (30 в секунду):<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/bc3/815/7c9/bc38157c91d436b5fedf948b60c8a213.svg"/></div><br/>
+К сожалению, ничто не идеально. Более реалистичной будет такая картина:<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/836/45f/75e/83645f75e556bc5c1c38111a69510734.svg"/></div><br/>
+Наивная реализация — это практически наихудший случай, когда дело доходит до задержек. Если обновление игры принимается с задержкой 50 мс, то <strong>клиент затормаживается</strong> на лишние 50 мс, потому что он по-прежнему рендерит состояние игры из предыдущего обновления. Можете представить, насколько это неудобно для игрока: из-за произвольных торможений игра будет казаться дёрганной и нестабильной.<br/>
+<br/>
+<h3>7.2 Улучшенное состояние клиента</h3><br/>
+Мы внесём в наивную реализацию некоторые улучшения. Во-первых, мы используем <strong>задержку рендеринга</strong> на 100 мс. Это означает, что «текущее» состояние клиента всегда будет отставать от состояния игры на сервере на 100 мс. Например, если на сервере время равно <strong>150</strong>, то на клиенте будет рендериться состояние, в котором был сервер во время <strong>50</strong>:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/788/1b5/c78/7881b5c789321648ff1ff70d15b881d4.svg"/></div><br/>
+Это даёт нам буфер в 100 мс, позволяющий пережить непредсказуемое время получения обновлений игры:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/c1e/494/615/c1e4946159c599c7a2a9196968755e4b.svg"/></div><br/>
+Расплатой за это будет постоянная <a href="https://en.wikipedia.org/wiki/Input_lag" rel="noopener noreferrer">задержка ввода (input lag)</a> на 100 мс. Это незначительная жертва за плавный игровой процесс — большинство игроков (особенно казуальных) даже не заметит этой задержки. Людям гораздо проще приспособиться к постоянной задержке в 100 мс, чем играть с непредсказуемой задержкой.<br/>
+<br/>
+<blockquote>Мы можем использовать и другую технику под названием <a href="https://en.wikipedia.org/wiki/Client-side_prediction" rel="noopener noreferrer">«прогнозирование на стороне клиента»</a>, которая хорошо справляется со снижением воспринимаемых задержек, но в этом посте она рассматриваться не будет.</blockquote><br/>
+Ещё одно улучшение, которое мы используем — это <strong>линейная интерполяция</strong>. Из-за задержки рендеринга мы обычно как минимум на одно обновление обгоняем текущее время в клиенте. Когда вызывается <code>getCurrentState()</code>, мы можем выполнить <a href="https://en.wikipedia.org/wiki/Linear_interpolation" rel="noopener noreferrer">линейную интерполяцию</a> между обновлениями игры непосредственно перед и после текущим временем в клиенте:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/2ca/1c8/91c/2ca1c891ce7db0341dc78c2f88e16ce4.svg"/></div><br/>
+Это решает проблему с частотой кадров: теперь мы можем рендерить уникальные кадры с любой нужной нам частотой!<br/>
+<br/>
+<h3>7.3 Реализация улучшенного состояния клиента</h3><br/>
+Пример реализации в <code>src/client/state.js</code> использует и задержку рендеринга, и линейную интерполяцию, но это ненадолго. Давайте разобьём код на две части. Вот первая:<br/>
+<br/>
+<h5>state.js, часть 1</h5><br/>
+<pre><code class="javascript">const RENDER_DELAY = 100;
+
+const gameUpdates = [];
+let gameStart = 0;
+let firstServerTimestamp = 0;
+
+export function initState() {
+  gameStart = 0;
+  firstServerTimestamp = 0;
+}
+
+export function processGameUpdate(update) {
+  if (!firstServerTimestamp) {
+    firstServerTimestamp = update.t;
+    gameStart = Date.now();
+  }
+  gameUpdates.push(update);
+
+  // Keep only one game update before the current server time
+  const base = getBaseUpdate();
+  if (base > 0) {
+    gameUpdates.splice(0, base);
+  }
+}
+
+function currentServerTime() {
+  return firstServerTimestamp + (Date.now() - gameStart) - RENDER_DELAY;
+}
+
+// Returns the index of the base update, the first game update before
+// current server time, or -1 if N/A.
+function getBaseUpdate() {
+  const serverTime = currentServerTime();
+  for (let i = gameUpdates.length - 1; i >= 0; i--) {
+    if (gameUpdates[i].t &lt;= serverTime) {
+      return i;
+    }
+  }
+  return -1;
+}</code></pre><br/>
+Первым делом нужно разобраться с тем, что делает <code>currentServerTime()</code>. Как мы видели ранее, в каждое обновление игры включается серверная метка времени. Мы хотим использовать задержку рендеринга, чтобы рендерить картинку, отставая от сервера на 100 мс, но <strong>мы никогда не узнаем, текущее время на сервере</strong>, потому что не можем знать, как долго добиралось до нас любое из обновлений. Интернет непредсказуем и его скорость может очень сильно варьироваться!<br/>
+<br/>
+Чтобы обойти эту проблему, можно использовать разумную аппроксимацию: мы <strong>притворимся, что первое обновление прибыло мгновенно</strong>. Если бы это было верно, то мы бы знали время сервера в этот конкретный момент! Мы сохраняем метку времени сервера в <code>firstServerTimestamp</code> и сохраняем нашу <strong>локальную</strong> (клиентскую) метку времени в тот же момент в <code>gameStart</code>.<br/>
+<br/>
+Ой, постойте-ка. <b>Разве не должно быть время на сервере = времени в клиенте?</b> Почему мы различаем «метку времени сервера» и «метку времени клиента»? Это отличный вопрос! Оказывается, это не одно и то же. <code>Date.now()</code> будет возвращать разные метки времени в клиенте и сервера и это зависит от локальных для этих машин факторов. <strong>Никогда не допускайте, что метки времени будут одинаковыми на всех машинах.</strong><br/>
+<br/>
+Теперь нам понятно, что делает <code>currentServerTime()</code>: он возвращает <strong>метку времени сервера текущего времени рендеринга</strong>. Другими словами, это текущее время сервера (<code>firstServerTimestamp &lt;+ (Date.now() - gameStart)</code>) минус задержка рендеринга (<code>RENDER_DELAY</code>).<br/>
+<br/>
+Теперь давайте разберёмся, как мы обрабатываем обновления игры. При получении с сервера обновления вызывается <code>processGameUpdate()</code>, и мы сохраняем новое обновление в массив <code>gameUpdates</code>. Затем, чтобы проверять использование памяти мы удаляем все старые обновления до <strong>базового обновления</strong>, потому что они нам больше не нужны.<br/>
+<br/>
+Что же такое «базовое обновление»? Это <strong>первое обновление, которое мы находим, двигаясь назад от текущего времени сервера</strong>. Помните эту схему?<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/2ca/1c8/91c/2ca1c891ce7db0341dc78c2f88e16ce4.svg"/></div><br/>
+Обновление игры непосредственно слева от «Client Render Time» и является базовым обновлением.<br/>
+<br/>
+Для чего используется базовое обновление? Почему мы можем отбрасывать обновления до базового? Чтобы разобраться в этом, давайте <em>наконец-то</em> рассмотрим реализацию <code>getCurrentState()</code>:<br/>
+<br/>
+<h5>state.js, часть 2</h5><br/>
+<pre><code class="javascript">export function getCurrentState() {
+  if (!firstServerTimestamp) {
+    return {};
+  }
+
+  const base = getBaseUpdate();
+  const serverTime = currentServerTime();
+
+  // If base is the most recent update we have, use its state.
+  // Else, interpolate between its state and the state of (base + 1).
+  if (base &lt; 0) {
+    return gameUpdates[gameUpdates.length - 1];
+  } else if (base === gameUpdates.length - 1) {
+    return gameUpdates[base];
+  } else {
+    const baseUpdate = gameUpdates[base];
+    const next = gameUpdates[base + 1];
+    const r = (serverTime - baseUpdate.t) / (next.t - baseUpdate.t);
+    return {
+      me: interpolateObject(baseUpdate.me, next.me, r),
+      others: interpolateObjectArray(baseUpdate.others, next.others, r),
+      bullets: interpolateObjectArray(baseUpdate.bullets, next.bullets, r),
+    };
+  }
+}</code></pre><br/>
+Мы обрабатываем три случая:<br/>
+<br/>
+<ol>
+<li><code>base &lt; 0</code> означает, что до текущего времени рендеринга обновлений нет (см. выше реализацию <code>getBaseUpdate()</code>). Это может случиться сразу в начале игры из-за задержки рендеринга. В таком случае мы используем самое последнее полученное обнолвение.</li>
+<li><code>base</code> — это самое последнее обновление, которое у нас есть. Это может произойти из-за сетевой задержки или плохой связи с Интернетом. В этом случае мы тоже используем самое последнее обновление, которое у нас есть.</li>
+<li>У нас есть обновление и до, и после текущего времени рендеринга, поэтому можно <strong>интерполировать</strong>!</li>
+</ol><br/>
+Всё, что осталось в <code>state.js</code> — это реализация линейной интерполяции, представляющая собой простую (но скучную) математику. Если вы хотите изучить её самостоятельно, то откройте <code>state.js</code> на <a href="https://github.com/vzhou842/example-.io-game/blob/master/src/client/state.js" rel="noopener noreferrer">Github</a>.<br/>
+<br/>
+<h2>Часть 2. Бэкенд-сервер</h2><br/>
+В этой части мы рассмотрим бэкенд Node.js, управляющий нашим <a href="https://example-io-game.victorzhou.com/">примером игры .io</a>.<br/>
+<br/>
+<h2>1. Входная точка сервера</h2><br/>
+Для управления веб-сервером мы будем использовать популярный веб-фреймворк для Node.js под названием <a href="https://expressjs.com/">Express</a>. Его настройкой займётся наш файл входной точки сервера <code>src/server/server.js</code>:<br/>
+<br/>
+<h5>server.js, часть 1</h5><br/>
+<pre><code class="javascript">const express = require('express');
+const webpack = require('webpack');
+const webpackDevMiddleware = require('webpack-dev-middleware');
+const webpackConfig = require('../../webpack.dev.js');
+
+// Setup an Express server
+const app = express();
+app.use(express.static('public'));
+
+if (process.env.NODE_ENV === 'development') {
+  // Setup Webpack for development
+  const compiler = webpack(webpackConfig);
+  app.use(webpackDevMiddleware(compiler));
+} else {
+  // Static serve the dist/ folder in production
+  app.use(express.static('dist'));
+}
+
+// Listen on port
+const port = process.env.PORT || 3000;
+const server = app.listen(port);
+console.log(`Server listening on port ${port}`);</code></pre><br/>
+Помните, что в первой части мы обсуждали Webpack? Именно здесь мы будем использовать наши конфигурации Webpack. Мы будем применять их двумя способами:<br/>
+<br/>
+<ul>
+<li>Использовать <a href="https://github.com/webpack/webpack-dev-middleware">webpack-dev-middleware</a> для автоматической пересборки наших пакетов разработки, или</li>
+<li>Статически передавать папку <code>dist/</code>, в которую Webpack будет записывать наши файлы после сборки продакшена.</li>
+</ul><br/>
+Ещё одна важная задача <code>server.js</code> заключается в настройке сервера <a href="https://socket.io/">socket.io</a>, который просто подключается к серверу Express:<br/>
+<br/>
+<h5>server.js, часть 2</h5><br/>
+<pre><code class="javascript">const socketio = require('socket.io');
+const Constants = require('../shared/constants');
+
+// Setup Express
+// ...
+const server = app.listen(port);
+console.log(`Server listening on port ${port}`);
+
+// Setup socket.io
+const io = socketio(server);
+
+// Listen for socket.io connections
+io.on('connection', socket => {
+  console.log('Player connected!', socket.id);
+
+  socket.on(Constants.MSG_TYPES.JOIN_GAME, joinGame);
+  socket.on(Constants.MSG_TYPES.INPUT, handleInput);
+  socket.on('disconnect', onDisconnect);
+});</code></pre><br/>
+После успешной установки соединения socket.io с сервером мы настраиваем обработчики событий для нового сокета. Обработчики событий обрабатывают получаемые от клиентов сообщения делегированием объекту-синглтону <code>game</code>:<br/>
+<br/>
+<h5>server.js, часть 3</h5><br/>
+<pre><code class="javascript">const Game = require('./game');
+
+// ...
+
+// Setup the Game
+const game = new Game();
+
+function joinGame(username) {
+  game.addPlayer(this, username);
+}
+
+function handleInput(dir) {
+  game.handleInput(this, dir);
+}
+
+function onDisconnect() {
+  game.removePlayer(this);
+}</code></pre><br/>
+Мы создаём игру жанра .io, поэтому нам понадобится только один экземпляр <code>Game</code> («Game») – все игроки играют на одной арене! В следующем разделе мы посмотрим, как работает этот класс <code>Game</code>.<br/>
+<br/>
+<h2>2. Game сервера</h2><br/>
+Класс <code>Game</code> содержит самую важную логику на стороне сервера. Он имеет две основные задачи: <strong>управление игроками</strong> и <strong>симуляция игры</strong>.<br/>
+<br/>
+Давайте начнём с первой задачи – с управления игроками.<br/>
+<br/>
+<h5>game.js, часть 1</h5><br/>
+<pre><code class="javascript">const Constants = require('../shared/constants');
+const Player = require('./player');
+
+class Game {
+  constructor() {
+    this.sockets = {};
+    this.players = {};
+    this.bullets = [];
+    this.lastUpdateTime = Date.now();
+    this.shouldSendUpdate = false;
+    setInterval(this.update.bind(this), 1000 / 60);
+  }
+
+  addPlayer(socket, username) {
+    this.sockets[socket.id] = socket;
+
+    // Generate a position to start this player at.
+    const x = Constants.MAP_SIZE * (0.25 + Math.random() * 0.5);
+    const y = Constants.MAP_SIZE * (0.25 + Math.random() * 0.5);
+    this.players[socket.id] = new Player(socket.id, username, x, y);
+  }
+
+  removePlayer(socket) {
+    delete this.sockets[socket.id];
+    delete this.players[socket.id];
+  }
+
+  handleInput(socket, dir) {
+    if (this.players[socket.id]) {
+      this.players[socket.id].setDirection(dir);
+    }
+  }
+
+  // ...
+}</code></pre><br/>
+В этой игре мы будем идентифицировать игроков по полю <code>id</code> их сокета socket.io (если вы запутались, то снова вернитесь к <code>server.js</code>). Socket.io сам назначает каждому сокету уникальный <code>id</code>, поэтому нам об этом беспокоиться не нужно. Я буду называть его <strong>ID игрока</strong>.<br/>
+<br/>
+Запомнив это, давайте изучим переменные экземпляра в классе <code>Game</code>:<br/>
+<br/>
+<ul>
+<li><code>sockets</code> — это объект, который привязывает ID игрока к сокету, который связан с игроком. Он позволяет нам за постоянное время получать доступ к сокетам по их ID игроков.</li>
+<li><code>players</code> — это объект, привязывающий ID игрока к объекту code>Player</li>
+</ul><br/>
+<code>bullets</code> — это массив объектов <code>Bullet</code>, не имеющий определённого порядка.<br/>
+<code>lastUpdateTime</code> — это метка времени момента последнего обновления игры. Вскоре мы увидим, как она используется.<br/>
+<code>shouldSendUpdate</code> — это вспомогательная переменная. Её использование мы тоже увидим вскоре.<br/>
+Методы <code>addPlayer()</code>, <code>removePlayer()</code> и <code>handleInput()</code> объяснять не нужно, они используются в <code>server.js</code>. Если вам нужно освежить память, вернитесь немного выше.<br/>
+<br/>
+Последняя строка <code>constructor()</code> запускает <strong>цикл обновления</strong> игры (с частотой 60 обновлений/с):<br/>
+<br/>
+<h5>game.js, часть 2</h5><br/>
+<pre><code class="javascript">const Constants = require('../shared/constants');
+const applyCollisions = require('./collisions');
+
+class Game {
+  // ...
+
+  update() {
+    // Calculate time elapsed
+    const now = Date.now();
+    const dt = (now - this.lastUpdateTime) / 1000;
+    this.lastUpdateTime = now;
+
+    // Update each bullet
+    const bulletsToRemove = [];
+    this.bullets.forEach(bullet => {
+      if (bullet.update(dt)) {
+        // Destroy this bullet
+        bulletsToRemove.push(bullet);
+      }
+    });
+    this.bullets = this.bullets.filter(
+      bullet => !bulletsToRemove.includes(bullet),
+    );
+
+    // Update each player
+    Object.keys(this.sockets).forEach(playerID => {
+      const player = this.players[playerID];
+      const newBullet = player.update(dt);
+      if (newBullet) {
+        this.bullets.push(newBullet);
+      }
+    });
+
+    // Apply collisions, give players score for hitting bullets
+    const destroyedBullets = applyCollisions(
+      Object.values(this.players),
+      this.bullets,
+    );
+    destroyedBullets.forEach(b => {
+      if (this.players[b.parentID]) {
+        this.players[b.parentID].onDealtDamage();
+      }
+    });
+    this.bullets = this.bullets.filter(
+      bullet => !destroyedBullets.includes(bullet),
+    );
+
+    // Check if any players are dead
+    Object.keys(this.sockets).forEach(playerID => {
+      const socket = this.sockets[playerID];
+      const player = this.players[playerID];
+      if (player.hp &lt;= 0) {
+        socket.emit(Constants.MSG_TYPES.GAME_OVER);
+        this.removePlayer(socket);
+      }
+    });
+
+    // Send a game update to each player every other time
+    if (this.shouldSendUpdate) {
+      const leaderboard = this.getLeaderboard();
+      Object.keys(this.sockets).forEach(playerID => {
+        const socket = this.sockets[playerID];
+        const player = this.players[playerID];
+        socket.emit(
+          Constants.MSG_TYPES.GAME_UPDATE,
+          this.createUpdate(player, leaderboard),
+        );
+      });
+      this.shouldSendUpdate = false;
+    } else {
+      this.shouldSendUpdate = true;
+    }
+  }
+
+  // ...
+}</code></pre><br/>
+Метод <code>update()</code> содержит, наверно, самую важную часть логики на стороне сервера. По порядку перечислим всё, что он делает:<br/>
+<br/>
+<ol>
+<li>Вычисляет, сколько времени <code>dt</code> прошло с последнего <code>update()</code>.</li>
+<li>Обновляет каждый снаряд и при необходимости уничтожает их. Реализацию этого функционала мы увидим позже. Пока нам достаточно знать, что <code>bullet.update()</code> <strong>возвращает <code>true</code>, если снаряд должен быть уничтожен</strong> (он вышел за границы арены).</li>
+<li>Обновляет каждого игрока и при необходимости создаём снаряд. Эту реализацию мы тоже увидим позже — <code>player.update()</code> <strong>может возвратить объект <code>Bullet</code></strong>.</li>
+<li>Проверяет коллизии между снарядами и игроками с помощью <code>applyCollisions()</code>, который возвращает массив снарядов, которые попали в игроков. Для каждого возвращённого снаряда мы увеличиваем очки игрока, который его выпустил (с помощью <code>player.onDealtDamage()</code>), а затем удаляем снаряд из массива <code>bullets</code>.</li>
+<li>Уведомляет и уничтожает всех убитых игроков.</li>
+<li>Отправляет всем игрокам обновление игры <strong>каждый второй</strong> раз при вызове <code>update()</code>. Это нам помогает отслеживать упомянутая выше вспомогательная переменная <code>shouldSendUpdate</code>. Так как <code>update()</code> вызывается 60 раз/с, мы отправляем обновления игры 30 раз/с. Таким образом, <strong>частота тактов</strong> сервера равна 30 тактам/с (мы говорили о частоте тактов в первой части).</li>
+</ol><br/>
+<blockquote><strong>Зачем отправлять обновления игры только <em>через раз</em> ?</strong> Для экономии канала. 30 обновлений игры в секунду – это очень много!</blockquote><br/>
+<blockquote><strong>Почему бы тогда просто не вызывать <code>update()</code> 30 раз в секунду?</strong> Для улучшения симуляции игры. Чем чаще вызывается <code>update()</code>, тем точнее будет симуляция игры. Но не стоит слишком увлекаться количеством вызовов <code>update()</code>, потому что это вычислительно затратная задача — 60 в секунду вполне достаточно.</blockquote><br/>
+Оставшаяся часть класса <code>Game</code> состоит из вспомогательных методов, используемых в <code>update()</code>:<br/>
+<br/>
+<h5>game.js, часть 3</h5><br/>
+<pre><code class="javascript">class Game {
+  // ...
+
+  getLeaderboard() {
+    return Object.values(this.players)
+      .sort((p1, p2) => p2.score - p1.score)
+      .slice(0, 5)
+      .map(p => ({ username: p.username, score: Math.round(p.score) }));
+  }
+
+  createUpdate(player, leaderboard) {
+    const nearbyPlayers = Object.values(this.players).filter(
+      p => p !== player &amp;&amp; p.distanceTo(player) &lt;= Constants.MAP_SIZE / 2,
+    );
+    const nearbyBullets = this.bullets.filter(
+      b => b.distanceTo(player) &lt;= Constants.MAP_SIZE / 2,
+    );
+
+    return {
+      t: Date.now(),
+      me: player.serializeForUpdate(),
+      others: nearbyPlayers.map(p => p.serializeForUpdate()),
+      bullets: nearbyBullets.map(b => b.serializeForUpdate()),
+      leaderboard,
+    };
+  }
+}</code></pre><br/>
+<code>getLeaderboard()</code> довольно прост – он сортирует игроков по количеству очков, берёт пять лучших и возвращает для каждого имя пользователя и счёт.<br/>
+<br/>
+<code>createUpdate()</code> используется в <code>update()</code> для создания обновлений игры, которые передаются игрокам. Его основная задача заключается в вызове методов <code>serializeForUpdate()</code>, реализованных для классов <code>Player</code> и <code>Bullet</code>. Заметьте, что он передаёт каждому игроку данные только о <strong>ближайших</strong> игроках и снарядах – нет необходимости передавать информацию об игровых объектах, находящихся далеко от игрока!<br/>
+<br/>
+<h2>3. Игровые объекты на сервере</h2><br/>
+В нашей игре снаряды и игроки на самом деле очень похожи: это абстрактные круглые подвижные игровые объекты. Чтобы воспользоваться этой схожестью игроков и снарядов, давайте начнём с реализации базового класса <code>Object</code>:<br/>
+<br/>
+<h5>object.js</h5><br/>
+<pre><code class="javascript">class Object {
+  constructor(id, x, y, dir, speed) {
+    this.id = id;
+    this.x = x;
+    this.y = y;
+    this.direction = dir;
+    this.speed = speed;
+  }
+
+  update(dt) {
+    this.x += dt * this.speed * Math.sin(this.direction);
+    this.y -= dt * this.speed * Math.cos(this.direction);
+  }
+
+  distanceTo(object) {
+    const dx = this.x - object.x;
+    const dy = this.y - object.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  setDirection(dir) {
+    this.direction = dir;
+  }
+
+  serializeForUpdate() {
+    return {
+      id: this.id,
+      x: this.x,
+      y: this.y,
+    };
+  }
+}</code></pre><br/>
+Здесь не происходит ничего сложного. Этот класс станет хорошей опорной точкой для расширения. Давайте посмотрим, как класс <code>Bullet</code> использует <code>Object</code>:<br/>
+<br/>
+<h5>bullet.js</h5><br/>
+<pre><code class="javascript">const shortid = require('shortid');
+const ObjectClass = require('./object');
+const Constants = require('../shared/constants');
+
+class Bullet extends ObjectClass {
+  constructor(parentID, x, y, dir) {
+    super(shortid(), x, y, dir, Constants.BULLET_SPEED);
+    this.parentID = parentID;
+  }
+
+  // Returns true if the bullet should be destroyed
+  update(dt) {
+    super.update(dt);
+    return this.x &lt; 0 || this.x > Constants.MAP_SIZE || this.y &lt; 0 || this.y > Constants.MAP_SIZE;
+  }
+}</code></pre><br/>
+Реализация <code>Bullet</code> очень коротка! Мы добавили к <code>Object</code> только следующие расширения:<br/>
+<br/>
+<ul>
+<li>Использование пакета <a href="https://www.npmjs.com/package/shortid">shortid</a> для случайной генерации <code>id</code> снаряда.</li>
+<li>Добавление поля <code>parentID</code>, чтобы можно было отслеживать игрока, создавшего этот снаряд.</li>
+<li>Добавление возвращаемого значения в <code>update()</code>, которое равно <code>true</code>, если снаряд находится за пределами арены (помните, мы говорили об этом в прошлом разделе?).</li>
+</ul><br/>
+Перейдём к <code>Player</code>:<br/>
+<br/>
+<h5>player.js</h5><br/>
+<pre><code class="javascript">const ObjectClass = require('./object');
+const Bullet = require('./bullet');
+const Constants = require('../shared/constants');
+
+class Player extends ObjectClass {
+  constructor(id, username, x, y) {
+    super(id, x, y, Math.random() * 2 * Math.PI, Constants.PLAYER_SPEED);
+    this.username = username;
+    this.hp = Constants.PLAYER_MAX_HP;
+    this.fireCooldown = 0;
+    this.score = 0;
+  }
+
+  // Returns a newly created bullet, or null.
+  update(dt) {
+    super.update(dt);
+
+    // Update score
+    this.score += dt * Constants.SCORE_PER_SECOND;
+
+    // Make sure the player stays in bounds
+    this.x = Math.max(0, Math.min(Constants.MAP_SIZE, this.x));
+    this.y = Math.max(0, Math.min(Constants.MAP_SIZE, this.y));
+
+    // Fire a bullet, if needed
+    this.fireCooldown -= dt;
+    if (this.fireCooldown &lt;= 0) {
+      this.fireCooldown += Constants.PLAYER_FIRE_COOLDOWN;
+      return new Bullet(this.id, this.x, this.y, this.direction);
+    }
+    return null;
+  }
+
+  takeBulletDamage() {
+    this.hp -= Constants.BULLET_DAMAGE;
+  }
+
+  onDealtDamage() {
+    this.score += Constants.SCORE_BULLET_HIT;
+  }
+
+  serializeForUpdate() {
+    return {
+      ...(super.serializeForUpdate()),
+      direction: this.direction,
+      hp: this.hp,
+    };
+  }
+}</code></pre><br/>
+Игроки сложнее, чем снаряды, поэтому в этом классе должно храниться ещё несколько полей. Его метод <code>update()</code> выполняет бОльшую работу, в частности, возвращает только что созданный снаряд, если не осталось <code>fireCooldown</code> (помните, мы говорили об этом в предыдущем разделе?). Также он расширяет метод <code>serializeForUpdate()</code>, потому что нам нужно включить в обновление игры дополнительные поля для игрока.<br/>
+<br/>
+<strong>Наличие базового класса <code>Object</code> — важный шаг, позволяющий избежать повторяемости кода</strong>. Например, без класса <code>Object</code> каждый игровой объект должен иметь одинаковую реализацию <code>distanceTo()</code>, и синхронизация копипасты всех этих реализации в нескольких файлах была бы кошмаром. <strong>Это становится особо важно для крупных проектов</strong>, когда количество расширяющих <code>Object</code> классов растёт.<br/>
+<br/>
+<h2>4. Распознавание коллизий</h2><br/>
+Единственное, что нам осталось – распознавать, когда снаряды попадают в игроков! Вспомните этот фрагмент кода из метода <code>update()</code> в классе <code>Game</code>:<br/>
+<br/>
+<h5>game.js</h5><br/>
+<pre><code class="javascript">const applyCollisions = require('./collisions');
+
+class Game {
+  // ...
+
+  update() {
+    // ...
+
+    // Apply collisions, give players score for hitting bullets
+    const destroyedBullets = applyCollisions(
+      Object.values(this.players),
+      this.bullets,
+    );
+    destroyedBullets.forEach(b => {
+      if (this.players[b.parentID]) {
+        this.players[b.parentID].onDealtDamage();
+      }
+    });
+    this.bullets = this.bullets.filter(
+      bullet => !destroyedBullets.includes(bullet),
+    );
+
+    // ...
+  }
+}</code></pre><br/>
+Нам нужно реализовать метод <code>applyCollisions()</code>, возвращающий все снаряды, попавшие в игроков. К счастью, это не так сложно сделать, потому что<br/>
+<br/>
+<ul>
+<li>Все сталкивающиеся объекты являются кругами, а это простейшая для реализации распознавания коллизий фигура.</li>
+<li>У нас уже есть метод <code>distanceTo()</code>, который мы в предыдущем разделе реализовали в классе <code>Object</code>.</li>
+</ul><br/>
+Вот как выглядит наша реализация распознавания коллизий:<br/>
+<br/>
+<h5>collisions.js</h5><br/>
+<pre><code class="javascript">const Constants = require('../shared/constants');
+
+// Returns an array of bullets to be destroyed.
+function applyCollisions(players, bullets) {
+  const destroyedBullets = [];
+  for (let i = 0; i &lt; bullets.length; i++) {
+    // Look for a player (who didn't create the bullet) to collide each bullet with.
+    // As soon as we find one, break out of the loop to prevent double counting a bullet.
+    for (let j = 0; j &lt; players.length; j++) {
+      const bullet = bullets[i];
+      const player = players[j];
+      if (
+        bullet.parentID !== player.id &amp;&amp;
+        player.distanceTo(bullet) &lt;= Constants.PLAYER_RADIUS + Constants.BULLET_RADIUS
+      ) {
+        destroyedBullets.push(bullet);
+        player.takeBulletDamage();
+        break;
+      }
+    }
+  }
+  return destroyedBullets;
+}</code></pre><br/>
+Это простое распознавание коллизий основано на том факте, что <strong>два круга сталкиваются, если расстояние между их центрами меньше суммы их радиусов</strong>. Вот случай, когда расстояние между центрами двух кругов точно равно сумме их радиусов:<br/>
+<br/>
+<div style="text-align:center;"><img src="https://habrastorage.org/getpro/habr/post_images/63f/e73/2c8/63fe732c87ed1872522787e3cc4d5ab2.svg"/></div><br/>
+Здесь нужно внимательно отнестись ещё к паре аспектов:<br/>
+<br/>
+<ul>
+<li>Снаряд не должен попадать в создавшего его игрока. Этого можно достичь, сравнивая <code>bullet.parentID</code> с <code>player.id</code>.</li>
+<li>Снаряд должен попадать только один раз в предельном случае одновременного столкновения с несколькими игроками. Эту задачу мы решим с помощью оператора <code>break</code>: как только найден игрок, столкнувшийся со снарядом, мы прекращаем поиск и переходим к следующему снаряду.</li>
+</ul><br/>
+<h2>Конец</h2><br/>
+Вот и всё! Мы рассмотрели всё, что необходимо знать для создания веб-игры жанра .io. Что дальше? <strong>Соберите собственную игру .io!</strong><br/>
+<br/>
+Весь код примера имеет открытые исходники и выложен на <a href="https://github.com/vzhou842/example-.io-game">Github</a>.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B.io%5D" class="tm-tags-list__link">.io</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B8%D0%B3%D1%80%D0%B0%20%D0%BD%D0%B0%20javascript%5D" class="tm-tags-list__link">игра на javascript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bnode.js%5D" class="tm-tags-list__link">node.js</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmultiplayer%5D" class="tm-tags-list__link">multiplayer</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bjavascript%5D" class="tm-tags-list__link">javascript</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bwebpack%5D" class="tm-tags-list__link">webpack</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/javascript/" class="tm-hubs-list__link">
+    JavaScript
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/gamedev/" class="tm-hubs-list__link">
+    Разработка игр
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/network_technologies/" class="tm-hubs-list__link">
+    Сетевые технологии
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 35: ↑34 и ↓1</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 35: ↑34 и ↓1" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+33</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">25K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    227
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/PatientZero/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/8de/9c5/34a/8de9c534a18a6cb8693270a2b528d4c0.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 1325 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    1197
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">82</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/PatientZero/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @PatientZero
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Переводчик-фрилансер</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450574/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 1 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450574/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450574/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450574":{"id":"450574","timePublished":"2019-05-08T09:49:48+00:00","isCorporative":false,"lang":"ru","titleHtml":"Создание многопользовательской веб-игры в жанре .io","leadData":{"textHtml":"\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fc7c\u002F405\u002F7a7\u002Fc7c4057a7ab7333ee3cb9aba5ecc8c37.jpg\" alt=\"image\"\u003E\u003C\u002Fdiv\u003E\u003Cbr\u003E\r\nВышедшая в 2015 году \u003Ca href=\"https:\u002F\u002Fagar.io\" rel=\"noopener noreferrer\"\u003EAgar.io\u003C\u002Fa\u003E стала прародителем нового жанра \u003Ca href=\"https:\u002F\u002Fwww.google.com\u002Fsearch?q=.io+game\" rel=\"noopener noreferrer\"\u003E\u003Cstrong\u003Eигр .io\u003C\u002Fstrong\u003E\u003C\u002Fa\u003E, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я \u003Ca href=\"https:\u002F\u002Fvictorzhou.com\u002Fabout\u002F\"\u003Eсоздал и продал две игры этого жанра.\u003C\u002Fa\u003E.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nНа случай, если вы никогда раньше не слышали о таких играх: это бесплатные многопользовательские веб-игры, в которых легко участвовать (не требуется учётная запись). Обычно они сталкивают на одной арене множество противоборствующих игроков. Другие знаменитые игры жанра .io: \u003Ca href=\"https:\u002F\u002Fslither.io\" rel=\"noopener noreferrer\"\u003ESlither.io\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fdiep.io\" rel=\"noopener noreferrer\"\u003EDiep.io\u003C\u002Fa\u003E.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ этом посте мы будем разбираться, как \u003Cstrong\u003Eс нуля создать игру .io\u003C\u002Fstrong\u003E. Для этого достаточно будет только знания Javascript: вам нужно понимать такие вещи, как синтаксис \u003Ca href=\"https:\u002F\u002Fwww.w3schools.com\u002Fjs\u002Fjs_es6.asp\" rel=\"noopener noreferrer\"\u003EES6\u003C\u002Fa\u003E, ключевое слово \u003Ccode\u003Ethis\u003C\u002Fcode\u003E и \u003Ca href=\"https:\u002F\u002Fdevelopers.google.com\u002Fweb\u002Ffundamentals\u002Fprimers\u002Fpromises\" rel=\"noopener noreferrer\"\u003EPromises\u003C\u002Fa\u003E. Даже если вы знаете Javascript не в совершенстве, то всё равно сможете разобраться в большей части поста.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Victor Zhou","originalUrl":"https:\u002F\u002Fvictorzhou.com\u002Fblog\u002Fbuild-an-io-game-part-1\u002F"}}],"author":{"scoreStats":{"score":1197,"votesCount":1325},"rating":82,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":"410013829899665","paymentPayPalMe":"vadimivshin","paymentWebmoney":null},"id":"78894","alias":"PatientZero","fullname":null,"avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F8de\u002F9c5\u002F34a\u002F8de9c534a18a6cb8693270a2b528d4c0.png","speciality":"Переводчик-фрилансер"},"statistics":{"commentsCount":1,"favoritesCount":227,"readingCount":25379,"score":33,"votesCount":35},"hubs":[{"relatedData":null,"id":"357","alias":"javascript","type":"collective","title":"JavaScript","titleHtml":"JavaScript","isProfiled":true},{"relatedData":null,"id":"7773","alias":"gamedev","type":"collective","title":"Разработка игр","titleHtml":"Разработка игр","isProfiled":true},{"relatedData":null,"id":"17123","alias":"network_technologies","type":"collective","title":"Сетевые технологии","titleHtml":"Сетевые технологии","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fc7c\u002F405\u002F7a7\u002Fc7c4057a7ab7333ee3cb9aba5ecc8c37.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fc7c\u002F405\u002F7a7\u002Fc7c4057a7ab7333ee3cb9aba5ecc8c37.jpg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВышедшая в 2015 году \u003Ca href=\"https:\u002F\u002Fagar.io\" rel=\"noopener noreferrer\"\u003EAgar.io\u003C\u002Fa\u003E стала прародителем нового жанра \u003Ca href=\"https:\u002F\u002Fwww.google.com\u002Fsearch?q=.io+game\" rel=\"noopener noreferrer\"\u003E\u003Cstrong\u003Eигр .io\u003C\u002Fstrong\u003E\u003C\u002Fa\u003E, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я \u003Ca href=\"https:\u002F\u002Fvictorzhou.com\u002Fabout\u002F\"\u003Eсоздал и продал две игры этого жанра.\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа случай, если вы никогда раньше не слышали о таких играх: это бесплатные многопользовательские веб-игры, в которых легко участвовать (не требуется учётная запись). Обычно они сталкивают на одной арене множество противоборствующих игроков. Другие знаменитые игры жанра .io: \u003Ca href=\"https:\u002F\u002Fslither.io\" rel=\"noopener noreferrer\"\u003ESlither.io\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fdiep.io\" rel=\"noopener noreferrer\"\u003EDiep.io\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этом посте мы будем разбираться, как \u003Cstrong\u003Eс нуля создать игру .io\u003C\u002Fstrong\u003E. Для этого достаточно будет только знания Javascript: вам нужно понимать такие вещи, как синтаксис \u003Ca href=\"https:\u002F\u002Fwww.w3schools.com\u002Fjs\u002Fjs_es6.asp\" rel=\"noopener noreferrer\"\u003EES6\u003C\u002Fa\u003E, ключевое слово \u003Ccode\u003Ethis\u003C\u002Fcode\u003E и \u003Ca href=\"https:\u002F\u002Fdevelopers.google.com\u002Fweb\u002Ffundamentals\u002Fprimers\u002Fpromises\" rel=\"noopener noreferrer\"\u003EPromises\u003C\u002Fa\u003E. Даже если вы знаете Javascript не в совершенстве, то всё равно сможете разобраться в большей части поста.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПример игры .io\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДля помощи в обучении мы будем ссылаться на \u003Ca href=\"https:\u002F\u002Fexample-io-game.victorzhou.com\"\u003Eпример игры .io\u003C\u002Fa\u003E. Попробуйте в сыграть в неё!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fum\u002Fyq\u002Fqj\u002Fumyqqjon22wmshrz8o8wtyeaxl0.png\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nИгра довольно проста: вы управляете кораблём на арене, где есть другие игроки. Ваш корабль автоматически стреляет снарядами и вы пытаетесь попасть в других игроков, в то же время избегая их снарядов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E1. Краткий обзор\u002Fструктура проекта\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EРекомендую \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fvzhou842\u002Fexample-.io-game\" rel=\"noopener noreferrer\"\u003E\u003Cstrong\u003Eскачать исходный код\u003C\u002Fstrong\u003E\u003C\u002Fa\u003E примера игры, чтобы вы могли следовать за мной.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nВ примере используется следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fexpressjs.com\u002F\" rel=\"noopener noreferrer\"\u003EExpress\u003C\u002Fa\u003E — самый популярный веб-фреймворк для Node.js, управляющий веб-сервером игры.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fsocket.io\u002F\" rel=\"noopener noreferrer\"\u003Esocket.io\u003C\u002Fa\u003E — библиотека websocket для обмена данными между браузером и сервером.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fwebpack.js.org\u002F\"\u003EWebpack\u003C\u002Fa\u003E — менеджер модулей. О том, зачем использовать Webpack, можно прочитать \u003Ca href=\"https:\u002F\u002Fvictorzhou.com\u002Fblog\u002Fwhy-you-should-use-webpack\u002F\"\u003Eздесь\u003C\u002Fa\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВот как выглядит структура каталога проекта:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003E\u003Cpre\u003Epublic\u002F\n    assets\u002F\n        ...\nsrc\u002F\n    client\u002F\n        css\u002F\n            ...\n        html\u002F\n            index.html\n        index.js\n        ...\n    server\u002F\n        server.js\n        ...\n    shared\u002F\n        constants.js\u003C\u002Fpre\u003E\u003C\u002Fcode\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003Epublic\u002F\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВсё в папке \u003Ccode\u003Epublic\u002F\u003C\u002Fcode\u003E будет статически передаваться сервером. В \u003Ccode\u003Epublic\u002Fassets\u002F\u003C\u002Fcode\u003E содержатся используемые нашим проектом изображения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003Esrc\u002F\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nВесь исходный код находится в папке \u003Ccode\u003Esrc\u002F\u003C\u002Fcode\u003E. Названия \u003Ccode\u003Eclient\u002F\u003C\u002Fcode\u003E и \u003Ccode\u003Eserver\u002F\u003C\u002Fcode\u003E говорят сами за себя, а \u003Ccode\u003Eshared\u002F\u003C\u002Fcode\u003E содержит файл констант, импортируемый и клиентом, и сервером.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E2. Сборки\u002Fпараметры проекта\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nКак сказано выше, для сборки проекта мы используем менеджер модулей \u003Ca href=\"https:\u002F\u002Fwebpack.js.org\u002F\"\u003EWebpack\u003C\u002Fa\u003E. Давайте взглянем на нашу конфигурацию Webpack:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Ewebpack.common.js:\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Econst path = require('path');\nconst MiniCssExtractPlugin = require('mini-css-extract-plugin');\n\nmodule.exports = {\n  entry: {\n    game: '.\u002Fsrc\u002Fclient\u002Findex.js',\n  },\n  output: {\n    filename: '[name].[contenthash].js',\n    path: path.resolve(__dirname, 'dist'),\n  },\n  module: {\n    rules: [\n      {\n        test: \u002F\\.js$\u002F,\n        exclude: \u002Fnode_modules\u002F,\n        use: {\n          loader: \"babel-loader\",\n          options: {\n            presets: ['@babel\u002Fpreset-env'],\n          },\n        },\n      },\n      {\n        test: \u002F\\.css$\u002F,\n        use: [\n          {\n            loader: MiniCssExtractPlugin.loader,\n          },\n          'css-loader',\n        ],\n      },\n    ],\n  },\n  plugins: [\n    new MiniCssExtractPlugin({\n      filename: '[name].[contenthash].css',\n    }),\n    new HtmlWebpackPlugin({\n      filename: 'index.html',\n      template: 'src\u002Fclient\u002Fhtml\u002Findex.html',\n    }),\n  ],\n};\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nСамыми важными здесь являются следующие строки:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Esrc\u002Fclient\u002Findex.js\u003C\u002Fcode\u003E — это входная точка клиента Javascript (JS). Webpack будет начинать отсюда и станет рекурсивно искать другие импортированные файлы.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыходной JS нашей сборки Webpack будет располагаться в каталоге \u003Ccode\u003Edist\u002F\u003C\u002Fcode\u003E. Я буду называть этот файл нашим \u003Cstrong\u003Eпакетом JS\u003C\u002Fstrong\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EМы используем \u003Ca href=\"https:\u002F\u002Fbabeljs.io\u002F\" rel=\"noopener noreferrer\"\u003EBabel\u003C\u002Fa\u003E, и в частности конфигурацию \u003Ca href=\"https:\u002F\u002Fbabeljs.io\u002Fdocs\u002Fen\u002Fbabel-preset-env\" rel=\"noopener noreferrer\"\u003E@babel\u002Fpreset-env\u003C\u002Fa\u003E для транспиляции (transpiling) нашего кода JS для старых браузеров.\u003C\u002Fli\u003E\r\n\u003Cli\u003EМы используем плагин для извлечения всех CSS, на которые ссылаются файлы JS, и для объединения их в одном месте. Я буду называть его нашим \u003Cstrong\u003Eпакетом CSS\u003C\u002Fstrong\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВы могли заметить странные имена файлов пакетов \u003Ccode\u003E'[name].[contenthash].ext'\u003C\u002Fcode\u003E. В них содержатся \u003Ca href=\"https:\u002F\u002Fwebpack.js.org\u002Fconfiguration\u002Foutput\u002F#output-filename\" rel=\"noopener noreferrer\"\u003Eподстановки имён файлов\u003C\u002Fa\u003E Webpack: \u003Ccode\u003E[name]\u003C\u002Fcode\u003E будет заменён на имя входной точки (в нашем случае это \u003Ccode\u003Egame\u003C\u002Fcode\u003E), а \u003Ccode\u003E[contenthash]\u003C\u002Fcode\u003E будет заменён на хеш содержимого файла. Мы делаем это, чтобы \u003Ca href=\"https:\u002F\u002Fwebpack.js.org\u002Fguides\u002Fcaching\u002F#output-filenames\" rel=\"noopener noreferrer\"\u003Eоптимизировать проект для хеширования\u003C\u002Fa\u003E — можно приказать браузерам бесконечно кешировать наши пакеты JS, потому что \u003Cstrong\u003Eесли пакет изменяется, то меняется и его имя файла\u003C\u002Fstrong\u003E (изменяется \u003Ccode\u003Econtenthash\u003C\u002Fcode\u003E). Готовым результатом будет имя файла вида \u003Ccode\u003Egame.dbeee76e91a97d0c7207.js\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nФайл \u003Ccode\u003Ewebpack.common.js\u003C\u002Fcode\u003E — это базовый файл конфигурации, который мы импортируем в конфигурации разработки и готового проекта. Вот, например, конфигурация разработки:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Ewebpack.dev.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003Econst merge = require('webpack-merge');\nconst common = require('.\u002Fwebpack.common.js');\n\nmodule.exports = merge(common, {\n  mode: 'development',\n});\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДля эффективности мы используем в процессе разработки \u003Ccode\u003Ewebpack.dev.js\u003C\u002Fcode\u003E, и переключается на \u003Ccode\u003Ewebpack.prod.js\u003C\u002Fcode\u003E, чтобы оптимизировать размеры пакетов при развёртывании в продакшен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EЛокальная настройка\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nРекомендую устанавливать проект на локальной машине, чтобы вы могли следовать за этапами, перечисленными в этом посте. Настройка проста: во-первых, в системе должны быть установлены \u003Ca href=\"https:\u002F\u002Fnodejs.org\u002Fen\u002Fdownload\u002F\"\u003ENode\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fwww.npmjs.com\u002Fget-npm\"\u003ENPM\u003C\u002Fa\u003E. Далее нужно выполнить\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E$ git clone https:\u002F\u002Fgithub.com\u002Fvzhou842\u002Fexample-.io-game.git\n$ cd example-.io-game\n$ npm install\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nи вы готовы к работе! Для запуска сервера разработки достаточно выполнить\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E$ npm run develop\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nи зайти в веб-браузере на \u003Ca href=\"http:\u002F\u002Flocalhost:3000\" rel=\"noopener noreferrer\"\u003Elocalhost:3000\u003C\u002Fa\u003E. Сервер разработки будет автоматически пересобирать заново пакеты JS и CSS в процессе изменения кода — просто обновите страницу, чтобы увидеть все изменения!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E3. Входные точки клиента\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДавайте приступим к самому коду игры. Для начала нам потребуется страница \u003Ccode\u003Eindex.html\u003C\u002Fcode\u003E, при посещении сайта браузер будет загружать её первой. Наша страница будет довольно простой:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eindex.html\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E&lt;!DOCTYPE html\u003E\n&lt;html\u003E\n&lt;head\u003E\n  &lt;title\u003EAn example .io game&lt;\u002Ftitle\u003E\n  &lt;link type=\"text\u002Fcss\" rel=\"stylesheet\" href=\"\u002Fgame.bundle.css\"\u003E\n&lt;\u002Fhead\u003E\n&lt;body\u003E\n  &lt;canvas id=\"game-canvas\"\u003E&lt;\u002Fcanvas\u003E\n  &lt;script async src=\"\u002Fgame.bundle.js\"\u003E&lt;\u002Fscript\u003E\n  &lt;div id=\"play-menu\" class=\"hidden\"\u003E\n    &lt;input type=\"text\" id=\"username-input\" placeholder=\"Username\" \u002F\u003E\n    &lt;button id=\"play-button\"\u003EPLAY&lt;\u002Fbutton\u003E\n  &lt;\u002Fdiv\u003E\n&lt;\u002Fbody\u003E\n&lt;\u002Fhtml\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EЭтот пример кода слегка упрощён для понятности, то же самое я сделаю и со многими другими примерами поста. Полный код всегда можно посмотреть на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fvzhou842\u002Fexample-.io-game\"\u003EGithub\u003C\u002Fa\u003E.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ нас есть:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fwww.w3schools.com\u002Fhtml\u002Fhtml5_canvas.asp\"\u003EЭлемент HTML5 Canvas\u003C\u002Fa\u003E (\u003Ccode\u003E&lt;canvas\u003E\u003C\u002Fcode\u003E), который мы будем использовать для рендеринга игры.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003E&lt;link\u003E\u003C\u002Fcode\u003E для добавления нашего пакета CSS.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003E&lt;script\u003E\u003C\u002Fcode\u003E для добавления нашего пакета Javascript.\u003C\u002Fli\u003E\r\n\u003Cli\u003EГлавное меню с именем пользователя \u003Ccode\u003E&lt;input\u003E\u003C\u002Fcode\u003E и кнопкой «PLAY» (\u003Ccode\u003E&lt;button\u003E\u003C\u002Fcode\u003E).\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПосле загрузки домашней страницы в браузере начнёт выполняться Javascript-код, начиная с файла JS входной точки: \u003Ccode\u003Esrc\u002Fclient\u002Findex.js\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eindex.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport { connect, play } from '.\u002Fnetworking';\nimport { startRendering, stopRendering } from '.\u002Frender';\nimport { startCapturingInput, stopCapturingInput } from '.\u002Finput';\nimport { downloadAssets } from '.\u002Fassets';\nimport { initState } from '.\u002Fstate';\nimport { setLeaderboardHidden } from '.\u002Fleaderboard';\n\nimport '.\u002Fcss\u002Fmain.css';\n\nconst playMenu = document.getElementById('play-menu');\nconst playButton = document.getElementById('play-button');\nconst usernameInput = document.getElementById('username-input');\n\nPromise.all([\n  connect(),\n  downloadAssets(),\n]).then(() =\u003E {\n  playMenu.classList.remove('hidden');\n  usernameInput.focus();\n  playButton.onclick = () =\u003E {\n    \u002F\u002F Play!\n    play(usernameInput.value);\n    playMenu.classList.add('hidden');\n    initState();\n    startCapturingInput();\n    startRendering();\n    setLeaderboardHidden(false);\n  };\n});\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто может показаться сложным, но на самом деле здесь происходит не так много действий:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EИмпорт нескольких других JS-файлов.\u003C\u002Fli\u003E\r\n\u003Cli\u003EИмпорт CSS (чтобы Webpack знал, что нужно включить их в наш пакет CSS).\u003C\u002Fli\u003E\r\n\u003Cli\u003EЗапуск \u003Ccode\u003Econnect()\u003C\u002Fcode\u003E для установки соединения с сервером и запуск \u003Ccode\u003EdownloadAssets()\u003C\u002Fcode\u003E для скачивания изображений, необходимых для рендеринга игры.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cem\u003EПосле завершения этапа 3 \u003C\u002Fem\u003E отображается главное меню (\u003Ccode\u003EplayMenu\u003C\u002Fcode\u003E).\u003C\u002Fli\u003E\r\n\u003Cli\u003EНастройка обработчика нажатия кнопки «PLAY». При нажатии кнопки код инициализирует игру и сообщает серверу, что мы готовы играть.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nОсновное «мясо» нашей клиент-серверной логики находится в тех файлах, которые были импортированы файлом \u003Ccode\u003Eindex.js\u003C\u002Fcode\u003E. Сейчас мы рассмотрим их все по порядку.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E4. Обмен данными клиента\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ этой игре для общения с сервером мы используем хорошо известную библиотеку \u003Ca href=\"https:\u002F\u002Fsocket.io\u002F\"\u003Esocket.io\u003C\u002Fa\u003E. В Socket.io есть встроенная поддержка \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FWeb\u002FAPI\u002FWebSockets_API\"\u003EWebSockets\u003C\u002Fa\u003E, которые хорошо подходят для двусторонней коммуникации: мы можем отправлять сообщения серверу \u003Cem\u003Eи\u003C\u002Fem\u003E сервер может отправлять сообщения нам по тому же соединению.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУ нас будет один файл \u003Ccode\u003Esrc\u002Fclient\u002Fnetworking.js\u003C\u002Fcode\u003E, который займётся \u003Cstrong\u003Eвсеми\u003C\u002Fstrong\u003E коммуникациями с сервером:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Enetworking.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport io from 'socket.io-client';\nimport { processGameUpdate } from '.\u002Fstate';\n\nconst Constants = require('..\u002Fshared\u002Fconstants');\n\nconst socket = io(`ws:\u002F\u002F${window.location.host}`);\nconst connectedPromise = new Promise(resolve =\u003E {\n  socket.on('connect', () =\u003E {\n    console.log('Connected to server!');\n    resolve();\n  });\n});\n\nexport const connect = onGameOver =\u003E (\n  connectedPromise.then(() =\u003E {\n    \u002F\u002F Register callbacks\n    socket.on(Constants.MSG_TYPES.GAME_UPDATE, processGameUpdate);\n    socket.on(Constants.MSG_TYPES.GAME_OVER, onGameOver);\n  })\n);\n\nexport const play = username =\u003E {\n  socket.emit(Constants.MSG_TYPES.JOIN_GAME, username);\n};\n\nexport const updateDirection = dir =\u003E {\n  socket.emit(Constants.MSG_TYPES.INPUT, dir);\n};\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EЭтот код для понятности тоже слегка сокращён.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этом файле происходят три основных действия:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EМы пробуем подключиться к серверу. \u003Ccode\u003EconnectedPromise\u003C\u002Fcode\u003E разрешается только тогда, когда мы установили соединение.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЕсли соединение успешно установлено, мы регистрируем callback-функции (\u003Ccode\u003EprocessGameUpdate()\u003C\u002Fcode\u003E и \u003Ccode\u003EonGameOver()\u003C\u002Fcode\u003E) для сообщений, которые мы можем получать от сервера.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЭкспортируем \u003Ccode\u003Eplay()\u003C\u002Fcode\u003E и \u003Ccode\u003EupdateDirection()\u003C\u002Fcode\u003E, чтобы их могли использовать другие файлы.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E5. Рендеринг клиента\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНастало время отобразить на экране картинку!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n…но прежде чем мы сможем это сделать, нужно скачать все изображения (ресурсы), которые для этого необходимы. Давайте напишем менеджер ресурсов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eassets.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst ASSET_NAMES = ['ship.svg', 'bullet.svg'];\n\nconst assets = {};\nconst downloadPromise = Promise.all(ASSET_NAMES.map(downloadAsset));\n\nfunction downloadAsset(assetName) {\n  return new Promise(resolve =\u003E {\n    const asset = new Image();\n    asset.onload = () =\u003E {\n      console.log(`Downloaded ${assetName}`);\n      assets[assetName] = asset;\n      resolve();\n    };\n    asset.src = `\u002Fassets\u002F${assetName}`;\n  });\n}\n\nexport const downloadAssets = () =\u003E downloadPromise;\nexport const getAsset = assetName =\u003E assets[assetName];\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nУправление ресурсами реализовать не так сложно! Основной смысл заключается в том, чтобы хранить объект \u003Ccode\u003Eassets\u003C\u002Fcode\u003E, который будет привязывать ключ имени файла к значению объекта \u003Ccode\u003EImage\u003C\u002Fcode\u003E. Когда ресурс загрузится, мы сохраняем его в объект \u003Ccode\u003Eassets\u003C\u002Fcode\u003E для быстрого получения в будущем. Когда будет разрешено скачивание каждого отдельного ресурса (то есть будут загружены \u003Cstrong\u003Eвсе\u003C\u002Fstrong\u003E ресурсы), мы разрешаем \u003Ccode\u003EdownloadPromise\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСкачав ресурсы, можно приступать к рендерингу. Как сказано ранее, для рисования на веб-странице мы используем \u003Ca href=\"https:\u002F\u002Fwww.w3schools.com\u002Fhtml\u002Fhtml5_canvas.asp\"\u003EHTML5 Canvas\u003C\u002Fa\u003E (\u003Ccode\u003E&lt;canvas\u003E\u003C\u002Fcode\u003E). Наша игра довольно проста, поэтому нам достаточно отрисовывать только следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EФон\u003C\u002Fli\u003E\r\n\u003Cli\u003EКорабль игрока\u003C\u002Fli\u003E\r\n\u003Cli\u003EДругих игроков, находящихся в игре\u003C\u002Fli\u003E\r\n\u003Cli\u003EСнаряды\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nВот важные фрагменты \u003Ccode\u003Esrc\u002Fclient\u002Frender.js\u003C\u002Fcode\u003E, которые отрисовывают именно перечисленные выше четыре пункта:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Erender.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport { getAsset } from '.\u002Fassets';\nimport { getCurrentState } from '.\u002Fstate';\n\nconst Constants = require('..\u002Fshared\u002Fconstants');\nconst { PLAYER_RADIUS, PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = Constants;\n\n\u002F\u002F Get the canvas graphics context\nconst canvas = document.getElementById('game-canvas');\nconst context = canvas.getContext('2d');\n\n\u002F\u002F Make the canvas fullscreen\ncanvas.width = window.innerWidth;\ncanvas.height = window.innerHeight;\n\nfunction render() {\n  const { me, others, bullets } = getCurrentState();\n  if (!me) {\n    return;\n  }\n\n  \u002F\u002F Draw background\n  renderBackground(me.x, me.y);\n\n  \u002F\u002F Draw all bullets\n  bullets.forEach(renderBullet.bind(null, me));\n\n  \u002F\u002F Draw all players\n  renderPlayer(me, me);\n  others.forEach(renderPlayer.bind(null, me));\n}\n\n\u002F\u002F ... Helper functions here excluded\n\nlet renderInterval = null;\nexport function startRendering() {\n  renderInterval = setInterval(render, 1000 \u002F 60);\n}\nexport function stopRendering() {\n  clearInterval(renderInterval);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EЭтот код тоже сокращён для понятности.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003Erender()\u003C\u002Fcode\u003E — основная функция этого файла. \u003Ccode\u003EstartRendering()\u003C\u002Fcode\u003E и \u003Ccode\u003EstopRendering()\u003C\u002Fcode\u003E управляют активацией циклом рендеринга с частотой 60 FPS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКонкретные реализации отдельных вспомогательных функций рендеринга (например \u003Ccode\u003ErenderBullet()\u003C\u002Fcode\u003E) не так важны, но вот один простой пример:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Erender.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Efunction renderBullet(me, bullet) {\n  const { x, y } = bullet;\n  context.drawImage(\n    getAsset('bullet.svg'),\n    canvas.width \u002F 2 + x - me.x - BULLET_RADIUS,\n    canvas.height \u002F 2 + y - me.y - BULLET_RADIUS,\n    BULLET_RADIUS * 2,\n    BULLET_RADIUS * 2,\n  );\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗаметьте, что мы используем метод \u003Ccode\u003EgetAsset()\u003C\u002Fcode\u003E, который ранее видели в \u003Ccode\u003Easset.js\u003C\u002Fcode\u003E!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EЕсли вам интересно изучить другие вспомогательные функции рендеринга, то прочитайте оставшуюся часть \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fvzhou842\u002Fexample-.io-game\u002Fblob\u002Fmaster\u002Fsrc\u002Fclient\u002Frender.js\"\u003Esrc\u002Fclient\u002Frender.js\u003C\u002Fa\u003E.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E6. Клиентский ввод\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНастало время сделать игру \u003Cem\u003Eиграбельной\u003C\u002Fem\u003E! Схема управления будет очень простой: для изменения направления движения можно использовать мышь (на компьютере) или касание экрана (на мобильном устройстве). Чтобы реализовать это, мы зарегистрируем \u003Ca href=\"https:\u002F\u002Fdeveloper.mozilla.org\u002Fen-US\u002Fdocs\u002FWeb\u002FAPI\u002FEventListener\"\u003EEvent Listeners\u003C\u002Fa\u003E для событий Mouse и Touch.\u003Cbr\u002F\u003E\r\nВсем этим займётся \u003Ccode\u003Esrc\u002Fclient\u002Finput.js\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Einput.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport { updateDirection } from '.\u002Fnetworking';\n\nfunction onMouseInput(e) {\n  handleInput(e.clientX, e.clientY);\n}\n\nfunction onTouchInput(e) {\n  const touch = e.touches[0];\n  handleInput(touch.clientX, touch.clientY);\n}\n\nfunction handleInput(x, y) {\n  const dir = Math.atan2(x - window.innerWidth \u002F 2, window.innerHeight \u002F 2 - y);\n  updateDirection(dir);\n}\n\nexport function startCapturingInput() {\n  window.addEventListener('mousemove', onMouseInput);\n  window.addEventListener('touchmove', onTouchInput);\n}\n\nexport function stopCapturingInput() {\n  window.removeEventListener('mousemove', onMouseInput);\n  window.removeEventListener('touchmove', onTouchInput);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003EonMouseInput()\u003C\u002Fcode\u003E и \u003Ccode\u003EonTouchInput()\u003C\u002Fcode\u003E — это Event Listeners, вызывающие \u003Ccode\u003EupdateDirection()\u003C\u002Fcode\u003E (из \u003Ccode\u003Enetworking.js\u003C\u002Fcode\u003E) при совершении события ввода (например, при перемещении мыши). \u003Ccode\u003EupdateDirection()\u003C\u002Fcode\u003E занимается обменом сообщениями с сервером, который обрабатывает событие ввода и соответствующим образом обновляет состояние игры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E7. Состояние клиента\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EЭтот раздел — самый сложный в первой части поста. Не расстраивайтесь, если не поймёте его с первого прочтения! Можете даже пропустить его и вернуться к нему позже.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nПоследний кусок пазла, который нужен для завершения клиент-серверного кода — это \u003Cstrong\u003Estate\u003C\u002Fstrong\u003E. Помните фрагмент кода из раздела «Рендеринг клиента»?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Erender.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eimport { getCurrentState } from '.\u002Fstate';\n\nfunction render() {\n  const { me, others, bullets } = getCurrentState();\n\n  \u002F\u002F Do the rendering\n  \u002F\u002F ...\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003EgetCurrentState()\u003C\u002Fcode\u003E должен иметь возможность предоставить нам текущее состояние игры в клиенте \u003Cstrong\u003Eв любой момент времени\u003C\u002Fstrong\u003E на основании обновлений, получаемых от сервера. Вот пример обновления игры, которое может отправлять сервер:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"cpp\"\u003E{\n  \"t\": 1555960373725,\n  \"me\": {\n    \"x\": 2213.8050880413657,\n    \"y\": 1469.370893425012,\n    \"direction\": 1.3082443894581433,\n    \"id\": \"AhzgAtklgo2FJvwWAADO\",\n    \"hp\": 100\n  },\n  \"others\": [],\n  \"bullets\": [\n    {\n      \"id\": \"RUJfJ8Y18n\",\n      \"x\": 2354.029197099604,\n      \"y\": 1431.6848318262666\n    },\n    {\n      \"id\": \"ctg5rht5s\",\n      \"x\": 2260.546457727445,\n      \"y\": 1456.8088728920968\n    }\n  ],\n  \"leaderboard\": [\n    {\n      \"username\": \"Player\",\n      \"score\": 3\n    }\n  ]\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКаждое обновление игры содержит пять одинаковых полей:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Et\u003C\u002Fstrong\u003E: метка времени сервера, обозначающая момент создания этого обновления.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Eme\u003C\u002Fstrong\u003E: информация об игроке, получающего это обновление.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Eothers\u003C\u002Fstrong\u003E: массив информации о других игроках, участвующих в той же игре.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Ebullets\u003C\u002Fstrong\u003E: массив информации о снарядах в игре.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003Eleaderboard\u003C\u002Fstrong\u003E: текущие данные таблицы лидеров. В этом посте мы их учитывать не будем.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E7.1 Наивное состояние клиента\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nНаивная реализация \u003Ccode\u003EgetCurrentState()\u003C\u002Fcode\u003E может только непосредственно возвращать данные самого последнего полученного обновления игры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Enaive-state.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Elet lastGameUpdate = null;\n\n\u002F\u002F Handle a newly received game update.\nexport function processGameUpdate(update) {\n  lastGameUpdate = update;\n}\n\nexport function getCurrentState() {\n  return lastGameUpdate;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nКрасиво и понятно! Но если бы всё было так просто. Одна из причин, по которым такая реализация проблематична: \u003Cstrong\u003Eона ограничивает частоту кадров рендеринга частотой тактов сервера\u003C\u002Fstrong\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Cstrong\u003EЧастота кадров (Frame Rate)\u003C\u002Fstrong\u003E: количество кадров (т.е. вызовов \u003Ccode\u003Erender()\u003C\u002Fcode\u003E) в секунду, или FPS. В играх обычно стремятся достичь не менее 60 FPS.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Cstrong\u003EЧастота тактов (Tick Rate)\u003C\u002Fstrong\u003E: частота, с которой сервер отправляет обновления игры клиентам. \u003Cstrong\u003EЧасто она ниже, чем частота кадров\u003C\u002Fstrong\u003E. В нашей игре сервер работает с частотой 30 тактов в секунду.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nЕсли мы просто будем рендерить последнее обновление игры, то FPS по сути никогда не сможет превысить 30, потому что \u003Cem\u003Eмы никогда не получаем от сервера больше 30 обновлений в секунду\u003C\u002Fem\u003E. Даже если мы будем вызывать \u003Ccode\u003Erender()\u003C\u002Fcode\u003E 60 раз в секунду, то половина этих вызовов будет просто перерисовывать то же самое, по сути не делая ничего. Ещё одна проблема наивной реализации заключается в том, что она \u003Cstrong\u003Eподвержена задержкам\u003C\u002Fstrong\u003E. При идеальной скорости Интернета клиент будет получать обновление игры ровно через каждые 33 мс (30 в секунду):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fbc3\u002F815\u002F7c9\u002Fbc38157c91d436b5fedf948b60c8a213.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nК сожалению, ничто не идеально. Более реалистичной будет такая картина:\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F836\u002F45f\u002F75e\u002F83645f75e556bc5c1c38111a69510734.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНаивная реализация — это практически наихудший случай, когда дело доходит до задержек. Если обновление игры принимается с задержкой 50 мс, то \u003Cstrong\u003Eклиент затормаживается\u003C\u002Fstrong\u003E на лишние 50 мс, потому что он по-прежнему рендерит состояние игры из предыдущего обновления. Можете представить, насколько это неудобно для игрока: из-за произвольных торможений игра будет казаться дёрганной и нестабильной.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E7.2 Улучшенное состояние клиента\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nМы внесём в наивную реализацию некоторые улучшения. Во-первых, мы используем \u003Cstrong\u003Eзадержку рендеринга\u003C\u002Fstrong\u003E на 100 мс. Это означает, что «текущее» состояние клиента всегда будет отставать от состояния игры на сервере на 100 мс. Например, если на сервере время равно \u003Cstrong\u003E150\u003C\u002Fstrong\u003E, то на клиенте будет рендериться состояние, в котором был сервер во время \u003Cstrong\u003E50\u003C\u002Fstrong\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F788\u002F1b5\u002Fc78\u002F7881b5c789321648ff1ff70d15b881d4.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЭто даёт нам буфер в 100 мс, позволяющий пережить непредсказуемое время получения обновлений игры:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002Fc1e\u002F494\u002F615\u002Fc1e4946159c599c7a2a9196968755e4b.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nРасплатой за это будет постоянная \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FInput_lag\" rel=\"noopener noreferrer\"\u003Eзадержка ввода (input lag)\u003C\u002Fa\u003E на 100 мс. Это незначительная жертва за плавный игровой процесс — большинство игроков (особенно казуальных) даже не заметит этой задержки. Людям гораздо проще приспособиться к постоянной задержке в 100 мс, чем играть с непредсказуемой задержкой.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EМы можем использовать и другую технику под названием \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FClient-side_prediction\" rel=\"noopener noreferrer\"\u003E«прогнозирование на стороне клиента»\u003C\u002Fa\u003E, которая хорошо справляется со снижением воспринимаемых задержек, но в этом посте она рассматриваться не будет.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nЕщё одно улучшение, которое мы используем — это \u003Cstrong\u003Eлинейная интерполяция\u003C\u002Fstrong\u003E. Из-за задержки рендеринга мы обычно как минимум на одно обновление обгоняем текущее время в клиенте. Когда вызывается \u003Ccode\u003EgetCurrentState()\u003C\u002Fcode\u003E, мы можем выполнить \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FLinear_interpolation\" rel=\"noopener noreferrer\"\u003Eлинейную интерполяцию\u003C\u002Fa\u003E между обновлениями игры непосредственно перед и после текущим временем в клиенте:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2ca\u002F1c8\u002F91c\u002F2ca1c891ce7db0341dc78c2f88e16ce4.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЭто решает проблему с частотой кадров: теперь мы можем рендерить уникальные кадры с любой нужной нам частотой!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003E7.3 Реализация улучшенного состояния клиента\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nПример реализации в \u003Ccode\u003Esrc\u002Fclient\u002Fstate.js\u003C\u002Fcode\u003E использует и задержку рендеринга, и линейную интерполяцию, но это ненадолго. Давайте разобьём код на две части. Вот первая:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Estate.js, часть 1\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst RENDER_DELAY = 100;\n\nconst gameUpdates = [];\nlet gameStart = 0;\nlet firstServerTimestamp = 0;\n\nexport function initState() {\n  gameStart = 0;\n  firstServerTimestamp = 0;\n}\n\nexport function processGameUpdate(update) {\n  if (!firstServerTimestamp) {\n    firstServerTimestamp = update.t;\n    gameStart = Date.now();\n  }\n  gameUpdates.push(update);\n\n  \u002F\u002F Keep only one game update before the current server time\n  const base = getBaseUpdate();\n  if (base \u003E 0) {\n    gameUpdates.splice(0, base);\n  }\n}\n\nfunction currentServerTime() {\n  return firstServerTimestamp + (Date.now() - gameStart) - RENDER_DELAY;\n}\n\n\u002F\u002F Returns the index of the base update, the first game update before\n\u002F\u002F current server time, or -1 if N\u002FA.\nfunction getBaseUpdate() {\n  const serverTime = currentServerTime();\n  for (let i = gameUpdates.length - 1; i \u003E= 0; i--) {\n    if (gameUpdates[i].t &lt;= serverTime) {\n      return i;\n    }\n  }\n  return -1;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПервым делом нужно разобраться с тем, что делает \u003Ccode\u003EcurrentServerTime()\u003C\u002Fcode\u003E. Как мы видели ранее, в каждое обновление игры включается серверная метка времени. Мы хотим использовать задержку рендеринга, чтобы рендерить картинку, отставая от сервера на 100 мс, но \u003Cstrong\u003Eмы никогда не узнаем, текущее время на сервере\u003C\u002Fstrong\u003E, потому что не можем знать, как долго добиралось до нас любое из обновлений. Интернет непредсказуем и его скорость может очень сильно варьироваться!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы обойти эту проблему, можно использовать разумную аппроксимацию: мы \u003Cstrong\u003Eпритворимся, что первое обновление прибыло мгновенно\u003C\u002Fstrong\u003E. Если бы это было верно, то мы бы знали время сервера в этот конкретный момент! Мы сохраняем метку времени сервера в \u003Ccode\u003EfirstServerTimestamp\u003C\u002Fcode\u003E и сохраняем нашу \u003Cstrong\u003Eлокальную\u003C\u002Fstrong\u003E (клиентскую) метку времени в тот же момент в \u003Ccode\u003EgameStart\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОй, постойте-ка. \u003Cb\u003EРазве не должно быть время на сервере = времени в клиенте?\u003C\u002Fb\u003E Почему мы различаем «метку времени сервера» и «метку времени клиента»? Это отличный вопрос! Оказывается, это не одно и то же. \u003Ccode\u003EDate.now()\u003C\u002Fcode\u003E будет возвращать разные метки времени в клиенте и сервера и это зависит от локальных для этих машин факторов. \u003Cstrong\u003EНикогда не допускайте, что метки времени будут одинаковыми на всех машинах.\u003C\u002Fstrong\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь нам понятно, что делает \u003Ccode\u003EcurrentServerTime()\u003C\u002Fcode\u003E: он возвращает \u003Cstrong\u003Eметку времени сервера текущего времени рендеринга\u003C\u002Fstrong\u003E. Другими словами, это текущее время сервера (\u003Ccode\u003EfirstServerTimestamp &lt;+ (Date.now() - gameStart)\u003C\u002Fcode\u003E) минус задержка рендеринга (\u003Ccode\u003ERENDER_DELAY\u003C\u002Fcode\u003E).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь давайте разберёмся, как мы обрабатываем обновления игры. При получении с сервера обновления вызывается \u003Ccode\u003EprocessGameUpdate()\u003C\u002Fcode\u003E, и мы сохраняем новое обновление в массив \u003Ccode\u003EgameUpdates\u003C\u002Fcode\u003E. Затем, чтобы проверять использование памяти мы удаляем все старые обновления до \u003Cstrong\u003Eбазового обновления\u003C\u002Fstrong\u003E, потому что они нам больше не нужны.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧто же такое «базовое обновление»? Это \u003Cstrong\u003Eпервое обновление, которое мы находим, двигаясь назад от текущего времени сервера\u003C\u002Fstrong\u003E. Помните эту схему?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F2ca\u002F1c8\u002F91c\u002F2ca1c891ce7db0341dc78c2f88e16ce4.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nОбновление игры непосредственно слева от «Client Render Time» и является базовым обновлением.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля чего используется базовое обновление? Почему мы можем отбрасывать обновления до базового? Чтобы разобраться в этом, давайте \u003Cem\u003Eнаконец-то\u003C\u002Fem\u003E рассмотрим реализацию \u003Ccode\u003EgetCurrentState()\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Estate.js, часть 2\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eexport function getCurrentState() {\n  if (!firstServerTimestamp) {\n    return {};\n  }\n\n  const base = getBaseUpdate();\n  const serverTime = currentServerTime();\n\n  \u002F\u002F If base is the most recent update we have, use its state.\n  \u002F\u002F Else, interpolate between its state and the state of (base + 1).\n  if (base &lt; 0) {\n    return gameUpdates[gameUpdates.length - 1];\n  } else if (base === gameUpdates.length - 1) {\n    return gameUpdates[base];\n  } else {\n    const baseUpdate = gameUpdates[base];\n    const next = gameUpdates[base + 1];\n    const r = (serverTime - baseUpdate.t) \u002F (next.t - baseUpdate.t);\n    return {\n      me: interpolateObject(baseUpdate.me, next.me, r),\n      others: interpolateObjectArray(baseUpdate.others, next.others, r),\n      bullets: interpolateObjectArray(baseUpdate.bullets, next.bullets, r),\n    };\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМы обрабатываем три случая:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003E\u003Ccode\u003Ebase &lt; 0\u003C\u002Fcode\u003E означает, что до текущего времени рендеринга обновлений нет (см. выше реализацию \u003Ccode\u003EgetBaseUpdate()\u003C\u002Fcode\u003E). Это может случиться сразу в начале игры из-за задержки рендеринга. В таком случае мы используем самое последнее полученное обнолвение.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003Ebase\u003C\u002Fcode\u003E — это самое последнее обновление, которое у нас есть. Это может произойти из-за сетевой задержки или плохой связи с Интернетом. В этом случае мы тоже используем самое последнее обновление, которое у нас есть.\u003C\u002Fli\u003E\r\n\u003Cli\u003EУ нас есть обновление и до, и после текущего времени рендеринга, поэтому можно \u003Cstrong\u003Eинтерполировать\u003C\u002Fstrong\u003E!\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nВсё, что осталось в \u003Ccode\u003Estate.js\u003C\u002Fcode\u003E — это реализация линейной интерполяции, представляющая собой простую (но скучную) математику. Если вы хотите изучить её самостоятельно, то откройте \u003Ccode\u003Estate.js\u003C\u002Fcode\u003E на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fvzhou842\u002Fexample-.io-game\u002Fblob\u002Fmaster\u002Fsrc\u002Fclient\u002Fstate.js\" rel=\"noopener noreferrer\"\u003EGithub\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЧасть 2. Бэкенд-сервер\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ этой части мы рассмотрим бэкенд Node.js, управляющий нашим \u003Ca href=\"https:\u002F\u002Fexample-io-game.victorzhou.com\u002F\"\u003Eпримером игры .io\u003C\u002Fa\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E1. Входная точка сервера\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДля управления веб-сервером мы будем использовать популярный веб-фреймворк для Node.js под названием \u003Ca href=\"https:\u002F\u002Fexpressjs.com\u002F\"\u003EExpress\u003C\u002Fa\u003E. Его настройкой займётся наш файл входной точки сервера \u003Ccode\u003Esrc\u002Fserver\u002Fserver.js\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eserver.js, часть 1\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst express = require('express');\nconst webpack = require('webpack');\nconst webpackDevMiddleware = require('webpack-dev-middleware');\nconst webpackConfig = require('..\u002F..\u002Fwebpack.dev.js');\n\n\u002F\u002F Setup an Express server\nconst app = express();\napp.use(express.static('public'));\n\nif (process.env.NODE_ENV === 'development') {\n  \u002F\u002F Setup Webpack for development\n  const compiler = webpack(webpackConfig);\n  app.use(webpackDevMiddleware(compiler));\n} else {\n  \u002F\u002F Static serve the dist\u002F folder in production\n  app.use(express.static('dist'));\n}\n\n\u002F\u002F Listen on port\nconst port = process.env.PORT || 3000;\nconst server = app.listen(port);\nconsole.log(`Server listening on port ${port}`);\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПомните, что в первой части мы обсуждали Webpack? Именно здесь мы будем использовать наши конфигурации Webpack. Мы будем применять их двумя способами:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EИспользовать \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fwebpack\u002Fwebpack-dev-middleware\"\u003Ewebpack-dev-middleware\u003C\u002Fa\u003E для автоматической пересборки наших пакетов разработки, или\u003C\u002Fli\u003E\r\n\u003Cli\u003EСтатически передавать папку \u003Ccode\u003Edist\u002F\u003C\u002Fcode\u003E, в которую Webpack будет записывать наши файлы после сборки продакшена.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nЕщё одна важная задача \u003Ccode\u003Eserver.js\u003C\u002Fcode\u003E заключается в настройке сервера \u003Ca href=\"https:\u002F\u002Fsocket.io\u002F\"\u003Esocket.io\u003C\u002Fa\u003E, который просто подключается к серверу Express:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eserver.js, часть 2\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst socketio = require('socket.io');\nconst Constants = require('..\u002Fshared\u002Fconstants');\n\n\u002F\u002F Setup Express\n\u002F\u002F ...\nconst server = app.listen(port);\nconsole.log(`Server listening on port ${port}`);\n\n\u002F\u002F Setup socket.io\nconst io = socketio(server);\n\n\u002F\u002F Listen for socket.io connections\nio.on('connection', socket =\u003E {\n  console.log('Player connected!', socket.id);\n\n  socket.on(Constants.MSG_TYPES.JOIN_GAME, joinGame);\n  socket.on(Constants.MSG_TYPES.INPUT, handleInput);\n  socket.on('disconnect', onDisconnect);\n});\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПосле успешной установки соединения socket.io с сервером мы настраиваем обработчики событий для нового сокета. Обработчики событий обрабатывают получаемые от клиентов сообщения делегированием объекту-синглтону \u003Ccode\u003Egame\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eserver.js, часть 3\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst Game = require('.\u002Fgame');\n\n\u002F\u002F ...\n\n\u002F\u002F Setup the Game\nconst game = new Game();\n\nfunction joinGame(username) {\n  game.addPlayer(this, username);\n}\n\nfunction handleInput(dir) {\n  game.handleInput(this, dir);\n}\n\nfunction onDisconnect() {\n  game.removePlayer(this);\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМы создаём игру жанра .io, поэтому нам понадобится только один экземпляр \u003Ccode\u003EGame\u003C\u002Fcode\u003E («Game») – все игроки играют на одной арене! В следующем разделе мы посмотрим, как работает этот класс \u003Ccode\u003EGame\u003C\u002Fcode\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E2. Game сервера\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nКласс \u003Ccode\u003EGame\u003C\u002Fcode\u003E содержит самую важную логику на стороне сервера. Он имеет две основные задачи: \u003Cstrong\u003Eуправление игроками\u003C\u002Fstrong\u003E и \u003Cstrong\u003Eсимуляция игры\u003C\u002Fstrong\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДавайте начнём с первой задачи – с управления игроками.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Egame.js, часть 1\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst Constants = require('..\u002Fshared\u002Fconstants');\nconst Player = require('.\u002Fplayer');\n\nclass Game {\n  constructor() {\n    this.sockets = {};\n    this.players = {};\n    this.bullets = [];\n    this.lastUpdateTime = Date.now();\n    this.shouldSendUpdate = false;\n    setInterval(this.update.bind(this), 1000 \u002F 60);\n  }\n\n  addPlayer(socket, username) {\n    this.sockets[socket.id] = socket;\n\n    \u002F\u002F Generate a position to start this player at.\n    const x = Constants.MAP_SIZE * (0.25 + Math.random() * 0.5);\n    const y = Constants.MAP_SIZE * (0.25 + Math.random() * 0.5);\n    this.players[socket.id] = new Player(socket.id, username, x, y);\n  }\n\n  removePlayer(socket) {\n    delete this.sockets[socket.id];\n    delete this.players[socket.id];\n  }\n\n  handleInput(socket, dir) {\n    if (this.players[socket.id]) {\n      this.players[socket.id].setDirection(dir);\n    }\n  }\n\n  \u002F\u002F ...\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ этой игре мы будем идентифицировать игроков по полю \u003Ccode\u003Eid\u003C\u002Fcode\u003E их сокета socket.io (если вы запутались, то снова вернитесь к \u003Ccode\u003Eserver.js\u003C\u002Fcode\u003E). Socket.io сам назначает каждому сокету уникальный \u003Ccode\u003Eid\u003C\u002Fcode\u003E, поэтому нам об этом беспокоиться не нужно. Я буду называть его \u003Cstrong\u003EID игрока\u003C\u002Fstrong\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗапомнив это, давайте изучим переменные экземпляра в классе \u003Ccode\u003EGame\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Ccode\u003Esockets\u003C\u002Fcode\u003E — это объект, который привязывает ID игрока к сокету, который связан с игроком. Он позволяет нам за постоянное время получать доступ к сокетам по их ID игроков.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ccode\u003Eplayers\u003C\u002Fcode\u003E — это объект, привязывающий ID игрока к объекту code\u003EPlayer\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003Ebullets\u003C\u002Fcode\u003E — это массив объектов \u003Ccode\u003EBullet\u003C\u002Fcode\u003E, не имеющий определённого порядка.\u003Cbr\u002F\u003E\r\n\u003Ccode\u003ElastUpdateTime\u003C\u002Fcode\u003E — это метка времени момента последнего обновления игры. Вскоре мы увидим, как она используется.\u003Cbr\u002F\u003E\r\n\u003Ccode\u003EshouldSendUpdate\u003C\u002Fcode\u003E — это вспомогательная переменная. Её использование мы тоже увидим вскоре.\u003Cbr\u002F\u003E\r\nМетоды \u003Ccode\u003EaddPlayer()\u003C\u002Fcode\u003E, \u003Ccode\u003EremovePlayer()\u003C\u002Fcode\u003E и \u003Ccode\u003EhandleInput()\u003C\u002Fcode\u003E объяснять не нужно, они используются в \u003Ccode\u003Eserver.js\u003C\u002Fcode\u003E. Если вам нужно освежить память, вернитесь немного выше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоследняя строка \u003Ccode\u003Econstructor()\u003C\u002Fcode\u003E запускает \u003Cstrong\u003Eцикл обновления\u003C\u002Fstrong\u003E игры (с частотой 60 обновлений\u002Fс):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Egame.js, часть 2\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst Constants = require('..\u002Fshared\u002Fconstants');\nconst applyCollisions = require('.\u002Fcollisions');\n\nclass Game {\n  \u002F\u002F ...\n\n  update() {\n    \u002F\u002F Calculate time elapsed\n    const now = Date.now();\n    const dt = (now - this.lastUpdateTime) \u002F 1000;\n    this.lastUpdateTime = now;\n\n    \u002F\u002F Update each bullet\n    const bulletsToRemove = [];\n    this.bullets.forEach(bullet =\u003E {\n      if (bullet.update(dt)) {\n        \u002F\u002F Destroy this bullet\n        bulletsToRemove.push(bullet);\n      }\n    });\n    this.bullets = this.bullets.filter(\n      bullet =\u003E !bulletsToRemove.includes(bullet),\n    );\n\n    \u002F\u002F Update each player\n    Object.keys(this.sockets).forEach(playerID =\u003E {\n      const player = this.players[playerID];\n      const newBullet = player.update(dt);\n      if (newBullet) {\n        this.bullets.push(newBullet);\n      }\n    });\n\n    \u002F\u002F Apply collisions, give players score for hitting bullets\n    const destroyedBullets = applyCollisions(\n      Object.values(this.players),\n      this.bullets,\n    );\n    destroyedBullets.forEach(b =\u003E {\n      if (this.players[b.parentID]) {\n        this.players[b.parentID].onDealtDamage();\n      }\n    });\n    this.bullets = this.bullets.filter(\n      bullet =\u003E !destroyedBullets.includes(bullet),\n    );\n\n    \u002F\u002F Check if any players are dead\n    Object.keys(this.sockets).forEach(playerID =\u003E {\n      const socket = this.sockets[playerID];\n      const player = this.players[playerID];\n      if (player.hp &lt;= 0) {\n        socket.emit(Constants.MSG_TYPES.GAME_OVER);\n        this.removePlayer(socket);\n      }\n    });\n\n    \u002F\u002F Send a game update to each player every other time\n    if (this.shouldSendUpdate) {\n      const leaderboard = this.getLeaderboard();\n      Object.keys(this.sockets).forEach(playerID =\u003E {\n        const socket = this.sockets[playerID];\n        const player = this.players[playerID];\n        socket.emit(\n          Constants.MSG_TYPES.GAME_UPDATE,\n          this.createUpdate(player, leaderboard),\n        );\n      });\n      this.shouldSendUpdate = false;\n    } else {\n      this.shouldSendUpdate = true;\n    }\n  }\n\n  \u002F\u002F ...\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nМетод \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E содержит, наверно, самую важную часть логики на стороне сервера. По порядку перечислим всё, что он делает:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EВычисляет, сколько времени \u003Ccode\u003Edt\u003C\u002Fcode\u003E прошло с последнего \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EОбновляет каждый снаряд и при необходимости уничтожает их. Реализацию этого функционала мы увидим позже. Пока нам достаточно знать, что \u003Ccode\u003Ebullet.update()\u003C\u002Fcode\u003E \u003Cstrong\u003Eвозвращает \u003Ccode\u003Etrue\u003C\u002Fcode\u003E, если снаряд должен быть уничтожен\u003C\u002Fstrong\u003E (он вышел за границы арены).\u003C\u002Fli\u003E\r\n\u003Cli\u003EОбновляет каждого игрока и при необходимости создаём снаряд. Эту реализацию мы тоже увидим позже — \u003Ccode\u003Eplayer.update()\u003C\u002Fcode\u003E \u003Cstrong\u003Eможет возвратить объект \u003Ccode\u003EBullet\u003C\u002Fcode\u003E\u003C\u002Fstrong\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EПроверяет коллизии между снарядами и игроками с помощью \u003Ccode\u003EapplyCollisions()\u003C\u002Fcode\u003E, который возвращает массив снарядов, которые попали в игроков. Для каждого возвращённого снаряда мы увеличиваем очки игрока, который его выпустил (с помощью \u003Ccode\u003Eplayer.onDealtDamage()\u003C\u002Fcode\u003E), а затем удаляем снаряд из массива \u003Ccode\u003Ebullets\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EУведомляет и уничтожает всех убитых игроков.\u003C\u002Fli\u003E\r\n\u003Cli\u003EОтправляет всем игрокам обновление игры \u003Cstrong\u003Eкаждый второй\u003C\u002Fstrong\u003E раз при вызове \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E. Это нам помогает отслеживать упомянутая выше вспомогательная переменная \u003Ccode\u003EshouldSendUpdate\u003C\u002Fcode\u003E. Так как \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E вызывается 60 раз\u002Fс, мы отправляем обновления игры 30 раз\u002Fс. Таким образом, \u003Cstrong\u003Eчастота тактов\u003C\u002Fstrong\u003E сервера равна 30 тактам\u002Fс (мы говорили о частоте тактов в первой части).\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Cstrong\u003EЗачем отправлять обновления игры только \u003Cem\u003Eчерез раз\u003C\u002Fem\u003E ?\u003C\u002Fstrong\u003E Для экономии канала. 30 обновлений игры в секунду – это очень много!\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Cstrong\u003EПочему бы тогда просто не вызывать \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E 30 раз в секунду?\u003C\u002Fstrong\u003E Для улучшения симуляции игры. Чем чаще вызывается \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E, тем точнее будет симуляция игры. Но не стоит слишком увлекаться количеством вызовов \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E, потому что это вычислительно затратная задача — 60 в секунду вполне достаточно.\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nОставшаяся часть класса \u003Ccode\u003EGame\u003C\u002Fcode\u003E состоит из вспомогательных методов, используемых в \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Egame.js, часть 3\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eclass Game {\n  \u002F\u002F ...\n\n  getLeaderboard() {\n    return Object.values(this.players)\n      .sort((p1, p2) =\u003E p2.score - p1.score)\n      .slice(0, 5)\n      .map(p =\u003E ({ username: p.username, score: Math.round(p.score) }));\n  }\n\n  createUpdate(player, leaderboard) {\n    const nearbyPlayers = Object.values(this.players).filter(\n      p =\u003E p !== player &amp;&amp; p.distanceTo(player) &lt;= Constants.MAP_SIZE \u002F 2,\n    );\n    const nearbyBullets = this.bullets.filter(\n      b =\u003E b.distanceTo(player) &lt;= Constants.MAP_SIZE \u002F 2,\n    );\n\n    return {\n      t: Date.now(),\n      me: player.serializeForUpdate(),\n      others: nearbyPlayers.map(p =\u003E p.serializeForUpdate()),\n      bullets: nearbyBullets.map(b =\u003E b.serializeForUpdate()),\n      leaderboard,\n    };\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ccode\u003EgetLeaderboard()\u003C\u002Fcode\u003E довольно прост – он сортирует игроков по количеству очков, берёт пять лучших и возвращает для каждого имя пользователя и счёт.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ccode\u003EcreateUpdate()\u003C\u002Fcode\u003E используется в \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E для создания обновлений игры, которые передаются игрокам. Его основная задача заключается в вызове методов \u003Ccode\u003EserializeForUpdate()\u003C\u002Fcode\u003E, реализованных для классов \u003Ccode\u003EPlayer\u003C\u002Fcode\u003E и \u003Ccode\u003EBullet\u003C\u002Fcode\u003E. Заметьте, что он передаёт каждому игроку данные только о \u003Cstrong\u003Eближайших\u003C\u002Fstrong\u003E игроках и снарядах – нет необходимости передавать информацию об игровых объектах, находящихся далеко от игрока!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E3. Игровые объекты на сервере\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ нашей игре снаряды и игроки на самом деле очень похожи: это абстрактные круглые подвижные игровые объекты. Чтобы воспользоваться этой схожестью игроков и снарядов, давайте начнём с реализации базового класса \u003Ccode\u003EObject\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eobject.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Eclass Object {\n  constructor(id, x, y, dir, speed) {\n    this.id = id;\n    this.x = x;\n    this.y = y;\n    this.direction = dir;\n    this.speed = speed;\n  }\n\n  update(dt) {\n    this.x += dt * this.speed * Math.sin(this.direction);\n    this.y -= dt * this.speed * Math.cos(this.direction);\n  }\n\n  distanceTo(object) {\n    const dx = this.x - object.x;\n    const dy = this.y - object.y;\n    return Math.sqrt(dx * dx + dy * dy);\n  }\n\n  setDirection(dir) {\n    this.direction = dir;\n  }\n\n  serializeForUpdate() {\n    return {\n      id: this.id,\n      x: this.x,\n      y: this.y,\n    };\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь не происходит ничего сложного. Этот класс станет хорошей опорной точкой для расширения. Давайте посмотрим, как класс \u003Ccode\u003EBullet\u003C\u002Fcode\u003E использует \u003Ccode\u003EObject\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Ebullet.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst shortid = require('shortid');\nconst ObjectClass = require('.\u002Fobject');\nconst Constants = require('..\u002Fshared\u002Fconstants');\n\nclass Bullet extends ObjectClass {\n  constructor(parentID, x, y, dir) {\n    super(shortid(), x, y, dir, Constants.BULLET_SPEED);\n    this.parentID = parentID;\n  }\n\n  \u002F\u002F Returns true if the bullet should be destroyed\n  update(dt) {\n    super.update(dt);\n    return this.x &lt; 0 || this.x \u003E Constants.MAP_SIZE || this.y &lt; 0 || this.y \u003E Constants.MAP_SIZE;\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nРеализация \u003Ccode\u003EBullet\u003C\u002Fcode\u003E очень коротка! Мы добавили к \u003Ccode\u003EObject\u003C\u002Fcode\u003E только следующие расширения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EИспользование пакета \u003Ca href=\"https:\u002F\u002Fwww.npmjs.com\u002Fpackage\u002Fshortid\"\u003Eshortid\u003C\u002Fa\u003E для случайной генерации \u003Ccode\u003Eid\u003C\u002Fcode\u003E снаряда.\u003C\u002Fli\u003E\r\n\u003Cli\u003EДобавление поля \u003Ccode\u003EparentID\u003C\u002Fcode\u003E, чтобы можно было отслеживать игрока, создавшего этот снаряд.\u003C\u002Fli\u003E\r\n\u003Cli\u003EДобавление возвращаемого значения в \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E, которое равно \u003Ccode\u003Etrue\u003C\u002Fcode\u003E, если снаряд находится за пределами арены (помните, мы говорили об этом в прошлом разделе?).\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПерейдём к \u003Ccode\u003EPlayer\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Eplayer.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst ObjectClass = require('.\u002Fobject');\nconst Bullet = require('.\u002Fbullet');\nconst Constants = require('..\u002Fshared\u002Fconstants');\n\nclass Player extends ObjectClass {\n  constructor(id, username, x, y) {\n    super(id, x, y, Math.random() * 2 * Math.PI, Constants.PLAYER_SPEED);\n    this.username = username;\n    this.hp = Constants.PLAYER_MAX_HP;\n    this.fireCooldown = 0;\n    this.score = 0;\n  }\n\n  \u002F\u002F Returns a newly created bullet, or null.\n  update(dt) {\n    super.update(dt);\n\n    \u002F\u002F Update score\n    this.score += dt * Constants.SCORE_PER_SECOND;\n\n    \u002F\u002F Make sure the player stays in bounds\n    this.x = Math.max(0, Math.min(Constants.MAP_SIZE, this.x));\n    this.y = Math.max(0, Math.min(Constants.MAP_SIZE, this.y));\n\n    \u002F\u002F Fire a bullet, if needed\n    this.fireCooldown -= dt;\n    if (this.fireCooldown &lt;= 0) {\n      this.fireCooldown += Constants.PLAYER_FIRE_COOLDOWN;\n      return new Bullet(this.id, this.x, this.y, this.direction);\n    }\n    return null;\n  }\n\n  takeBulletDamage() {\n    this.hp -= Constants.BULLET_DAMAGE;\n  }\n\n  onDealtDamage() {\n    this.score += Constants.SCORE_BULLET_HIT;\n  }\n\n  serializeForUpdate() {\n    return {\n      ...(super.serializeForUpdate()),\n      direction: this.direction,\n      hp: this.hp,\n    };\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИгроки сложнее, чем снаряды, поэтому в этом классе должно храниться ещё несколько полей. Его метод \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E выполняет бОльшую работу, в частности, возвращает только что созданный снаряд, если не осталось \u003Ccode\u003EfireCooldown\u003C\u002Fcode\u003E (помните, мы говорили об этом в предыдущем разделе?). Также он расширяет метод \u003Ccode\u003EserializeForUpdate()\u003C\u002Fcode\u003E, потому что нам нужно включить в обновление игры дополнительные поля для игрока.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cstrong\u003EНаличие базового класса \u003Ccode\u003EObject\u003C\u002Fcode\u003E — важный шаг, позволяющий избежать повторяемости кода\u003C\u002Fstrong\u003E. Например, без класса \u003Ccode\u003EObject\u003C\u002Fcode\u003E каждый игровой объект должен иметь одинаковую реализацию \u003Ccode\u003EdistanceTo()\u003C\u002Fcode\u003E, и синхронизация копипасты всех этих реализации в нескольких файлах была бы кошмаром. \u003Cstrong\u003EЭто становится особо важно для крупных проектов\u003C\u002Fstrong\u003E, когда количество расширяющих \u003Ccode\u003EObject\u003C\u002Fcode\u003E классов растёт.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003E4. Распознавание коллизий\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЕдинственное, что нам осталось – распознавать, когда снаряды попадают в игроков! Вспомните этот фрагмент кода из метода \u003Ccode\u003Eupdate()\u003C\u002Fcode\u003E в классе \u003Ccode\u003EGame\u003C\u002Fcode\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Egame.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst applyCollisions = require('.\u002Fcollisions');\n\nclass Game {\n  \u002F\u002F ...\n\n  update() {\n    \u002F\u002F ...\n\n    \u002F\u002F Apply collisions, give players score for hitting bullets\n    const destroyedBullets = applyCollisions(\n      Object.values(this.players),\n      this.bullets,\n    );\n    destroyedBullets.forEach(b =\u003E {\n      if (this.players[b.parentID]) {\n        this.players[b.parentID].onDealtDamage();\n      }\n    });\n    this.bullets = this.bullets.filter(\n      bullet =\u003E !destroyedBullets.includes(bullet),\n    );\n\n    \u002F\u002F ...\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНам нужно реализовать метод \u003Ccode\u003EapplyCollisions()\u003C\u002Fcode\u003E, возвращающий все снаряды, попавшие в игроков. К счастью, это не так сложно сделать, потому что\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EВсе сталкивающиеся объекты являются кругами, а это простейшая для реализации распознавания коллизий фигура.\u003C\u002Fli\u003E\r\n\u003Cli\u003EУ нас уже есть метод \u003Ccode\u003EdistanceTo()\u003C\u002Fcode\u003E, который мы в предыдущем разделе реализовали в классе \u003Ccode\u003EObject\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nВот как выглядит наша реализация распознавания коллизий:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch5\u003Ecollisions.js\u003C\u002Fh5\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"javascript\"\u003Econst Constants = require('..\u002Fshared\u002Fconstants');\n\n\u002F\u002F Returns an array of bullets to be destroyed.\nfunction applyCollisions(players, bullets) {\n  const destroyedBullets = [];\n  for (let i = 0; i &lt; bullets.length; i++) {\n    \u002F\u002F Look for a player (who didn't create the bullet) to collide each bullet with.\n    \u002F\u002F As soon as we find one, break out of the loop to prevent double counting a bullet.\n    for (let j = 0; j &lt; players.length; j++) {\n      const bullet = bullets[i];\n      const player = players[j];\n      if (\n        bullet.parentID !== player.id &amp;&amp;\n        player.distanceTo(bullet) &lt;= Constants.PLAYER_RADIUS + Constants.BULLET_RADIUS\n      ) {\n        destroyedBullets.push(bullet);\n        player.takeBulletDamage();\n        break;\n      }\n    }\n  }\n  return destroyedBullets;\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто простое распознавание коллизий основано на том факте, что \u003Cstrong\u003Eдва круга сталкиваются, если расстояние между их центрами меньше суммы их радиусов\u003C\u002Fstrong\u003E. Вот случай, когда расстояние между центрами двух кругов точно равно сумме их радиусов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv style=\"text-align:center;\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fpost_images\u002F63f\u002Fe73\u002F2c8\u002F63fe732c87ed1872522787e3cc4d5ab2.svg\"\u002F\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nЗдесь нужно внимательно отнестись ещё к паре аспектов:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EСнаряд не должен попадать в создавшего его игрока. Этого можно достичь, сравнивая \u003Ccode\u003Ebullet.parentID\u003C\u002Fcode\u003E с \u003Ccode\u003Eplayer.id\u003C\u002Fcode\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EСнаряд должен попадать только один раз в предельном случае одновременного столкновения с несколькими игроками. Эту задачу мы решим с помощью оператора \u003Ccode\u003Ebreak\u003C\u002Fcode\u003E: как только найден игрок, столкнувшийся со снарядом, мы прекращаем поиск и переходим к следующему снаряду.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EКонец\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВот и всё! Мы рассмотрели всё, что необходимо знать для создания веб-игры жанра .io. Что дальше? \u003Cstrong\u003EСоберите собственную игру .io!\u003C\u002Fstrong\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВесь код примера имеет открытые исходники и выложен на \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fvzhou842\u002Fexample-.io-game\"\u003EGithub\u003C\u002Fa\u003E.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":".io"},{"titleHtml":"игра на javascript"},{"titleHtml":"node.js"},{"titleHtml":"multiplayer"},{"titleHtml":"javascript"},{"titleHtml":"webpack"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450574\u002Fabb87bd64d6df1d2a2ef54320f7b10c2\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450574\u002Fabb87bd64d6df1d2a2ef54320f7b10c2\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450574\\\u002F\"},\"headline\":\"Создание многопользовательской веб-игры в жанре .io\",\"datePublished\":\"2019-05-08T12:49:48+03:00\",\"dateModified\":\"2019-05-08T14:13:31+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"PatientZero\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на се...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450574\\\u002F#post-content-body\",\"about\":[\"h_javascript\",\"h_gamedev\",\"h_network_technologies\",\"f_develop\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fc7c\\\u002F405\\\u002F7a7\\\u002Fc7c4057a7ab7333ee3cb9aba5ecc8c37.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fum\\\u002Fyq\\\u002Fqj\\\u002Fumyqqjon22wmshrz8o8wtyeaxl0.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fbc3\\\u002F815\\\u002F7c9\\\u002Fbc38157c91d436b5fedf948b60c8a213.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F836\\\u002F45f\\\u002F75e\\\u002F83645f75e556bc5c1c38111a69510734.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F788\\\u002F1b5\\\u002Fc78\\\u002F7881b5c789321648ff1ff70d15b881d4.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fc1e\\\u002F494\\\u002F615\\\u002Fc1e4946159c599c7a2a9196968755e4b.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2ca\\\u002F1c8\\\u002F91c\\\u002F2ca1c891ce7db0341dc78c2f88e16ce4.svg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F63f\\\u002Fe73\\\u002F2c8\\\u002F63fe732c87ed1872522787e3cc4d5ab2.svg\"]}","metaDescription":"Вышедшая в 2015 году Agar.io стала прародителем нового жанра игр .io, популярность которого с тех пор сильно возросла. Рост популярности игр .io я испытал на себе: за последние три года я создал и...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":true}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"javascript,gamedev,network_technologies"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Magento 2. Monolog или как писать логи / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450636\/"},"headline":"Magento 2. Monolog или как писать логи","datePublished":"2019-08-12T07:32:08+03:00","dateModified":"2019-08-12T11:25:36+03:00","author":{"@type":"Person","name":"Валентин Климов"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем...","url":"https:\/\/habr.com\/ru\/post\/450636\/#post-content-body","about":["h_php","h_ecommerce_development","h_magento","f_develop"],"image":["https:\/\/habr.com\/share\/publication\/450636\/e10d20e0d77b4bc91432c9e2ed338f13\/"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Magento 2. Monolog или как писать логи" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Magento 2. Monolog или как писать логи" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Magento 2. Monolog или как писать логи" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450636/e10d20e0d77b4bc91432c9e2ed338f13/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450636/e10d20e0d77b4bc91432c9e2ed338f13/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450636/e10d20e0d77b4bc91432c9e2ed338f13/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450636/e10d20e0d77b4bc91432c9e2ed338f13/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450636/e10d20e0d77b4bc91432c9e2ed338f13/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450636" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-08-12T04:32:08.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450636/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450636/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450636/e10d20e0d77b4bc91432c9e2ed338f13/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/Oxidant/" title="Oxidant" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/eba/e86/8a9/ebae868a9b15bf7e7fcd63ef7375ec07.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/Oxidant/" class="tm-user-info__username">
+      Oxidant
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-08-12T04:32:08.000Z" title="2019-08-12, 07:32">12  августа  2019 в 07:32</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Magento 2. Monolog или как писать логи</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/php/" class="tm-article-snippet__hubs-item-link"><span>PHP</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/ecommerce_development/" class="tm-article-snippet__hubs-item-link"><span>Разработка под e-commerce</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/magento/" class="tm-article-snippet__hubs-item-link"><span>Magento</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь я бы хотел сконцентрироваться на технической стороне вопроса, а именно как логировать данные, как писать логи в свой собственный файл и что же такое Monolog.<br/>
+<a name="habracut"></a><br/>
+<h3>Оглавление</h3><br/>
+<blockquote><a href="#monolog">Monolog</a><br/>
+<a href="#subtlety">Особенности применения в Magento 2</a><br/>
+<a href="#howto">Реализация</a><br/>
+<a href="#howto1">Запись лога при помощи стандартного логгера</a><br/>
+<a href="#howto2">Запись лога при помощи стандартного логгера с кастомным каналом</a><br/>
+<a href="#howto3">Запись в кастомный файл при помощи собственного хендлера</a><br/>
+<a href="#howto4">Запись в кастомный файл при помощи virtualType</a><br/>
+<a href="#howto5">Быстрое логирование данных</a><br/>
+<a href="#fin">Заключение</a><br/>
+</blockquote> <a name="monolog"></a><h2>Monolog</h2><br/>
+Начнем с самого главного вопроса — Что такое Monolog и причем он здесь.<br/>
+<br/>
+<b><a href="https://github.com/Seldaek/monolog">Monolog</a></b> — Это библиотека, которая реализует PSR-3 стандарт для логирования данных. Именно Monolog используется в Magento 2 для записи логов.<br/>
+<br/>
+<b><a href="https://www.php-fig.org/psr/psr-3/">PSR-3</a> </b> — это, в свою очередь, стандарт, описывающий общий подход для логирования данных и рекомендации по реализации логгеров, предоставляющих общий интерфейс.<br/>
+<br/>
+<a name="psr-3"></a><div class="spoiler"><b class="spoiler_title">PSR-3 основные моменты</b><div class="spoiler_text"><blockquote><b>1.</b> Логгер (объект) обязан реализовывать \Psr\Log\LoggerInterface интерфейс. <br/>
+<b>2.</b> Имеем следующие уровни ошибок (указаны в порядке приоритета от большего к меньшему):<br/>
+<i><b>EMERGENCY</b> — System is unusable.</i><br/>
+<i><b>ALERT</b> — Action must be taken immediately. Example: Entire website down, database unavailable, etc.</i><br/>
+<i><b>CRITICAL</b> — Critical conditions. Example: Application component unavailable, unexpected exception.</i><br/>
+<i><b>ERROR</b> — Runtime errors that do not require immediate action but should typically monitored.</i><br/>
+<i><b>WARNING</b> — Exceptional occurrences that are not errors.Example: Use of deprecated APIs.</i><br/>
+<i><b>NOTICE</b> — Normal but significant events.</i><br/>
+<i><b>INFO </b> — Interesting events. Example: User logs in, SQL logs.</i><br/>
+<i><b>DEBUG</b> — Detailed debug information.</i><br/>
+<br/>
+<b>3.</b> Каждый уровень имеет свой метод (debug, info, notice, warning, error, critical, alert, emerg/emergency) и так же должен быть метод log, который 1ым параметром принимает уровень ошибки.<br/>
+<b>4.</b> Методы принимают строку или что угодно реализующее __toString() (т.е. надо использовать вручную print_r($message,true) для массивов или передавать их в следующем параметре).<br/>
+<b>5.</b> Все методы принимают $context массив, дополняющий лог.<br/>
+<b>6.</b> Может, но не обязательно, быть реализована подстановка данных из $context массива в сообщение. В таком случае рекомендуется формат {name}, где name -> ключ массива в $context.<br/>
+</blockquote><br/>
+</div></div><br/>
+Monolog довольно прост в использовании. Давайте рассмотрим следующий пример.<br/>
+<br/>
+<pre><code class="php">use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\HtmlFormatter;
+
+// Создаем логгер с именем "name"
+$log = new Logger('name');
+
+// Добавляем хендлер, который будет писать логи в "path/to/your1.log" и слушать все ошибки с уровнем "WARNING" и выше (notice, info и debug не будут записаны).
+$log->pushHandler(new StreamHandler('path/to/your1.log', Logger::WARNING));
+
+// Добавляем хендлер, который будет писать логи в "path/to/your2.log" и реагировать на ошибки с уровнем "ALERT" и выше (т.е. будет писать ошибки только если их уровень alert или emergency). Будет блокировать остальные хендлеры, если этот был применен. Текст добавленный в лог файл будет отформатирован в html при помощи HtmlFormatter.
+$log->pushHandler(new StreamHandler('path/to/your2.log', Logger::ALERT,false)
+->setFormatter(new HtmlFormatter));
+
+// Добавляем процессор, который добавляет ко всем записям дополнительную информацию.
+$log->pushProcessor(function ($record) {
+    $record['extra']['dummy'] = 'Hello world!';
+
+    return $record;
+});
+
+// Добавляем записи
+$log->warning('Foo');
+$log->error('Bar',['test']);
+$log->info('Test'); // не будет записан, так как ни 1 из хендлеров не слушает INFO
+
+//your1.log
+// [2019-08-12 02:57:52] name.WARNING: Foo [] ['extra'=>['dummy'=>'Hello world!']]
+// [2019-08-12 02:57:53] name.ERROR: BAR ['test'] ['extra'=>['dummy'=>'Hello world!']]
+
+//your2.log
+// пустой, т.к не было ошибок ALERT и EMERGENCY
+</code></pre><br/>
+Основные моменты работы Monolog, которые надо иметь в виду:<br/>
+<br/>
+<ul>
+<li><b>Logger</b> — это объект, который мы используем для записи логов. Сам логгер не занимается записью, но управляет хендлерами. Может быть создано любое количество.</li>
+<li><b>Handler</b> — объект, который непосредственно обрабатывает данные. Вы можете добавить сколько угодно хендлеров в логгер. Все они будут вызываться по очереди, независимо от того смог данный хендлер обработать ошибку или нет. Метод isHandling определяет сможет ли этот хендлер обработать поступившую ошибку.<br/>
+<br/>
+<pre><code class="php">public function isHandling(array $record)
+{
+        return $record['level'] >= $this->level;
+}
+</code></pre><br/>
+Самое близкое сходство с хендлером, с моей точки зрения, это Event Observer.<br/>
+</li>
+<li><b>Processor</b> — любая вызываемая сущность (callable). Может быть несколько. Могут быть назначены как глобально, так и установлены для хендлера. Сначала запускаются глобальные процессоры. Основная задача процессора добавить дополнительные данные в лог (например IP, с которого был коннект, значение глобальных переменных, информация на какой git ветке сейчас находится код и так далее).</li>
+<li><b>Formatter</b> — преобразует вывод сообщения перед записью. Может быть только 1 на хендлер. Нужен для изменения форматирования тела сообщения, например для преобразования текста в html или json.</li>
+<li><b>Channel</b> — имя логгера. Оно будет написано при записи лога. Так как 1 хендлер может быть применен в 2ух разных логгерах (будет писать логи в 1 и тот же файл) это позволит определить откуда пришла ошибка.</li>
+<li><b>Level</b> — уровень ошибки. Данный параметр у хендлера означает минимальный уровень ошибки, который будет им обрабатываться.</li>
+<li><b>Bubble</b> — всплытие сообщения. После того, как хендлер обработал сообщение, то логгер передает сообщение следующему хендлеру. Этот процесс можно остановить с помощью свойства bubble. Если у хендлера значение этого свойства false (по умолчанию всегда true), то после того как этот хендлер выполнит свою работу (смог обработать данную ошибку), другие хендлеры уже не запустятся.</li>
+<li><b>Sort Order</b> — порядок выполнения. Последний добавленный хендлер всегда запускается самым первым. Именно эта особенность позволяет внедрять механизм полного отключения логгера (через bubbling false). Хендлеры добавленные через конструктор идут в порядке указанном в конструкторе.</li>
+</ul><br/>
+<blockquote>Так как PSR-3 не обязывает разработчиков реализовывать автозамену значений в тексте, то по умолчанию Monolog этого не делает. Если вы напишите ->emerg('test 1111 {placeholder}', ['placeholder'=> 'foo']) то получите следующее<br/>
+[2019-08-12 02:57:52] main.EMERGENCY: test 1111 {placeholder} {«placeholder»:«foo»} []<br/>
+<br/>
+Чтобы замена работала вам необходимо подключить дополнительный процессор — \Monolog\Processor\PsrLogMessageProcessor.<br/>
+</blockquote> Стоит сказать, что Monolog обладает огромным числом Formatter, Processor, Handler из коробки. Вы можете как использовать их, так и написать свои собственные.<br/>
+<br/>
+<a name="subtlety"></a><h2>Особенности применения в Magento 2</h2><br/>
+На <a href="https://devdocs.magento.com/guides/v2.3/config-guide/log/log-magento.html">оффициальном сайте Magento</a> вы можете найти общий пример как использовать логгер. К несчастью представленный пример не раскрывает всех деталей и увы не отвечает на вопрос «как писать логи в свой собственный файл». Поэтому давайте разберемся во всем по подробнее.<br/>
+<br/>
+Во времена Magento 1, наверное, все рано или поздно использовали Mage::log метод, который был доступен везде в коде и запись самого простого лога выглядела как Mage::log('ALARM!', null, 'api.log'). В результате у нас была запись следующего вида в файле var/log/api.log<br/>
+<br/>
+<pre><code class="php">2019-08-12T01:00:27+00:00 DEBUG (7): ALARM!
+</code></pre><br/>
+<i>Формат по умолчанию: %timestamp% %priorityName% (%priority%): %message%.</i><br/>
+<br/>
+Давайте посмотрим как логировать данные в самом простом случае в Magento 2. Чаще всего вы будете использовать $this->_logger->info('ALARM!'); (если такое свойство имеется у объекта, например унаследовано).<br/>
+<br/>
+В результате такого вызова мы получим следующую запись в файле var/log/system.log<br/>
+<br/>
+<pre><code class="php">[2019-08-12 02:56:43] main.INFO: ALARM! [] []
+</code></pre><br/>
+<i>Формат по умолчанию: [%datetime%] %channel%.%level_name%: %message% %context% %extra%</i><br/>
+<blockquote>Если такого свойства (_logger или logger) нет у объекта, тогда нам понадобится сначала добавить в ваш класс зависимость \Psr\Log\LoggerInterface и записать полученный объект в свойство $logger (согласно <a href="https://www.php-fig.org/psr/psr-2/#42-properties">PSR-2 пункту 4.2</a> и <a href="https://devdocs.magento.com/guides/v2.3/config-guide/log/log-magento.html">примеру, представленному на сайте Magento</a>).<br/>
+</blockquote> В отличии от Magento 1, здесь куда больше нюансов.<br/>
+<br/>
+<b>1. Параметры для записи лога.</b><br/>
+<br/>
+Рассмотрим общий вызов метода записи<br/>
+<br/>
+<pre><code class="php">$this->_logger->{level}($message, $context = []);
+//$this->_logger->log('{level}', $message, $context = []);
+</code></pre><br/>
+<b>1)</b> Где {level} это, согласно PSR-3, 1 из методов, зарезервированных для логирования определенного уровня ошибки (debug, info, notice, warning, error, critical, alert, emerg/emergency).<br/>
+<b>2)</b> $message — в отличии от Magento 1, это должна быть строка. Т.е. $object->getData() здесь не будет работать. Массив с данными надо передавать в следующий параметр. Объекты \Exception являются исключением, так как реализация \Magento\Framework\Logger\Monolog обрабатывает их отдельно и автоматически прокидывает ->getMessage() дальше в качестве $message, если объект \Exception был передан в качестве сообщения.<br/>
+<b>3)</b> $context — это необязательный параметр, массив.<br/>
+<br/>
+<b>2. Свойство $this->_logger имеется не во всех классах. </b><br/>
+<br/>
+<b>Присутствует</b> в: Block, Helper, Model, Collection, etc.<br/>
+<b>Отсутствует</b> в: ResourceModel, Controller, Comand, Setup, etc.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Подробнее про ResourceModel и Collection</b><div class="spoiler_text">В ResourceModel имеется свойство _logger, но оно не заполняется в конструкторе. Оно заполняется только при помощи приватного метода getLogger в \Magento\Framework\Model\ResourceModel\AbstractResource. Метод вызывается только в случае ошибки во время записи в бд (в блоке catch) внутри метода commit(). До тех пор, логгера у ресурс моделей не будет.<br/>
+<br/>
+<pre><code class="php">public function commit()
+{
+     $this->getConnection()->commit();
+ 
+      if ($this->getConnection()->getTransactionLevel() === 0) {
+          $callbacks = CallbackPool::get(spl_object_hash($this->getConnection()));
+          try {
+                foreach ($callbacks as $callback) {
+                    call_user_func($callback);
+                }
+            } catch (\Exception $e) {
+                $this->getLogger()->critical($e);
+            }
+        }
+    return $this;
+}
+
+…
+private function getLogger()
+{
+     if (null === $this->_logger) {
+         $this->_logger = ObjectManager::getInstance()->get(\Psr\Log\LoggerInterface::class);
+     }
+     return $this->_logger;
+}
+</code></pre><br/>
+У Collection логгер имеется с самого начала. Он присваивается в конструкторе \Magento\Framework\Data\Collection\AbstractDb и позже наследуется.<br/>
+</div></div><br/>
+Нельзя не сказать, но в контроллерах есть способ получить логгер при помощи ObjectManager (через свойство $this->_objectManager). Но это не является, конечно же, самым правильным способом.<br/>
+<br/>
+<b>3. Дефолтный логгер и список хендлеров.</b><br/>
+<br/>
+В глобальном di.xml (app/etc/di.xml) вы можете найти, что \Psr\Log\LoggerInterface имплементится \Magento\Framework\Logger\Monolog классом, который в свою очередь наследуется от \Monolog\Logger. Имя логгера main. Там же определены несколько хендлеров<br/>
+<br/>
+<pre><code class="xml">…
+&lt;preference for="Psr\Log\LoggerInterface" type="Magento\Framework\Logger\Monolog" />
+...
+&lt;type name="Magento\Framework\Logger\Monolog">
+    &lt;arguments>
+        &lt;argument name="name" xsi:type="string">main&lt;/argument>
+        &lt;argument name="handlers" xsi:type="array">
+            &lt;item name="system" xsi:type="object">Magento\Framework\Logger\Handler\System&lt;/item>
+            &lt;item name="debug" xsi:type="object">Magento\Framework\Logger\Handler\Debug&lt;/item>
+            &lt;item name="syslog" xsi:type="object">Magento\Framework\Logger\Handler\Syslog&lt;/item>
+        &lt;/argument>
+    &lt;/arguments>
+&lt;/type>
+...
+</code></pre><br/>
+Некоторые классы отличаются от перечисленных выше (так как переопределены в модуле Magento\Developer):<br/>
+<br/>
+<b>1)</b> Magento\Framework\Logger\Handler\System (<i>слушает INFO)</i><br/>
+<b>2)</b> Magento\Developer\Model\Logger\Handler\Debug (<i>слушает DEBUG</i>)<br/>
+<b>3)</b> Magento\Developer\Model\Logger\Handler\Syslog (<i>слушает DEBUG</i>)<br/>
+<br/>
+В указанных классах (Debug и Syslog) <a href="https://devdocs.magento.com/guides/v2.3/config-guide/cli/logging.html">добавлена возможность отключать запись логов</a> (dev/debug/debug_logging и dev/syslog/syslog_logging соответственно).<br/>
+<br/>
+Обратите внимание, что в списке хендлеров нет exception хендлера, который производит запись в exception.log. Он вызывается в System хендлере.<br/>
+<br/>
+<div class="spoiler"><b class="spoiler_title">Magento\Framework\Logger\Handler\System</b><div class="spoiler_text"><pre><code class="php">...
+public function write(array $record)
+    {
+        if (isset($record['context']['exception'])) {
+            $this->exceptionHandler->handle($record);
+
+            return;
+        }
+
+        $record['formatted'] = $this->getFormatter()->format($record);
+
+        parent::write($record);
+    }
+...
+</code></pre><br/>
+</div></div><br/>
+<blockquote>В Magento 2 до 2.2 <a href="https://github.com/magento/magento2/issues/2529">была проблема </a>связанная с тем, что логгер не мог перепрыгивать на другой хендлер после первого найденного. Данная проблема была вызвана тем, что Monolog рассчитывал что к нему все хендлеры приходят в массиве с цифровыми ключами, а приходили с буквенными (['system'=>,'debug'=>,...]). Разработчики Magento позже исправили ситуацию — они преобразуют хеш в обычный массив с цифровыми ключами прежде чем передать его в Monolog. Monolog сейчас так же изменил алгоритм перебора хендлеров и использует метод next().<br/>
+</blockquote> <b>4. Внедрение своего хендлера в список уже существующих.</b><br/>
+<br/>
+Мы подходим к самому интересному, что немного портит впечатление от реализации в Magento 2. Вы не сможете добавить кастомный хендлер к списку уже существующих при помощи di.xml без …”дополнительных телодвижений”. Это связано с принципом мерджа конфигов.<br/>
+<br/>
+Существует несколько <b>Config Scope</b>:<br/>
+<br/>
+<b>1)</b> Initial (app/etc/di.xml)<br/>
+<b>2)</b> Global ({moduleDir}/etc/di.xml)<br/>
+<b>3)</b> Area-specific ({moduleDir}/etc/{area}/di.xml ie. frontend/adminhtml/crontab/webapi_soap/webapi_rest, etc.)<br/>
+<br/>
+Внутри 1 уровня конфиги объединяются, но следующий уровень переопределяет их при мердже (если они там тоже объявлены). Это приводит к невозможности добавлять хендлеры в своих модулях к существующему списку, так как он объявлен в initial scope.<br/>
+<br/>
+<i>Возможно в будущем мы увидим реализацию, в которой добавление хендлеров будет вынесено из initial scope в какой-то другой модуль, тем самым перенесено в global scope.</i><br/>
+<br/>
+<a name="howto"></a><h2>Реализация</h2><br/>
+Давайте рассмотрим основные способы записи логов, которые могут пригодится нам при реализации задач.<br/>
+<br/>
+<a name="howto1"></a><h3>1. Запись лога при помощи стандартного логгера</h3><br/>
+Данный способ позволяет нам достаточно легко писать логи в 1 из стандартных логов (debug.log, system.log или exception.log).<br/>
+<br/>
+<pre><code class="php">class RandomClass
+{
+    private $logger;
+
+    public function __construct(\Psr\Log\LoggerInterface $logger)
+    {
+         $this->logger = $logger;
+    }
+
+    public function foo()
+    {
+         $this->logger->info('Something went wrong');
+         //[...some date...] main.INFO: Something went wrong [] []
+    }
+}
+</code></pre><br/>
+Все становится еще проще, если в нашем классе уже присутствует унаследованная зависимость логгера.<br/>
+<br/>
+<pre><code class="php">…
+$this->_logger->info('Something went wrong'); // можно использовать метод ->debug, если вы хотите, чтобы сообщение писалось только в debug.log
+...
+</code></pre><br/>
+<a name="howto2"></a><h3>2. Запись лога при помощи стандартного логгера с кастомным каналом</h3><br/>
+Данный способ отличается от предыдущего тем, что создается клон логгера и ему назначается другой канал (имя). Что упростит поиск внутри файла логов.<br/>
+<br/>
+<pre><code class="php">class RandomClass
+{
+    private $logger;
+
+    public function __construct(\Psr\Log\LoggerInterface $logger)
+    {
+         $this->logger = $logger->withName('api'); //может быть любое имя
+    }
+
+    public function foo()
+    {
+         $this->logger->info('Something went wrong');
+         //[...some date...] api.INFO: Something went wrong [] []
+    }
+}
+</code></pre><br/>
+<br/>
+Для поиска нужных логов теперь достаточно воспользоваться поиском по «api» (дефолтный логгер в Magento 2 называется main) в уже существующих файлах system.log, debug.log, exception.log. Можно использовать<br/>
+<pre><code class="bash">grep -rn 'api' var/log/system.log
+</code></pre><br/>
+<br/>
+<a name="howto3"></a><h3>3. Запись в кастомный файл при помощи собственного хендлера</h3><br/>
+Создадим простой хендлер, который логирует все ошибки уровня Critical и выше в отдельный файл var/log/critical.log. Добавим также возможность, чтобы он блокировал все остальные хендлеры для данного уровня ошибки и выше. Это позволит уйти от дублирования данных в debug.log и system.log файлах.<br/>
+<br/>
+<pre><code class="php">&lt;?php
+namespace Oxis\Log\Logger\Handler;
+
+use Magento\Framework\Filesystem\DriverInterface;
+use Magento\Framework\Logger\Handler\Base;
+use Monolog\Logger;
+
+class Test extends Base
+{
+    protected $fileName = 'var/log/critical.log';
+
+    protected $loggerType = Logger::CRITICAL;
+    public function __construct(DriverInterface $filesystem)
+    {
+          parent::__construct($filesystem,null,null);
+          $this->bubble = false; //так же можно и через метод setBubble()
+    }
+}
+</code></pre><br/>
+<blockquote>В Magento 2 2.2+ в конструкторе \Magento\Framework\Logger\Handler\Base изменился способ обработки пути до файла с логом<br/>
+<pre><code class="php">//было
+BP . $this->fileName
+//стало
+BP. DIRECTORY_SEPARATOR . $this->fileName
+</code></pre><br/>
+Поэтому в старых хендлерах вы все еще можете найти / в начале $fileName.<br/>
+</blockquote><br/>
+<br/>
+К примеру выше стоит дать небольшое пояснение. Так как Base не позволяет установить bubble свойство через параметры конструктора, то нам бы пришлось либо повторять часть кода из конструктора Base, чтобы передать корректно входной параметр в родителя класса Base (который, к слову сказать, обладает входным параметром для установки этого свойства) либо воспользоваться таким подходом. Я выбрал 2ой вариант.<br/>
+<br/>
+<pre><code class="php">use Oxis\Log\Logger\Handler\Test;
+use Psr\Log\LoggerInterface;
+
+class RandomClass
+{
+    private $logger;
+
+    public function __construct(
+        LoggerInterface $logger,
+        Test $handler
+    ) {
+         $logger->pushHandler($handler); //можно использовать setHandlers([$handler]), тогда все остальные хендлеры будут заменены нашим хендлером.
+         $this->logger = $logger;
+    }
+
+    public function foo()
+    {
+         $this->logger->critical('Something went wrong'); // запись будет добавлена только в critical.log
+         //[...some date...] main.CRITICAL: Something went wrong [] []
+    }
+}
+</code></pre><br/>
+Данный способ добавления хендлера, не идеальный, но позволяет уйти от Config Scope проблемы, которая потребует от нас дублировать все логгеры у себя в di.xml. Если же цель заменить все логгеры своим, то гораздо лучше использовать virtualType подход, который мы рассмотрим дальше.<br/>
+<br/>
+<a name="howto4"></a><h3>4. Запись в кастомный файл при помощи virtualType</h3><br/>
+Данный подход позволяет нам заставить необходимый нам класс писать логи в указанный для этого лог файл при помощи di.xml. Похожий подход вы можете найти в Magento\Payment и Magento\Shipping модулях. Обращаю ваше внимание на то, что этот подход работает начиная с Magento 2 2.2 и выше.<br/>
+<blockquote>В Magento 2 2.2+ был добавлен новый параметр в конструктор \Magento\Framework\Logger\Handler\Base, что позволяет создавать виртуальный хендлер и указывать через di.xml относительный путь до файл для записи лога. Ранее требовалось либо указывать полный путь через $filePath, либо создавать новый хендлер и записывать относительный путь в протектед свойство $fileName. <br/>
+</blockquote><br/>
+В di.xml нашего модуля добавляем следующее<br/>
+<pre><code class="xml">     &lt;!--Создаем виртуальный хендлер и указываем ему файл, в который будем писать логи-->
+     &lt;virtualType name="ApiHandler" type="Magento\Framework\Logger\Handler\Base">
+        &lt;arguments>
+            &lt;argument name="fileName" xsi:type="string">var/log/api.log&lt;/argument>
+        &lt;/arguments>
+    &lt;/virtualType>
+   
+   &lt;!--Создаем виртуальный логгер, в который добавляем наш хендлер-->
+    &lt;virtualType name="ApiLogger" type="Magento\Framework\Logger\Monolog">
+        &lt;arguments>
+            &lt;argument name="name" xsi:type="string">api&lt;/argument>
+            &lt;argument name="handlers" xsi:type="array">
+                &lt;item name="default" xsi:type="object">ApiHandler&lt;/item>
+            &lt;/argument>
+        &lt;/arguments>
+    &lt;/virtualType>
+
+   &lt;!--Добавляем в наш класс только что созданный логгер-->
+    &lt;type name="Oxis\Log\Model\A">
+        &lt;arguments>
+            &lt;argument name="logger" xsi:type="object">ApiLogger&lt;/argument>
+        &lt;/arguments>
+    &lt;/type>
+</code></pre><br/>
+Добавляем в Oxis\Log\Model\A класс логгер.<br/>
+<pre><code class="php">namespace Oxis\Log\Model;
+
+class A
+{
+    private $logger;
+
+    public function __construct(\Psr\Log\LoggerInterface $logger)
+    {
+         $this->logger = $logger;
+    }
+
+    public function foo()
+    {
+         $this->logger->info('Something went wrong');
+    }
+}
+</code></pre><br/>
+Теперь абсолютно все логи, которые будут писаться в нашем классе будут обрабатываться нашей версией логгера, который будет писать логи при помощи нашего хендлера в файл var/log/api.log.<br/>
+<br/>
+<b>4.1. Если класс получает логгер через объект $context, а не через свой конструктор.</b><br/>
+Сюда можно отнести \Magento\Catalog\Model\Product, в зависимостях которого нет \Psr\Log\LoggerInterface, но есть \Magento\Framework\Model\Context, через который происходит установка логгера в свойство класса. В таком случае, нам необходимо немного усложнить вариант выше и подменить логгер находящийся в $context объекте. А чтобы это не затронуло всю Magento, то подменим $context только для нашего класса при помощи virtualType. <br/>
+<pre><code class="xml">&lt;virtualType name="ApiHandler" type="Magento\Framework\Logger\Handler\Base">
+        &lt;arguments>
+            &lt;argument name="fileName" xsi:type="string">var/log/api.log&lt;/argument>
+        &lt;/arguments>
+&lt;/virtualType>
+&lt;virtualType name="ApiLogger" type="Magento\Framework\Logger\Monolog">
+        &lt;arguments>
+            &lt;argument name="name" xsi:type="string">api&lt;/argument>
+            &lt;argument name="handlers" xsi:type="array">
+                &lt;item name="default" xsi:type="object">ApiHandler&lt;/item>
+            &lt;/argument>
+        &lt;/arguments>
+&lt;/virtualType>
+
+&lt;!--Создаем виртуальный контекст и подменяем в нем logger-->
+ &lt;virtualType name="ApiLogContainingContext" type="Magento\Framework\Model\Context">
+        &lt;arguments>
+            &lt;argument name="logger" xsi:type="object">ApiLogger&lt;/argument>
+        &lt;/arguments>
+&lt;/virtualType>
+
+&lt;!--Заменяем контекст в нашем классе-->
+&lt;type name="Oxis\Log\Model\A">
+        &lt;arguments>
+            &lt;argument name="context" xsi:type="object">ApiLogContainingContext&lt;/argument>
+        &lt;/arguments>
+&lt;/type>
+</code></pre><br/>
+<br/>
+<a name="howto5"></a><h3>5. Быстрое логирование данных</h3><br/>
+Бывают случаи, когда нам необходимо быстро добавить логирование. Чаще всего это может понадобиться либо на продакшен сервере либо для быстрого тестирования.<br/>
+<pre><code class="php">...
+$log = new \Monolog\Logger('custom', [new \Monolog\Handler\StreamHandler(BP.'/var/log/custom.log')]);
+$log->error('test');
+...
+</code></pre><br/>
+<i>Плюсы данного подхода: пишет дату, имеется контекст (массив), автоматически добавляет \n в конец</i><br/>
+<br/>
+В примере выше специально применен \Monolog\Logger, а не \Magento\Framework\Logger\Monolog который его расширяет. Дело в том, что при таком использовании разницы никакой нет, а писать меньше (и запомнить проще).<br/>
+<br/>
+\Monolog\Handler\StreamHandler в свою очередь применен вместо \Magento\Framework\Logger\Handler\Base так как Base использовать в качестве сниппета не очень удобно по причине дополнительных зависимостей от сторонних классов.<br/>
+<br/>
+Другой подход, о котором нельзя не сказать — это старый добрый file_put_contents.<br/>
+<br/>
+<pre><code class="php">...
+file_put_contents(BP.'/var/log/custom.log', 'test',FILE_APPEND);
+...
+</code></pre><br/>
+<i>Плюсы данного подхода: относительно быстро писать и не нужно запоминать классы.</i><br/>
+<br/>
+В обоих случаях главную роль выполняет константа <b>BP</b>. Она всегда указывает на папку с маджентой (на 1 уровень выше pub), что удобно и всегда помогает нам писать логи в нужное место.<br/>
+<br/>
+<a name="fin"></a><h2>Заключение</h2><br/>
+Я надеюсь информация изложенная выше оказалась или окажется вам полезной.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmagento%202%5D" class="tm-tags-list__link">magento 2</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmagento2%5D" class="tm-tags-list__link">magento2</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bphp%5D" class="tm-tags-list__link">php</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bpsr-3%5D" class="tm-tags-list__link">psr-3</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmonolog%5D" class="tm-tags-list__link">monolog</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BB%D0%BE%D0%B3%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">логирование</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blogs%5D" class="tm-tags-list__link">logs</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blogging%5D" class="tm-tags-list__link">logging</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmagento%5D" class="tm-tags-list__link">magento</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bmagento%20ecommerce%5D" class="tm-tags-list__link">magento ecommerce</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/php/" class="tm-hubs-list__link">
+    PHP
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/ecommerce_development/" class="tm-hubs-list__link">
+    Разработка под e-commerce
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/magento/" class="tm-hubs-list__link">
+    Magento
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 6: ↑6 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 6: ↑6 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+6</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">7.8K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    21
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/Oxidant/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/eba/e86/8a9/ebae868a9b15bf7e7fcd63ef7375ec07.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 10 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    8
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Валентин Климов</span> <a href="/ru/users/Oxidant/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @Oxidant
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Lead Technical Architect</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <button type="submit" class="tm-user-card__button btn btn_transparent btn_small">
+      Задонатить
+    </button> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450636/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментировать 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section data-async-called="true" class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Работа</h2> <!----></header> <div class="tm-block__body"><div class="tm-vacancies-block__item"><a href="https://career.habr.com/vacancies/php_programmist" target="_blank" class="tm-vacancies-block__vacancy-title">
+        PHP программист
+      </a> <div class="tm-vacancies-block__vacancies-count">
+        284
+    вакансии
+      </div></div><div class="tm-vacancies-block__item"><a href="https://career.habr.com/vacancies/programmist_laravel" target="_blank" class="tm-vacancies-block__vacancy-title">
+        Разработчик Laravel
+      </a> <div class="tm-vacancies-block__vacancies-count">
+        104
+    вакансии
+      </div></div></div> <footer class="tm-block__footer"><a href="https://career.habr.com/vacancies" class="tm-block-extralink">
+      Все вакансии
+    </a></footer></section></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450636/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450636/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450636":{"id":"450636","timePublished":"2019-08-12T04:32:08+00:00","isCorporative":false,"lang":"ru","titleHtml":"Magento 2. Monolog или как писать логи","leadData":{"textHtml":"Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь я бы хотел сконцентрироваться на технической стороне вопроса, а именно как логировать данные, как писать логи в свой собственный файл и что же такое Monolog.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":8,"votesCount":10},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":"oxidant","paymentWebmoney":null},"id":"239453","alias":"Oxidant","fullname":"Валентин Климов","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Feba\u002Fe86\u002F8a9\u002Febae868a9b15bf7e7fcd63ef7375ec07.jpg","speciality":"Lead Technical Architect"},"statistics":{"commentsCount":0,"favoritesCount":21,"readingCount":7787,"score":6,"votesCount":6},"hubs":[{"relatedData":null,"id":"260","alias":"php","type":"collective","title":"PHP","titleHtml":"PHP","isProfiled":true},{"relatedData":null,"id":"18810","alias":"ecommerce_development","type":"collective","title":"Разработка под e-commerce","titleHtml":"Разработка под e-commerce","isProfiled":true},{"relatedData":null,"id":"21046","alias":"magento","type":"collective","title":"Magento","titleHtml":"Magento","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EИзучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь я бы хотел сконцентрироваться на технической стороне вопроса, а именно как логировать данные, как писать логи в свой собственный файл и что же такое Monolog.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EОглавление\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003E\u003Ca href=\"#monolog\"\u003EMonolog\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#subtlety\"\u003EОсобенности применения в Magento 2\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#howto\"\u003EРеализация\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#howto1\"\u003EЗапись лога при помощи стандартного логгера\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#howto2\"\u003EЗапись лога при помощи стандартного логгера с кастомным каналом\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#howto3\"\u003EЗапись в кастомный файл при помощи собственного хендлера\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#howto4\"\u003EЗапись в кастомный файл при помощи virtualType\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#howto5\"\u003EБыстрое логирование данных\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ca href=\"#fin\"\u003EЗаключение\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E \u003Ca name=\"monolog\"\u003E\u003C\u002Fa\u003E\u003Ch2\u003EMonolog\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНачнем с самого главного вопроса — Что такое Monolog и причем он здесь.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E\u003Ca href=\"https:\u002F\u002Fgithub.com\u002FSeldaek\u002Fmonolog\"\u003EMonolog\u003C\u002Fa\u003E\u003C\u002Fb\u003E — Это библиотека, которая реализует PSR-3 стандарт для логирования данных. Именно Monolog используется в Magento 2 для записи логов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E\u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002Fpsr\u002Fpsr-3\u002F\"\u003EPSR-3\u003C\u002Fa\u003E \u003C\u002Fb\u003E — это, в свою очередь, стандарт, описывающий общий подход для логирования данных и рекомендации по реализации логгеров, предоставляющих общий интерфейс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"psr-3\"\u003E\u003C\u002Fa\u003E\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EPSR-3 основные моменты\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cblockquote\u003E\u003Cb\u003E1.\u003C\u002Fb\u003E Логгер (объект) обязан реализовывать \\Psr\\Log\\LoggerInterface интерфейс. \u003Cbr\u002F\u003E\r\n\u003Cb\u003E2.\u003C\u002Fb\u003E Имеем следующие уровни ошибок (указаны в порядке приоритета от большего к меньшему):\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EEMERGENCY\u003C\u002Fb\u003E — System is unusable.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EALERT\u003C\u002Fb\u003E — Action must be taken immediately. Example: Entire website down, database unavailable, etc.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003ECRITICAL\u003C\u002Fb\u003E — Critical conditions. Example: Application component unavailable, unexpected exception.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EERROR\u003C\u002Fb\u003E — Runtime errors that do not require immediate action but should typically monitored.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EWARNING\u003C\u002Fb\u003E — Exceptional occurrences that are not errors.Example: Use of deprecated APIs.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003ENOTICE\u003C\u002Fb\u003E — Normal but significant events.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EINFO \u003C\u002Fb\u003E — Interesting events. Example: User logs in, SQL logs.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003E\u003Cb\u003EDEBUG\u003C\u002Fb\u003E — Detailed debug information.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E3.\u003C\u002Fb\u003E Каждый уровень имеет свой метод (debug, info, notice, warning, error, critical, alert, emerg\u002Femergency) и так же должен быть метод log, который 1ым параметром принимает уровень ошибки.\u003Cbr\u002F\u003E\r\n\u003Cb\u003E4.\u003C\u002Fb\u003E Методы принимают строку или что угодно реализующее __toString() (т.е. надо использовать вручную print_r($message,true) для массивов или передавать их в следующем параметре).\u003Cbr\u002F\u003E\r\n\u003Cb\u003E5.\u003C\u002Fb\u003E Все методы принимают $context массив, дополняющий лог.\u003Cbr\u002F\u003E\r\n\u003Cb\u003E6.\u003C\u002Fb\u003E Может, но не обязательно, быть реализована подстановка данных из $context массива в сообщение. В таком случае рекомендуется формат {name}, где name -\u003E ключ массива в $context.\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nMonolog довольно прост в использовании. Давайте рассмотрим следующий пример.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Euse Monolog\\Logger;\nuse Monolog\\Handler\\StreamHandler;\nuse Monolog\\Formatter\\HtmlFormatter;\n\n\u002F\u002F Создаем логгер с именем \"name\"\n$log = new Logger('name');\n\n\u002F\u002F Добавляем хендлер, который будет писать логи в \"path\u002Fto\u002Fyour1.log\" и слушать все ошибки с уровнем \"WARNING\" и выше (notice, info и debug не будут записаны).\n$log-\u003EpushHandler(new StreamHandler('path\u002Fto\u002Fyour1.log', Logger::WARNING));\n\n\u002F\u002F Добавляем хендлер, который будет писать логи в \"path\u002Fto\u002Fyour2.log\" и реагировать на ошибки с уровнем \"ALERT\" и выше (т.е. будет писать ошибки только если их уровень alert или emergency). Будет блокировать остальные хендлеры, если этот был применен. Текст добавленный в лог файл будет отформатирован в html при помощи HtmlFormatter.\n$log-\u003EpushHandler(new StreamHandler('path\u002Fto\u002Fyour2.log', Logger::ALERT,false)\n-\u003EsetFormatter(new HtmlFormatter));\n\n\u002F\u002F Добавляем процессор, который добавляет ко всем записям дополнительную информацию.\n$log-\u003EpushProcessor(function ($record) {\n    $record['extra']['dummy'] = 'Hello world!';\n\n    return $record;\n});\n\n\u002F\u002F Добавляем записи\n$log-\u003Ewarning('Foo');\n$log-\u003Eerror('Bar',['test']);\n$log-\u003Einfo('Test'); \u002F\u002F не будет записан, так как ни 1 из хендлеров не слушает INFO\n\n\u002F\u002Fyour1.log\n\u002F\u002F [2019-08-12 02:57:52] name.WARNING: Foo [] ['extra'=\u003E['dummy'=\u003E'Hello world!']]\n\u002F\u002F [2019-08-12 02:57:53] name.ERROR: BAR ['test'] ['extra'=\u003E['dummy'=\u003E'Hello world!']]\n\n\u002F\u002Fyour2.log\n\u002F\u002F пустой, т.к не было ошибок ALERT и EMERGENCY\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nОсновные моменты работы Monolog, которые надо иметь в виду:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003E\u003Cb\u003ELogger\u003C\u002Fb\u003E — это объект, который мы используем для записи логов. Сам логгер не занимается записью, но управляет хендлерами. Может быть создано любое количество.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EHandler\u003C\u002Fb\u003E — объект, который непосредственно обрабатывает данные. Вы можете добавить сколько угодно хендлеров в логгер. Все они будут вызываться по очереди, независимо от того смог данный хендлер обработать ошибку или нет. Метод isHandling определяет сможет ли этот хендлер обработать поступившую ошибку.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Epublic function isHandling(array $record)\n{\n        return $record['level'] \u003E= $this-\u003Elevel;\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nСамое близкое сходство с хендлером, с моей точки зрения, это Event Observer.\u003Cbr\u002F\u003E\r\n\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EProcessor\u003C\u002Fb\u003E — любая вызываемая сущность (callable). Может быть несколько. Могут быть назначены как глобально, так и установлены для хендлера. Сначала запускаются глобальные процессоры. Основная задача процессора добавить дополнительные данные в лог (например IP, с которого был коннект, значение глобальных переменных, информация на какой git ветке сейчас находится код и так далее).\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EFormatter\u003C\u002Fb\u003E — преобразует вывод сообщения перед записью. Может быть только 1 на хендлер. Нужен для изменения форматирования тела сообщения, например для преобразования текста в html или json.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EChannel\u003C\u002Fb\u003E — имя логгера. Оно будет написано при записи лога. Так как 1 хендлер может быть применен в 2ух разных логгерах (будет писать логи в 1 и тот же файл) это позволит определить откуда пришла ошибка.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ELevel\u003C\u002Fb\u003E — уровень ошибки. Данный параметр у хендлера означает минимальный уровень ошибки, который будет им обрабатываться.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003EBubble\u003C\u002Fb\u003E — всплытие сообщения. После того, как хендлер обработал сообщение, то логгер передает сообщение следующему хендлеру. Этот процесс можно остановить с помощью свойства bubble. Если у хендлера значение этого свойства false (по умолчанию всегда true), то после того как этот хендлер выполнит свою работу (смог обработать данную ошибку), другие хендлеры уже не запустятся.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cb\u003ESort Order\u003C\u002Fb\u003E — порядок выполнения. Последний добавленный хендлер всегда запускается самым первым. Именно эта особенность позволяет внедрять механизм полного отключения логгера (через bubbling false). Хендлеры добавленные через конструктор идут в порядке указанном в конструкторе.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EТак как PSR-3 не обязывает разработчиков реализовывать автозамену значений в тексте, то по умолчанию Monolog этого не делает. Если вы напишите -\u003Eemerg('test 1111 {placeholder}', ['placeholder'=\u003E 'foo']) то получите следующее\u003Cbr\u002F\u003E\r\n[2019-08-12 02:57:52] main.EMERGENCY: test 1111 {placeholder} {«placeholder»:«foo»} []\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы замена работала вам необходимо подключить дополнительный процессор — \\Monolog\\Processor\\PsrLogMessageProcessor.\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E Стоит сказать, что Monolog обладает огромным числом Formatter, Processor, Handler из коробки. Вы можете как использовать их, так и написать свои собственные.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"subtlety\"\u003E\u003C\u002Fa\u003E\u003Ch2\u003EОсобенности применения в Magento 2\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nНа \u003Ca href=\"https:\u002F\u002Fdevdocs.magento.com\u002Fguides\u002Fv2.3\u002Fconfig-guide\u002Flog\u002Flog-magento.html\"\u003Eоффициальном сайте Magento\u003C\u002Fa\u003E вы можете найти общий пример как использовать логгер. К несчастью представленный пример не раскрывает всех деталей и увы не отвечает на вопрос «как писать логи в свой собственный файл». Поэтому давайте разберемся во всем по подробнее.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВо времена Magento 1, наверное, все рано или поздно использовали Mage::log метод, который был доступен везде в коде и запись самого простого лога выглядела как Mage::log('ALARM!', null, 'api.log'). В результате у нас была запись следующего вида в файле var\u002Flog\u002Fapi.log\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E2019-08-12T01:00:27+00:00 DEBUG (7): ALARM!\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EФормат по умолчанию: %timestamp% %priorityName% (%priority%): %message%.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДавайте посмотрим как логировать данные в самом простом случае в Magento 2. Чаще всего вы будете использовать $this-\u003E_logger-\u003Einfo('ALARM!'); (если такое свойство имеется у объекта, например унаследовано).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ результате такого вызова мы получим следующую запись в файле var\u002Flog\u002Fsystem.log\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E[2019-08-12 02:56:43] main.INFO: ALARM! [] []\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EФормат по умолчанию: [%datetime%] %channel%.%level_name%: %message% %context% %extra%\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EЕсли такого свойства (_logger или logger) нет у объекта, тогда нам понадобится сначала добавить в ваш класс зависимость \\Psr\\Log\\LoggerInterface и записать полученный объект в свойство $logger (согласно \u003Ca href=\"https:\u002F\u002Fwww.php-fig.org\u002Fpsr\u002Fpsr-2\u002F#42-properties\"\u003EPSR-2 пункту 4.2\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Fdevdocs.magento.com\u002Fguides\u002Fv2.3\u002Fconfig-guide\u002Flog\u002Flog-magento.html\"\u003Eпримеру, представленному на сайте Magento\u003C\u002Fa\u003E).\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E В отличии от Magento 1, здесь куда больше нюансов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E1. Параметры для записи лога.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРассмотрим общий вызов метода записи\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E$this-\u003E_logger-\u003E{level}($message, $context = []);\n\u002F\u002F$this-\u003E_logger-\u003Elog('{level}', $message, $context = []);\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003E1)\u003C\u002Fb\u003E Где {level} это, согласно PSR-3, 1 из методов, зарезервированных для логирования определенного уровня ошибки (debug, info, notice, warning, error, critical, alert, emerg\u002Femergency).\u003Cbr\u002F\u003E\r\n\u003Cb\u003E2)\u003C\u002Fb\u003E $message — в отличии от Magento 1, это должна быть строка. Т.е. $object-\u003EgetData() здесь не будет работать. Массив с данными надо передавать в следующий параметр. Объекты \\Exception являются исключением, так как реализация \\Magento\\Framework\\Logger\\Monolog обрабатывает их отдельно и автоматически прокидывает -\u003EgetMessage() дальше в качестве $message, если объект \\Exception был передан в качестве сообщения.\u003Cbr\u002F\u003E\r\n\u003Cb\u003E3)\u003C\u002Fb\u003E $context — это необязательный параметр, массив.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E2. Свойство $this-\u003E_logger имеется не во всех классах. \u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EПрисутствует\u003C\u002Fb\u003E в: Block, Helper, Model, Collection, etc.\u003Cbr\u002F\u003E\r\n\u003Cb\u003EОтсутствует\u003C\u002Fb\u003E в: ResourceModel, Controller, Comand, Setup, etc.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EПодробнее про ResourceModel и Collection\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003EВ ResourceModel имеется свойство _logger, но оно не заполняется в конструкторе. Оно заполняется только при помощи приватного метода getLogger в \\Magento\\Framework\\Model\\ResourceModel\\AbstractResource. Метод вызывается только в случае ошибки во время записи в бд (в блоке catch) внутри метода commit(). До тех пор, логгера у ресурс моделей не будет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Epublic function commit()\n{\n     $this-\u003EgetConnection()-\u003Ecommit();\n \n      if ($this-\u003EgetConnection()-\u003EgetTransactionLevel() === 0) {\n          $callbacks = CallbackPool::get(spl_object_hash($this-\u003EgetConnection()));\n          try {\n                foreach ($callbacks as $callback) {\n                    call_user_func($callback);\n                }\n            } catch (\\Exception $e) {\n                $this-\u003EgetLogger()-\u003Ecritical($e);\n            }\n        }\n    return $this;\n}\n\n…\nprivate function getLogger()\n{\n     if (null === $this-\u003E_logger) {\n         $this-\u003E_logger = ObjectManager::getInstance()-\u003Eget(\\Psr\\Log\\LoggerInterface::class);\n     }\n     return $this-\u003E_logger;\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nУ Collection логгер имеется с самого начала. Он присваивается в конструкторе \\Magento\\Framework\\Data\\Collection\\AbstractDb и позже наследуется.\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nНельзя не сказать, но в контроллерах есть способ получить логгер при помощи ObjectManager (через свойство $this-\u003E_objectManager). Но это не является, конечно же, самым правильным способом.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E3. Дефолтный логгер и список хендлеров.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ глобальном di.xml (app\u002Fetc\u002Fdi.xml) вы можете найти, что \\Psr\\Log\\LoggerInterface имплементится \\Magento\\Framework\\Logger\\Monolog классом, который в свою очередь наследуется от \\Monolog\\Logger. Имя логгера main. Там же определены несколько хендлеров\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E…\n&lt;preference for=\"Psr\\Log\\LoggerInterface\" type=\"Magento\\Framework\\Logger\\Monolog\" \u002F\u003E\n...\n&lt;type name=\"Magento\\Framework\\Logger\\Monolog\"\u003E\n    &lt;arguments\u003E\n        &lt;argument name=\"name\" xsi:type=\"string\"\u003Emain&lt;\u002Fargument\u003E\n        &lt;argument name=\"handlers\" xsi:type=\"array\"\u003E\n            &lt;item name=\"system\" xsi:type=\"object\"\u003EMagento\\Framework\\Logger\\Handler\\System&lt;\u002Fitem\u003E\n            &lt;item name=\"debug\" xsi:type=\"object\"\u003EMagento\\Framework\\Logger\\Handler\\Debug&lt;\u002Fitem\u003E\n            &lt;item name=\"syslog\" xsi:type=\"object\"\u003EMagento\\Framework\\Logger\\Handler\\Syslog&lt;\u002Fitem\u003E\n        &lt;\u002Fargument\u003E\n    &lt;\u002Farguments\u003E\n&lt;\u002Ftype\u003E\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНекоторые классы отличаются от перечисленных выше (так как переопределены в модуле Magento\\Developer):\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E1)\u003C\u002Fb\u003E Magento\\Framework\\Logger\\Handler\\System (\u003Ci\u003Eслушает INFO)\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003E2)\u003C\u002Fb\u003E Magento\\Developer\\Model\\Logger\\Handler\\Debug (\u003Ci\u003Eслушает DEBUG\u003C\u002Fi\u003E)\u003Cbr\u002F\u003E\r\n\u003Cb\u003E3)\u003C\u002Fb\u003E Magento\\Developer\\Model\\Logger\\Handler\\Syslog (\u003Ci\u003Eслушает DEBUG\u003C\u002Fi\u003E)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ указанных классах (Debug и Syslog) \u003Ca href=\"https:\u002F\u002Fdevdocs.magento.com\u002Fguides\u002Fv2.3\u002Fconfig-guide\u002Fcli\u002Flogging.html\"\u003Eдобавлена возможность отключать запись логов\u003C\u002Fa\u003E (dev\u002Fdebug\u002Fdebug_logging и dev\u002Fsyslog\u002Fsyslog_logging соответственно).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОбратите внимание, что в списке хендлеров нет exception хендлера, который производит запись в exception.log. Он вызывается в System хендлере.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EMagento\\Framework\\Logger\\Handler\\System\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cpre\u003E\u003Ccode class=\"php\"\u003E...\npublic function write(array $record)\n    {\n        if (isset($record['context']['exception'])) {\n            $this-\u003EexceptionHandler-\u003Ehandle($record);\n\n            return;\n        }\n\n        $record['formatted'] = $this-\u003EgetFormatter()-\u003Eformat($record);\n\n        parent::write($record);\n    }\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EВ Magento 2 до 2.2 \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fmagento\u002Fmagento2\u002Fissues\u002F2529\"\u003Eбыла проблема \u003C\u002Fa\u003Eсвязанная с тем, что логгер не мог перепрыгивать на другой хендлер после первого найденного. Данная проблема была вызвана тем, что Monolog рассчитывал что к нему все хендлеры приходят в массиве с цифровыми ключами, а приходили с буквенными (['system'=\u003E,'debug'=\u003E,...]). Разработчики Magento позже исправили ситуацию — они преобразуют хеш в обычный массив с цифровыми ключами прежде чем передать его в Monolog. Monolog сейчас так же изменил алгоритм перебора хендлеров и использует метод next().\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E \u003Cb\u003E4. Внедрение своего хендлера в список уже существующих.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы подходим к самому интересному, что немного портит впечатление от реализации в Magento 2. Вы не сможете добавить кастомный хендлер к списку уже существующих при помощи di.xml без …”дополнительных телодвижений”. Это связано с принципом мерджа конфигов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСуществует несколько \u003Cb\u003EConfig Scope\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E1)\u003C\u002Fb\u003E Initial (app\u002Fetc\u002Fdi.xml)\u003Cbr\u002F\u003E\r\n\u003Cb\u003E2)\u003C\u002Fb\u003E Global ({moduleDir}\u002Fetc\u002Fdi.xml)\u003Cbr\u002F\u003E\r\n\u003Cb\u003E3)\u003C\u002Fb\u003E Area-specific ({moduleDir}\u002Fetc\u002F{area}\u002Fdi.xml ie. frontend\u002Fadminhtml\u002Fcrontab\u002Fwebapi_soap\u002Fwebapi_rest, etc.)\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВнутри 1 уровня конфиги объединяются, но следующий уровень переопределяет их при мердже (если они там тоже объявлены). Это приводит к невозможности добавлять хендлеры в своих модулях к существующему списку, так как он объявлен в initial scope.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ci\u003EВозможно в будущем мы увидим реализацию, в которой добавление хендлеров будет вынесено из initial scope в какой-то другой модуль, тем самым перенесено в global scope.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"howto\"\u003E\u003C\u002Fa\u003E\u003Ch2\u003EРеализация\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nДавайте рассмотрим основные способы записи логов, которые могут пригодится нам при реализации задач.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"howto1\"\u003E\u003C\u002Fa\u003E\u003Ch3\u003E1. Запись лога при помощи стандартного логгера\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДанный способ позволяет нам достаточно легко писать логи в 1 из стандартных логов (debug.log, system.log или exception.log).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Eclass RandomClass\n{\n    private $logger;\n\n    public function __construct(\\Psr\\Log\\LoggerInterface $logger)\n    {\n         $this-\u003Elogger = $logger;\n    }\n\n    public function foo()\n    {\n         $this-\u003Elogger-\u003Einfo('Something went wrong');\n         \u002F\u002F[...some date...] main.INFO: Something went wrong [] []\n    }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВсе становится еще проще, если в нашем классе уже присутствует унаследованная зависимость логгера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E…\n$this-\u003E_logger-\u003Einfo('Something went wrong'); \u002F\u002F можно использовать метод -\u003Edebug, если вы хотите, чтобы сообщение писалось только в debug.log\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ca name=\"howto2\"\u003E\u003C\u002Fa\u003E\u003Ch3\u003E2. Запись лога при помощи стандартного логгера с кастомным каналом\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДанный способ отличается от предыдущего тем, что создается клон логгера и ему назначается другой канал (имя). Что упростит поиск внутри файла логов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Eclass RandomClass\n{\n    private $logger;\n\n    public function __construct(\\Psr\\Log\\LoggerInterface $logger)\n    {\n         $this-\u003Elogger = $logger-\u003EwithName('api'); \u002F\u002Fможет быть любое имя\n    }\n\n    public function foo()\n    {\n         $this-\u003Elogger-\u003Einfo('Something went wrong');\n         \u002F\u002F[...some date...] api.INFO: Something went wrong [] []\n    }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля поиска нужных логов теперь достаточно воспользоваться поиском по «api» (дефолтный логгер в Magento 2 называется main) в уже существующих файлах system.log, debug.log, exception.log. Можно использовать\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"bash\"\u003Egrep -rn 'api' var\u002Flog\u002Fsystem.log\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"howto3\"\u003E\u003C\u002Fa\u003E\u003Ch3\u003E3. Запись в кастомный файл при помощи собственного хендлера\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nСоздадим простой хендлер, который логирует все ошибки уровня Critical и выше в отдельный файл var\u002Flog\u002Fcritical.log. Добавим также возможность, чтобы он блокировал все остальные хендлеры для данного уровня ошибки и выше. Это позволит уйти от дублирования данных в debug.log и system.log файлах.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E&lt;?php\nnamespace Oxis\\Log\\Logger\\Handler;\n\nuse Magento\\Framework\\Filesystem\\DriverInterface;\nuse Magento\\Framework\\Logger\\Handler\\Base;\nuse Monolog\\Logger;\n\nclass Test extends Base\n{\n    protected $fileName = 'var\u002Flog\u002Fcritical.log';\n\n    protected $loggerType = Logger::CRITICAL;\n    public function __construct(DriverInterface $filesystem)\n    {\n          parent::__construct($filesystem,null,null);\n          $this-\u003Ebubble = false; \u002F\u002Fтак же можно и через метод setBubble()\n    }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EВ Magento 2 2.2+ в конструкторе \\Magento\\Framework\\Logger\\Handler\\Base изменился способ обработки пути до файла с логом\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E\u002F\u002Fбыло\nBP . $this-\u003EfileName\n\u002F\u002Fстало\nBP. DIRECTORY_SEPARATOR . $this-\u003EfileName\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nПоэтому в старых хендлерах вы все еще можете найти \u002F в начале $fileName.\u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nК примеру выше стоит дать небольшое пояснение. Так как Base не позволяет установить bubble свойство через параметры конструктора, то нам бы пришлось либо повторять часть кода из конструктора Base, чтобы передать корректно входной параметр в родителя класса Base (который, к слову сказать, обладает входным параметром для установки этого свойства) либо воспользоваться таким подходом. Я выбрал 2ой вариант.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Euse Oxis\\Log\\Logger\\Handler\\Test;\nuse Psr\\Log\\LoggerInterface;\n\nclass RandomClass\n{\n    private $logger;\n\n    public function __construct(\n        LoggerInterface $logger,\n        Test $handler\n    ) {\n         $logger-\u003EpushHandler($handler); \u002F\u002Fможно использовать setHandlers([$handler]), тогда все остальные хендлеры будут заменены нашим хендлером.\n         $this-\u003Elogger = $logger;\n    }\n\n    public function foo()\n    {\n         $this-\u003Elogger-\u003Ecritical('Something went wrong'); \u002F\u002F запись будет добавлена только в critical.log\n         \u002F\u002F[...some date...] main.CRITICAL: Something went wrong [] []\n    }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДанный способ добавления хендлера, не идеальный, но позволяет уйти от Config Scope проблемы, которая потребует от нас дублировать все логгеры у себя в di.xml. Если же цель заменить все логгеры своим, то гораздо лучше использовать virtualType подход, который мы рассмотрим дальше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"howto4\"\u003E\u003C\u002Fa\u003E\u003Ch3\u003E4. Запись в кастомный файл при помощи virtualType\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nДанный подход позволяет нам заставить необходимый нам класс писать логи в указанный для этого лог файл при помощи di.xml. Похожий подход вы можете найти в Magento\\Payment и Magento\\Shipping модулях. Обращаю ваше внимание на то, что этот подход работает начиная с Magento 2 2.2 и выше.\u003Cbr\u002F\u003E\r\n\u003Cblockquote\u003EВ Magento 2 2.2+ был добавлен новый параметр в конструктор \\Magento\\Framework\\Logger\\Handler\\Base, что позволяет создавать виртуальный хендлер и указывать через di.xml относительный путь до файл для записи лога. Ранее требовалось либо указывать полный путь через $filePath, либо создавать новый хендлер и записывать относительный путь в протектед свойство $fileName. \u003Cbr\u002F\u003E\r\n\u003C\u002Fblockquote\u003E\u003Cbr\u002F\u003E\r\nВ di.xml нашего модуля добавляем следующее\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E     &lt;!--Создаем виртуальный хендлер и указываем ему файл, в который будем писать логи--\u003E\n     &lt;virtualType name=\"ApiHandler\" type=\"Magento\\Framework\\Logger\\Handler\\Base\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"fileName\" xsi:type=\"string\"\u003Evar\u002Flog\u002Fapi.log&lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n    &lt;\u002FvirtualType\u003E\n   \n   &lt;!--Создаем виртуальный логгер, в который добавляем наш хендлер--\u003E\n    &lt;virtualType name=\"ApiLogger\" type=\"Magento\\Framework\\Logger\\Monolog\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"name\" xsi:type=\"string\"\u003Eapi&lt;\u002Fargument\u003E\n            &lt;argument name=\"handlers\" xsi:type=\"array\"\u003E\n                &lt;item name=\"default\" xsi:type=\"object\"\u003EApiHandler&lt;\u002Fitem\u003E\n            &lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n    &lt;\u002FvirtualType\u003E\n\n   &lt;!--Добавляем в наш класс только что созданный логгер--\u003E\n    &lt;type name=\"Oxis\\Log\\Model\\A\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"logger\" xsi:type=\"object\"\u003EApiLogger&lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n    &lt;\u002Ftype\u003E\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nДобавляем в Oxis\\Log\\Model\\A класс логгер.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003Enamespace Oxis\\Log\\Model;\n\nclass A\n{\n    private $logger;\n\n    public function __construct(\\Psr\\Log\\LoggerInterface $logger)\n    {\n         $this-\u003Elogger = $logger;\n    }\n\n    public function foo()\n    {\n         $this-\u003Elogger-\u003Einfo('Something went wrong');\n    }\n}\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь абсолютно все логи, которые будут писаться в нашем классе будут обрабатываться нашей версией логгера, который будет писать логи при помощи нашего хендлера в файл var\u002Flog\u002Fapi.log.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003E4.1. Если класс получает логгер через объект $context, а не через свой конструктор.\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\nСюда можно отнести \\Magento\\Catalog\\Model\\Product, в зависимостях которого нет \\Psr\\Log\\LoggerInterface, но есть \\Magento\\Framework\\Model\\Context, через который происходит установка логгера в свойство класса. В таком случае, нам необходимо немного усложнить вариант выше и подменить логгер находящийся в $context объекте. А чтобы это не затронуло всю Magento, то подменим $context только для нашего класса при помощи virtualType. \u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"xml\"\u003E&lt;virtualType name=\"ApiHandler\" type=\"Magento\\Framework\\Logger\\Handler\\Base\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"fileName\" xsi:type=\"string\"\u003Evar\u002Flog\u002Fapi.log&lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n&lt;\u002FvirtualType\u003E\n&lt;virtualType name=\"ApiLogger\" type=\"Magento\\Framework\\Logger\\Monolog\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"name\" xsi:type=\"string\"\u003Eapi&lt;\u002Fargument\u003E\n            &lt;argument name=\"handlers\" xsi:type=\"array\"\u003E\n                &lt;item name=\"default\" xsi:type=\"object\"\u003EApiHandler&lt;\u002Fitem\u003E\n            &lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n&lt;\u002FvirtualType\u003E\n\n&lt;!--Создаем виртуальный контекст и подменяем в нем logger--\u003E\n &lt;virtualType name=\"ApiLogContainingContext\" type=\"Magento\\Framework\\Model\\Context\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"logger\" xsi:type=\"object\"\u003EApiLogger&lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n&lt;\u002FvirtualType\u003E\n\n&lt;!--Заменяем контекст в нашем классе--\u003E\n&lt;type name=\"Oxis\\Log\\Model\\A\"\u003E\n        &lt;arguments\u003E\n            &lt;argument name=\"context\" xsi:type=\"object\"\u003EApiLogContainingContext&lt;\u002Fargument\u003E\n        &lt;\u002Farguments\u003E\n&lt;\u002Ftype\u003E\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"howto5\"\u003E\u003C\u002Fa\u003E\u003Ch3\u003E5. Быстрое логирование данных\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\nБывают случаи, когда нам необходимо быстро добавить логирование. Чаще всего это может понадобиться либо на продакшен сервере либо для быстрого тестирования.\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E...\n$log = new \\Monolog\\Logger('custom', [new \\Monolog\\Handler\\StreamHandler(BP.'\u002Fvar\u002Flog\u002Fcustom.log')]);\n$log-\u003Eerror('test');\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EПлюсы данного подхода: пишет дату, имеется контекст (массив), автоматически добавляет \\n в конец\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ примере выше специально применен \\Monolog\\Logger, а не \\Magento\\Framework\\Logger\\Monolog который его расширяет. Дело в том, что при таком использовании разницы никакой нет, а писать меньше (и запомнить проще).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\\Monolog\\Handler\\StreamHandler в свою очередь применен вместо \\Magento\\Framework\\Logger\\Handler\\Base так как Base использовать в качестве сниппета не очень удобно по причине дополнительных зависимостей от сторонних классов.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДругой подход, о котором нельзя не сказать — это старый добрый file_put_contents.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"php\"\u003E...\nfile_put_contents(BP.'\u002Fvar\u002Flog\u002Fcustom.log', 'test',FILE_APPEND);\n...\n\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EПлюсы данного подхода: относительно быстро писать и не нужно запоминать классы.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ обоих случаях главную роль выполняет константа \u003Cb\u003EBP\u003C\u002Fb\u003E. Она всегда указывает на папку с маджентой (на 1 уровень выше pub), что удобно и всегда помогает нам писать логи в нужное место.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca name=\"fin\"\u003E\u003C\u002Fa\u003E\u003Ch2\u003EЗаключение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЯ надеюсь информация изложенная выше оказалась или окажется вам полезной.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"magento 2"},{"titleHtml":"magento2"},{"titleHtml":"php"},{"titleHtml":"psr-3"},{"titleHtml":"monolog"},{"titleHtml":"логирование"},{"titleHtml":"logs"},{"titleHtml":"logging"},{"titleHtml":"magento"},{"titleHtml":"magento ecommerce"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450636\u002Fe10d20e0d77b4bc91432c9e2ed338f13\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450636\u002Fe10d20e0d77b4bc91432c9e2ed338f13\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450636\\\u002F\"},\"headline\":\"Magento 2. Monolog или как писать логи\",\"datePublished\":\"2019-08-12T07:32:08+03:00\",\"dateModified\":\"2019-08-12T11:25:36+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Валентин Климов\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450636\\\u002F#post-content-body\",\"about\":[\"h_php\",\"h_ecommerce_development\",\"h_magento\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabr.com\\\u002Fshare\\\u002Fpublication\\\u002F450636\\\u002Fe10d20e0d77b4bc91432c9e2ed338f13\\\u002F\"]}","metaDescription":"Изучая различные модули для Magento 2 можно заметить, что логирование используется значительно реже по сравнению с Magento 1. В большей степени это связано с тем, что запись логов стала сложнее. Здесь...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[{"title":"PHP программист","vacanciesCount":284,"itemUrl":"https:\u002F\u002Fcareer.habr.com\u002Fvacancies\u002Fphp_programmist","itemHubs":["php"]},{"title":"Разработчик Laravel","vacanciesCount":104,"itemUrl":"https:\u002F\u002Fcareer.habr.com\u002Fvacancies\u002Fprogrammist_laravel","itemHubs":["laravel","php"]}],"hubs":"php,ecommerce_development,magento"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

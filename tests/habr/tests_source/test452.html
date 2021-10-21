@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450452\/"},"headline":"Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала","datePublished":"2019-05-27T06:55:58+03:00","dateModified":"2019-06-18T14:17:03+03:00","author":{"@type":"Person","name":"Иван"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.  Содержание серии статей Часть 1: Общ...","url":"https:\/\/habr.com\/ru\/post\/450452\/#post-content-body","about":["h_network_technologies","h_netdev","h_displays","h_network_hardware","h_engineering_systems","f_develop","f_admin","f_popsci"],"image":["https:\/\/habrastorage.org\/webt\/ur\/fh\/pq\/urfhpqjzkipv9ttthckc9q00mcc.jpeg","https:\/\/habrastorage.org\/webt\/_s\/h2\/pp\/_sh2pp9cyyyghkk9zokf2irnlte.jpeg","https:\/\/habrastorage.org\/webt\/du\/r6\/_0\/dur6_0rctj0ohthzkz3vry9ysmy.jpeg","https:\/\/habrastorage.org\/webt\/_d\/9l\/q-\/_d9lq-9qia-05egcppowhdhxgua.jpeg","https:\/\/habrastorage.org\/webt\/d7\/xv\/qh\/d7xvqhfayha3jrj7vog8med28_e.jpeg","https:\/\/habrastorage.org\/webt\/f9\/96\/bx\/f996bxfjxt3pagjifny1nptafr0.jpeg","https:\/\/habrastorage.org\/webt\/zx\/ip\/bg\/zxipbgccwibu29kb6atgan7kidy.jpeg","https:\/\/habrastorage.org\/webt\/ru\/rx\/zi\/rurxzir96k56t5ujeiauiu4y1h8.jpeg","https:\/\/habrastorage.org\/webt\/ew\/su\/34\/ewsu34up7fsvjagp4xnogigjfzg.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.
+
+Содержание серии статей
+Часть 1: Общая архитектура сети КТВ
+Часть 2:..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.
+
+Содержание серии статей
+Часть 1: Общая архитектура сети КТВ
+Часть 2:..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.
+
+Содержание серии статей
+Часть 1: Общая архитектура сети КТВ
+Часть 2:..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.
+
+Содержание серии статей
+Часть 1: Общая архитектура сети КТВ
+Часть 2:..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.
+
+Содержание серии статей
+Часть 1: Общая архитектура сети КТВ
+Часть 2:..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450452/287e2ad9b128944fb79ae19277fe30b7/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450452/287e2ad9b128944fb79ae19277fe30b7/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450452/287e2ad9b128944fb79ae19277fe30b7/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450452/287e2ad9b128944fb79ae19277fe30b7/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450452/287e2ad9b128944fb79ae19277fe30b7/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450452" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-27T03:55:58.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450452/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450452/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450452/287e2ad9b128944fb79ae19277fe30b7/" data-vmid="image:href"><link data-vue-meta="ssr" rel="amphtml" href="https://habr.com/ru/amp/post/450452/">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/BAHEK794/" title="BAHEK794" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/b24/e9f/f67/b24e9ff671b051250512f9e281544576.jpg" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/BAHEK794/" class="tm-user-info__username">
+      BAHEK794
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-27T03:55:58.000Z" title="2019-05-27, 06:55">27  мая  2019 в 06:55</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/network_technologies/" class="tm-article-snippet__hubs-item-link"><span>Сетевые технологии</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/netdev/" class="tm-article-snippet__hubs-item-link"><span>Разработка систем связи</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/displays/" class="tm-article-snippet__hubs-item-link"><span>Мониторы и ТВ</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/network_hardware/" class="tm-article-snippet__hubs-item-link"><span>Сетевое оборудование</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/engineering_systems/" class="tm-article-snippet__hubs-item-link"><span>Инженерные системы</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><img src="https://habrastorage.org/r/w780q1/webt/ur/fh/pq/urfhpqjzkipv9ttthckc9q00mcc.jpeg" data-src="https://habrastorage.org/webt/ur/fh/pq/urfhpqjzkipv9ttthckc9q00mcc.jpeg" data-blurred="true"/><br/>
+<br/>
+В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.<br/>
+<a name="habracut"></a><br/>
+<div class="spoiler"><b class="spoiler_title">Содержание серии статей</b><div class="spoiler_text"><ul>
+<li><a href="https://habr.com/ru/post/449322/">Часть 1: Общая архитектура сети КТВ</a></li>
+<li><a href="https://habr.com/ru/post/449902/">Часть 2: Состав и форма сигнала</a></li>
+<li><a href="https://habr.com/ru/post/450256/">Часть 3: Аналоговая составляющая сигнала</a></li>
+<li><a href="https://habr.com/ru/post/450258/">Часть 4: Цифровая составляющая сигнала</a></li>
+<li><a href="https://habr.com/ru/post/450278/">Часть 5: Коаксиальная распределительная сеть</a></li>
+<li><a href="https://habr.com/ru/post/450452/">Часть 6: Усилители RF-сигнала</a></li>
+<li><a href="https://habr.com/ru/post/454542/">Часть 7: Оптические приёмники</a></li>
+<li><a href="https://habr.com/ru/post/455355/">Часть 8: Оптическая магистральная сеть</a></li>
+<li><a href="https://habr.com/ru/post/455858/">Часть 9: Головная станция</a></li>
+<li><a href="https://habr.com/ru/post/456574/">Часть 10: Поиск и устранение неисправностей на сети КТВ</a></li>
+</ul></div></div><br/>
+В случае, если на доме (или даже в целом квартале) только один оптический приёмник и вся разводка до стояков выполнена коаксиальным кабелем, обязательно требуется усиление сигнала в их начале. В нашей сети применяются в основном устройства фирмы Teleste, поэтому рассказывать буду на их примере, но принципиально оборудование других производителей ничем не отличается и набор функционала для настройки обычно схож.<br/>
+<br/>
+Минимальное количество настроек имеет модель CXE180M:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/_s/h2/pp/_sh2pp9cyyyghkk9zokf2irnlte.jpeg" data-src="https://habrastorage.org/webt/_s/h2/pp/_sh2pp9cyyyghkk9zokf2irnlte.jpeg" data-blurred="true"/><br/>
+<br/>
+Как вы, вероятно, помните из предыдущих частей у сигнала есть два важных количественных параметра: это уровень и наклон. Именно их и могут помочь поправить настройки усилителя. Начнём по порядку: сразу после входного разъёма находится <b>аттенюатор</b>. Он позволяет уменьшить входной сигнал на величину до 31дБ (при переключении синего джампера в соответствии со схемой диапазон крутилки меняется с 0-15 на 16-31дБ). Это бывает необходимо в случае, если на усилитель приходит сигнал более 70 дБмкВ. Дело в том, что усилительный каскад обеспечивает подъём уровня сигнала на 40 дБ, а на выходе мы должны снять не более 110 дБмкВ (при более высоком уровне резко падает отношение сигнал/шум и эта цифра актуальна для всех широкополосных усилителей и приёмников с встроенным усилителем). Таким образом, если на вход усилителя попадает 80 дБмкВ, например, то на выходе он нам отдаст 120 дБмкВ шума и рассыпающейся цифры. Чтобы этого избежать нужно выставить входной аттенюатор в положение гашения 10дБ.<br/>
+<br/>
+За аттенюатором мы видим <b>эквалайзер</b>. Он необходим для устранения обратного наклона, если он есть. Достигается это за счёт уменьшения уровня сигнала в зоне низких частот на величину до 20дБ. Стоит обратить внимание, что устранить обратный наклон, подняв уровень верхних частот мы не сможем, только задавить нижние.<br/>
+<br/>
+Этих двух инструментов бывает достаточно для того, чтобы исправить незначительные отклонения сигнала от нормы. В случае, если это не так, то можно воспользоваться следующими:<br/>
+<br/>
+<b>Симулятор кабеля</b>, выполненный в виде вставки, которую можно поставить горизонтально или вертикально, как понятно из названия, симулирует включение длинного участка кабеля, на котором должно произойти затухание преимущественно верхних частот диапазона. Это позволяет уменьшить при необходимости прямой наклон, задавив 8дБ в зоне высоких частот. Такое бывает полезно при установке усилителей каскадом на короткой дистанции, например.<br/>
+<br/>
+После этих манипуляций сигнал проходит первую ступень усилительного каскада, после которой мы видим ещё одну вставку, которая позволяет дополнительно снизить коэффициент усиления. Следующий за ним джампер вновь поможет нам задавить низкие частоты для получения необходимого наклона. Эти две настройки по сути являются аналогом входных аттенюатора и эквалайзера, но работающих со второй ступенью каскада.<br/>
+<br/>
+На выходе усилительного каскада мы видим <b>тестовый отвод</b>. Это стандартный резьбовой разъём, к которому можно подключить измерительный прибор или телеприёмник для контроля качества выходного сигнала. Не все приборы и практически ни какие телевизоры способны нормально переварить сигнал с уровнем в сто и более дБмкВ, поэтому тестовые отводы на любом оборудовании всегда делаются с затуханием в 20-30дБ от действительной величины на выходе. Это нужно всегда держать в голове, проводя измерения.<br/>
+<br/>
+Перед выходом установлена ещё одна вставка. На фото усилителя видно, что изображённая на ней стрелка указывает только на правый вывод. И это значит, что в левом сигнала не будет. Такие вставки стоят в этих усилителях «из коробки», а внутри самой коробки в комплекте поставки лежит другая:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/du/r6/_0/dur6_0rctj0ohthzkz3vry9ysmy.jpeg" data-src="https://habrastorage.org/webt/du/r6/_0/dur6_0rctj0ohthzkz3vry9ysmy.jpeg" data-blurred="true"/><br/>
+<br/>
+Она позволяет задействовать второй вывод, но неизбежно вносит затухание сигнала на величину 4дБ.<br/>
+<br/>
+Усилитель модели CXE180RF на первый взгляд имеет вдвое больше настроек:<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/_d/9l/q-/_d9lq-9qia-05egcppowhdhxgua.jpeg" data-src="https://habrastorage.org/webt/_d/9l/q-/_d9lq-9qia-05egcppowhdhxgua.jpeg" data-blurred="true"/><br/>
+<br/>
+На самом деле всё не так страшно: за исключением небольших отличий здесь всё то же самое, что и в рассмотренном выше.<br/>
+<br/>
+Во-первых, на входе появился тестовый отвод. Он нужен для контроля сигнала без отключения кабеля от входа усилителя и, соответственно, без перерыва вещания.<br/>
+<br/>
+Во-вторых, появившиеся диплексные фильтры, а так же аттенюатор и эквалайзер выхода необходимы для настройки каналов прохождения DOCSIS, поэтому в рамках этой статьи скажу лишь, что фильтры отрезают те частоты, которые указаны на них и это может стать проблемой, если в спектре сигнала на этих частотах вещаются ТВ каналы. К счастью, производитель выпускает их с разными значениями и заменить их при необходимости не составляет труда.<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/d7/xv/qh/d7xvqhfayha3jrj7vog8med28_e.jpeg" data-src="https://habrastorage.org/webt/d7/xv/qh/d7xvqhfayha3jrj7vog8med28_e.jpeg" data-blurred="true"/><br/>
+<br/>
+Крутилки же (как и джампер, вносящий затухание в 10дБ) влияют исключительно на обратный канал и никак не способны изменить телевизионный сигнал.<br/>
+<br/>
+А вот оставшиеся три джампера предлагают нам познакомиться с такой технологией, как <b>удалённое питание</b>.<br/>
+<br/>
+При проектировании домов зачастую усилители размещаются в таких местах, где могут быть проблемы с подводом электричества от распределительных щитов. Кроме того, каждая пара «вилка-розетка», подразумевающая за собой ещё и автоматический выключатель (который может быть установлен в самом неожиданном месте), представляют собой потенциальную точку отказа. В связи с этим существует возможность питать оборудование прямо по коаксиальному кабелю. Причём, как видно из маркировки на накладке блока питания, это может быть как переменный, так и постоянный ток с весьма широким диапазоном напряжений. Так вот: эти три джампера и включают возможность протекания питающего тока на вход, а так же на каждый из двух выходов по отдельности, если нам нужно запитать следующий усилитель в каскаде. При включении стояка с абонентами напряжение на выход конечно же подавать нельзя!<br/>
+<br/>
+Я уже упоминал в <a href="https://habr.com/ru/post/450278/">предыдущей</a> части, что в такой системе используются специальные магистральные ответвители:<br/>
+<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/f9/96/bx/f996bxfjxt3pagjifny1nptafr0.jpeg" data-src="https://habrastorage.org/webt/f9/96/bx/f996bxfjxt3pagjifny1nptafr0.jpeg" data-blurred="true"/><br/>
+<img src="https://habrastorage.org/r/w780q1/webt/zx/ip/bg/zxipbgccwibu29kb6atgan7kidy.jpeg" data-src="https://habrastorage.org/webt/zx/ip/bg/zxipbgccwibu29kb6atgan7kidy.jpeg" data-blurred="true"/><br/>
+<br/>
+В них используются более крупные и надёжные элементы, а массивный корпус обеспечивает теплоотвод и защиту.<br/>
+<br/>
+Источником питания в таком случае является блок с встроенным массивным трансформатором:<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ru/rx/zi/rurxzir96k56t5ujeiauiu4y1h8.jpeg" data-src="https://habrastorage.org/webt/ru/rx/zi/rurxzir96k56t5ujeiauiu4y1h8.jpeg" data-blurred="true"/><br/>
+<br/>
+Стоит сказать, что при кажущейся оптимальности схемы дистанционного питания, работающие таким образом усилители реже без последствий переживают аварии энергоснабжения на домах, а при их замене техперсоналу дополнительно приходится искать и отключать питание самого блока, чтобы не работать с кабелями под напряжением и, таким образом, на время замены одного усилителя без сигнала остаётся весь дом. По той же причине на таких усилителях необходим тестовый отвод на входе: иначе пришлось бы работать с кабелем под током.<br/>
+<br/>
+Было бы интересно узнать от коллег насколько распространены системы с дистанционным питанием, напишите в комментариях, если используете, пожалуйста.<br/>
+<br/>
+При необходимости подключить большое количество телевизоров внутри квартиры или офиса можно столкнуться с нехваткой уровня после цепочки делителей. В таком случае необходимо устанавливать усилитель на территории абонента, для чего используются небольшие устройства с минимальным количеством настроек и меньшим уровнем усиления. <br/>
+Например, такой:<br/>
+<img src="https://habrastorage.org/r/w780q1/webt/ew/su/34/ewsu34up7fsvjagp4xnogigjfzg.jpeg" data-src="https://habrastorage.org/webt/ew/su/34/ewsu34up7fsvjagp4xnogigjfzg.jpeg" data-blurred="true"/></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%BA%D0%B0%D0%B1%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5%20%D1%82%D0%B5%D0%BB%D0%B5%D0%B2%D0%B8%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%5D" class="tm-tags-list__link">кабельное телевидение</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%9A%D0%A2%D0%92%5D" class="tm-tags-list__link">КТВ</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%A1%D0%BA%D1%82%D0%B2%D0%94%D0%A1%D0%9C%5D" class="tm-tags-list__link">СктвДСМ</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/network_technologies/" class="tm-hubs-list__link">
+    Сетевые технологии
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/netdev/" class="tm-hubs-list__link">
+    Разработка систем связи
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/displays/" class="tm-hubs-list__link">
+    Мониторы и ТВ
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/network_hardware/" class="tm-hubs-list__link">
+    Сетевое оборудование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/engineering_systems/" class="tm-hubs-list__link">
+    Инженерные системы
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 19: ↑19 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 19: ↑19 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+19</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">23K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    37
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/BAHEK794/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/b24/e9f/f67/b24e9ff671b051250512f9e281544576.jpg" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 21 голос " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    17
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Иван</span> <a href="/ru/users/BAHEK794/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @BAHEK794
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Инженер эксплуатации сетей связи</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450452/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 21 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450452/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450452/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450452":{"id":"450452","timePublished":"2019-05-27T03:55:58+00:00","isCorporative":false,"lang":"ru","titleHtml":"Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала","leadData":{"textHtml":"\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fur\u002Ffh\u002Fpq\u002Furfhpqjzkipv9ttthckc9q00mcc.jpeg\"\u003E\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":17,"votesCount":21},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"66087","alias":"BAHEK794","fullname":"Иван","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002Fb24\u002Fe9f\u002Ff67\u002Fb24e9ff671b051250512f9e281544576.jpg","speciality":"Инженер эксплуатации сетей связи"},"statistics":{"commentsCount":21,"favoritesCount":37,"readingCount":22965,"score":19,"votesCount":19},"hubs":[{"relatedData":null,"id":"17123","alias":"network_technologies","type":"collective","title":"Сетевые технологии","titleHtml":"Сетевые технологии","isProfiled":true},{"relatedData":null,"id":"19395","alias":"netdev","type":"collective","title":"Разработка систем связи","titleHtml":"Разработка систем связи","isProfiled":true},{"relatedData":null,"id":"21948","alias":"displays","type":"collective","title":"Мониторы и ТВ","titleHtml":"Мониторы и ТВ","isProfiled":false},{"relatedData":null,"id":"21958","alias":"network_hardware","type":"collective","title":"Сетевое оборудование","titleHtml":"Сетевое оборудование","isProfiled":false},{"relatedData":null,"id":"22113","alias":"engineering_systems","type":"collective","title":"Инженерные системы","titleHtml":"Инженерные системы","isProfiled":false}],"flows":[{"id":"1","alias":"develop","title":"Разработка"},{"id":"6","alias":"admin","title":"Администрирование"},{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fur\u002Ffh\u002Fpq\u002Furfhpqjzkipv9ttthckc9q00mcc.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fur\u002Ffh\u002Fpq\u002Furfhpqjzkipv9ttthckc9q00mcc.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"spoiler\"\u003E\u003Cb class=\"spoiler_title\"\u003EСодержание серии статей\u003C\u002Fb\u003E\u003Cdiv class=\"spoiler_text\"\u003E\u003Cul\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449322\u002F\"\u003EЧасть 1: Общая архитектура сети КТВ\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F449902\u002F\"\u003EЧасть 2: Состав и форма сигнала\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450256\u002F\"\u003EЧасть 3: Аналоговая составляющая сигнала\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450258\u002F\"\u003EЧасть 4: Цифровая составляющая сигнала\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450278\u002F\"\u003EЧасть 5: Коаксиальная распределительная сеть\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450452\u002F\"\u003EЧасть 6: Усилители RF-сигнала\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F454542\u002F\"\u003EЧасть 7: Оптические приёмники\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F455355\u002F\"\u003EЧасть 8: Оптическая магистральная сеть\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F455858\u002F\"\u003EЧасть 9: Головная станция\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F456574\u002F\"\u003EЧасть 10: Поиск и устранение неисправностей на сети КТВ\u003C\u002Fa\u003E\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\nВ случае, если на доме (или даже в целом квартале) только один оптический приёмник и вся разводка до стояков выполнена коаксиальным кабелем, обязательно требуется усиление сигнала в их начале. В нашей сети применяются в основном устройства фирмы Teleste, поэтому рассказывать буду на их примере, но принципиально оборудование других производителей ничем не отличается и набор функционала для настройки обычно схож.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМинимальное количество настроек имеет модель CXE180M:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F_s\u002Fh2\u002Fpp\u002F_sh2pp9cyyyghkk9zokf2irnlte.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_s\u002Fh2\u002Fpp\u002F_sh2pp9cyyyghkk9zokf2irnlte.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак вы, вероятно, помните из предыдущих частей у сигнала есть два важных количественных параметра: это уровень и наклон. Именно их и могут помочь поправить настройки усилителя. Начнём по порядку: сразу после входного разъёма находится \u003Cb\u003Eаттенюатор\u003C\u002Fb\u003E. Он позволяет уменьшить входной сигнал на величину до 31дБ (при переключении синего джампера в соответствии со схемой диапазон крутилки меняется с 0-15 на 16-31дБ). Это бывает необходимо в случае, если на усилитель приходит сигнал более 70 дБмкВ. Дело в том, что усилительный каскад обеспечивает подъём уровня сигнала на 40 дБ, а на выходе мы должны снять не более 110 дБмкВ (при более высоком уровне резко падает отношение сигнал\u002Fшум и эта цифра актуальна для всех широкополосных усилителей и приёмников с встроенным усилителем). Таким образом, если на вход усилителя попадает 80 дБмкВ, например, то на выходе он нам отдаст 120 дБмкВ шума и рассыпающейся цифры. Чтобы этого избежать нужно выставить входной аттенюатор в положение гашения 10дБ.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗа аттенюатором мы видим \u003Cb\u003Eэквалайзер\u003C\u002Fb\u003E. Он необходим для устранения обратного наклона, если он есть. Достигается это за счёт уменьшения уровня сигнала в зоне низких частот на величину до 20дБ. Стоит обратить внимание, что устранить обратный наклон, подняв уровень верхних частот мы не сможем, только задавить нижние.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭтих двух инструментов бывает достаточно для того, чтобы исправить незначительные отклонения сигнала от нормы. В случае, если это не так, то можно воспользоваться следующими:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EСимулятор кабеля\u003C\u002Fb\u003E, выполненный в виде вставки, которую можно поставить горизонтально или вертикально, как понятно из названия, симулирует включение длинного участка кабеля, на котором должно произойти затухание преимущественно верхних частот диапазона. Это позволяет уменьшить при необходимости прямой наклон, задавив 8дБ в зоне высоких частот. Такое бывает полезно при установке усилителей каскадом на короткой дистанции, например.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосле этих манипуляций сигнал проходит первую ступень усилительного каскада, после которой мы видим ещё одну вставку, которая позволяет дополнительно снизить коэффициент усиления. Следующий за ним джампер вновь поможет нам задавить низкие частоты для получения необходимого наклона. Эти две настройки по сути являются аналогом входных аттенюатора и эквалайзера, но работающих со второй ступенью каскада.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа выходе усилительного каскада мы видим \u003Cb\u003Eтестовый отвод\u003C\u002Fb\u003E. Это стандартный резьбовой разъём, к которому можно подключить измерительный прибор или телеприёмник для контроля качества выходного сигнала. Не все приборы и практически ни какие телевизоры способны нормально переварить сигнал с уровнем в сто и более дБмкВ, поэтому тестовые отводы на любом оборудовании всегда делаются с затуханием в 20-30дБ от действительной величины на выходе. Это нужно всегда держать в голове, проводя измерения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПеред выходом установлена ещё одна вставка. На фото усилителя видно, что изображённая на ней стрелка указывает только на правый вывод. И это значит, что в левом сигнала не будет. Такие вставки стоят в этих усилителях «из коробки», а внутри самой коробки в комплекте поставки лежит другая:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fdu\u002Fr6\u002F_0\u002Fdur6_0rctj0ohthzkz3vry9ysmy.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fdu\u002Fr6\u002F_0\u002Fdur6_0rctj0ohthzkz3vry9ysmy.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОна позволяет задействовать второй вывод, но неизбежно вносит затухание сигнала на величину 4дБ.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУсилитель модели CXE180RF на первый взгляд имеет вдвое больше настроек:\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F_d\u002F9l\u002Fq-\u002F_d9lq-9qia-05egcppowhdhxgua.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F_d\u002F9l\u002Fq-\u002F_d9lq-9qia-05egcppowhdhxgua.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа самом деле всё не так страшно: за исключением небольших отличий здесь всё то же самое, что и в рассмотренном выше.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВо-первых, на входе появился тестовый отвод. Он нужен для контроля сигнала без отключения кабеля от входа усилителя и, соответственно, без перерыва вещания.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВо-вторых, появившиеся диплексные фильтры, а так же аттенюатор и эквалайзер выхода необходимы для настройки каналов прохождения DOCSIS, поэтому в рамках этой статьи скажу лишь, что фильтры отрезают те частоты, которые указаны на них и это может стать проблемой, если в спектре сигнала на этих частотах вещаются ТВ каналы. К счастью, производитель выпускает их с разными значениями и заменить их при необходимости не составляет труда.\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fd7\u002Fxv\u002Fqh\u002Fd7xvqhfayha3jrj7vog8med28_e.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fd7\u002Fxv\u002Fqh\u002Fd7xvqhfayha3jrj7vog8med28_e.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКрутилки же (как и джампер, вносящий затухание в 10дБ) влияют исключительно на обратный канал и никак не способны изменить телевизионный сигнал.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nА вот оставшиеся три джампера предлагают нам познакомиться с такой технологией, как \u003Cb\u003Eудалённое питание\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри проектировании домов зачастую усилители размещаются в таких местах, где могут быть проблемы с подводом электричества от распределительных щитов. Кроме того, каждая пара «вилка-розетка», подразумевающая за собой ещё и автоматический выключатель (который может быть установлен в самом неожиданном месте), представляют собой потенциальную точку отказа. В связи с этим существует возможность питать оборудование прямо по коаксиальному кабелю. Причём, как видно из маркировки на накладке блока питания, это может быть как переменный, так и постоянный ток с весьма широким диапазоном напряжений. Так вот: эти три джампера и включают возможность протекания питающего тока на вход, а так же на каждый из двух выходов по отдельности, если нам нужно запитать следующий усилитель в каскаде. При включении стояка с абонентами напряжение на выход конечно же подавать нельзя!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЯ уже упоминал в \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fpost\u002F450278\u002F\"\u003Eпредыдущей\u003C\u002Fa\u003E части, что в такой системе используются специальные магистральные ответвители:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Ff9\u002F96\u002Fbx\u002Ff996bxfjxt3pagjifny1nptafr0.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Ff9\u002F96\u002Fbx\u002Ff996bxfjxt3pagjifny1nptafr0.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fzx\u002Fip\u002Fbg\u002Fzxipbgccwibu29kb6atgan7kidy.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fzx\u002Fip\u002Fbg\u002Fzxipbgccwibu29kb6atgan7kidy.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ них используются более крупные и надёжные элементы, а массивный корпус обеспечивает теплоотвод и защиту.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nИсточником питания в таком случае является блок с встроенным массивным трансформатором:\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Fru\u002Frx\u002Fzi\u002Frurxzir96k56t5ujeiauiu4y1h8.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fru\u002Frx\u002Fzi\u002Frurxzir96k56t5ujeiauiu4y1h8.jpeg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСтоит сказать, что при кажущейся оптимальности схемы дистанционного питания, работающие таким образом усилители реже без последствий переживают аварии энергоснабжения на домах, а при их замене техперсоналу дополнительно приходится искать и отключать питание самого блока, чтобы не работать с кабелями под напряжением и, таким образом, на время замены одного усилителя без сигнала остаётся весь дом. По той же причине на таких усилителях необходим тестовый отвод на входе: иначе пришлось бы работать с кабелем под током.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nБыло бы интересно узнать от коллег насколько распространены системы с дистанционным питанием, напишите в комментариях, если используете, пожалуйста.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри необходимости подключить большое количество телевизоров внутри квартиры или офиса можно столкнуться с нехваткой уровня после цепочки делителей. В таком случае необходимо устанавливать усилитель на территории абонента, для чего используются небольшие устройства с минимальным количеством настроек и меньшим уровнем усиления. \u003Cbr\u002F\u003E\r\nНапример, такой:\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002Few\u002Fsu\u002F34\u002Fewsu34up7fsvjagp4xnogigjfzg.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Few\u002Fsu\u002F34\u002Fewsu34up7fsvjagp4xnogigjfzg.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"кабельное телевидение"},{"titleHtml":"КТВ"},{"titleHtml":"СктвДСМ"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450452\u002F287e2ad9b128944fb79ae19277fe30b7\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450452\u002F287e2ad9b128944fb79ae19277fe30b7\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450452\\\u002F\"},\"headline\":\"Сети кабельного телевидения для самых маленьких. Часть 6: Усилители RF-сигнала\",\"datePublished\":\"2019-05-27T06:55:58+03:00\",\"dateModified\":\"2019-06-18T14:17:03+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Иван\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.  Содержание серии статей Часть 1: Общ...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450452\\\u002F#post-content-body\",\"about\":[\"h_network_technologies\",\"h_netdev\",\"h_displays\",\"h_network_hardware\",\"h_engineering_systems\",\"f_develop\",\"f_admin\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fur\\\u002Ffh\\\u002Fpq\\\u002Furfhpqjzkipv9ttthckc9q00mcc.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_s\\\u002Fh2\\\u002Fpp\\\u002F_sh2pp9cyyyghkk9zokf2irnlte.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fdu\\\u002Fr6\\\u002F_0\\\u002Fdur6_0rctj0ohthzkz3vry9ysmy.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F_d\\\u002F9l\\\u002Fq-\\\u002F_d9lq-9qia-05egcppowhdhxgua.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fd7\\\u002Fxv\\\u002Fqh\\\u002Fd7xvqhfayha3jrj7vog8med28_e.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Ff9\\\u002F96\\\u002Fbx\\\u002Ff996bxfjxt3pagjifny1nptafr0.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fzx\\\u002Fip\\\u002Fbg\\\u002Fzxipbgccwibu29kb6atgan7kidy.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fru\\\u002Frx\\\u002Fzi\\\u002Frurxzir96k56t5ujeiauiu4y1h8.jpeg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Few\\\u002Fsu\\\u002F34\\\u002Fewsu34up7fsvjagp4xnogigjfzg.jpeg\"]}","metaDescription":"В этой статье рассмотрим усилители высокочастотного радиосигнала кабельного телевидения на коаксиальной части магистрали.\r\n\r\nСодержание серии статей\r\nЧасть 1: Общая архитектура сети КТВ\r\nЧасть 2:...","mainImageUrl":null,"amp":true},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"network_technologies,netdev,displays,network_hardware,engineering_systems"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Таймер в iOS / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450172\/"},"headline":"Таймер в iOS","datePublished":"2019-05-06T14:46:09+03:00","dateModified":"2019-05-29T13:19:42+03:00","author":{"@type":"Person","name":"Юрий"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.  Tim...","url":"https:\/\/habr.com\/ru\/post\/450172\/#post-content-body","about":["h_ios_dev","h_swift","f_develop"],"image":["https:\/\/habrastorage.org\/webt\/9v\/iw\/xg\/9viwxg_qjy7oyvwfsss09ec813c.png","https:\/\/habrastorage.org\/webt\/nw\/ze\/nn\/nwzenn61635ppptgcdsule6ywsk.gif","https:\/\/habrastorage.org\/webt\/qb\/ry\/dd\/qbryddhdojzhiq5jp0eol00axf4.png","https:\/\/habrastorage.org\/webt\/og\/jg\/l6\/ogjgl6z6livbu-shmvtszh3movq.gif","https:\/\/habrastorage.org\/webt\/ya\/up\/xy\/yaupxyslxeqpej-7kwxadnlrtzk.gif","https:\/\/habrastorage.org\/webt\/zz\/xs\/2m\/zzxs2mcciespvyjwaudma_rytyi.gif","https:\/\/habrastorage.org\/webt\/62\/l9\/4-\/62l94-n0gtjlg2sfpjoffjqvaom.gif","https:\/\/habrastorage.org\/webt\/ar\/df\/ec\/ardfecmgf7bizt8ggcqa01jdbju.png","https:\/\/habrastorage.org\/webt\/01\/ct\/jf\/01ctjfswyhfhc6dogl8wavqv8-a.gif"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Таймер в iOS" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Таймер в iOS" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Таймер в iOS" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.
+
+Timer используется для планирования..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.
+
+Timer используется для планирования..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.
+
+Timer используется для планирования..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.
+
+Timer используется для планирования..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.
+
+Timer используется для планирования..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450172/5e06fff1e4707c3d4c4f877b7929a0fd/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450172/5e06fff1e4707c3d4c4f877b7929a0fd/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450172/5e06fff1e4707c3d4c4f877b7929a0fd/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450172/5e06fff1e4707c3d4c4f877b7929a0fd/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450172/5e06fff1e4707c3d4c4f877b7929a0fd/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450172" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-06T11:46:09.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450172/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450172/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450172/5e06fff1e4707c3d4c4f877b7929a0fd/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/infund/" title="infund" class="tm-user-info__userpic"><div class="tm-entity-image"><img alt="" height="24" loading="lazy" src="//habrastorage.org/r/w32/getpro/habr/avatars/409/bcf/087/409bcf0876262edf747ff8abd8522a6f.png" width="24" class="tm-entity-image__pic"></div></a> <span class="tm-user-info__user"><a href="/ru/users/infund/" class="tm-user-info__username">
+      infund
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-06T11:46:09.000Z" title="2019-05-06, 14:46">6  мая  2019 в 14:46</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Таймер в iOS</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/ios_dev/" class="tm-article-snippet__hubs-item-link"><span>Разработка под iOS</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/swift/" class="tm-article-snippet__hubs-item-link"><span>Swift</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div><div class="tm-article-snippet__label"><span>
+        Tutorial
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://www.raywenderlich.com/113835-ios-timer-tutorial" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Fabrizio Brancati
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml">Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс <b>Timer</b>.<br/>
+<br/>
+Timer используется для планирования действий в приложении. Это может быть разовое действие или повторяющаяся процедура.<br/>
+<br/>
+В этом руководстве вы разберётесь, как в iOS работает таймер, как он может влиять на отзывчивость UI, как оптимизировать потребление батареи при использовании таймера и как использовать <b>CADisplayLink</b> для анимации.<br/>
+<br/>
+В качестве тестового полигона мы будем использовать приложение — примитивный планировщик задач.<br/>
+<a name="habracut"></a><br/>
+<h2>Начинаем</h2><br/>
+Загрузите <a href="https://koenig-media.raywenderlich.com/uploads/2019/03/EasyTrack.zip">исходный проект.</a> Откройте его в Xcode, посмотрите его структуру, скомпилируйте и выполните. Вы увидите простейший планировщик задач:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/9v/iw/xg/9viwxg_qjy7oyvwfsss09ec813c.png"/><br/>
+<br/>
+Добавим в него новую задачу. Тапните на значке +, введите название задачи, тапните Ok.<br/>
+<br/>
+В добавленных задачах есть метка времени. Новая задача, которую вы только что создали, отмечена нулём секунд. Как видите, это значение не увеличивается.<br/>
+<br/>
+Каждую задачу можно отметить как выполненную. Тапните на задаче. Название задачи станет перечеркнутым и она будет помечена как выполненная.<br/>
+<br/>
+<h2>Создаём наш первый таймер</h2><br/>
+Создадим главный таймер нашего приложения. Класс <b>Timer</b>, известный также как <b>NSTimer</b> — удобный способ запланировать действие на определённый момент, как разовое, так и периодическое.<br/>
+<br/>
+Откройте <b>TaskListViewController.swift</b> и добавьте в <b>TaskListViewController</b> эту переменную:<br/>
+<br/>
+<pre><code class="swift">var timer: Timer?</code></pre><br/>
+Затем там же добавьте экстеншн:<br/>
+<br/>
+<pre><code class="swift">// MARK: - Timer
+extension TaskListViewController {
+
+}</code></pre><br/>
+И вставьте этот код в экстеншн:<br/>
+<br/>
+<pre><code class="swift">@objc func updateTimer() {
+  // 1
+  guard let visibleRowsIndexPaths = tableView.indexPathsForVisibleRows else {
+    return
+  }
+
+  for indexPath in visibleRowsIndexPaths {
+    // 2
+    if let cell = tableView.cellForRow(at: indexPath) as? TaskTableViewCell {
+      cell.updateTime()
+    }
+  }
+}</code></pre><br/>
+В этом методе мы:<br/>
+<br/>
+<ol>
+<li>Проверяем, есть ли в таблице задач видимые строки.</li>
+<li>Вызываем <b>updateTime</b> для каждой видимой ячейки. Этот метод обновляем метку времени в ячейке (посмотрите <b>TaskTableViewCell.swift</b>).</li>
+</ol><br/>
+Затем добавьте в экстеншн этот код:<br/>
+<br/>
+<pre><code class="swift">func createTimer() {
+  // 1
+  if timer == nil {
+    // 2
+    timer = Timer.scheduledTimer(timeInterval: 1.0,
+                                 target: self,
+                                 selector: #selector(updateTimer),
+                                 userInfo: nil,
+                                 repeats: true)
+  }
+}</code></pre><br/>
+Здесь мы:<br/>
+<br/>
+<ol>
+<li>Проверяем, содержит ли timer экземпляр класса <b>Timer</b>.</li>
+<li>Если нет, создаём таймер, который каждую секунду вызывает <b>updateTimer()</b>.</li>
+</ol><br/>
+Затем нам нужно создать таймер, как только пользователь добавляет первую задачу. Добавьте <b>createTimer()</b> в самом начале метода <b>presentAlertController(_:)</b>.<br/>
+<br/>
+Запустите приложение и создайте пару новых задач. Вы увидите, что метка времени у каждой задачи меняется каждую секунду.<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/nw/ze/nn/nwzenn61635ppptgcdsule6ywsk.gif" data-width="281"/><br/>
+<br/>
+<h2>Добавляем допуск к таймеру</h2><br/>
+Увеличение количества таймеров приводит к худшей отзывчивости UI и большему потреблению батареи. Каждый таймер пытается исполниться точно в отведённое ему время, так как по умолчанию его допуск (<b>tolerance</b>) равен нулю.<br/>
+<br/>
+Добавление допуска таймера — простой способ снизить потребление энергии. Это позволяет системе выполнить действие таймера между назначенным временем и назначенным временем <b>плюс время допуска</b> — но никогда не ранее назначенного интервала.<br/>
+<br/>
+Для таймеров, которые выполняются лишь однажды, значение допуска игнорируется.<br/>
+<br/>
+В методе <b>createTimer()</b>, сразу за присвоением timer, добавьте эту строчку:<br/>
+<br/>
+<pre><code class="swift">timer?.tolerance = 0.1</code></pre><br/>
+Запустите приложение. В этом конкретном случае эффект будет неочевиден (у нас только один таймер), однако в реальной ситуации нескольких таймеров ваши пользователи получат более отзывчивый интерфейс и приложение будет более энергоэффективным.<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/nw/ze/nn/nwzenn61635ppptgcdsule6ywsk.gif" data-width="281"/><br/>
+<br/>
+<h2>Таймеры в бэкграунде</h2><br/>
+Интересно, а что происходит с таймерами, когда приложение уходит в бэкграунд? Чтобы разобраться с этим, добавим этот код в самом начале метода <b>updateTimer()</b>:<br/>
+<br/>
+<pre><code class="swift">if let fireDateDescription = timer?.fireDate.description {
+  print(fireDateDescription)
+}</code></pre><br/>
+Это позволит нам отследить события таймера в консоли.<br/>
+<br/>
+Запустите приложение, добавьте задачу. Теперь нажмите на вашем устройстве кнопку Home, а затем вернитесь к нашему приложению. <br/>
+<br/>
+В консоли вы увидите что-то вроде этого:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/qb/ry/dd/qbryddhdojzhiq5jp0eol00axf4.png"/><br/>
+<br/>
+Как видите, когда приложение уходит в бэкграунд, iOS приостанавливает все работающие таймеры приложения. Когда же приложение становится активным, iOS возобновляет таймеры.<br/>
+<br/>
+<h2>Разбираемся с циклами выполнения (<b>Run Loops</b>)</h2><br/>
+Цикл выполнения — это цикл обработки событий, который планирует работу и занимается обработкой входящих событий. Цикл держит поток занятым, пока он работает и переводит его в «спящее» состояние, когда работы для него нет.<br/>
+<br/>
+Каждый раз, когда вы запускаете приложение, система создаёт главный поток приложения, у каждого потока есть автоматически созданный для него цикл выполнения.<br/>
+<br/>
+Но почему вся эта информация важна для вас сейчас? Сейчас каждый таймер запускается в главном потоке и присоединяется к циклу выполнения. Вероятно, вы в курсе, что главный поток занимается отрисовкой пользовательского интерфейса, обработкой касаний и так далее. Если главный поток чем-то занят, интерфейс вашего приложения может стать «неотзывчивым» (подвисать). <br/>
+<br/>
+Вы обратили внимание, что временна́я метка в ячейке не обновляется, когда вы тяните table view?<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/og/jg/l6/ogjgl6z6livbu-shmvtszh3movq.gif" data-width="281"/><br/>
+<br/>
+Решить эту проблему можно, указав циклу выполнения запускать таймеры в другом режиме.<br/>
+<br/>
+<h2>Разбираемся с режимами цикла выполнения</h2><br/>
+Режим цикла выполнения — это набор источников ввода, таких, как касания экрана или клики мышкой, за которыми может быть установлено наблюдение и набор «наблюдателей», получающих уведомления.<br/>
+<br/>
+В iOS есть три режима цикла выполнения:<br/>
+<br/>
+<b>default</b>: обрабатываются источники ввода, которые не являются NSConnectionObjects.<br/>
+<b>common</b>: обрабатывается набор циклов ввода, для которых вы можете определить набор источников ввода, таймеров, «наблюдателей».<br/>
+<b>tracking</b>: обрабатывается UI приложения.<br/>
+<br/>
+Для нашего приложения наиболее подходящим выглядит режим <b>common</b>. Чтобы использовать его, замените содержимое метода <b>createTimer()</b> следующим:<br/>
+<br/>
+<pre><code class="swift">if timer == nil {
+  let timer = Timer(timeInterval: 1.0,
+                    target: self,
+                    selector: #selector(updateTimer),
+                    userInfo: nil,
+                    repeats: true)
+  RunLoop.current.add(timer, forMode: .common)
+  timer.tolerance = 0.1
+  
+  self.timer = timer
+}</code></pre><br/>
+Главное отличие от предыдущего кода состоит в том, что мы перед присваиванием таймера TaskListViewController‘а добавляем этот таймер в цикл выполнения в режиме <b>common</b>.<br/>
+<br/>
+Скомпилируйте и запустите приложение.<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/ya/up/xy/yaupxyslxeqpej-7kwxadnlrtzk.gif" data-width="281"/><br/>
+<br/>
+Теперь временны́е метки ячеек обновляются даже в случае скроллинга таблицы.<br/>
+<br/>
+<h2>Добавляем анимацию на выполнение всех задач</h2><br/>
+Теперь добавим поздравительную анимацию на выполнение пользователем всех задач — шарик будет подниматься снизу экрана до самого верха.<br/>
+<br/>
+Добавьте эти переменные в начале TaskListViewController:<br/>
+<br/>
+<pre><code class="swift">
+// 1
+var animationTimer: Timer?
+// 2
+var startTime: TimeInterval?, endTime: TimeInterval?
+// 3
+let animationDuration = 3.0
+// 4
+var height: CGFloat = 0</code></pre><br/>
+Назначение этих переменных:<br/>
+<br/>
+<ol>
+<li>хранение таймера анимации.</li>
+<li>хранение времени начала и конца анимации.</li>
+<li>продолжительность анимации.</li>
+<li>высота анимации.</li>
+</ol><br/>
+Теперь добавим следующий экстешн <b>TaskListViewController</b> в конце файла <b>TaskListViewController.swift</b>:<br/>
+<br/>
+<pre><code class="swift">// MARK: - Animation
+extension TaskListViewController {
+  func showCongratulationAnimation() {
+    // 1
+    height = UIScreen.main.bounds.height + balloon.frame.size.height
+    // 2
+    balloon.center = CGPoint(x: UIScreen.main.bounds.width / 2,
+      y: height + balloon.frame.size.height / 2)
+    balloon.isHidden = false
+
+    // 3
+    startTime = Date().timeIntervalSince1970
+    endTime = animationDuration + startTime!
+
+    // 4
+    animationTimer = Timer.scheduledTimer(withTimeInterval: 1 / 60, 
+      repeats: true) { timer in
+      // TODO: Animation here
+    }
+  }
+}</code></pre><br/>
+Здесь мы делаем следующее:<br/>
+<br/>
+<ul>
+<li>вычисляем высоту анимации, получая высоту экрана устройства</li>
+<li>центрируем шарик за пределами экрана и устанавливаем его видимость</li>
+<li>присваиваем время начала и конца анимации</li>
+<li>стартуем таймер анимации и обновляем анимацию 60 раз в секунду</li>
+</ul><br/>
+Теперь нам нужно создать собственно логику для обновления поздравительной анимации. Добавим этот код после <b>showCongratulationAnimation()</b>:<br/>
+<br/>
+<pre><code class="swift">func updateAnimation() {
+  // 1
+  guard
+    let endTime = endTime,
+    let startTime = startTime 
+    else {
+      return
+  }
+
+  // 2
+  let now = Date().timeIntervalSince1970
+
+  // 3
+  if now >= endTime {
+    animationTimer?.invalidate()
+    balloon.isHidden = true
+  }
+
+  // 4
+  let percentage = (now - startTime) * 100 / animationDuration
+  let y = height - ((height + balloon.frame.height / 2) / 100 * 
+    CGFloat(percentage))
+
+  // 5
+  balloon.center = CGPoint(x: balloon.center.x + 
+    CGFloat.random(in: -0.5...0.5), y: y)
+}</code></pre><br/>
+Что мы делаем:<br/>
+<br/>
+<ol>
+<li>проверяем, что endTime и startTime присвоены</li>
+<li>сохраняем текущее время в константе</li>
+<li>удостоверяемся в том, что конечное время еще не настало. Если уже настало, обновляем таймер и прячем наш шарик</li>
+<li>вычисляем новую y-координату шарика</li>
+<li>горизонтальное расположение шарика вычисляется относительно предыдущего положения</li>
+</ol><br/>
+Теперь заменим <b>// TODO: Animation here</b> в <b>showCongratulationAnimation()</b> этим кодом:<br/>
+<br/>
+<pre><code class="swift">self.updateAnimation()</code></pre><br/>
+Теперь <b>updateAnimation()</b> вызывается всякий раз при событии таймера.<br/>
+<br/>
+Ура, мы только что создали анимацию. Однако, при запуске приложения не происходит ничего нового…<br/>
+<br/>
+<h2>Показываем анимацию</h2><br/>
+Как вы, наверно, догадались, нет ничего, чтобы «запустило» нашу новую анимацию. Чтобы сделать это, нам нужен еще один метод. Добавим этот код в экстеншн анимации <b>TaskListViewController</b>:<br/>
+<br/>
+<pre><code class="swift">func showCongratulationsIfNeeded() {
+  if taskList.filter({ !$0.completed }).count == 0 {
+    showCongratulationAnimation()
+  }
+}</code></pre><br/>
+Этот метод мы будем вызывать всякий раз, когда пользователь отметит задачу выполненной, он проверяет, все ли задачи выполнены. Если да, то он вызовет <b>showCongratulationAnimation()</b>.<br/>
+<br/>
+В заключение, добавим вызов этого метода в конце <b>tableView(_:didSelectRowAt:)</b>:<br/>
+<br/>
+<pre><code class="swift">showCongratulationsIfNeeded()</code></pre><br/>
+Запустите приложение, создайте пару задач, отметьте их как выполненные — и вы увидите нашу анимацию!<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/zz/xs/2m/zzxs2mcciespvyjwaudma_rytyi.gif" data-width="281"/><br/>
+<br/>
+<h2>Останавливаем таймер</h2><br/>
+Если вы посмотрите в консоль, вы увидите, что, хотя пользователь отметил все задачи выполненными, таймер продолжает работу. Это совершенно бессмысленно, так что имеет смысл остановить таймер, когда он не нужен.<br/>
+<br/>
+Сначала создадим новый метод для остановки таймера:<br/>
+<br/>
+<pre><code class="swift">func cancelTimer() {
+  timer?.invalidate()
+  timer = nil
+}</code></pre><br/>
+Это обновит таймер и сбросит его в nil, чтобы мы могли правильно его создать вновь позже. <b>invalidate()</b> — это единственный способ удалить Timer из цикла выполнения. Цикл выполнения удалит сильную ссылку на таймер или непосредственно после вызова <b>invalidate()</b> или чуть позже.<br/>
+<br/>
+Теперь заменим метод showCongratulationsIfNeeded() следующим образом:<br/>
+<br/>
+<pre><code class="swift">func showCongratulationsIfNeeded() {
+  if taskList.filter({ !$0.completed }).count == 0 {
+    cancelTimer()
+    showCongratulationAnimation()
+  } else {
+    createTimer()
+  }
+}</code></pre><br/>
+Теперь, если пользователь выполнит все задачи, приложение сначала сбросит таймер, а затем покажет анимацию, в противном случае оно попытается создать новый таймер, если его еще нет.<br/>
+<br/>
+Запустите приложение.<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/62/l9/4-/62l94-n0gtjlg2sfpjoffjqvaom.gif" data-width="281"/><br/>
+<br/>
+Теперь таймер останавливается и рестартует, как надо.<br/>
+<br/>
+<h2>CADisplayLink для плавной анимации</h2><br/>
+<b>Timer</b> — неидеальный выбор для управления анимацией. Вы могли заметить пропуск нескольких кадров анимации, особенно, если вы запускаете приложение в симуляторе.<br/>
+<br/>
+Мы установили таймер на частоту 60Hz. Таким образом, таймер обновляет анимацию каждые 16 мс. Рассмотрим ситуацию внимательнее:<br/>
+<br/>
+<img src="/img/image-loader.svg" data-src="https://habrastorage.org/webt/ar/df/ec/ardfecmgf7bizt8ggcqa01jdbju.png"/><br/>
+<br/>
+При использовании <b>Timer</b> мы не знаем точное время запуска действия. Это может случиться или в начале или в конце кадра. Скажем, таймер выполнится в середине каждого кадра (голубые точки на рисунке). Единственно, что мы знаем наверняка, что вызов будет каждые 16 мс.<br/>
+<br/>
+Теперь у нас только 8 мс, чтобы исполнить анимацию, и этого может быть недостаточно для нашей анимации. Посмотрим на второй кадр на рисунке. Второй кадр не сможет быть выполнен за отведенное ему время, так что приложение сбросит второй кадр анимации.<br/>
+<br/>
+<h2>Нам поможет CADisplayLink</h2><br/>
+<b>CADisplayLink</b> вызывается один раз за кадр и пытается синхронизовать реальные кадры анимации, насколько это возможно. Теперь в вашем распоряжении будут все 16 мс и iOS не сбросит ни единого кадра.<br/>
+<br/>
+Чтобы использовать <b>CADisplayLink</b>, вам нужно заменить <b>animationTimer</b> на новый тип.<br/>
+<br/>
+Замените этот код<br/>
+<br/>
+<pre><code class="swift">var animationTimer: Timer?</code></pre><br/>
+на этот:<br/>
+<br/>
+<pre><code class="swift">var displayLink: CADisplayLink?</code></pre><br/>
+Вы заменили <b>Timer</b> на <b>CADisplayLink</b>. <b>CADisplayLink</b> — это представление таймера, который привязан к вертикальной развёртке дисплея. Это означает, что GPU устройства приостановит работу, пока экран не сможет дальше обрабатывать команды GPU. Таким образом мы получаем плавную анимацию.<br/>
+<br/>
+Замените этот код<br/>
+<br/>
+<pre><code class="swift">var startTime: TimeInterval?, endTime: TimeInterval?</code></pre><br/>
+на этот:<br/>
+<br/>
+<pre><code class="swift">var startTime: CFTimeInterval?, endTime: CFTimeInterval?</code></pre><br/>
+<br/>
+Вы заменили <b>TimeInterval</b> на <b>CFTimeInterval</b>, что необходимо для работы с CADisplayLink.<br/>
+<br/>
+Замените текст метода <b>showCongratulationAnimation()</b> на этот:<br/>
+<br/>
+<pre><code class="swift">func showCongratulationAnimation() {
+  // 1
+  height = UIScreen.main.bounds.height + balloon.frame.size.height
+  balloon.center = CGPoint(x: UIScreen.main.bounds.width / 2, 
+    y: height + balloon.frame.size.height / 2)
+  balloon.isHidden = false
+
+  // 2
+  startTime = CACurrentMediaTime()
+  endTime = animationDuration + startTime!
+
+  // 3
+  displayLink = CADisplayLink(target: self, 
+    selector: #selector(updateAnimation))
+  displayLink?.add(to: RunLoop.main, forMode: .common)
+}</code></pre><br/>
+Что мы тут делаем:<br/>
+<br/>
+<ol>
+<li>Устанавливаем высоту анимации, координаты шарика и видимость — примерно так же, как делали раньше.</li>
+<li>Инициализируем <b>startTime</b> при помощи <b>CACurrentMediaTime()</b> (вместо of Date()).</li>
+<li>Создаём экземпляр класса <b>CADisplayLink</b> и добавляем его в цикл выполнения в режиме <b>common</b>.</li>
+</ol><br/>
+Теперь заменим <b>updateAnimation()</b> следующим кодом:<br/>
+<br/>
+<pre><code class="swift">// 1
+@objc func updateAnimation() {
+  guard
+    let endTime = endTime,
+    let startTime = startTime 
+    else {
+      return
+  }
+    
+  // 2
+  let now = CACurrentMediaTime()
+  
+  if now >= endTime {
+    // 3
+    displayLink?.isPaused = true
+    displayLink?.invalidate()
+    balloon.isHidden = true
+  }
+    
+  let percentage = (now - startTime) * 100 / animationDuration
+  let y = height - ((height + balloon.frame.height / 2) / 100 * 
+    CGFloat(percentage))
+    
+  balloon.center = CGPoint(x: balloon.center.x + 
+    CGFloat.random(in: -0.5...0.5), y: y)
+}</code></pre><br/>
+<ol>
+<li>Добавляем <a href="https://habr.com/ru/users/objc/" class="user_link">objc</a> к сигнатуре метода (у CADisplayLink параметр селектора требует такую сигнатуру).</li>
+<li>Заменяем инициализацию при помощи <b>Date()</b> на инициализацию даты <b>CoreAnimation</b>. </li>
+<li>Заменяем вызов <b>animationTimer.invalidate()</b> call на паузу CADisplayLink и invalidate. Это также удалит CADisplayLink из цикла выполнения.</li>
+</ol><br/>
+Запустите приложение!<br/>
+<br/>
+<img src="/img/image-loader.svg" height="500" data-src="https://habrastorage.org/webt/01/ct/jf/01ctjfswyhfhc6dogl8wavqv8-a.gif" data-width="281"/><br/>
+Прекрасно! Мы успешно заменили анимацию, основанную на <b>Timer</b>, на более подходящий <b>CADisplayLink</b> — и получили анимацию более плавную, без рывков.<br/>
+<br/>
+<h2>Заключение</h2><br/>
+В этом руководстве вы разобрались, как класс <b>Timer</b> работает в iOS, что такое цикл выполнения и как он может сделать ваше приложение более отзывчивым в плане интерфейса, и как использовать <b>CADisplayLink</b> вместо Timer для плавной анимации.</div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bswift%5D" class="tm-tags-list__link">swift</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bios%5D" class="tm-tags-list__link">ios</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Btimer%5D" class="tm-tags-list__link">timer</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D1%82%D0%B0%D0%B9%D0%BC%D0%B5%D1%80%5D" class="tm-tags-list__link">таймер</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/ios_dev/" class="tm-hubs-list__link">
+    Разработка под iOS
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/swift/" class="tm-hubs-list__link">
+    Swift
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 8: ↑8 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 8: ↑8 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+8</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">21K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    58
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/infund/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><img alt="" src="//habrastorage.org/getpro/habr/avatars/409/bcf/087/409bcf0876262edf747ff8abd8522a6f.png" class="tm-entity-image__pic"></div></a> <div class="tm-user-card__meta"><div title=" 46 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    27.2
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><span class="tm-user-card__name tm-user-card__name_variant-article">Юрий</span> <a href="/ru/users/infund/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @infund
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450172/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 12 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450172/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450172/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450172":{"id":"450172","timePublished":"2019-05-06T11:46:09+00:00","isCorporative":false,"lang":"ru","titleHtml":"Таймер в iOS","leadData":{"textHtml":"Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс \u003Cb\u003ETimer\u003C\u002Fb\u003E.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nTimer используется для планирования действий в приложении. Это может быть разовое действие или повторяющаяся процедура.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ этом руководстве вы разберётесь, как в iOS работает таймер, как он может влиять на отзывчивость UI, как оптимизировать потребление батареи при использовании таймера и как использовать \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E для анимации.\u003Cbr\u003E\r\n\u003Cbr\u003E\r\nВ качестве тестового полигона мы будем использовать приложение — примитивный планировщик задач.\u003Cbr\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Fabrizio Brancati","originalUrl":"https:\u002F\u002Fwww.raywenderlich.com\u002F113835-ios-timer-tutorial"}},{"type":"tutorial","data":null}],"author":{"scoreStats":{"score":27.2,"votesCount":46},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"141179","alias":"infund","fullname":"Юрий","avatarUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Favatars\u002F409\u002Fbcf\u002F087\u002F409bcf0876262edf747ff8abd8522a6f.png","speciality":"Пользователь"},"statistics":{"commentsCount":12,"favoritesCount":58,"readingCount":20766,"score":8,"votesCount":8},"hubs":[{"relatedData":null,"id":"548","alias":"ios_dev","type":"collective","title":"Разработка под iOS","titleHtml":"Разработка под iOS","isProfiled":true},{"relatedData":null,"id":"19039","alias":"swift","type":"collective","title":"Swift","titleHtml":"Swift","isProfiled":true}],"flows":[{"id":"1","alias":"develop","title":"Разработка"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003EПредставьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс \u003Cb\u003ETimer\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nTimer используется для планирования действий в приложении. Это может быть разовое действие или повторяющаяся процедура.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ этом руководстве вы разберётесь, как в iOS работает таймер, как он может влиять на отзывчивость UI, как оптимизировать потребление батареи при использовании таймера и как использовать \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E для анимации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ качестве тестового полигона мы будем использовать приложение — примитивный планировщик задач.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EНачинаем\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЗагрузите \u003Ca href=\"https:\u002F\u002Fkoenig-media.raywenderlich.com\u002Fuploads\u002F2019\u002F03\u002FEasyTrack.zip\"\u003Eисходный проект.\u003C\u002Fa\u003E Откройте его в Xcode, посмотрите его структуру, скомпилируйте и выполните. Вы увидите простейший планировщик задач:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F9v\u002Fiw\u002Fxg\u002F9viwxg_qjy7oyvwfsss09ec813c.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДобавим в него новую задачу. Тапните на значке +, введите название задачи, тапните Ok.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ добавленных задачах есть метка времени. Новая задача, которую вы только что создали, отмечена нулём секунд. Как видите, это значение не увеличивается.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКаждую задачу можно отметить как выполненную. Тапните на задаче. Название задачи станет перечеркнутым и она будет помечена как выполненная.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EСоздаём наш первый таймер\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nСоздадим главный таймер нашего приложения. Класс \u003Cb\u003ETimer\u003C\u002Fb\u003E, известный также как \u003Cb\u003ENSTimer\u003C\u002Fb\u003E — удобный способ запланировать действие на определённый момент, как разовое, так и периодическое.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nОткройте \u003Cb\u003ETaskListViewController.swift\u003C\u002Fb\u003E и добавьте в \u003Cb\u003ETaskListViewController\u003C\u002Fb\u003E эту переменную:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Evar timer: Timer?\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗатем там же добавьте экстеншн:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003E\u002F\u002F MARK: - Timer\nextension TaskListViewController {\n\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nИ вставьте этот код в экстеншн:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003E@objc func updateTimer() {\n  \u002F\u002F 1\n  guard let visibleRowsIndexPaths = tableView.indexPathsForVisibleRows else {\n    return\n  }\n\n  for indexPath in visibleRowsIndexPaths {\n    \u002F\u002F 2\n    if let cell = tableView.cellForRow(at: indexPath) as? TaskTableViewCell {\n      cell.updateTime()\n    }\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВ этом методе мы:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EПроверяем, есть ли в таблице задач видимые строки.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВызываем \u003Cb\u003EupdateTime\u003C\u002Fb\u003E для каждой видимой ячейки. Этот метод обновляем метку времени в ячейке (посмотрите \u003Cb\u003ETaskTableViewCell.swift\u003C\u002Fb\u003E).\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nЗатем добавьте в экстеншн этот код:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc createTimer() {\n  \u002F\u002F 1\n  if timer == nil {\n    \u002F\u002F 2\n    timer = Timer.scheduledTimer(timeInterval: 1.0,\n                                 target: self,\n                                 selector: #selector(updateTimer),\n                                 userInfo: nil,\n                                 repeats: true)\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь мы:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EПроверяем, содержит ли timer экземпляр класса \u003Cb\u003ETimer\u003C\u002Fb\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EЕсли нет, создаём таймер, который каждую секунду вызывает \u003Cb\u003EupdateTimer()\u003C\u002Fb\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nЗатем нам нужно создать таймер, как только пользователь добавляет первую задачу. Добавьте \u003Cb\u003EcreateTimer()\u003C\u002Fb\u003E в самом начале метода \u003Cb\u003EpresentAlertController(_:)\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗапустите приложение и создайте пару новых задач. Вы увидите, что метка времени у каждой задачи меняется каждую секунду.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnw\u002Fze\u002Fnn\u002Fnwzenn61635ppptgcdsule6ywsk.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EДобавляем допуск к таймеру\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nУвеличение количества таймеров приводит к худшей отзывчивости UI и большему потреблению батареи. Каждый таймер пытается исполниться точно в отведённое ему время, так как по умолчанию его допуск (\u003Cb\u003Etolerance\u003C\u002Fb\u003E) равен нулю.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДобавление допуска таймера — простой способ снизить потребление энергии. Это позволяет системе выполнить действие таймера между назначенным временем и назначенным временем \u003Cb\u003Eплюс время допуска\u003C\u002Fb\u003E — но никогда не ранее назначенного интервала.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля таймеров, которые выполняются лишь однажды, значение допуска игнорируется.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ методе \u003Cb\u003EcreateTimer()\u003C\u002Fb\u003E, сразу за присвоением timer, добавьте эту строчку:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Etimer?.tolerance = 0.1\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗапустите приложение. В этом конкретном случае эффект будет неочевиден (у нас только один таймер), однако в реальной ситуации нескольких таймеров ваши пользователи получат более отзывчивый интерфейс и приложение будет более энергоэффективным.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fnw\u002Fze\u002Fnn\u002Fnwzenn61635ppptgcdsule6ywsk.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EТаймеры в бэкграунде\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nИнтересно, а что происходит с таймерами, когда приложение уходит в бэкграунд? Чтобы разобраться с этим, добавим этот код в самом начале метода \u003Cb\u003EupdateTimer()\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eif let fireDateDescription = timer?.fireDate.description {\n  print(fireDateDescription)\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто позволит нам отследить события таймера в консоли.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗапустите приложение, добавьте задачу. Теперь нажмите на вашем устройстве кнопку Home, а затем вернитесь к нашему приложению. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ консоли вы увидите что-то вроде этого:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fqb\u002Fry\u002Fdd\u002Fqbryddhdojzhiq5jp0eol00axf4.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак видите, когда приложение уходит в бэкграунд, iOS приостанавливает все работающие таймеры приложения. Когда же приложение становится активным, iOS возобновляет таймеры.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EРазбираемся с циклами выполнения (\u003Cb\u003ERun Loops\u003C\u002Fb\u003E)\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЦикл выполнения — это цикл обработки событий, который планирует работу и занимается обработкой входящих событий. Цикл держит поток занятым, пока он работает и переводит его в «спящее» состояние, когда работы для него нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКаждый раз, когда вы запускаете приложение, система создаёт главный поток приложения, у каждого потока есть автоматически созданный для него цикл выполнения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНо почему вся эта информация важна для вас сейчас? Сейчас каждый таймер запускается в главном потоке и присоединяется к циклу выполнения. Вероятно, вы в курсе, что главный поток занимается отрисовкой пользовательского интерфейса, обработкой касаний и так далее. Если главный поток чем-то занят, интерфейс вашего приложения может стать «неотзывчивым» (подвисать). \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВы обратили внимание, что временна́я метка в ячейке не обновляется, когда вы тяните table view?\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fog\u002Fjg\u002Fl6\u002Fogjgl6z6livbu-shmvtszh3movq.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРешить эту проблему можно, указав циклу выполнения запускать таймеры в другом режиме.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EРазбираемся с режимами цикла выполнения\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nРежим цикла выполнения — это набор источников ввода, таких, как касания экрана или клики мышкой, за которыми может быть установлено наблюдение и набор «наблюдателей», получающих уведомления.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ iOS есть три режима цикла выполнения:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003Edefault\u003C\u002Fb\u003E: обрабатываются источники ввода, которые не являются NSConnectionObjects.\u003Cbr\u002F\u003E\r\n\u003Cb\u003Ecommon\u003C\u002Fb\u003E: обрабатывается набор циклов ввода, для которых вы можете определить набор источников ввода, таймеров, «наблюдателей».\u003Cbr\u002F\u003E\r\n\u003Cb\u003Etracking\u003C\u002Fb\u003E: обрабатывается UI приложения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДля нашего приложения наиболее подходящим выглядит режим \u003Cb\u003Ecommon\u003C\u002Fb\u003E. Чтобы использовать его, замените содержимое метода \u003Cb\u003EcreateTimer()\u003C\u002Fb\u003E следующим:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eif timer == nil {\n  let timer = Timer(timeInterval: 1.0,\n                    target: self,\n                    selector: #selector(updateTimer),\n                    userInfo: nil,\n                    repeats: true)\n  RunLoop.current.add(timer, forMode: .common)\n  timer.tolerance = 0.1\n  \n  self.timer = timer\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nГлавное отличие от предыдущего кода состоит в том, что мы перед присваиванием таймера TaskListViewController‘а добавляем этот таймер в цикл выполнения в режиме \u003Cb\u003Ecommon\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСкомпилируйте и запустите приложение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fya\u002Fup\u002Fxy\u002Fyaupxyslxeqpej-7kwxadnlrtzk.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь временны́е метки ячеек обновляются даже в случае скроллинга таблицы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EДобавляем анимацию на выполнение всех задач\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nТеперь добавим поздравительную анимацию на выполнение пользователем всех задач — шарик будет подниматься снизу экрана до самого верха.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nДобавьте эти переменные в начале TaskListViewController:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003E\n\u002F\u002F 1\nvar animationTimer: Timer?\n\u002F\u002F 2\nvar startTime: TimeInterval?, endTime: TimeInterval?\n\u002F\u002F 3\nlet animationDuration = 3.0\n\u002F\u002F 4\nvar height: CGFloat = 0\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nНазначение этих переменных:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003Eхранение таймера анимации.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eхранение времени начала и конца анимации.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eпродолжительность анимации.\u003C\u002Fli\u003E\r\n\u003Cli\u003Eвысота анимации.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nТеперь добавим следующий экстешн \u003Cb\u003ETaskListViewController\u003C\u002Fb\u003E в конце файла \u003Cb\u003ETaskListViewController.swift\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003E\u002F\u002F MARK: - Animation\nextension TaskListViewController {\n  func showCongratulationAnimation() {\n    \u002F\u002F 1\n    height = UIScreen.main.bounds.height + balloon.frame.size.height\n    \u002F\u002F 2\n    balloon.center = CGPoint(x: UIScreen.main.bounds.width \u002F 2,\n      y: height + balloon.frame.size.height \u002F 2)\n    balloon.isHidden = false\n\n    \u002F\u002F 3\n    startTime = Date().timeIntervalSince1970\n    endTime = animationDuration + startTime!\n\n    \u002F\u002F 4\n    animationTimer = Timer.scheduledTimer(withTimeInterval: 1 \u002F 60, \n      repeats: true) { timer in\n      \u002F\u002F TODO: Animation here\n    }\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗдесь мы делаем следующее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eвычисляем высоту анимации, получая высоту экрана устройства\u003C\u002Fli\u003E\r\n\u003Cli\u003Eцентрируем шарик за пределами экрана и устанавливаем его видимость\u003C\u002Fli\u003E\r\n\u003Cli\u003Eприсваиваем время начала и конца анимации\u003C\u002Fli\u003E\r\n\u003Cli\u003Eстартуем таймер анимации и обновляем анимацию 60 раз в секунду\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nТеперь нам нужно создать собственно логику для обновления поздравительной анимации. Добавим этот код после \u003Cb\u003EshowCongratulationAnimation()\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc updateAnimation() {\n  \u002F\u002F 1\n  guard\n    let endTime = endTime,\n    let startTime = startTime \n    else {\n      return\n  }\n\n  \u002F\u002F 2\n  let now = Date().timeIntervalSince1970\n\n  \u002F\u002F 3\n  if now \u003E= endTime {\n    animationTimer?.invalidate()\n    balloon.isHidden = true\n  }\n\n  \u002F\u002F 4\n  let percentage = (now - startTime) * 100 \u002F animationDuration\n  let y = height - ((height + balloon.frame.height \u002F 2) \u002F 100 * \n    CGFloat(percentage))\n\n  \u002F\u002F 5\n  balloon.center = CGPoint(x: balloon.center.x + \n    CGFloat.random(in: -0.5...0.5), y: y)\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЧто мы делаем:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003Eпроверяем, что endTime и startTime присвоены\u003C\u002Fli\u003E\r\n\u003Cli\u003Eсохраняем текущее время в константе\u003C\u002Fli\u003E\r\n\u003Cli\u003Eудостоверяемся в том, что конечное время еще не настало. Если уже настало, обновляем таймер и прячем наш шарик\u003C\u002Fli\u003E\r\n\u003Cli\u003Eвычисляем новую y-координату шарика\u003C\u002Fli\u003E\r\n\u003Cli\u003Eгоризонтальное расположение шарика вычисляется относительно предыдущего положения\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nТеперь заменим \u003Cb\u003E\u002F\u002F TODO: Animation here\u003C\u002Fb\u003E в \u003Cb\u003EshowCongratulationAnimation()\u003C\u002Fb\u003E этим кодом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Eself.updateAnimation()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь \u003Cb\u003EupdateAnimation()\u003C\u002Fb\u003E вызывается всякий раз при событии таймера.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nУра, мы только что создали анимацию. Однако, при запуске приложения не происходит ничего нового…\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EПоказываем анимацию\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nКак вы, наверно, догадались, нет ничего, чтобы «запустило» нашу новую анимацию. Чтобы сделать это, нам нужен еще один метод. Добавим этот код в экстеншн анимации \u003Cb\u003ETaskListViewController\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc showCongratulationsIfNeeded() {\n  if taskList.filter({ !$0.completed }).count == 0 {\n    showCongratulationAnimation()\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭтот метод мы будем вызывать всякий раз, когда пользователь отметит задачу выполненной, он проверяет, все ли задачи выполнены. Если да, то он вызовет \u003Cb\u003EshowCongratulationAnimation()\u003C\u002Fb\u003E.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ заключение, добавим вызов этого метода в конце \u003Cb\u003EtableView(_:didSelectRowAt:)\u003C\u002Fb\u003E:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003EshowCongratulationsIfNeeded()\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЗапустите приложение, создайте пару задач, отметьте их как выполненные — и вы увидите нашу анимацию!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Fzz\u002Fxs\u002F2m\u002Fzzxs2mcciespvyjwaudma_rytyi.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EОстанавливаем таймер\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nЕсли вы посмотрите в консоль, вы увидите, что, хотя пользователь отметил все задачи выполненными, таймер продолжает работу. Это совершенно бессмысленно, так что имеет смысл остановить таймер, когда он не нужен.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСначала создадим новый метод для остановки таймера:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc cancelTimer() {\n  timer?.invalidate()\n  timer = nil\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЭто обновит таймер и сбросит его в nil, чтобы мы могли правильно его создать вновь позже. \u003Cb\u003Einvalidate()\u003C\u002Fb\u003E — это единственный способ удалить Timer из цикла выполнения. Цикл выполнения удалит сильную ссылку на таймер или непосредственно после вызова \u003Cb\u003Einvalidate()\u003C\u002Fb\u003E или чуть позже.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь заменим метод showCongratulationsIfNeeded() следующим образом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc showCongratulationsIfNeeded() {\n  if taskList.filter({ !$0.completed }).count == 0 {\n    cancelTimer()\n    showCongratulationAnimation()\n  } else {\n    createTimer()\n  }\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nТеперь, если пользователь выполнит все задачи, приложение сначала сбросит таймер, а затем покажет анимацию, в противном случае оно попытается создать новый таймер, если его еще нет.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗапустите приложение.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F62\u002Fl9\u002F4-\u002F62l94-n0gtjlg2sfpjoffjqvaom.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь таймер останавливается и рестартует, как надо.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003ECADisplayLink для плавной анимации\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ETimer\u003C\u002Fb\u003E — неидеальный выбор для управления анимацией. Вы могли заметить пропуск нескольких кадров анимации, особенно, если вы запускаете приложение в симуляторе.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы установили таймер на частоту 60Hz. Таким образом, таймер обновляет анимацию каждые 16 мс. Рассмотрим ситуацию внимательнее:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002Far\u002Fdf\u002Fec\u002Fardfecmgf7bizt8ggcqa01jdbju.png\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПри использовании \u003Cb\u003ETimer\u003C\u002Fb\u003E мы не знаем точное время запуска действия. Это может случиться или в начале или в конце кадра. Скажем, таймер выполнится в середине каждого кадра (голубые точки на рисунке). Единственно, что мы знаем наверняка, что вызов будет каждые 16 мс.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТеперь у нас только 8 мс, чтобы исполнить анимацию, и этого может быть недостаточно для нашей анимации. Посмотрим на второй кадр на рисунке. Второй кадр не сможет быть выполнен за отведенное ему время, так что приложение сбросит второй кадр анимации.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EНам поможет CADisplayLink\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E вызывается один раз за кадр и пытается синхронизовать реальные кадры анимации, насколько это возможно. Теперь в вашем распоряжении будут все 16 мс и iOS не сбросит ни единого кадра.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЧтобы использовать \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E, вам нужно заменить \u003Cb\u003EanimationTimer\u003C\u002Fb\u003E на новый тип.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗамените этот код\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Evar animationTimer: Timer?\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nна этот:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Evar displayLink: CADisplayLink?\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nВы заменили \u003Cb\u003ETimer\u003C\u002Fb\u003E на \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E. \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E — это представление таймера, который привязан к вертикальной развёртке дисплея. Это означает, что GPU устройства приостановит работу, пока экран не сможет дальше обрабатывать команды GPU. Таким образом мы получаем плавную анимацию.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗамените этот код\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Evar startTime: TimeInterval?, endTime: TimeInterval?\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nна этот:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Evar startTime: CFTimeInterval?, endTime: CFTimeInterval?\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВы заменили \u003Cb\u003ETimeInterval\u003C\u002Fb\u003E на \u003Cb\u003ECFTimeInterval\u003C\u002Fb\u003E, что необходимо для работы с CADisplayLink.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗамените текст метода \u003Cb\u003EshowCongratulationAnimation()\u003C\u002Fb\u003E на этот:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003Efunc showCongratulationAnimation() {\n  \u002F\u002F 1\n  height = UIScreen.main.bounds.height + balloon.frame.size.height\n  balloon.center = CGPoint(x: UIScreen.main.bounds.width \u002F 2, \n    y: height + balloon.frame.size.height \u002F 2)\n  balloon.isHidden = false\n\n  \u002F\u002F 2\n  startTime = CACurrentMediaTime()\n  endTime = animationDuration + startTime!\n\n  \u002F\u002F 3\n  displayLink = CADisplayLink(target: self, \n    selector: #selector(updateAnimation))\n  displayLink?.add(to: RunLoop.main, forMode: .common)\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\nЧто мы тут делаем:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EУстанавливаем высоту анимации, координаты шарика и видимость — примерно так же, как делали раньше.\u003C\u002Fli\u003E\r\n\u003Cli\u003EИнициализируем \u003Cb\u003EstartTime\u003C\u002Fb\u003E при помощи \u003Cb\u003ECACurrentMediaTime()\u003C\u002Fb\u003E (вместо of Date()).\u003C\u002Fli\u003E\r\n\u003Cli\u003EСоздаём экземпляр класса \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E и добавляем его в цикл выполнения в режиме \u003Cb\u003Ecommon\u003C\u002Fb\u003E.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nТеперь заменим \u003Cb\u003EupdateAnimation()\u003C\u002Fb\u003E следующим кодом:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"swift\"\u003E\u002F\u002F 1\n@objc func updateAnimation() {\n  guard\n    let endTime = endTime,\n    let startTime = startTime \n    else {\n      return\n  }\n    \n  \u002F\u002F 2\n  let now = CACurrentMediaTime()\n  \n  if now \u003E= endTime {\n    \u002F\u002F 3\n    displayLink?.isPaused = true\n    displayLink?.invalidate()\n    balloon.isHidden = true\n  }\n    \n  let percentage = (now - startTime) * 100 \u002F animationDuration\n  let y = height - ((height + balloon.frame.height \u002F 2) \u002F 100 * \n    CGFloat(percentage))\n    \n  balloon.center = CGPoint(x: balloon.center.x + \n    CGFloat.random(in: -0.5...0.5), y: y)\n}\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Col\u003E\r\n\u003Cli\u003EДобавляем \u003Ca href=\"https:\u002F\u002Fhabr.com\u002Fru\u002Fusers\u002Fobjc\u002F\" class=\"user_link\"\u003Eobjc\u003C\u002Fa\u003E к сигнатуре метода (у CADisplayLink параметр селектора требует такую сигнатуру).\u003C\u002Fli\u003E\r\n\u003Cli\u003EЗаменяем инициализацию при помощи \u003Cb\u003EDate()\u003C\u002Fb\u003E на инициализацию даты \u003Cb\u003ECoreAnimation\u003C\u002Fb\u003E. \u003C\u002Fli\u003E\r\n\u003Cli\u003EЗаменяем вызов \u003Cb\u003EanimationTimer.invalidate()\u003C\u002Fb\u003E call на паузу CADisplayLink и invalidate. Это также удалит CADisplayLink из цикла выполнения.\u003C\u002Fli\u003E\r\n\u003C\u002Fol\u003E\u003Cbr\u002F\u003E\r\nЗапустите приложение!\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" height=\"500\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F01\u002Fct\u002Fjf\u002F01ctjfswyhfhc6dogl8wavqv8-a.gif\" data-width=\"281\"\u002F\u003E\u003Cbr\u002F\u003E\r\nПрекрасно! Мы успешно заменили анимацию, основанную на \u003Cb\u003ETimer\u003C\u002Fb\u003E, на более подходящий \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E — и получили анимацию более плавную, без рывков.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch2\u003EЗаключение\u003C\u002Fh2\u003E\u003Cbr\u002F\u003E\r\nВ этом руководстве вы разобрались, как класс \u003Cb\u003ETimer\u003C\u002Fb\u003E работает в iOS, что такое цикл выполнения и как он может сделать ваше приложение более отзывчивым в плане интерфейса, и как использовать \u003Cb\u003ECADisplayLink\u003C\u002Fb\u003E вместо Timer для плавной анимации.\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"swift"},{"titleHtml":"ios"},{"titleHtml":"timer"},{"titleHtml":"таймер"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450172\u002F5e06fff1e4707c3d4c4f877b7929a0fd\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450172\u002F5e06fff1e4707c3d4c4f877b7929a0fd\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450172\\\u002F\"},\"headline\":\"Таймер в iOS\",\"datePublished\":\"2019-05-06T14:46:09+03:00\",\"dateModified\":\"2019-05-29T13:19:42+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"Юрий\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.  Tim...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450172\\\u002F#post-content-body\",\"about\":[\"h_ios_dev\",\"h_swift\",\"f_develop\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F9v\\\u002Fiw\\\u002Fxg\\\u002F9viwxg_qjy7oyvwfsss09ec813c.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fnw\\\u002Fze\\\u002Fnn\\\u002Fnwzenn61635ppptgcdsule6ywsk.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fqb\\\u002Fry\\\u002Fdd\\\u002Fqbryddhdojzhiq5jp0eol00axf4.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fog\\\u002Fjg\\\u002Fl6\\\u002Fogjgl6z6livbu-shmvtszh3movq.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fya\\\u002Fup\\\u002Fxy\\\u002Fyaupxyslxeqpej-7kwxadnlrtzk.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fzz\\\u002Fxs\\\u002F2m\\\u002Fzzxs2mcciespvyjwaudma_rytyi.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F62\\\u002Fl9\\\u002F4-\\\u002F62l94-n0gtjlg2sfpjoffjqvaom.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Far\\\u002Fdf\\\u002Fec\\\u002Fardfecmgf7bizt8ggcqa01jdbju.png\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F01\\\u002Fct\\\u002Fjf\\\u002F01ctjfswyhfhc6dogl8wavqv8-a.gif\"]}","metaDescription":"Представьте, что вы работаете над приложением, в котором нужно периодически выполнять некоторые действия. Именно для этого в Swift используется класс Timer.\r\n\r\nTimer используется для планирования...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"ios_dev,swift"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

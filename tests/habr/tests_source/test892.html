@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Скорость хранилища подходит для etcd? Спросим fio / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/company\/southbridge\/blog\/450892\/"},"headline":"Скорость хранилища подходит для etcd? Спросим fio","datePublished":"2019-05-07T17:42:42+03:00","dateModified":"2019-05-07T19:59:46+03:00","author":{"@type":"Person","name":"nAbdullin"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Короткая история о fio и etcd Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prom...","url":"https:\/\/habr.com\/ru\/company\/southbridge\/blog\/450892\/#post-content-body","about":["c_southbridge","h_sys_admin","h_s_admin","h_devops","f_admin"],"image":["https:\/\/habrastorage.org\/webt\/6g\/sf\/kx\/6gsfkx6hm7bcpebreyfrtw3kpps.jpeg"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Скорость хранилища подходит для etcd? Спросим fio" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Скорость хранилища подходит для etcd? Спросим fio" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Скорость хранилища подходит для etcd? Спросим fio" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Короткая история о fio и etcd
+Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prometheus, чтобы предоставить нужные..." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Короткая история о fio и etcd
+Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prometheus, чтобы предоставить нужные..." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Короткая история о fio и etcd
+Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prometheus, чтобы предоставить нужные..." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Короткая история о fio и etcd
+Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prometheus, чтобы предоставить нужные..." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Короткая история о fio и etcd
+Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prometheus, чтобы предоставить нужные..." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450892/fbdf5d39f37bd32190d05a3b85cf2df0/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450892/fbdf5d39f37bd32190d05a3b85cf2df0/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450892/fbdf5d39f37bd32190d05a3b85cf2df0/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450892/fbdf5d39f37bd32190d05a3b85cf2df0/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450892/fbdf5d39f37bd32190d05a3b85cf2df0/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450892" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-07T14:42:42.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450892/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/company/southbridge/blog/450892/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450892/fbdf5d39f37bd32190d05a3b85cf2df0/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" companyName="southbridge" data-async-called="true" class="tm-page"><div class="tm-page-width"><div class="tm-page__header"><div class="tm-company-card__branding tm-company-article__branding tm-company-card__branding_loading"><div class="tm-company-card__branding-placeholder"><!----></div> <a href="https://slurm.io/kubernetes-security?utm_source=habr&amp;utm_medium=top&amp;utm_campaign=kubernetes-security&amp;utm_content=top_20-10-2021&amp;utm_term=habr-top"><img src="//habrastorage.org/getpro/habr/branding/307/f03/4ad/307f034ad5afe09d902d1991c541ef3d.png" width="100%" class="tm-company-card__branding-image"></a></div></div> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"><div class="tm-company-card tm-company-article__company-card"><div class="tm-company-card__info"><div class="tm-company-card__header"><a href="/ru/company/southbridge/profile/" class="tm-company-card__avatar"><div class="tm-entity-image"><img alt="" height="48" src="//habrastorage.org/getpro/habr/company/754/d93/3ca/754d933caeb494c6127add17ff60feb5.png" width="48" class="tm-entity-image__pic"></div></a> <a href="https://career.habr.com/companies/southbridge" rel="noopener" target="_blank" class="tm-grade tm-company-card__rating"><div class="tm-rating"><div class="tm-rating__header"><svg height="24" width="24" class="tm-svg-img tm-svg-grade__icon"><title>Оценка компании на Хабр Карьере</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#grade"></use></svg> <div class="tm-rating__counter tm-rating__counter_variant-grade">4.31</div></div> <div class="tm-rating__text tm-rating__text_variant-grade">
+    Оценка
+  </div></div></a> <div class="tm-rating tm-company-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">182.72</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div> <div class="tm-company-card__info"><a href="/ru/company/southbridge/profile/" class="tm-company-card__name">
+        Southbridge
+      </a> <div class="tm-company-card__description">Обеспечиваем стабильную работу highload-проектов</div></div></div> <div class="tm-company-card__buttons"><!----> <!----></div></div> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/nAbdullin/" title="nAbdullin" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_pink"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/nAbdullin/" class="tm-user-info__username">
+      nAbdullin
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-07T14:42:42.000Z" title="2019-05-07, 17:42">7  мая  2019 в 17:42</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Скорость хранилища подходит для etcd? Спросим fio</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/company/southbridge/blog/" class="tm-article-snippet__hubs-item-link router-link-active"><span>Блог компании Southbridge</span> <!----></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/sys_admin/" class="tm-article-snippet__hubs-item-link"><span>Системное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/s_admin/" class="tm-article-snippet__hubs-item-link"><span>Серверное администрирование</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/devops/" class="tm-article-snippet__hubs-item-link"><span>DevOps</span> <span title="Профильный хаб" class="tm-article-snippet__profiled-hub">*</span></a></span></div> <div class="tm-article-snippet__labels"><div class="tm-article-snippet__label"><span>
+        Перевод
+      </span></div></div> <!----> <!----></div></div> <div class="tm-article-presenter__origin"><a href="https://www.ibm.com/blogs/bluemix/2019/04/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd/" target="_blank" class="tm-article-presenter__origin-link">
+                Автор оригинала:
+                <span>
+                  Matteo Olivi, Mike Spreitzer
+                </span></a></div> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><p><img src="https://habrastorage.org/r/w780q1/webt/6g/sf/kx/6gsfkx6hm7bcpebreyfrtw3kpps.jpeg" data-src="https://habrastorage.org/webt/6g/sf/kx/6gsfkx6hm7bcpebreyfrtw3kpps.jpeg" data-blurred="true"/></p><br/>
+<h3 id="korotkaya-istoriya-o-fio-i-etcd">Короткая история о fio и etcd</h3><br/>
+<p>Производительность кластера <a href="https://github.com/etcd-io/etcd">etcd</a> во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в <a href="https://prometheus.io/">Prometheus</a>, чтобы предоставить нужные сведения о производительности хранилища. Например, метрику wal_fsync_duration_seconds. <a href="https://github.com/etcd-io/etcd/blob/master/Documentation/faq.md#what-does-the-etcd-warning-failed-to-send-out-heartbeat-on-time-mean">В документации к etcd сказано</a>: чтобы хранилище считалось достаточно быстрым, 99-й процентиль этой метрики должен быть меньше 10 мс. Если вы планируете запустить кластер etcd на машинах Linux и хотите оценить, достаточно ли быстрое у вас хранилище (например, SSD), можно использовать <a href="https://github.com/axboe/fio">fio</a> — популярный инструмент для тестирования операций ввода-вывода. Запустите следующую команду, где test-data — это каталог под точкой подключения хранилища:</p><br/>
+<pre><code class="plaintext">fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest</code></pre><br/>
+<p>Нужно просто посмотреть результаты и проверить, что 99-й процентиль длительности <a href="https://linux.die.net/man/2/fdatasync">fdatasync</a> меньше 10 мс. Если да, у вас достаточно быстрое хранилище. Вот пример результатов:</p><br/>
+<pre><code class="plaintext">  sync (usec): min=534, max=15766, avg=1273.08, stdev=1084.70
+  sync percentiles (usec):
+   | 1.00th=[ 553], 5.00th=[ 578], 10.00th=[ 594], 20.00th=[ 627],
+   | 30.00th=[ 709], 40.00th=[ 750], 50.00th=[ 783], 60.00th=[ 1549],
+   | 70.00th=[ 1729], 80.00th=[ 1991], 90.00th=[ 2180], 95.00th=[ 2278],
+   | 99.00th=[ 2376], 99.50th=[ 9634], 99.90th=[15795], 99.95th=[15795],
+   | 99.99th=[15795]</code></pre><a name="habracut"></a><br/>
+<p><strong>Примечания</strong></p><br/>
+<ul>
+<li>Мы настроили значения параметров --size и --bs для своего конкретного сценария. Чтобы получить от fio полезный результат, укажите свои значения. Где их взять? Читайте, <a href="https://www.ibm.com/blogs/bluemix/2019/04/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd/#how-and-why">как мы научились настраивать fio</a>.</li>
+<li>Во время тестирования вся нагрузка ввода-вывода поступает от fio. В реальном сценарии, скорее всего, в хранилище будут поступать и другие запросы на запись, кроме тех, что связаны с wal_fsync_duration_seconds. Дополнительная нагрузка увеличит значение wal_fsync_duration_seconds. Так что если 99-й процентиль почти дотянул до 10 мс, вашему хранилищу не хватит скорости.</li>
+<li><strong>Берите версию <a href="https://github.com/axboe/fio">fio</a> не ниже 3.5 </strong>(предыдущие не показывают процентили длительности fdatasync).</li>
+<li>Выше показан только фрагмент результатов от fio.</li>
+</ul><br/>
+<h3 id="dlinnaya-istoriya-o-fio-i-etcd">Длинная история о fio и etcd</h3><br/>
+<p><strong>Что такое WAL в etcd</strong></p><br/>
+<p>Обычно базы данных используют <a href="https://en.wikipedia.org/wiki/Write-ahead_logging">журнал упреждающей записи</a>; etcd тоже его использует. Здесь мы не будем подробно обсуждать журнал упреждающей записи (write-ahead log, WAL). Нам достаточно знать, что каждый член кластера etcd ведет его в постоянном хранилище. etcd записывает каждую операцию с парами ключ-значение (например, обновление) в WAL, прежде чем применить их в хранилище. Если между снимками один из членов хранилища аварийно завершается и перезапускается, он может локально восстановить транзакции с момента последнего снимка по содержимому WAL.</p><br/>
+<p>Когда клиент добавляет ключ в хранилище пар ключ-значение или обновляет значение существующего ключа, etcd вносит запись об этой операции в WAL, который представляет собой обычный файл в постоянном хранилище. Прежде чем продолжить обработку, etcd ДОЛЖЕН быть полностью уверен, что запись в WAL действительно произошла. В Linux для этого недостаточно одного системного вызова <a href="https://linux.die.net/man/2/write">write</a>, так как фактически запись в физическое хранилище может быть отложена. Например, Linux может некоторое время хранить запись WAL в кэше в памяти ядра (например, страничном кэше). А для того, чтобы данные точно записались в постоянное хранилище, нужен системный вызов fdatasync после записи, и etcd как раз использует его (как можно увидеть в результате работы <a href="https://linux.die.net/man/1/strace">strace</a>, где 8 — это дескриптор файла WAL):</p><br/>
+<pre><code class="plaintext">21:23:09.894875 lseek(8, 0, SEEK_CUR)   = 12808 &lt;0.000012>
+21:23:09.894911 write(8, ".\0\0\0\0\0\0\202\10\2\20\361\223\255\266\6\32$\10\0\20\10\30\26\"\34\"\r\n\3fo"..., 2296) = 2296 &lt;0.000130>
+21:23:09.895041 fdatasync(8)            = 0 &lt;0.008314></code></pre><br/>
+<p>К сожалению, запись в постоянное хранилище не проходит мгновенно. Если вызов fdatasync работает медленно, производительность системы etcd падает. <a href="https://github.com/etcd-io/etcd/blob/master/Documentation/faq.md#what-does-the-etcd-warning-failed-to-send-out-heartbeat-on-time-mean">В документации по etcd говорится</a>, что хранилище считается достаточно быстрым, если в 99-м процентиле вызовов fdatasync при записи в файл WAL занимают меньше 10 мс. Есть и другие полезные метрики для хранилища, но в этом посте мы говорим только об этой метрике.</p><br/>
+<h3 id="ocenka-hranilischa-s-pomoschyu-fio">Оценка хранилища с помощью fio</h3><br/>
+<p>Если нужно оценить, подходит ли ваше хранилище для etcd, используйте fio — очень популярный инструмент тестирования нагрузки ввода-вывода. Следует помнить, что дисковые операции могут быть самыми различными: синхронные и асинхронные, множество классов системных вызовов и т. д. Как следствие — fio достаточно очень сложно использовать. У него имеется множество параметров, и разные комбинации их значений выдают совершенно непохожие рабочие нагрузки ввода-вывода. Чтобы получить адекватные цифры для etcd, следует убедиться, что тестовая нагрузка записи от fio максимально близка к реальной нагрузке от etcd при записи файлов WAL.</p><br/>
+<p>Следовательно, fio должен, как минимум, создавать нагрузку в виде ряда последовательных операций записи в файл, каждая запись будет состоять из системного вызова <a href="https://linux.die.net/man/2/write">write</a>, за которым следует системный вызов fdatasync. Для последовательных операций записи fio нужен параметр --rw=write. Чтобы при записи fio использовал системный вызов write, а не <a href="https://linux.die.net/man/2/pwrite">pwrite</a>, стоит указать параметр --ioengine=sync. Наконец, чтобы после каждой записи вызывался fdatasync, нужно добавить параметр --fdatasync=1. Два других параметра в этом примере (--size и --bs) зависят от конкретного сценария. В следующем разделе мы расскажем, как их настроить.</p><br/>
+<h3 id="pochemu-imenno-fio-i-kak-my-nauchilis-ego-nastraivat">Почему именно fio и как мы научились его настраивать</h3><br/>
+<p>В этом посте мы описываем реальный случай. У нас был кластер <a href="http://ibm.com/cloud/learn/kubernetes">Kubernetes</a> v1.13, который мы мониторили с помощью Prometheus. etcd v3.2.24 размещался на SSD. Метрики по etcd показывали слишком высокие задержки для fdatasync, даже когда кластер ничего не делал. Метрики были странными, и мы толком не знали, что они означают. Кластер состоял из виртуальных машин, нужно было понять, в чем проблема: в физических SSD или в слое виртуализации. К тому же мы часто вносили изменения в конфигурацию оборудования и ПО, и нам нужен был способ оценивать их результат. Мы могли запускать etcd в каждой конфигурации и смотреть на метрики Prometheus, но это слишком хлопотно. Мы искали достаточно простой способ оценивать конкретную конфигурацию. Мы хотели проверить, правильно ли мы понимаем метрики Prometheus от etcd.</p><br/>
+<p>Но для этого нужно было решить две проблемы. Во-первых, как выглядит нагрузка ввода-вывода, которую etcd создает при записи в WAL? Какие системные вызовы используются? Какой размер у записей? Во-вторых, если мы ответим на эти вопросы, как воспроизвести аналогичную рабочую нагрузку с fio? Не забывайте, что fio — очень гибкий инструмент со множеством параметров. Мы решили обе проблемы одним подходом — с помощью команд <a href="https://linux.die.net/man/8/lsof">lsof</a> и <a href="https://linux.die.net/man/1/strace">strace</a>. lsof отображает все дескрипторы файлов, используемые процессом, и связанные с ними файлы. А с помощью strace можно изучить уже запущенный процесс или запустить процесс и изучить его. strace выводит все системные вызовы от изучаемого процесса (и его дочерних процессов). Последнее весьма важно, поскольку etcd как раз применяет подобный подход.</p><br/>
+<p>Первым делом мы использовали strace для изучения сервера etcd для Kubernetes, когда на кластер не было нагрузки. Мы увидели, что почти все записи WAL были примерно одного размера: 2200–2400 байт. Поэтому в команде в начале поста мы указали параметр --bs=2300 (bs означает размер в байтах для каждой записи fio). Обратите внимание, что размер записи etcd зависит от версии etcd, поставки, значений параметров и т. д. и влияет на длительность fdatasync. Если у вас похожий сценарий, изучите свои процессы etcd с помощью strace, чтобы узнать точные цифры.</p><br/>
+<p>Затем, чтобы хорошо представить себе действия в файловой системе etcd, мы запустили ее со strace и с параметрами -ffttT. Так мы пытались изучить дочерние процессы и записать выходные данные каждого из них в отдельном файле, а еще получить подробные отчеты о начале и длительности каждого системного вызова. Мы использовали lsof, чтобы подтвердить свой анализ выходных данных strace и увидеть, какой дескриптор файла для каких целей использовался. Так с помощью strace получились результаты, показанные выше. Статистика по времени синхронизации подтвердила, что показатель wal_fsync_duration_seconds из etcd соответствует вызовам fdatasync с файловыми дескрипторами WAL.</p><br/>
+<p>Мы изучили документацию по fio и выбрали параметры для нашего сценария, чтобы fio сгенерировал нагрузку, аналогичную etcd. Также мы проверили системные вызовы и их длительность, запустив fio из strace, по аналогии с etcd.</p><br/>
+<p>Мы тщательно подобрали значение параметра --size, которые представляет всю нагрузку ввода-вывода от fio. В нашем случае это общее число байтов, записываемых в хранилище. Оно получилось прямо пропорциональным количеству системных вызовов write (и fdatasync). Для определенного значения bs количество вызовов fdatasync = size/bs. Поскольку нас интересовал процентиль, у нас должно было быть достаточно образцов для достоверности, и мы подсчитали, что нам будет достаточно 10^4 (получается 22 мебибайта). Если --size меньше, могут возникать выбросы (например, несколько вызовов fdatasync отрабатывают дольше обычного и влияют на 99-й процентиль).</p><br/>
+<h3 id="poprobuyte-sami">Попробуйте сами</h3><br/>
+<p>Мы показали, как использовать fio и узнать, достаточно ли у хранилища скорости для высокой производительности etcd. Теперь вы можете попробовать это на практике самостоятельно, используя, например, виртуальные машины с хранилищем SSD в <a href="https://cloud.ibm.com/">IBM Cloud</a>.</p></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bfio%5D" class="tm-tags-list__link">fio</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bk8s%5D" class="tm-tags-list__link">k8s</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Betcd%5D" class="tm-tags-list__link">etcd</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bstorage%5D" class="tm-tags-list__link">storage</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Bprometheus%5D" class="tm-tags-list__link">prometheus</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5Blinux%5D" class="tm-tags-list__link">linux</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/company/southbridge/blog/" class="tm-hubs-list__link router-link-active">
+    Блог компании Southbridge
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/sys_admin/" class="tm-hubs-list__link">
+    Системное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/s_admin/" class="tm-hubs-list__link">
+    Серверное администрирование
+  </a></li><li class="tm-separated-list__item"><a href="/ru/hub/devops/" class="tm-hubs-list__link">
+    DevOps
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 25: ↑25 и ↓0</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 25: ↑25 и ↓0" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+25</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">4.1K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    38
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"><div class="tm-article-author__company"><div class="tm-article-author__company-card"><div class="tm-company-snippet"><a href="/ru/company/southbridge/profile/" class="tm-company-snippet__logo-link"><div class="tm-entity-image"><img alt="" height="40" src="//habrastorage.org/getpro/habr/company/754/d93/3ca/754d933caeb494c6127add17ff60feb5.png" width="40" class="tm-entity-image__pic"></div></a> <div class="tm-company-snippet__info"><a href="/ru/company/southbridge/profile/" class="tm-company-snippet__title">Southbridge</a> <div class="tm-company-snippet__description">Обеспечиваем стабильную работу highload-проектов</div></div></div> <div class="tm-article-author__buttons"><!----> <!----></div></div> <div class="tm-article-author__company-contacts"><a href="https://southbridge.io/" rel="noopener" target="_blank" class="tm-article-author__contact">
+      Сайт
+    </a></div> <div class="tm-article-author__separator"></div></div> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/nAbdullin/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_pink"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 150 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    108
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/nAbdullin/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @nAbdullin
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/company/southbridge/blog/450892/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 2 
+    </span></a> <!----></div></div></div>  <!---->  <!----> <!----></div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__placeholder_initial"></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <section class="tm-block tm-block_spacing-bottom"><header class="tm-block__header"><h2 class="tm-block__title">Информация</h2> <!----></header> <div class="tm-block__body"><div class="tm-company-basic-info"><dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата основания</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2008-02-21T21:00:00.000Z" title="2008-02-22, 00:00">22  февраля  2008</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Местоположение</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    Россия
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Сайт</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="https://southbridge.io" target="_blank" class="tm-company-basic-info__link">
+      southbridge.io
+    </a></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Численность</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap">
+    51–100 человек
+  </dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Дата регистрации</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><time datetime="2012-11-15T08:41:16.000Z" title="2012-11-15, 12:41">15  ноября  2012</time></dd></dl> <dl class="tm-description-list tm-description-list_variant-columns-nowrap"><dt class="tm-description-list__title tm-description-list__title_variant-columns-nowrap">Представитель</dt> <dd class="tm-description-list__body tm-description-list__body_variant-columns-nowrap"><a href="/ru/users/aSkobin/" class="tm-company-basic-info__link">
+      Антон Скобин
+    </a></dd></dl></div></div> <!----></section> <div class="tm-company-widgets"></div> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/company/southbridge/blog/450892/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/company/southbridge/blog/450892/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450892":{"id":"450892","timePublished":"2019-05-07T14:42:42+00:00","isCorporative":true,"lang":"ru","titleHtml":"Скорость хранилища подходит для etcd? Спросим fio","leadData":{"textHtml":"\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F6g\u002Fsf\u002Fkx\u002F6gsfkx6hm7bcpebreyfrtw3kpps.jpeg\"\u003E\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Ch3 id=\"korotkaya-istoriya-o-fio-i-etcd\"\u003EКороткая история о fio и etcd\u003C\u002Fh3\u003E\u003Cbr\u003E\r\n\u003Cp\u003EПроизводительность кластера \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fetcd-io\u002Fetcd\"\u003Eetcd\u003C\u002Fa\u003E во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в \u003Ca href=\"https:\u002F\u002Fprometheus.io\u002F\"\u003EPrometheus\u003C\u002Fa\u003E, чтобы предоставить нужные сведения о производительности хранилища. Например, метрику wal_fsync_duration_seconds. \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fetcd-io\u002Fetcd\u002Fblob\u002Fmaster\u002FDocumentation\u002Ffaq.md#what-does-the-etcd-warning-failed-to-send-out-heartbeat-on-time-mean\"\u003EВ документации к etcd сказано\u003C\u002Fa\u003E: чтобы хранилище считалось достаточно быстрым, 99-й процентиль этой метрики должен быть меньше 10 мс. Если вы планируете запустить кластер etcd на машинах Linux и хотите оценить, достаточно ли быстрое у вас хранилище (например, SSD), можно использовать \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Faxboe\u002Ffio\"\u003Efio\u003C\u002Fa\u003E — популярный инструмент для тестирования операций ввода-вывода. Запустите следующую команду, где test-data — это каталог под точкой подключения хранилища:\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u003E\r\n\u003Cp\u003EНужно просто посмотреть результаты и проверить, что 99-й процентиль длительности \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F2\u002Ffdatasync\"\u003Efdatasync\u003C\u002Fa\u003E меньше 10 мс. Если да, у вас достаточно быстрое хранилище. Вот пример результатов:\u003C\u002Fp\u003E\u003Cbr\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E  sync (usec): min=534, max=15766, avg=1273.08, stdev=1084.70\n  sync percentiles (usec):\n   | 1.00th=[ 553], 5.00th=[ 578], 10.00th=[ 594], 20.00th=[ 627],\n   | 30.00th=[ 709], 40.00th=[ 750], 50.00th=[ 783], 60.00th=[ 1549],\n   | 70.00th=[ 1729], 80.00th=[ 1991], 90.00th=[ 2180], 95.00th=[ 2278],\n   | 99.00th=[ 2376], 99.50th=[ 9634], 99.90th=[15795], 99.95th=[15795],\n   | 99.99th=[15795]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E","imageUrl":null,"buttonTextHtml":"Читать дальше →","image":null},"editorVersion":"1.0","postType":"article","postLabels":[{"type":"translation","data":{"originalAuthorName":"Matteo Olivi, Mike Spreitzer","originalUrl":"https:\u002F\u002Fwww.ibm.com\u002Fblogs\u002Fbluemix\u002F2019\u002F04\u002Fusing-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd\u002F"}}],"author":{"scoreStats":{"score":108,"votesCount":150},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1829125","alias":"nAbdullin","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":2,"favoritesCount":38,"readingCount":4102,"score":25,"votesCount":25},"hubs":[{"relatedData":null,"id":"17901","alias":"southbridge","type":"corporative","title":"Блог компании Southbridge","titleHtml":"Блог компании Southbridge","isProfiled":false},{"relatedData":null,"id":"221","alias":"sys_admin","type":"collective","title":"Системное администрирование","titleHtml":"Системное администрирование","isProfiled":true},{"relatedData":null,"id":"17350","alias":"s_admin","type":"collective","title":"Серверное администрирование","titleHtml":"Серверное администрирование","isProfiled":true},{"relatedData":null,"id":"20788","alias":"devops","type":"collective","title":"DevOps","titleHtml":"DevOps","isProfiled":true}],"flows":[{"id":"6","alias":"admin","title":"Администрирование"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Cp\u003E\u003Cimg src=\"https:\u002F\u002Fhabrastorage.org\u002Fr\u002Fw780q1\u002Fwebt\u002F6g\u002Fsf\u002Fkx\u002F6gsfkx6hm7bcpebreyfrtw3kpps.jpeg\" data-src=\"https:\u002F\u002Fhabrastorage.org\u002Fwebt\u002F6g\u002Fsf\u002Fkx\u002F6gsfkx6hm7bcpebreyfrtw3kpps.jpeg\" data-blurred=\"true\"\u002F\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"korotkaya-istoriya-o-fio-i-etcd\"\u003EКороткая история о fio и etcd\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПроизводительность кластера \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fetcd-io\u002Fetcd\"\u003Eetcd\u003C\u002Fa\u003E во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в \u003Ca href=\"https:\u002F\u002Fprometheus.io\u002F\"\u003EPrometheus\u003C\u002Fa\u003E, чтобы предоставить нужные сведения о производительности хранилища. Например, метрику wal_fsync_duration_seconds. \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fetcd-io\u002Fetcd\u002Fblob\u002Fmaster\u002FDocumentation\u002Ffaq.md#what-does-the-etcd-warning-failed-to-send-out-heartbeat-on-time-mean\"\u003EВ документации к etcd сказано\u003C\u002Fa\u003E: чтобы хранилище считалось достаточно быстрым, 99-й процентиль этой метрики должен быть меньше 10 мс. Если вы планируете запустить кластер etcd на машинах Linux и хотите оценить, достаточно ли быстрое у вас хранилище (например, SSD), можно использовать \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Faxboe\u002Ffio\"\u003Efio\u003C\u002Fa\u003E — популярный инструмент для тестирования операций ввода-вывода. Запустите следующую команду, где test-data — это каталог под точкой подключения хранилища:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003Efio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНужно просто посмотреть результаты и проверить, что 99-й процентиль длительности \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F2\u002Ffdatasync\"\u003Efdatasync\u003C\u002Fa\u003E меньше 10 мс. Если да, у вас достаточно быстрое хранилище. Вот пример результатов:\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E  sync (usec): min=534, max=15766, avg=1273.08, stdev=1084.70\n  sync percentiles (usec):\n   | 1.00th=[ 553], 5.00th=[ 578], 10.00th=[ 594], 20.00th=[ 627],\n   | 30.00th=[ 709], 40.00th=[ 750], 50.00th=[ 783], 60.00th=[ 1549],\n   | 70.00th=[ 1729], 80.00th=[ 1991], 90.00th=[ 2180], 95.00th=[ 2278],\n   | 99.00th=[ 2376], 99.50th=[ 9634], 99.90th=[15795], 99.95th=[15795],\n   | 99.99th=[15795]\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EПримечания\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EМы настроили значения параметров --size и --bs для своего конкретного сценария. Чтобы получить от fio полезный результат, укажите свои значения. Где их взять? Читайте, \u003Ca href=\"https:\u002F\u002Fwww.ibm.com\u002Fblogs\u002Fbluemix\u002F2019\u002F04\u002Fusing-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd\u002F#how-and-why\"\u003Eкак мы научились настраивать fio\u003C\u002Fa\u003E.\u003C\u002Fli\u003E\r\n\u003Cli\u003EВо время тестирования вся нагрузка ввода-вывода поступает от fio. В реальном сценарии, скорее всего, в хранилище будут поступать и другие запросы на запись, кроме тех, что связаны с wal_fsync_duration_seconds. Дополнительная нагрузка увеличит значение wal_fsync_duration_seconds. Так что если 99-й процентиль почти дотянул до 10 мс, вашему хранилищу не хватит скорости.\u003C\u002Fli\u003E\r\n\u003Cli\u003E\u003Cstrong\u003EБерите версию \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Faxboe\u002Ffio\"\u003Efio\u003C\u002Fa\u003E не ниже 3.5 \u003C\u002Fstrong\u003E(предыдущие не показывают процентили длительности fdatasync).\u003C\u002Fli\u003E\r\n\u003Cli\u003EВыше показан только фрагмент результатов от fio.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"dlinnaya-istoriya-o-fio-i-etcd\"\u003EДлинная история о fio и etcd\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EЧто такое WAL в etcd\u003C\u002Fstrong\u003E\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EОбычно базы данных используют \u003Ca href=\"https:\u002F\u002Fen.wikipedia.org\u002Fwiki\u002FWrite-ahead_logging\"\u003Eжурнал упреждающей записи\u003C\u002Fa\u003E; etcd тоже его использует. Здесь мы не будем подробно обсуждать журнал упреждающей записи (write-ahead log, WAL). Нам достаточно знать, что каждый член кластера etcd ведет его в постоянном хранилище. etcd записывает каждую операцию с парами ключ-значение (например, обновление) в WAL, прежде чем применить их в хранилище. Если между снимками один из членов хранилища аварийно завершается и перезапускается, он может локально восстановить транзакции с момента последнего снимка по содержимому WAL.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EКогда клиент добавляет ключ в хранилище пар ключ-значение или обновляет значение существующего ключа, etcd вносит запись об этой операции в WAL, который представляет собой обычный файл в постоянном хранилище. Прежде чем продолжить обработку, etcd ДОЛЖЕН быть полностью уверен, что запись в WAL действительно произошла. В Linux для этого недостаточно одного системного вызова \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F2\u002Fwrite\"\u003Ewrite\u003C\u002Fa\u003E, так как фактически запись в физическое хранилище может быть отложена. Например, Linux может некоторое время хранить запись WAL в кэше в памяти ядра (например, страничном кэше). А для того, чтобы данные точно записались в постоянное хранилище, нужен системный вызов fdatasync после записи, и etcd как раз использует его (как можно увидеть в результате работы \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F1\u002Fstrace\"\u003Estrace\u003C\u002Fa\u003E, где 8 — это дескриптор файла WAL):\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cpre\u003E\u003Ccode class=\"plaintext\"\u003E21:23:09.894875 lseek(8, 0, SEEK_CUR)   = 12808 &lt;0.000012\u003E\n21:23:09.894911 write(8, \".\\0\\0\\0\\0\\0\\0\\202\\10\\2\\20\\361\\223\\255\\266\\6\\32$\\10\\0\\20\\10\\30\\26\\\"\\34\\\"\\r\\n\\3fo\"..., 2296) = 2296 &lt;0.000130\u003E\n21:23:09.895041 fdatasync(8)            = 0 &lt;0.008314\u003E\u003C\u002Fcode\u003E\u003C\u002Fpre\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EК сожалению, запись в постоянное хранилище не проходит мгновенно. Если вызов fdatasync работает медленно, производительность системы etcd падает. \u003Ca href=\"https:\u002F\u002Fgithub.com\u002Fetcd-io\u002Fetcd\u002Fblob\u002Fmaster\u002FDocumentation\u002Ffaq.md#what-does-the-etcd-warning-failed-to-send-out-heartbeat-on-time-mean\"\u003EВ документации по etcd говорится\u003C\u002Fa\u003E, что хранилище считается достаточно быстрым, если в 99-м процентиле вызовов fdatasync при записи в файл WAL занимают меньше 10 мс. Есть и другие полезные метрики для хранилища, но в этом посте мы говорим только об этой метрике.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"ocenka-hranilischa-s-pomoschyu-fio\"\u003EОценка хранилища с помощью fio\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЕсли нужно оценить, подходит ли ваше хранилище для etcd, используйте fio — очень популярный инструмент тестирования нагрузки ввода-вывода. Следует помнить, что дисковые операции могут быть самыми различными: синхронные и асинхронные, множество классов системных вызовов и т. д. Как следствие — fio достаточно очень сложно использовать. У него имеется множество параметров, и разные комбинации их значений выдают совершенно непохожие рабочие нагрузки ввода-вывода. Чтобы получить адекватные цифры для etcd, следует убедиться, что тестовая нагрузка записи от fio максимально близка к реальной нагрузке от etcd при записи файлов WAL.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EСледовательно, fio должен, как минимум, создавать нагрузку в виде ряда последовательных операций записи в файл, каждая запись будет состоять из системного вызова \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F2\u002Fwrite\"\u003Ewrite\u003C\u002Fa\u003E, за которым следует системный вызов fdatasync. Для последовательных операций записи fio нужен параметр --rw=write. Чтобы при записи fio использовал системный вызов write, а не \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F2\u002Fpwrite\"\u003Epwrite\u003C\u002Fa\u003E, стоит указать параметр --ioengine=sync. Наконец, чтобы после каждой записи вызывался fdatasync, нужно добавить параметр --fdatasync=1. Два других параметра в этом примере (--size и --bs) зависят от конкретного сценария. В следующем разделе мы расскажем, как их настроить.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"pochemu-imenno-fio-i-kak-my-nauchilis-ego-nastraivat\"\u003EПочему именно fio и как мы научились его настраивать\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EВ этом посте мы описываем реальный случай. У нас был кластер \u003Ca href=\"http:\u002F\u002Fibm.com\u002Fcloud\u002Flearn\u002Fkubernetes\"\u003EKubernetes\u003C\u002Fa\u003E v1.13, который мы мониторили с помощью Prometheus. etcd v3.2.24 размещался на SSD. Метрики по etcd показывали слишком высокие задержки для fdatasync, даже когда кластер ничего не делал. Метрики были странными, и мы толком не знали, что они означают. Кластер состоял из виртуальных машин, нужно было понять, в чем проблема: в физических SSD или в слое виртуализации. К тому же мы часто вносили изменения в конфигурацию оборудования и ПО, и нам нужен был способ оценивать их результат. Мы могли запускать etcd в каждой конфигурации и смотреть на метрики Prometheus, но это слишком хлопотно. Мы искали достаточно простой способ оценивать конкретную конфигурацию. Мы хотели проверить, правильно ли мы понимаем метрики Prometheus от etcd.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EНо для этого нужно было решить две проблемы. Во-первых, как выглядит нагрузка ввода-вывода, которую etcd создает при записи в WAL? Какие системные вызовы используются? Какой размер у записей? Во-вторых, если мы ответим на эти вопросы, как воспроизвести аналогичную рабочую нагрузку с fio? Не забывайте, что fio — очень гибкий инструмент со множеством параметров. Мы решили обе проблемы одним подходом — с помощью команд \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F8\u002Flsof\"\u003Elsof\u003C\u002Fa\u003E и \u003Ca href=\"https:\u002F\u002Flinux.die.net\u002Fman\u002F1\u002Fstrace\"\u003Estrace\u003C\u002Fa\u003E. lsof отображает все дескрипторы файлов, используемые процессом, и связанные с ними файлы. А с помощью strace можно изучить уже запущенный процесс или запустить процесс и изучить его. strace выводит все системные вызовы от изучаемого процесса (и его дочерних процессов). Последнее весьма важно, поскольку etcd как раз применяет подобный подход.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EПервым делом мы использовали strace для изучения сервера etcd для Kubernetes, когда на кластер не было нагрузки. Мы увидели, что почти все записи WAL были примерно одного размера: 2200–2400 байт. Поэтому в команде в начале поста мы указали параметр --bs=2300 (bs означает размер в байтах для каждой записи fio). Обратите внимание, что размер записи etcd зависит от версии etcd, поставки, значений параметров и т. д. и влияет на длительность fdatasync. Если у вас похожий сценарий, изучите свои процессы etcd с помощью strace, чтобы узнать точные цифры.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EЗатем, чтобы хорошо представить себе действия в файловой системе etcd, мы запустили ее со strace и с параметрами -ffttT. Так мы пытались изучить дочерние процессы и записать выходные данные каждого из них в отдельном файле, а еще получить подробные отчеты о начале и длительности каждого системного вызова. Мы использовали lsof, чтобы подтвердить свой анализ выходных данных strace и увидеть, какой дескриптор файла для каких целей использовался. Так с помощью strace получились результаты, показанные выше. Статистика по времени синхронизации подтвердила, что показатель wal_fsync_duration_seconds из etcd соответствует вызовам fdatasync с файловыми дескрипторами WAL.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы изучили документацию по fio и выбрали параметры для нашего сценария, чтобы fio сгенерировал нагрузку, аналогичную etcd. Также мы проверили системные вызовы и их длительность, запустив fio из strace, по аналогии с etcd.\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы тщательно подобрали значение параметра --size, которые представляет всю нагрузку ввода-вывода от fio. В нашем случае это общее число байтов, записываемых в хранилище. Оно получилось прямо пропорциональным количеству системных вызовов write (и fdatasync). Для определенного значения bs количество вызовов fdatasync = size\u002Fbs. Поскольку нас интересовал процентиль, у нас должно было быть достаточно образцов для достоверности, и мы подсчитали, что нам будет достаточно 10^4 (получается 22 мебибайта). Если --size меньше, могут возникать выбросы (например, несколько вызовов fdatasync отрабатывают дольше обычного и влияют на 99-й процентиль).\u003C\u002Fp\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3 id=\"poprobuyte-sami\"\u003EПопробуйте сами\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cp\u003EМы показали, как использовать fio и узнать, достаточно ли у хранилища скорости для высокой производительности etcd. Теперь вы можете попробовать это на практике самостоятельно, используя, например, виртуальные машины с хранилищем SSD в \u003Ca href=\"https:\u002F\u002Fcloud.ibm.com\u002F\"\u003EIBM Cloud\u003C\u002Fa\u003E.\u003C\u002Fp\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"fio"},{"titleHtml":"k8s"},{"titleHtml":"etcd"},{"titleHtml":"storage"},{"titleHtml":"prometheus"},{"titleHtml":"linux"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450892\u002Ffbdf5d39f37bd32190d05a3b85cf2df0\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450892\u002Ffbdf5d39f37bd32190d05a3b85cf2df0\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fsouthbridge\\\u002Fblog\\\u002F450892\\\u002F\"},\"headline\":\"Скорость хранилища подходит для etcd? Спросим fio\",\"datePublished\":\"2019-05-07T17:42:42+03:00\",\"dateModified\":\"2019-05-07T19:59:46+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"nAbdullin\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Короткая история о fio и etcd Производительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prom...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fcompany\\\u002Fsouthbridge\\\u002Fblog\\\u002F450892\\\u002F#post-content-body\",\"about\":[\"c_southbridge\",\"h_sys_admin\",\"h_s_admin\",\"h_devops\",\"f_admin\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002F6g\\\u002Fsf\\\u002Fkx\\\u002F6gsfkx6hm7bcpebreyfrtw3kpps.jpeg\"]}","metaDescription":"Короткая история о fio и etcd\r\nПроизводительность кластера etcd во многом зависит от производительности его хранилища. etcd экспортирует некоторые метрики в Prometheus, чтобы предоставить нужные...","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":""},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{"southbridge":{"alias":"southbridge","imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fcompany\u002F754\u002Fd93\u002F3ca\u002F754d933caeb494c6127add17ff60feb5.png","titleHtml":"Southbridge","descriptionHtml":"Обеспечиваем стабильную работу highload-проектов","relatedData":null,"statistics":{"postsCount":604,"newsCount":28,"vacanciesCount":0,"employeesCount":25,"careerRating":4.31,"subscribersCount":32023,"rating":182.72,"invest":null},"foundationDate":{"year":"2008","month":"02","day":"22"},"location":{"city":{"id":"447159","title":"Москва"},"region":{"id":"1885","title":"Москва и Московская обл."},"country":{"id":"168","title":"Россия"}},"siteUrl":"https:\u002F\u002Fsouthbridge.io","staffNumber":"51–100 человек","registrationDate":"2012-11-15T08:41:16+00:00","representativeUser":{"alias":"aSkobin","fullname":"Антон Скобин"},"contacts":[{"title":"Сайт","url":"https:\u002F\u002Fsouthbridge.io\u002F"}],"settings":{"analyticsSettings":[{"type":"ga","trackingId":"UA-78870906-5"},{"type":"ym","trackingId":"49219348"}],"branding":{"imageUrl":"\u002F\u002Fhabrastorage.org\u002Fgetpro\u002Fhabr\u002Fbranding\u002F307\u002Ff03\u002F4ad\u002F307f034ad5afe09d902d1991c541ef3d.png","linkUrl":"https:\u002F\u002Fslurm.io\u002Fkubernetes-security?utm_source=habr&utm_medium=top&utm_campaign=kubernetes-security&utm_content=top_20-10-2021&utm_term=habr-top","pixelUrl":""},"status":"active"},"metadata":{"titleHtml":"Southbridge, Москва - Обеспечиваем стабильную работу highload-проектов с 22 февраля 2008 г.","title":"Southbridge, Москва - Обеспечиваем стабильную работу highload-проектов с 22 февраля 2008 г.","keywords":["DevOps","Системное администрирование","IT-инфраструктура","Серверное администрирование","Kubernetes"],"descriptionHtml":"604 статьи от авторов компании Southbridge","description":"604 статьи от авторов компании Southbridge"},"aDeskSettings":null,"careerAlias":"southbridge","maxCustomTrackerLinks":3}},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ru" data-vue-meta="%7B%22lang%22:%7B%22ssr%22:%22ru%22%7D%7D">
+<head >
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>Управление автомобилем по CAN / Хабр</title>
+  <style>
+    /* cyrillic-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSxf6TF0.woff2) format('woff2');
+      unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+    }
+
+    /* cyrillic */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveQhf6TF0.woff2) format('woff2');
+      unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+    }
+
+    /* latin-ext */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveSBf6TF0.woff2) format('woff2');
+      unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+
+    /* latin */
+    @font-face {
+      font-family: 'Fira Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/firasans/v11/va9B4kDNxMZdWfMOD5VnZKveRhf6.woff2) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <link rel="preload" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" as="script"><link rel="preload" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css" as="style"><link rel="preload" href="https://assets.habr.com/habr-web/js/app.c0af73e7.js" as="script">
+  <link rel="stylesheet" href="https://assets.habr.com/habr-web/css/chunk-vendors.e7843cc0.css"><link rel="stylesheet" href="https://assets.habr.com/habr-web/css/app.02ee25a4.css">
+  <script>window.i18nFetch = new Promise((res, rej) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/js/i18n/ru-compiled.85eb77f0b17c8235e7b64b9f81ea5ec2.json');
+          xhr.responseType = 'json';
+          xhr.onload = function(e) {
+            if (this.status === 200) {
+              res({ru: xhr.response});
+            } else {
+              rej(e);
+            }
+          };
+          xhr.send();
+        });</script>
+  
+  <script data-vue-meta="ssr" src="/js/ads.js" onload="window['zhY4i4nJ9K'] = true" data-vmid="checkad"></script><script data-vue-meta="ssr" type="application/ld+json" data-vmid="ldjson-schema">{"@context":"http:\/\/schema.org","@type":"Article","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/habr.com\/ru\/post\/450140\/"},"headline":"Управление автомобилем по CAN","datePublished":"2019-05-13T18:56:40+03:00","dateModified":"2019-05-14T20:45:53+03:00","author":{"@type":"Person","name":"StarLine_Smartcar"},"publisher":{"@type":"Organization","name":"Habr","logo":{"@type":"ImageObject","url":"https:\/\/habrastorage.org\/webt\/a_\/lk\/9m\/a_lk9mjkccjox-zccjrpfolmkmq.png"}},"description":"Введение Беспилотный автомобиль StarLine на платформе Lexus RX 450h &mdash; научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных сп...","url":"https:\/\/habr.com\/ru\/post\/450140\/#post-content-body","about":["h_transport","f_popsci"],"image":["https:\/\/habrastorage.org\/getpro\/habr\/post_images\/1e6\/109\/0a4\/1e61090a4149347d85f1b19488b27e94.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/288\/59d\/b2f\/28859db2fc4d7f30bb521f4e6c0a3123.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/5b7\/b45\/063\/5b7b4506386956bd872df48432858d8c.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/6e8\/16b\/a1b\/6e816ba1b6d687c9849321d8aac3f431.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/e9e\/2ff\/eee\/e9e2ffeee019069421b869be9fb6d6d4.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3b5\/259\/583\/3b5259583320120b011d47f3c4517dd8.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/76f\/2a7\/159\/76f2a7159e1b5b36232ae0702079af45.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/2ac\/562\/2c8\/2ac5622c84943c61207d0ac0c17a20fa.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/147\/82e\/068\/14782e068fe5ac6bc3636603d2113cee.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/3bd\/ff5\/458\/3bdff5458f46a6de9f48598a735db625.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/360\/888\/015\/3608880153b575b2874efd8db45fe7f8.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/c0a\/85b\/1a9\/c0a85b1a9ad409684dbcb740acfd18ed.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/712\/6ab\/cff\/7126abcff6446d6a6477c667880747a7.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/4fc\/0a2\/042\/4fc0a20425a9718cb90eb40f4b5a127f.jpg","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/f37\/e3d\/9a4\/f37e3d9a42d8164a6b5e1f21c4fba704.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/9e0\/4eb\/012\/9e04eb01233c579da82c01d623c05c40.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/18e\/762\/ed2\/18e762ed2cf1f72b3240fe1bc3647048.gif","https:\/\/habrastorage.org\/getpro\/habr\/post_images\/be9\/c16\/276\/be9c162764819ce5e0f733c67506ac4d.gif"]}</script>
+  <script src="//www.googletagservices.com/tag/js/gpt.js" async></script>
+  <style>.grecaptcha-badge{visibility: hidden;}</style>
+  <meta name="habr-version" content="2.49.0">
+  
+  <meta data-vue-meta="ssr" property="fb:app_id" content="444736788986613"><meta data-vue-meta="ssr" property="fb:pages" content="472597926099084"><meta data-vue-meta="ssr" name="twitter:card" content="summary_large_image"><meta data-vue-meta="ssr" name="twitter:site" content="@habr_eng"><meta data-vue-meta="ssr" property="og:title" content="Управление автомобилем по CAN" data-vmid="og:title"><meta data-vue-meta="ssr" name="twitter:title" content="Управление автомобилем по CAN" data-vmid="twitter:title"><meta data-vue-meta="ssr" name="aiturec:title" content="Управление автомобилем по CAN" data-vmid="aiturec:title"><meta data-vue-meta="ssr" name="description" content="Введение
+Беспилотный автомобиль StarLine на платформе Lexus RX 450h — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из Open Source Community...." data-vmid="description"><meta data-vue-meta="ssr" itemprop="description" content="Введение
+Беспилотный автомобиль StarLine на платформе Lexus RX 450h — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из Open Source Community...." data-vmid="description:itemprop"><meta data-vue-meta="ssr" property="og:description" content="Введение
+Беспилотный автомобиль StarLine на платформе Lexus RX 450h — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из Open Source Community...." data-vmid="og:description"><meta data-vue-meta="ssr" name="twitter:description" content="Введение
+Беспилотный автомобиль StarLine на платформе Lexus RX 450h — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из Open Source Community...." data-vmid="twitter:description"><meta data-vue-meta="ssr" property="aiturec:description" content="Введение
+Беспилотный автомобиль StarLine на платформе Lexus RX 450h — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из Open Source Community...." data-vmid="aiturec:description"><meta data-vue-meta="ssr" itemprop="image" content="https://habr.com/share/publication/450140/22608d04df0ea31f99b76a3b336f2a68/" data-vmid="image:itemprop"><meta data-vue-meta="ssr" property="og:image" content="https://habr.com/share/publication/450140/22608d04df0ea31f99b76a3b336f2a68/" data-vmid="og:image"><meta data-vue-meta="ssr" property="aiturec:image" content="https://habr.com/share/publication/450140/22608d04df0ea31f99b76a3b336f2a68/" data-vmid="aiturec:image"><meta data-vue-meta="ssr" name="twitter:image" content="https://habr.com/share/publication/450140/22608d04df0ea31f99b76a3b336f2a68/" data-vmid="twitter:image"><meta data-vue-meta="ssr" property="vk:image" content="https://habr.com/share/publication/450140/22608d04df0ea31f99b76a3b336f2a68/" data-vmid="vk:image"><meta data-vue-meta="ssr" property="aiturec:item_id" content="450140" data-vmid="aiturec:item_id"><meta data-vue-meta="ssr" property="aiturec:datetime" content="2019-05-13T15:56:40.000Z" data-vmid="aiturec:datetime"><meta data-vue-meta="ssr" property="og:type" content="article" data-vmid="og:type"><meta data-vue-meta="ssr" property="og:locale" content="ru_RU" data-vmid="og:locale"><meta data-vue-meta="ssr" property="og:image:width" content="1200" data-vmid="og:image:width"><meta data-vue-meta="ssr" property="og:image:height" content="630" data-vmid="og:image:height">
+  <link data-vue-meta="ssr" href="https://habr.com/ru/rss/post/450140/?fl=ru" type="application/rss+xml" title="" rel="alternate" name="rss"><link data-vue-meta="ssr" href="https://habr.com/ru/post/450140/" rel="canonical" data-vmid="canonical"><link data-vue-meta="ssr" data-vmid="hreflang"><link data-vue-meta="ssr" image_src="image" href="https://habr.com/share/publication/450140/22608d04df0ea31f99b76a3b336f2a68/" data-vmid="image:href">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#303b44">
+  <meta name="msapplication-TileColor" content="#629FBC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="16x16"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-16.png"
+  >
+  <link
+    rel="shortcut icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://assets.habr.com/habr-web/img/favicons/favicon-32.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="76x76"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-76.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="120x120"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="152x152"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-152.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="180x180"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-180.png"
+  >
+  <link
+    rel="apple-touch-icon"
+    type="image/png"
+    sizes="256x256"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-256.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1136x640.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2436x1125.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1792x828.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_828x1792.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1334x750.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2208x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1125x2436.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1242x2208.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2732x2048.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2688x1242.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2224x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_750x1334.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x2732.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2388x1668.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2224.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_640x1136.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1668x2388.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_2048x1536.png"
+  >
+  <link
+    rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="https://assets.habr.com/habr-web/img/splashes/splash_1536x2048.png"
+  >
+  <link
+    rel="mask-icon"
+    color="#77a2b6"
+    href="https://assets.habr.com/habr-web/img/favicons/apple-touch-icon-120.svg"
+  >
+  <link
+    crossorigin="use-credentials"
+    href="/manifest.webmanifest"
+    rel="manifest"
+  >
+</head>
+<body>
+
+
+<div id="app" data-server-rendered="true" data-async-called="true"><div class="tm-layout__wrapper"><!----> <div></div> <!----> <header class="tm-header"><div class="tm-page-width"><div class="tm-header__container"><!----> <span class="tm-header__logo-wrap"><a href="/ru/" class="tm-header__logo tm-header__logo_ru"><svg height="16" width="16" class="tm-svg-img tm-header__icon"><title>Хабр</title> <use xlink:href="/img/habr-logo-ru.svg#logo"></use></svg></a> <span class="tm-header__beta-sign" style="display:none;">β</span></span> <div class="tm-dropdown tm-header__projects"><div class="tm-dropdown__head"><button class="tm-header__dropdown-toggle"><svg height="16" width="16" class="tm-svg-img tm-header__icon tm-header__icon_dropdown"><title>Открыть список</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#arrow-down"></use></svg></button></div> <!----></div> <a href="/ru/sandbox/start/" class="tm-header__become-author-btn">
+            Как стать автором
+          </a> <div class="tm-feature tm-header__feature tm-feature_variant-inline"><!----></div> <!----> <!----></div></div></header> <div class="tm-layout"><div class="tm-page-progress-bar"></div> <div data-menu-sticky="true" class="tm-base-layout__header tm-base-layout__header_is-sticky"><div class="tm-page-width"><div class="tm-base-layout__header-wrapper"><div class="tm-main-menu"><div class="tm-main-menu__section"><nav class="tm-main-menu__section-content"><!----> <a href="/ru/all/" class="tm-main-menu__item">
+        Все потоки
+      </a> <a href="/ru/flows/develop/" class="tm-main-menu__item">
+          Разработка
+        </a><a href="/ru/flows/admin/" class="tm-main-menu__item">
+          Администрирование
+        </a><a href="/ru/flows/design/" class="tm-main-menu__item">
+          Дизайн
+        </a><a href="/ru/flows/management/" class="tm-main-menu__item">
+          Менеджмент
+        </a><a href="/ru/flows/marketing/" class="tm-main-menu__item">
+          Маркетинг
+        </a><a href="/ru/flows/popsci/" class="tm-main-menu__item">
+          Научпоп
+        </a></nav></div></div> <div class="tm-header-user-menu tm-base-layout__user-menu"><a href="/ru/search/" class="tm-header-user-menu__item tm-header-user-menu__search"><svg height="24" width="24" class="tm-svg-img tm-header-user-menu__icon tm-header-user-menu__icon_search tm-header-user-menu__icon_dark"><title>Поиск</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#search"></use></svg></a> <!----> <!----> <!----> <div class="tm-header-user-menu__item tm-header-user-menu__user_desktop"><div class="tm-dropdown"><div class="tm-dropdown__head"><svg height="24" width="24" data-test-id="menu-toggle-guest" class="tm-svg-img tm-header-user-menu__icon"><title>Профиль</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#header-user"></use></svg> <!----></div> <!----></div> <!----></div> <!----></div></div></div></div> <!----> <div class="tm-page-width"></div> <main class="tm-layout__container"><div hl="ru" data-async-called="true" class="tm-page"><div class="tm-page-width"><!----> <div class="tm-page__wrapper"><div class="tm-page__main tm-page__main_has-sidebar"><div class="pull-down"><div class="pull-down__header" style="height:0px;"><div class="pull-down__content" style="bottom:10px;"><svg height="24" width="24" class="tm-svg-img pull-down__arrow"><title>Обновить</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#pull-arrow"></use></svg></div></div> <div class="tm-article-presenter"> <div class="tm-article-presenter__body"><div class="tm-misprint-area"><div class="tm-misprint-area__wrapper"><article class="tm-article-presenter__content tm-article-presenter__content_narrow"><div class="tm-article-presenter__header"> <div class="tm-article-snippet tm-article-presenter__snippet"><div class="tm-article-snippet__meta-container"><div class="tm-article-snippet__meta"><span class="tm-user-info tm-article-snippet__author"><a href="/ru/users/StarLine_Smartcar/" title="StarLine_Smartcar" class="tm-user-info__userpic"><div class="tm-entity-image"><svg height="24" width="24" class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <span class="tm-user-info__user"><a href="/ru/users/StarLine_Smartcar/" class="tm-user-info__username">
+      StarLine_Smartcar
+    </a> </span></span> <span class="tm-article-snippet__datetime-published"><time datetime="2019-05-13T15:56:40.000Z" title="2019-05-13, 18:56">13  мая  2019 в 18:56</time></span></div> <!----></div> <h1 lang="ru" class="tm-article-snippet__title tm-article-snippet__title_h1"><span>Управление автомобилем по CAN</span></h1> <div class="tm-article-snippet__hubs"><span class="tm-article-snippet__hubs-item"><a href="/ru/hub/transport/" class="tm-article-snippet__hubs-item-link"><span>Транспорт</span> <!----></a></span></div> <!----> <!----> <!----></div></div> <!----> <div data-gallery-root="" lang="ru" class="tm-article-body"><div id="post-content-body" class="article-formatted-body article-formatted-body_version-1"><div xmlns="http://www.w3.org/1999/xhtml"><h3>Введение</h3><br/>
+<b>Беспилотный автомобиль StarLine</b> на платформе <b>Lexus RX 450h</b> — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из <a href="https://gitlab.com/starline/oscar">Open Source Community</a>. Мы предлагаем всем желающим поучаствовать в процессе разработки на уровне кода, опробовать свои алгоритмы на реальном автомобиле, оснащенном дорогостоящим оборудованием. Для управления автомобилем было решено использовать Apollo, открытый фреймворк. Для работы Apollo нам необходимо было подключить набор модулей. Эти модули помогают программе получать информацию об автомобиле и управлять им по заданным алгоритмам.<br/>
+<br/>
+<b>К таким модулям относятся:</b><br/>
+<br/>
+<ul>
+<li>модуль позиционирования автомобиля в пространстве с помощью GPS-координат;</li>
+<li>модуль управления рулем, ускорением и торможением авто;</li>
+<li>модуль состояния систем автомобиля: скорость, ускорение, положение руля, нажатие на педали и т.д.;</li>
+<li>модуль получения информации об окружении автомобиля. С этим справятся ультразвуковые датчики, камеры, радары и лидары.</li>
+</ul><br/>
+Прежде всего перед нашей командой стояла задача научиться управлять рулем, ускорением и торможением автомобиля. А также получать информацию о состоянии систем автомобиля. Для этого была проведена большая работу по изучению CAN-шины Lexus.<br/>
+<a name="habracut"></a><br/>
+<h3>Теоретическая часть</h3><br/>
+<h4>Что такое CAN-шина</h4><br/>
+В современных автомобилях управление всеми системами взяли на себя электронные блоки (Рис. 1.). Электронные блоки — это специализированные компьютеры, каждый из которых имеет все необходимые интерфейсы для интеграции с автомобилем. С помощью цифровых интерфейсов связи, блоки объединяются в сеть для обмена информацией друг с другом. Самые распространенные цифровые интерфейсы в автомобилях — CAN, LIN, FLEXRay. Из них наибольшее распространение получил именно CAN.<br/>
+<br/>
+CAN (Controller Area Network) шина — это промышленный стандарт сети. В 1986 году этот стандарт разработали в компании Bosch. А первым автомобилем с CAN-шиной стал Mercedes-Benz W140, выпущенный в 1991 году. Стандарт разрабатывался для возможности устройствам общаться друг с другом без хоста. Обмен информацией осуществляется с помощью специальных сообщений, которые состоят из полей ID, длины сообщения и данных. Каждый блок имеет свой набор ID. При этом приоритет на шине имеет сообщение с меньшим ID. Поле данных может нести информацию, например, о состоянии систем и датчиков, команды управления механизмами и т.д.<br/>
+<br/>
+<img src="https://pp.userapi.com/c846523/v846523398/1f49c1/3KGVx2sB_po.jpg" alt="image" data-src="https://pp.userapi.com/c846523/v846523398/1f49c1/3KGVx2sB_po.jpg" data-blurred="true"/><br/>
+<i>Рис. 1. Шина CAN автомобиля.</i><br/>
+<br/>
+На физическом уровне шина представляет собой витую пару из медных проводников. Сигнал передается дифференциально, за счет чего достигается высокая помехоустойчивость.<br/>
+<br/>
+<img src="https://pp.userapi.com/c846523/v846523398/1f49b9/enoRXARxh4g.jpg" alt="image" data-src="https://pp.userapi.com/c846523/v846523398/1f49b9/enoRXARxh4g.jpg" data-blurred="true"/><br/>
+<i>Рис. 2. Физическое представление сигнала в CAN шине</i><br/>
+<br/>
+Посредством CAN шины можно получать информацию о состоянии различных датчиков и системах автомобиля. Также по CAN можно управлять узлами автомобиля. Именно эти возможности мы и используем для своего проекта.<br/>
+<br/>
+Мы выбрали Lexus RX, потому что знали, что сможем управлять всеми необходимыми узлами по CAN. Так как самое сложное при исследовании автомобиля — это закрытые протоколы. Поэтому одной из причин выбора именно этой модели авто стало наличие описания части протокола CAN-шины в opensource-проекте Openpilot.<br/>
+<br/>
+Правильно управлять автомобилем — означает понимать, как работают механические части систем автомобиля. Нам было необходимо хорошо понимать, как правильно работать с электроусилителем или управлять замедлением автомобиля. Ведь, например, при повороте колеса создают сопротивление на рулевое управление, что вносит свои ограничения на управление при повороте. Некоторые системы невозможно использовать без ввода авто в специальные рабочие режимы. Эти и другие детали нам пришлось изучать в процессе работы.<br/>
+<br/>
+<h4>Электроусилитель руля</h4><br/>
+Электроусилитель руля EPS (Electric Power Steering) — система, предназначенная снизить усилие на руль при повороте (Рис. 3). Приставка «электро» говорит о типе системы — электрическая. Управление рулем с этой системой становится комфортным, водитель поворачивает руль в нужном направлении, а электродвигатель помогает довернуть его до необходимого угла.<br/>
+<br/>
+Электроусилитель устанавливается на рулевой вал автомобиля, части которого соединены между собой торсионным валом. На торсионный вал устанавливается датчик величины крутящего момента (Torque Sensor). При вращении руля происходит скручивание торсионного вала, которое регистрируется датчиком момента. Данные, полученные от датчика момента, датчиков скорости и оборотов коленвала, поступают в электронный блок управления ECU. А ECU, в свою очередь, уже вычисляет необходимое компенсационное усилие и подает команду на электродвигатель усилителя.<br/>
+<br/>
+<img src="https://pp.userapi.com/c846523/v846523398/1f49af/mDW9UPIVNsE.jpg" alt="image" data-src="https://pp.userapi.com/c846523/v846523398/1f49af/mDW9UPIVNsE.jpg" data-blurred="true"/><br/>
+<i>Рис. 3. Схематичное изображение системы электроусилителя руля</i><br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/Fkgp64e-nNQ?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+<i>Видео: cистема LKA рулит автомобилем с помощью системы EPS.</i><br/>
+<br/>
+<h4>Электронная педаль газа</h4><br/>
+Дроссельная заслонка — это механизм регулировки количества топливной смеси, которая попадет в двигатель. Чем больше смеси попадет, тем быстрее едет автомобиль.<br/>
+Электронная педаль газа — это система, которая задействует работу нескольких электронных узлов. Сигнал о положении педали, при ее нажатии, поступает в блок управления двигателем ECM (Engine Control Module). ECM, на основе этого сигнала, рассчитывает необходимое количество топлива, которое нужно подать в двигатель. В зависимости от необходимого количества топлива, ECM регулирует угол открытия дроссельной заслонки.<br/>
+<br/>
+<img src="https://pp.userapi.com/c846523/v846523398/1f49ca/SZ9f9Uv-LiQ.jpg" alt="image" data-src="https://pp.userapi.com/c846523/v846523398/1f49ca/SZ9f9Uv-LiQ.jpg" data-blurred="true"/><br/>
+<i>Рис. 4. Система электронной педали газа.</i><br/>
+<br/>
+<div class="oembed"><div><div style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;"><div class="tm-iframe_temp" data-src="https://www.youtube.com/embed/98brdhB3n04?rel=0&amp;showinfo=1&amp;hl=en-US" data-style="border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;" id="" width=""></div></div></div></div><br/>
+<i>Видео: Для работы круиз-контроля используется управление электронной педалью газа.</i><br/>
+<br/>
+<h4>Электронные системы помощи водителю</h4><br/>
+Мы купили автомобиль, который оборудован множеством цифровых блоков и систем помощи водителю (ADAS). В нашем проекте мы используем LKA, ACC и PCS.<br/>
+<br/>
+LKA (Lane Keep Assist) — это система удержания в полосе, которая состоит из фронтальной камеры и вычислительного блока. LKA удерживает автомобиль в полосе движения, когда водитель, например, отвлекся. Алгоритмы в вычислительном блоке получают данные от камеры и на их основе принимают решение о состоянии автомобиля на дороге. Система способна понимать, что автомобиль неконтролируемо движется к правой или левой полосе. В таких случаях подается звуковой сигнал для привлечения внимания водителя. При пересечении полосы система сама скорректирует угол поворота колес так, чтобы автомобиль остался в полосе движения. Система должна вмешиваться только в том случае, если осознает, что маневр между полосами движения не был вызван действием водителя.<br/>
+<br/>
+ACC (Adaptive Cruise Control) — система адаптивного круиз-контроля, который позволяет выставить заданную скорость следования. Автомобиль сам ускоряется и притормаживает для поддержания нужной скорости, при этом водитель может убрать ногу с педалей газа и тормоза. Этот режим удобно использовать при езде по скоростным магистралям и автострадам. Адаптивный круиз контроль способен видеть препятствия впереди автомобиля и притормаживать для избежания столкновения с ними. Если впереди автомобиля едет другое транспортное средство с меньшей скоростью, ACC сбавит скорость и будет следовать за ним. При обнаружении статичного объекта, ACC сбавит скорость до полной остановки. Для обнаружения объектов перед автомобилем такая система использует радар с миллиметровым диапазоном длин волн. Обычно такие радары работают на частоте 24-72 ГГц и способны уверенно видеть объекты на расстоянии до 300 метров. Радар обычно установлен за передним значком на решетке радиатора.<br/>
+<br/>
+PCS (Pre-Collision System) — система предотвращения столкновения. Система призвана предотвратить столкновение с автомобилем, который движется впереди. При неизбежности столкновения, система минимизирует урон от столкновения. Здесь так же используются радар для оценки расстояния до объекта и фронтальная камера для его распознавания. Фронт PCS прогнозирует вероятность столкновения на основе скорости автомобиля, расстояния до объекта и его скорости. Обычно у системы есть два этапа срабатывания. Первый этап — система звуком и индикацией на приборной панели оповещает об опасности водителя. Второй этап — активируется экстренное торможение с помощью системы ABS, и включаются преднатяжители ремней безопасности.<br/>
+<br/>
+<h3>Практическая часть</h3><br/>
+<h4>Управление рулем</h4><br/>
+Первое, что захотелось сделать нашей команде, — это научиться рулить. Рулем в автомобиле могут управлять две системы: парковочный ассистент IPAS (Intelligent Park Assist) и LKA.<br/>
+<br/>
+IPAS позволяет задавать напрямую угол поворота рулевого колеса в градусах. Так как в нашем автомобиле нет данной системы, проверить и освоить рулевое управление таким способом нельзя. <br/>
+<br/>
+Поэтому мы изучили электрические схемы автомобиля и поняли, какие CAN-шины могут быть полезны. Мы подключили анализатор CAN-шины. Лог содержит файл записей сообщений в шине в хронологической последовательности. Наша задача была найти команды управления электроусилителем руля EPS (Electric Power Steering). Мы сняли лог поворота рулевого колеса из стороны в сторону, в логе смогли найти показания угла поворота и скорость вращения рулевого колеса. Ниже пример изменения данных в шине CAN. Интересующие нас данные выделены маркером.<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/SUEcbT9r9R89LVXG8V/giphy.gif"/><br/>
+<i>Поворот руля влево на 360 градусов</i><br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/KEeSBGY0iAco0MIjje/giphy.gif"/><br/>
+<i>Поворот руля вправо на 270 градусов</i><br/>
+<br/>
+Следующим этапом мы исследовали систему удержания в полосе. Для этого мы выехали на тихую улицу и записали логи обмена между блоком удержания в полосе и DSU (Driving Support ECU). С помощью анализатора шины CAN нам удалось вычислить сообщения от системы LKA. На рисунке 6 изображена команда управления EPS.<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3aa5/xfbZ115M_-I.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3aa5/xfbZ115M_-I.jpg" data-blurred="true"/><br/>
+<i>Рис. 5. Команда управления рулем с помощью системы LKA</i><br/>
+<br/>
+LKA управляет рулем путем задания значения момента на валу (STEER_TORQUE_CMD) рулевого колеса. Команду принимает модуль EPS. Каждое сообщение содержит в заголовке значение счетчика (COUNTER), которое инкрементируется при каждой отправке. Поле LKA_STATE содержит информацию о состоянии LKA. Для захвата управления необходимо выставлять бит STEER_REQUEST.<br/>
+<br/>
+Сообщения, которые отвечают за работу важных систем авто, защищаются контрольной суммой (CHECKSUM) для минимизации рисков ложного срабатывания. Автомобиль проигнорирует такую команду, если сообщение содержит некорректную контрольную сумму или значение счетчика. Это встроенная производителем защита от вмешательств сторонних систем и помех в линии связи.<br/>
+<br/>
+На графике (Рис. 6.) представлена диаграмма работы LKA. Torque Sensor — значение с датчика момента на торсионном валу. Torque Cmd — команда от LKA для управления рулем. Из картинки видно, как происходит подруливание LKA для удержания автомобиля в полосе. При переходе через ноль меняется направление поворота руля. Т.е. отрицательное значение сигнала говорит о повороте вправо, положительное — влево. Удержание команды в нуле говорит об отсутствии управления со стороны LKA. При вмешательстве водителя, система перестает выдавать управление. О вмешательстве водителя LKA узнает с помощью второго датчика момента на валу со стороны рулевого колеса.<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3aaf/gf9NEWqwY70.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3aaf/gf9NEWqwY70.jpg" data-blurred="true"/><br/>
+<i>Рис. 6. График работы системы LKA</i><br/>
+<br/>
+Нам предстояло проверить работу команды управления рулем. С помощью модуля StarLine Сигма 10 мы подготовили прошивку для проверки управления. StarLine Сигма 10 должен выдавать в CAN-шину команды на поворот руля влево или вправо. На тот момент у нас не было графического интерфейса для управления модулем, поэтому пришлось использовать штатные средства автомобиля. Мы нашли в CAN-шине статус положения рычага круиз-контроля и запрограммировали модуль таким образом, что верхнее положение рычага приводило к повороту руля вправо, нижнее положение — к повороту влево (Рис. 7).<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/iePIdfNu21IdIj5gnL/giphy.gif"/><br/>
+<i>Рис. 7. Первые попытки рулить</i><br/>
+<br/>
+На видео видно, что управление осуществляется короткими секциями. Это возникает по нескольким причинам.<br/>
+<br/>
+Первая из причин — это отсутствие обратной связи. Если расхождение между сигналом Torque Cmd и Torque Sensor превышает определенное значение Δ, система автоматически перестает воспринимать команды (Рис. 8). Мы настроили алгоритм на корректировку выдаваемой команды (Torque CMD) в зависимости от значения момента на валу (Torque Sensor).<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3ac8/phgVvK6g5Fg.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3ac8/phgVvK6g5Fg.jpg" data-blurred="true"/><br/>
+<i>Рис. 8. Расхождение сигнала приводит к ошибке работы системы</i><br/>
+<br/>
+Следующее ограничение связано с системой защиты встроенной в EPS. Система EPS не позволяет командами от LKA рулить в широком диапазоне. Что вполне логично, т.к. при езде по дороге резкое маневрирование не безопасно. Таким образом, при превышении порогового значения момента на валу, система LKA выдает ошибку и отключается (Рис. 9).<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3ae3/ScKnV-se_dA.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3ae3/ScKnV-se_dA.jpg" data-blurred="true"/><br/>
+<i>Рис. 9. Превышение порогового значения регулировки момента на валу</i><br/>
+<br/>
+Независимо от того, активирована система LKA или нет, сообщения с командами от нее присутствуют в шине постоянно. Мы посылаем модулю EPS команду повернуть колеса с конкретным усилием влево или вправо. А в это время LKA перебивает наши посылки «пустыми» сообщениями. После нашей команды со значением момента, приходит штатная с нулевым (Рис. 10).<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3ad9/nP9zt5VQSiI.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3ad9/nP9zt5VQSiI.jpg" data-blurred="true"/><br/>
+<i>Рис. 10. Штатные сообщения приходят с нулевыми значениями момента и перебивают наше управление</i><br/>
+<br/>
+Тогда мы, с помощью модуля StarLine Сигма 10, смогли фильтровать весь трафик от LKA и блокировать сообщения с ID 2E4, когда нам это было нужно. Это решило проблему, а нам удалось получить плавное управления рулем (Рис. 11).<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3ad2/9oW1WwfVl4s.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3ad2/9oW1WwfVl4s.jpg" data-blurred="true"/><br/>
+<i>Рис. 11. Плавная регулировка поворота руля без ошибок</i><br/>
+<br/>
+<h4>Управление газом</h4><br/>
+Система адаптивного круиз-контроля ACC управляет ускорением и торможением программно по CAN-шине. Блок управления двигателем ECU принимает команды DSU, если необходимо ускориться — активирует электронную педаль газа. Для торможения автомобиля используется рекуперативное торможение. При этом на торможение и ускорение используется одна команда, отличаются только значения.<br/>
+<br/>
+Команда управления ускорением или замедлением представлена на рисунке 12. Она состоит из величины ускорения ACCEL_CMD, пары служебных бит и контрольной сумма Checksum. Для ускорения автомобилем значение ACCEL_CMD положительное, для замедления — отрицательное. Ускорение задается в диапазоне от 0 до 3 м/с^2, замедление аналогично, но со знаком минус. Для отправки данных в шину необходимо пересчитать желаемое ускорение или замедление с коэффициентом 0,001. Например, для ускорения 1 м/с^2, ACCEL_CMD = 1000 (0x03E8).<br/>
+<br/>
+<img src="https://pp.userapi.com/c844521/v844521398/1f3af6/EvohvXXfCwY.jpg" alt="image" data-src="https://pp.userapi.com/c844521/v844521398/1f3af6/EvohvXXfCwY.jpg" data-blurred="true"/><br/>
+<i>Рис. 12. Команда управления ускорения/замедления автомобиля</i><br/>
+<br/>
+Мы сняли логи со штатной системы ACC и проанализировали команды. Сравнили с имеющимся у нас описанием команд и приступили к тестированию.<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/LnFs6Orvc4B7rerc34/giphy.gif"/><br/>
+<i>Рис. 13. Лог управления ускорением/замедлением системы адаптивного круиз-контроля ACC (выделено маркером)</i><br/>
+<br/>
+Здесь не обошлось без трудностей. Мы выехали на дорогу с оживленным трафиком для тестирования команды ускорения. Команды управления ускорением или замедлением автомобиля работают только при активированном круиз контроле, не достаточно активировать его кнопкой. Необходимо найти движущийся впереди автомобиль и включить режим следования за ним.<br/>
+<br/>
+<img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/giW3jZ7IMZuQxb6a68/giphy.gif"/><br/>
+<i>Рис. 14. Активация круиз контроля происходит при наличии впереди другого траснпортного средства</i><br/>
+<br/>
+С помощью модуля StarLine Сигма 10 посылаем команду ускорения, и автомобиль начинает набирать скорость. К этому моменту мы подключили графический интерфейс для управления модулем StarLine Сигма 10. Теперь мы управляем рулем, ускорением и торможением с помощью кнопок в приложении.<br/>
+<br/>
+Команды работали до тех пор, пока не потеряли автомобиль впереди. Система круиз-контроля отключилась, а следовательно, и команды ускорения перестали работать.<br/>
+Мы приступили к исследованию возможности использовать команды без активного круиз-контроля. Пришлось много времени потратить на анализ данных в шине CAN, чтобы понять как создать условия для работы команд. Нас интересовало, в первую очередь, какой блок блокирует выполнение команд ACC на ускорение или замедление. Пришлось изучить какие ID идут от DSU, LKA, радара и камеры, подсовывая липовые данные различных датчиков.<br/>
+<br/>
+Решение пришло спустя 3 недели. К тому времени мы представляли как происходит взаимодействие блоков автомобиля, провели исследование трафика сообщений и выделили группы сообщений, посылаемых каждым блоком. За работу адаптивного круиз-контроля ACC отвечает блок Driving Support ECU (DSU). DSU выдает команды на ускорение и замедление автомобиля, и именно этот блок получает данные от радара миллиметрового диапазона. Радар сообщает DSU на каком расстоянии от машины движется объект, с какой относительной скоростью и определяет его положение по горизонтали (левее, правее или по центру).<br/>
+<br/>
+Наша идея заключалась в подмене данных радара. Мы сняли лог следования за автомобилем, вытащили из него данные радара в момент следования. Теперь, после включения круиз-контроля, мы посылаем фейковые данные о наличии впереди идущего авто. Получается обманывать наш автомобиль, говоря что впереди движется другое авто на конкретном расстоянии.<br/>
+<br/>
+a) <img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/gfOHPnqEuG2c2iuYfw/giphy.gif"/> б)<img src="/img/image-loader.svg" alt="image" data-src="https://media.giphy.com/media/QBAoqF0B3mMKjLUwd5/giphy.gif"/><br/>
+<i>Рис. 15. Активация круиза: a) попытка активировать без подмены данных радара; б) активация при подмене данных от радара.</i><br/>
+<br/>
+Когда запускаем нашу обманку, на приборной панели загорается значок наличия впереди идущего автомобиля. Теперь мы можем тестировать наше управление. Запускаем команду на ускорение, и автомобиль начинает быстро ускоряться. <br/>
+<br/>
+Как мы уже узнали, команда на ускорение и замедление одна. Поэтому тут же проверили и замедление. Поехали на на скорости с активным круиз-контролем, запустили команду на торможение, и авто сразу же замедлилось.<br/>
+<br/>
+В итоге сейчас получается разгонять и замедлять автомобиль именно так, как нам было нужно.<br/>
+<br/>
+Цель достигнута.<br/>
+<br/>
+<h4>Что еще мы используем</h4><br/>
+Для создания беспилотника необходимо управление вспомогательными системами: поворотниками, стоп-сигналами, аварийной сигнализацией, клаксоном и пр. Всем этим так же можно управлять по CAN шине.<br/>
+<br/>
+<h4>Оборудование и ПО</h4><br/>
+Для работ с автомобилем сегодня мы используем набор различного оборудования:<br/>
+<br/>
+<ul>
+<li>Анализатор шины Marathon позволяет подключать и читать данные с двух шин одновременно. На сайте производителя анализатора есть бесплатное ПО для анализа логов. Но мы используем ПО, написанное в нашей компании для внутреннего пользования.</li>
+<li>Модуль StarLine Сигма 10 мы используем как платформу для работы с цифровыми интерфейсами. Модуль поддерживает CAN и LIN интерфейсы. При исследовании автомобиля пишем программы на C, зашиваем их в модуль и проверяем работу. Из модуля можем сделать сниффер трафика CAN-шины. Сниффер нам помогает понять, какие ID идут от блока или блокировать сообщения от штатных систем.</li>
+<li>Диагностическое оборудование Toyota/Lexus. С помощью этого оборудования можно найти команды управления системами автомобиля: поворотниками, стоп-сигналами, клаксоном, индикацией приборки.</li>
+</ul><br/>
+Сегодня ведется активная работа по разработке беспилотного автомобиля, в ближайших планах реализация экстренного торможения перед препятствиями, их объезда и перестраивание маршрута автомобиля в зависимости от дорожной ситуации и указаний водителя.<br/>
+<br/>
+<b>Беспилотный автомобиль StarLine</b> — это открытая площадка для объединения лучших инженерных умов России и мира с целью создания прогрессивных технологий беспилотного вождения, которые сделают наше будущее безопасным и комфортным. <br/>
+<br/>
+<a href="https://gitlab.com/starline/oscar">GitLab проекта</a></div></div> <!----> <!----></div> <div class="tm-article-presenter__meta"><div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Теги:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5B%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D1%8C%5D" class="tm-tags-list__link">автомобиль</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BCAN%5D" class="tm-tags-list__link">CAN</a></li><li class="tm-separated-list__item"><a href="/ru/search/?target_type=posts&amp;order=relevance&amp;q=%5BCAN-%D1%88%D0%B8%D0%BD%D0%B0%5D" class="tm-tags-list__link">CAN-шина</a></li></ul></div> <div class="tm-separated-list tm-article-presenter__meta-list"><span class="tm-separated-list__title">Хабы:</span> <ul class="tm-separated-list__list"><li class="tm-separated-list__item"><a href="/ru/hub/transport/" class="tm-hubs-list__link">
+    Транспорт
+  </a></li></ul></div></div></article></div> <!----></div> <div class="tm-article-sticky-panel"><div class="tm-data-icons tm-article-sticky-panel__icons"><div class="tm-article-rating tm-data-icons__item"><div class="tm-votes-meter tm-article-rating__votes-switcher"><svg height="16" width="16" class="tm-svg-img tm-votes-meter__icon tm-votes-meter__icon_medium"><title>Всего голосов 19: ↑17 и ↓2</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-rating"></use></svg> <span title="Всего голосов 19: ↑17 и ↓2" class="tm-votes-meter__value tm-votes-meter__value_positive tm-votes-meter__value_medium">+15</span></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----> <span title="Количество просмотров" class="tm-icon-counter tm-data-icons__item"><svg height="16" width="16" class="tm-svg-img tm-icon-counter__icon"><title>Просмотры</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-views"></use></svg> <span class="tm-icon-counter__value">31K</span></span> <button title="Добавить в закладки" type="button" class="bookmarks-button tm-data-icons__item"><span title="Добавить в закладки" class="tm-svg-icon__wrapper bookmarks-button__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Добавить в закладки</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-favorite"></use></svg></span> <span title="Количество пользователей, добавивших публикацию в закладки" class="bookmarks-button__counter">
+    97
+  </span></button> <!----> <div title="Поделиться" class="tm-sharing tm-data-icons__item"><button type="button" class="tm-sharing__button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="tm-sharing__icon"><path fill="currentColor" d="M10.33.275l9.047 7.572a.2.2 0 010 .306l-9.048 7.572a.2.2 0 01-.328-.153V11c-8 0-9.94 6-9.94 6S-1 5 10 5V.428a.2.2 0 01.328-.153z"></path></svg></button> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> </div></div> <!----> <!----> <div class="tm-article-presenter__footer"><div class="tm-article-blocks"><!----> <section class="tm-block tm-block_spacing-bottom"><!----> <div class="tm-block__body tm-block__body_variant-balanced"><div class="tm-article-author"> <div class="tm-user-card tm-article-author__user-card tm-user-card_variant-article"><div class="tm-user-card__info-container"><div class="tm-user-card__header"><div class="tm-user-card__header-data"><a href="/ru/users/StarLine_Smartcar/" class="tm-user-card__userpic tm-user-card__userpic_size-40"><div class="tm-entity-image"><svg class="tm-svg-img tm-image-placeholder tm-image-placeholder_lilac"><!----> <use xlink:href="/img/megazord-v24.ce74655c.svg#placeholder-user"></use></svg></div></a> <div class="tm-user-card__meta"><div title=" 18 голосов " class="tm-karma tm-user-card__karma"><div class="tm-karma__votes tm-karma__votes_positive">
+    10
+  </div> <div class="tm-karma__text">
+    Карма
+  </div></div> <div title="Рейтинг пользователя" class="tm-rating tm-user-card__rating"><div class="tm-rating__header"> <div class="tm-rating__counter">0</div></div> <div class="tm-rating__text">
+    Рейтинг
+  </div></div></div></div></div> <div class="tm-user-card__info tm-user-card__info_variant-article"><div class="tm-user-card__title tm-user-card__title_variant-article"><!----> <a href="/ru/users/StarLine_Smartcar/" class="tm-user-card__nickname tm-user-card__nickname_variant-article">
+          @StarLine_Smartcar
+        </a> <!----></div> <p class="tm-user-card__short-info tm-user-card__short-info_variant-article">Пользователь</p></div></div> <div class="tm-user-card__buttons tm-user-card__buttons_variant-article"><!----> <!----> <!----> <!----> <!----></div></div> <!----></div> <DIV class="v-portal" style="display:none;"></DIV></div> <!----></section> <div class="tm-article-blocks__comments"><div class="tm-article-page-comments"><div class="tm-article-comments-counter-link tm-article-comments-counter-button"><a href="/ru/post/450140/comments/" class="tm-article-comments-counter-link__link tm-article-comments-counter-link__link_button-style"><svg height="16" width="16" class="tm-svg-img tm-article-comments-counter-link__icon tm-article-comments-counter-link__icon_contrasted"><title>Комментарии</title> <use xlink:href="/img/megazord-v24.ce74655c.svg#counter-comments"></use></svg> <span class="tm-article-comments-counter-link__value tm-article-comments-counter-link__value_contrasted">
+       Комментарии 29 
+    </span></a> <!----></div></div></div> <div class="tm-ad-banner__container tm-page-article__banner"><!----> <div id="articleBottomBanner" class="tm-ad-banner"></div></div> <!----> <!----> <!----> <!----> </div></div></div></div></div> <div class="tm-page__sidebar"><div class="tm-layout-sidebar"><div class="tm-layout-sidebar__ads tm-layout-sidebar__ads_initial"><div class="tm-ad-banner__container tm-layout-sidebar__banner"><!----> <div id="sidebarBanner" class="tm-ad-banner"></div></div></div> <div class="tm-sexy-sidebar tm-sexy-sidebar_initial" style="margin-top:0px;"><!----> <!----></div></div></div></div></div></div></main> <!----></div> <div class="tm-footer-menu"><div class="tm-page-width"><div class="tm-footer-menu__container"><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Ваш аккаунт
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr/?back=/ru/post/450140/&amp;hl=ru" rel="nofollow" target="_self">
+                Войти
+              </a></li><li class="tm-footer-menu__list-item"><a href="/kek/v1/auth/habrahabr-register/?back=/ru/post/450140/&amp;hl=ru" rel="nofollow" target="_self">
+                Регистрация
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Разделы
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/" class="footer-menu__item-link router-link-active">
+                Публикации
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/news/" class="footer-menu__item-link">
+                Новости
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/hubs/" class="footer-menu__item-link">
+                Хабы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/companies/" class="footer-menu__item-link">
+                Компании
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/users/" class="footer-menu__item-link">
+                Авторы
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/sandbox/" class="footer-menu__item-link">
+                Песочница
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Информация
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="/ru/docs/help/" class="footer-menu__item-link">
+                Устройство сайта
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/authors/codex/" class="footer-menu__item-link">
+                Для авторов
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/companies/corpblogs/" class="footer-menu__item-link">
+                Для компаний
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/docs/docs/transparency/" class="footer-menu__item-link">
+                Документы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/agreement" target="_blank">
+                Соглашение
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://account.habr.com/info/confidential/" target="_blank">
+                Конфиденциальность
+              </a></li></ul></div></div><div class="tm-footer-menu__block"><h3 class="tm-footer-menu__block-title">
+          Услуги
+        </h3> <div class="tm-footer-menu__block-content"><ul class="tm-footer-menu__list"><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQLwRfQmXibiUlWaRg-BAc38s7oM3lJiaPju7qmdJsp8ysIvZ_G-Npem0njJLMozE2bPHMpDqiI5hhy/pub?start=false&amp;loop=false&amp;delayms=60000&amp;slide=id.g91a03369cd_4_297" target="_blank">
+                Реклама
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://habrastorage.org/storage/stuff/habr/service_price.pdf" target="_blank">
+                Тарифы
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://docs.google.com/presentation/d/e/2PACX-1vQJJds8-Di7BQSP_guHxICN7woVYoN5NP_22ra-BIo4bqnTT9FR6fB-Ku2P0AoRpX0Ds-LRkDeAoD8F/pub?start=false&amp;loop=false&amp;delayms=60000" target="_blank">
+                Контент
+              </a></li><li class="tm-footer-menu__list-item"><a href="https://tmtm.timepad.ru/" target="_blank">
+                Семинары
+              </a></li><li class="tm-footer-menu__list-item"><a href="/ru/megaprojects/" class="footer-menu__item-link">
+                Мегапроекты
+              </a></li></ul></div></div></div></div></div> <div class="tm-footer"><div class="tm-page-width"><div class="tm-footer__container"><!----> <div class="tm-footer__social"><a href="https://www.facebook.com/habrahabr.ru" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Facebook</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-facebook"></use></svg></a><a href="https://twitter.com/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Twitter</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-twitter"></use></svg></a><a href="https://vk.com/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>VK</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-vkontakte"></use></svg></a><a href="https://telegram.me/habr_com" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Telegram</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-telegram"></use></svg></a><a href="https://www.youtube.com/channel/UCd_sTwKqVrweTt4oAKY5y4w" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Youtube</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-youtube"></use></svg></a><a href="https://zen.yandex.ru/habr" rel="nofollow noopener noreferrer" target="_blank" class="tm-svg-icon__wrapper tm-social-icons__icon"><svg height="16" width="16" class="tm-svg-img tm-svg-icon"><title>Яндекс Дзен</title> <use xlink:href="/img/social-icons-sprite.svg#social-logo-zen"></use></svg></a></div> <DIV class="v-portal" style="display:none;"></DIV> <button class="tm-footer__link"><!---->
+        Настройка языка
+      </button> <a href="/ru/about" class="tm-footer__link">
+        О сайте
+      </a> <a href="/ru/feedback/" class="tm-footer__link">
+        Техническая поддержка
+      </a> <!----> <a href="/berserk-mode-nope" class="tm-footer__link">
+        Вернуться на старую версию
+      </a> <div class="tm-footer-copyright"><span class="tm-copyright"><span class="tm-copyright__years">© 2006–2021 </span> <span class="tm-copyright__name">«<a href="https://company.habr.com/" rel="noopener" target="_blank" class="tm-copyright__link">Habr</a>»</span></span></div></div></div></div> <!----> <!----></div> <div class="vue-portal-target"></div></div>
+<script>window.__INITIAL_STATE__={"adblock":{"hasAcceptableAdsFilter":false,"hasAdblock":false},"articlesList":{"articlesList":{"450140":{"id":"450140","timePublished":"2019-05-13T15:56:40+00:00","isCorporative":false,"lang":"ru","titleHtml":"Управление автомобилем по CAN","leadData":{"textHtml":"\u003Ch3\u003EВведение\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EБеспилотный автомобиль StarLine\u003C\u002Fb\u003E на платформе \u003Cb\u003ELexus RX 450h\u003C\u002Fb\u003E — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из \u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fstarline\u002Foscar\"\u003EOpen Source Community\u003C\u002Fa\u003E. Мы предлагаем всем желающим поучаствовать в процессе разработки на уровне кода, опробовать свои алгоритмы на реальном автомобиле, оснащенном дорогостоящим оборудованием. Для управления автомобилем было решено использовать Apollo, открытый фреймворк. Для работы Apollo нам необходимо было подключить набор модулей. Эти модули помогают программе получать информацию об автомобиле и управлять им по заданным алгоритмам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EК таким модулям относятся:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eмодуль позиционирования автомобиля в пространстве с помощью GPS-координат;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмодуль управления рулем, ускорением и торможением авто;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмодуль состояния систем автомобиля: скорость, ускорение, положение руля, нажатие на педали и т.д.;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмодуль получения информации об окружении автомобиля. С этим справятся ультразвуковые датчики, камеры, радары и лидары.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПрежде всего перед нашей командой стояла задача научиться управлять рулем, ускорением и торможением автомобиля. А также получать информацию о состоянии систем автомобиля. Для этого была проведена большая работу по изучению CAN-шины Lexus.\u003Cbr\u002F\u003E\r\n","imageUrl":null,"buttonTextHtml":null,"image":null},"editorVersion":"1.0","postType":"article","postLabels":[],"author":{"scoreStats":{"score":10,"votesCount":18},"rating":0,"relatedData":null,"contacts":[],"authorContacts":[],"paymentDetails":{"paymentYandexMoney":null,"paymentPayPalMe":null,"paymentWebmoney":null},"id":"1969033","alias":"StarLine_Smartcar","fullname":null,"avatarUrl":null,"speciality":null},"statistics":{"commentsCount":29,"favoritesCount":97,"readingCount":30708,"score":15,"votesCount":19},"hubs":[{"relatedData":null,"id":"22004","alias":"transport","type":"collective","title":"Транспорт","titleHtml":"Транспорт","isProfiled":false}],"flows":[{"id":"7","alias":"popsci","title":"Научпоп"}],"relatedData":null,"textHtml":"\u003Cdiv xmlns=\"http:\u002F\u002Fwww.w3.org\u002F1999\u002Fxhtml\"\u003E\u003Ch3\u003EВведение\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Cb\u003EБеспилотный автомобиль StarLine\u003C\u002Fb\u003E на платформе \u003Cb\u003ELexus RX 450h\u003C\u002Fb\u003E — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из \u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fstarline\u002Foscar\"\u003EOpen Source Community\u003C\u002Fa\u003E. Мы предлагаем всем желающим поучаствовать в процессе разработки на уровне кода, опробовать свои алгоритмы на реальном автомобиле, оснащенном дорогостоящим оборудованием. Для управления автомобилем было решено использовать Apollo, открытый фреймворк. Для работы Apollo нам необходимо было подключить набор модулей. Эти модули помогают программе получать информацию об автомобиле и управлять им по заданным алгоритмам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EК таким модулям относятся:\u003C\u002Fb\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003Eмодуль позиционирования автомобиля в пространстве с помощью GPS-координат;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмодуль управления рулем, ускорением и торможением авто;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмодуль состояния систем автомобиля: скорость, ускорение, положение руля, нажатие на педали и т.д.;\u003C\u002Fli\u003E\r\n\u003Cli\u003Eмодуль получения информации об окружении автомобиля. С этим справятся ультразвуковые датчики, камеры, радары и лидары.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nПрежде всего перед нашей командой стояла задача научиться управлять рулем, ускорением и торможением автомобиля. А также получать информацию о состоянии систем автомобиля. Для этого была проведена большая работу по изучению CAN-шины Lexus.\u003Cbr\u002F\u003E\r\n\u003Ca name=\"habracut\"\u003E\u003C\u002Fa\u003E\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EТеоретическая часть\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЧто такое CAN-шина\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nВ современных автомобилях управление всеми системами взяли на себя электронные блоки (Рис. 1.). Электронные блоки — это специализированные компьютеры, каждый из которых имеет все необходимые интерфейсы для интеграции с автомобилем. С помощью цифровых интерфейсов связи, блоки объединяются в сеть для обмена информацией друг с другом. Самые распространенные цифровые интерфейсы в автомобилях — CAN, LIN, FLEXRay. Из них наибольшее распространение получил именно CAN.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nCAN (Controller Area Network) шина — это промышленный стандарт сети. В 1986 году этот стандарт разработали в компании Bosch. А первым автомобилем с CAN-шиной стал Mercedes-Benz W140, выпущенный в 1991 году. Стандарт разрабатывался для возможности устройствам общаться друг с другом без хоста. Обмен информацией осуществляется с помощью специальных сообщений, которые состоят из полей ID, длины сообщения и данных. Каждый блок имеет свой набор ID. При этом приоритет на шине имеет сообщение с меньшим ID. Поле данных может нести информацию, например, о состоянии систем и датчиков, команды управления механизмами и т.д.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49c1\u002F3KGVx2sB_po.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49c1\u002F3KGVx2sB_po.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 1. Шина CAN автомобиля.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа физическом уровне шина представляет собой витую пару из медных проводников. Сигнал передается дифференциально, за счет чего достигается высокая помехоустойчивость.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49b9\u002FenoRXARxh4g.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49b9\u002FenoRXARxh4g.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 2. Физическое представление сигнала в CAN шине\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПосредством CAN шины можно получать информацию о состоянии различных датчиков и системах автомобиля. Также по CAN можно управлять узлами автомобиля. Именно эти возможности мы и используем для своего проекта.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы выбрали Lexus RX, потому что знали, что сможем управлять всеми необходимыми узлами по CAN. Так как самое сложное при исследовании автомобиля — это закрытые протоколы. Поэтому одной из причин выбора именно этой модели авто стало наличие описания части протокола CAN-шины в opensource-проекте Openpilot.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПравильно управлять автомобилем — означает понимать, как работают механические части систем автомобиля. Нам было необходимо хорошо понимать, как правильно работать с электроусилителем или управлять замедлением автомобиля. Ведь, например, при повороте колеса создают сопротивление на рулевое управление, что вносит свои ограничения на управление при повороте. Некоторые системы невозможно использовать без ввода авто в специальные рабочие режимы. Эти и другие детали нам пришлось изучать в процессе работы.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЭлектроусилитель руля\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nЭлектроусилитель руля EPS (Electric Power Steering) — система, предназначенная снизить усилие на руль при повороте (Рис. 3). Приставка «электро» говорит о типе системы — электрическая. Управление рулем с этой системой становится комфортным, водитель поворачивает руль в нужном направлении, а электродвигатель помогает довернуть его до необходимого угла.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЭлектроусилитель устанавливается на рулевой вал автомобиля, части которого соединены между собой торсионным валом. На торсионный вал устанавливается датчик величины крутящего момента (Torque Sensor). При вращении руля происходит скручивание торсионного вала, которое регистрируется датчиком момента. Данные, полученные от датчика момента, датчиков скорости и оборотов коленвала, поступают в электронный блок управления ECU. А ECU, в свою очередь, уже вычисляет необходимое компенсационное усилие и подает команду на электродвигатель усилителя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49af\u002FmDW9UPIVNsE.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49af\u002FmDW9UPIVNsE.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 3. Схематичное изображение системы электроусилителя руля\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002FFkgp64e-nNQ?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EВидео: cистема LKA рулит автомобилем с помощью системы EPS.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЭлектронная педаль газа\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДроссельная заслонка — это механизм регулировки количества топливной смеси, которая попадет в двигатель. Чем больше смеси попадет, тем быстрее едет автомобиль.\u003Cbr\u002F\u003E\r\nЭлектронная педаль газа — это система, которая задействует работу нескольких электронных узлов. Сигнал о положении педали, при ее нажатии, поступает в блок управления двигателем ECM (Engine Control Module). ECM, на основе этого сигнала, рассчитывает необходимое количество топлива, которое нужно подать в двигатель. В зависимости от необходимого количества топлива, ECM регулирует угол открытия дроссельной заслонки.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49ca\u002FSZ9f9Uv-LiQ.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc846523\u002Fv846523398\u002F1f49ca\u002FSZ9f9Uv-LiQ.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 4. Система электронной педали газа.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cdiv class=\"oembed\"\u003E\u003Cdiv\u003E\u003Cdiv style=\"left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.2493%;\"\u003E\u003Cdiv class=\"tm-iframe_temp\" data-src=\"https:\u002F\u002Fwww.youtube.com\u002Fembed\u002F98brdhB3n04?rel=0&amp;showinfo=1&amp;hl=en-US\" data-style=\"border: 0; top: 0; left: 0; width: 100%; height: 100%; position: absolute;\" id=\"\" width=\"\"\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003C\u002Fdiv\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EВидео: Для работы круиз-контроля используется управление электронной педалью газа.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЭлектронные системы помощи водителю\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nМы купили автомобиль, который оборудован множеством цифровых блоков и систем помощи водителю (ADAS). В нашем проекте мы используем LKA, ACC и PCS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nLKA (Lane Keep Assist) — это система удержания в полосе, которая состоит из фронтальной камеры и вычислительного блока. LKA удерживает автомобиль в полосе движения, когда водитель, например, отвлекся. Алгоритмы в вычислительном блоке получают данные от камеры и на их основе принимают решение о состоянии автомобиля на дороге. Система способна понимать, что автомобиль неконтролируемо движется к правой или левой полосе. В таких случаях подается звуковой сигнал для привлечения внимания водителя. При пересечении полосы система сама скорректирует угол поворота колес так, чтобы автомобиль остался в полосе движения. Система должна вмешиваться только в том случае, если осознает, что маневр между полосами движения не был вызван действием водителя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nACC (Adaptive Cruise Control) — система адаптивного круиз-контроля, который позволяет выставить заданную скорость следования. Автомобиль сам ускоряется и притормаживает для поддержания нужной скорости, при этом водитель может убрать ногу с педалей газа и тормоза. Этот режим удобно использовать при езде по скоростным магистралям и автострадам. Адаптивный круиз контроль способен видеть препятствия впереди автомобиля и притормаживать для избежания столкновения с ними. Если впереди автомобиля едет другое транспортное средство с меньшей скоростью, ACC сбавит скорость и будет следовать за ним. При обнаружении статичного объекта, ACC сбавит скорость до полной остановки. Для обнаружения объектов перед автомобилем такая система использует радар с миллиметровым диапазоном длин волн. Обычно такие радары работают на частоте 24-72 ГГц и способны уверенно видеть объекты на расстоянии до 300 метров. Радар обычно установлен за передним значком на решетке радиатора.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nPCS (Pre-Collision System) — система предотвращения столкновения. Система призвана предотвратить столкновение с автомобилем, который движется впереди. При неизбежности столкновения, система минимизирует урон от столкновения. Здесь так же используются радар для оценки расстояния до объекта и фронтальная камера для его распознавания. Фронт PCS прогнозирует вероятность столкновения на основе скорости автомобиля, расстояния до объекта и его скорости. Обычно у системы есть два этапа срабатывания. Первый этап — система звуком и индикацией на приборной панели оповещает об опасности водителя. Второй этап — активируется экстренное торможение с помощью системы ABS, и включаются преднатяжители ремней безопасности.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch3\u003EПрактическая часть\u003C\u002Fh3\u003E\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EУправление рулем\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nПервое, что захотелось сделать нашей команде, — это научиться рулить. Рулем в автомобиле могут управлять две системы: парковочный ассистент IPAS (Intelligent Park Assist) и LKA.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nIPAS позволяет задавать напрямую угол поворота рулевого колеса в градусах. Так как в нашем автомобиле нет данной системы, проверить и освоить рулевое управление таким способом нельзя. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПоэтому мы изучили электрические схемы автомобиля и поняли, какие CAN-шины могут быть полезны. Мы подключили анализатор CAN-шины. Лог содержит файл записей сообщений в шине в хронологической последовательности. Наша задача была найти команды управления электроусилителем руля EPS (Electric Power Steering). Мы сняли лог поворота рулевого колеса из стороны в сторону, в логе смогли найти показания угла поворота и скорость вращения рулевого колеса. Ниже пример изменения данных в шине CAN. Интересующие нас данные выделены маркером.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FSUEcbT9r9R89LVXG8V\u002Fgiphy.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EПоворот руля влево на 360 градусов\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FKEeSBGY0iAco0MIjje\u002Fgiphy.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EПоворот руля вправо на 270 градусов\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСледующим этапом мы исследовали систему удержания в полосе. Для этого мы выехали на тихую улицу и записали логи обмена между блоком удержания в полосе и DSU (Driving Support ECU). С помощью анализатора шины CAN нам удалось вычислить сообщения от системы LKA. На рисунке 6 изображена команда управления EPS.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3aa5\u002FxfbZ115M_-I.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3aa5\u002FxfbZ115M_-I.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 5. Команда управления рулем с помощью системы LKA\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nLKA управляет рулем путем задания значения момента на валу (STEER_TORQUE_CMD) рулевого колеса. Команду принимает модуль EPS. Каждое сообщение содержит в заголовке значение счетчика (COUNTER), которое инкрементируется при каждой отправке. Поле LKA_STATE содержит информацию о состоянии LKA. Для захвата управления необходимо выставлять бит STEER_REQUEST.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСообщения, которые отвечают за работу важных систем авто, защищаются контрольной суммой (CHECKSUM) для минимизации рисков ложного срабатывания. Автомобиль проигнорирует такую команду, если сообщение содержит некорректную контрольную сумму или значение счетчика. Это встроенная производителем защита от вмешательств сторонних систем и помех в линии связи.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа графике (Рис. 6.) представлена диаграмма работы LKA. Torque Sensor — значение с датчика момента на торсионном валу. Torque Cmd — команда от LKA для управления рулем. Из картинки видно, как происходит подруливание LKA для удержания автомобиля в полосе. При переходе через ноль меняется направление поворота руля. Т.е. отрицательное значение сигнала говорит о повороте вправо, положительное — влево. Удержание команды в нуле говорит об отсутствии управления со стороны LKA. При вмешательстве водителя, система перестает выдавать управление. О вмешательстве водителя LKA узнает с помощью второго датчика момента на валу со стороны рулевого колеса.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3aaf\u002Fgf9NEWqwY70.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3aaf\u002Fgf9NEWqwY70.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 6. График работы системы LKA\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНам предстояло проверить работу команды управления рулем. С помощью модуля StarLine Сигма 10 мы подготовили прошивку для проверки управления. StarLine Сигма 10 должен выдавать в CAN-шину команды на поворот руля влево или вправо. На тот момент у нас не было графического интерфейса для управления модулем, поэтому пришлось использовать штатные средства автомобиля. Мы нашли в CAN-шине статус положения рычага круиз-контроля и запрограммировали модуль таким образом, что верхнее положение рычага приводило к повороту руля вправо, нижнее положение — к повороту влево (Рис. 7).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FiePIdfNu21IdIj5gnL\u002Fgiphy.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 7. Первые попытки рулить\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНа видео видно, что управление осуществляется короткими секциями. Это возникает по нескольким причинам.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nПервая из причин — это отсутствие обратной связи. Если расхождение между сигналом Torque Cmd и Torque Sensor превышает определенное значение Δ, система автоматически перестает воспринимать команды (Рис. 8). Мы настроили алгоритм на корректировку выдаваемой команды (Torque CMD) в зависимости от значения момента на валу (Torque Sensor).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ac8\u002FphgVvK6g5Fg.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ac8\u002FphgVvK6g5Fg.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 8. Расхождение сигнала приводит к ошибке работы системы\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nСледующее ограничение связано с системой защиты встроенной в EPS. Система EPS не позволяет командами от LKA рулить в широком диапазоне. Что вполне логично, т.к. при езде по дороге резкое маневрирование не безопасно. Таким образом, при превышении порогового значения момента на валу, система LKA выдает ошибку и отключается (Рис. 9).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ae3\u002FScKnV-se_dA.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ae3\u002FScKnV-se_dA.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 9. Превышение порогового значения регулировки момента на валу\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНезависимо от того, активирована система LKA или нет, сообщения с командами от нее присутствуют в шине постоянно. Мы посылаем модулю EPS команду повернуть колеса с конкретным усилием влево или вправо. А в это время LKA перебивает наши посылки «пустыми» сообщениями. После нашей команды со значением момента, приходит штатная с нулевым (Рис. 10).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ad9\u002FnP9zt5VQSiI.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ad9\u002FnP9zt5VQSiI.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 10. Штатные сообщения приходят с нулевыми значениями момента и перебивают наше управление\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nТогда мы, с помощью модуля StarLine Сигма 10, смогли фильтровать весь трафик от LKA и блокировать сообщения с ID 2E4, когда нам это было нужно. Это решило проблему, а нам удалось получить плавное управления рулем (Рис. 11).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ad2\u002F9oW1WwfVl4s.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3ad2\u002F9oW1WwfVl4s.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 11. Плавная регулировка поворота руля без ошибок\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EУправление газом\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nСистема адаптивного круиз-контроля ACC управляет ускорением и торможением программно по CAN-шине. Блок управления двигателем ECU принимает команды DSU, если необходимо ускориться — активирует электронную педаль газа. Для торможения автомобиля используется рекуперативное торможение. При этом на торможение и ускорение используется одна команда, отличаются только значения.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКоманда управления ускорением или замедлением представлена на рисунке 12. Она состоит из величины ускорения ACCEL_CMD, пары служебных бит и контрольной сумма Checksum. Для ускорения автомобилем значение ACCEL_CMD положительное, для замедления — отрицательное. Ускорение задается в диапазоне от 0 до 3 м\u002Fс^2, замедление аналогично, но со знаком минус. Для отправки данных в шину необходимо пересчитать желаемое ускорение или замедление с коэффициентом 0,001. Например, для ускорения 1 м\u002Fс^2, ACCEL_CMD = 1000 (0x03E8).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3af6\u002FEvohvXXfCwY.jpg\" alt=\"image\" data-src=\"https:\u002F\u002Fpp.userapi.com\u002Fc844521\u002Fv844521398\u002F1f3af6\u002FEvohvXXfCwY.jpg\" data-blurred=\"true\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 12. Команда управления ускорения\u002Fзамедления автомобиля\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nМы сняли логи со штатной системы ACC и проанализировали команды. Сравнили с имеющимся у нас описанием команд и приступили к тестированию.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FLnFs6Orvc4B7rerc34\u002Fgiphy.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 13. Лог управления ускорением\u002Fзамедлением системы адаптивного круиз-контроля ACC (выделено маркером)\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЗдесь не обошлось без трудностей. Мы выехали на дорогу с оживленным трафиком для тестирования команды ускорения. Команды управления ускорением или замедлением автомобиля работают только при активированном круиз контроле, не достаточно активировать его кнопкой. Необходимо найти движущийся впереди автомобиль и включить режим следования за ним.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FgiW3jZ7IMZuQxb6a68\u002Fgiphy.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 14. Активация круиз контроля происходит при наличии впереди другого траснпортного средства\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nС помощью модуля StarLine Сигма 10 посылаем команду ускорения, и автомобиль начинает набирать скорость. К этому моменту мы подключили графический интерфейс для управления модулем StarLine Сигма 10. Теперь мы управляем рулем, ускорением и торможением с помощью кнопок в приложении.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКоманды работали до тех пор, пока не потеряли автомобиль впереди. Система круиз-контроля отключилась, а следовательно, и команды ускорения перестали работать.\u003Cbr\u002F\u003E\r\nМы приступили к исследованию возможности использовать команды без активного круиз-контроля. Пришлось много времени потратить на анализ данных в шине CAN, чтобы понять как создать условия для работы команд. Нас интересовало, в первую очередь, какой блок блокирует выполнение команд ACC на ускорение или замедление. Пришлось изучить какие ID идут от DSU, LKA, радара и камеры, подсовывая липовые данные различных датчиков.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nРешение пришло спустя 3 недели. К тому времени мы представляли как происходит взаимодействие блоков автомобиля, провели исследование трафика сообщений и выделили группы сообщений, посылаемых каждым блоком. За работу адаптивного круиз-контроля ACC отвечает блок Driving Support ECU (DSU). DSU выдает команды на ускорение и замедление автомобиля, и именно этот блок получает данные от радара миллиметрового диапазона. Радар сообщает DSU на каком расстоянии от машины движется объект, с какой относительной скоростью и определяет его положение по горизонтали (левее, правее или по центру).\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nНаша идея заключалась в подмене данных радара. Мы сняли лог следования за автомобилем, вытащили из него данные радара в момент следования. Теперь, после включения круиз-контроля, мы посылаем фейковые данные о наличии впереди идущего авто. Получается обманывать наш автомобиль, говоря что впереди движется другое авто на конкретном расстоянии.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\na) \u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FgfOHPnqEuG2c2iuYfw\u002Fgiphy.gif\"\u002F\u003E б)\u003Cimg src=\"\u002Fimg\u002Fimage-loader.svg\" alt=\"image\" data-src=\"https:\u002F\u002Fmedia.giphy.com\u002Fmedia\u002FQBAoqF0B3mMKjLUwd5\u002Fgiphy.gif\"\u002F\u003E\u003Cbr\u002F\u003E\r\n\u003Ci\u003EРис. 15. Активация круиза: a) попытка активировать без подмены данных радара; б) активация при подмене данных от радара.\u003C\u002Fi\u003E\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКогда запускаем нашу обманку, на приборной панели загорается значок наличия впереди идущего автомобиля. Теперь мы можем тестировать наше управление. Запускаем команду на ускорение, и автомобиль начинает быстро ускоряться. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nКак мы уже узнали, команда на ускорение и замедление одна. Поэтому тут же проверили и замедление. Поехали на на скорости с активным круиз-контролем, запустили команду на торможение, и авто сразу же замедлилось.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nВ итоге сейчас получается разгонять и замедлять автомобиль именно так, как нам было нужно.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\nЦель достигнута.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EЧто еще мы используем\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДля создания беспилотника необходимо управление вспомогательными системами: поворотниками, стоп-сигналами, аварийной сигнализацией, клаксоном и пр. Всем этим так же можно управлять по CAN шине.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ch4\u003EОборудование и ПО\u003C\u002Fh4\u003E\u003Cbr\u002F\u003E\r\nДля работ с автомобилем сегодня мы используем набор различного оборудования:\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cul\u003E\r\n\u003Cli\u003EАнализатор шины Marathon позволяет подключать и читать данные с двух шин одновременно. На сайте производителя анализатора есть бесплатное ПО для анализа логов. Но мы используем ПО, написанное в нашей компании для внутреннего пользования.\u003C\u002Fli\u003E\r\n\u003Cli\u003EМодуль StarLine Сигма 10 мы используем как платформу для работы с цифровыми интерфейсами. Модуль поддерживает CAN и LIN интерфейсы. При исследовании автомобиля пишем программы на C, зашиваем их в модуль и проверяем работу. Из модуля можем сделать сниффер трафика CAN-шины. Сниффер нам помогает понять, какие ID идут от блока или блокировать сообщения от штатных систем.\u003C\u002Fli\u003E\r\n\u003Cli\u003EДиагностическое оборудование Toyota\u002FLexus. С помощью этого оборудования можно найти команды управления системами автомобиля: поворотниками, стоп-сигналами, клаксоном, индикацией приборки.\u003C\u002Fli\u003E\r\n\u003C\u002Ful\u003E\u003Cbr\u002F\u003E\r\nСегодня ведется активная работа по разработке беспилотного автомобиля, в ближайших планах реализация экстренного торможения перед препятствиями, их объезда и перестраивание маршрута автомобиля в зависимости от дорожной ситуации и указаний водителя.\u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Cb\u003EБеспилотный автомобиль StarLine\u003C\u002Fb\u003E — это открытая площадка для объединения лучших инженерных умов России и мира с целью создания прогрессивных технологий беспилотного вождения, которые сделают наше будущее безопасным и комфортным. \u003Cbr\u002F\u003E\r\n\u003Cbr\u002F\u003E\r\n\u003Ca href=\"https:\u002F\u002Fgitlab.com\u002Fstarline\u002Foscar\"\u003EGitLab проекта\u003C\u002Fa\u003E\u003C\u002Fdiv\u003E","tags":[{"titleHtml":"автомобиль"},{"titleHtml":"CAN"},{"titleHtml":"CAN-шина"}],"metadata":{"stylesUrls":[],"scriptUrls":[],"shareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450140\u002F22608d04df0ea31f99b76a3b336f2a68\u002F","shareImageWidth":1200,"shareImageHeight":630,"vkShareImageUrl":"https:\u002F\u002Fhabr.com\u002Fshare\u002Fpublication\u002F450140\u002F22608d04df0ea31f99b76a3b336f2a68\u002F?format=vk","schemaJsonLd":"{\"@context\":\"http:\\\u002F\\\u002Fschema.org\",\"@type\":\"Article\",\"mainEntityOfPage\":{\"@type\":\"WebPage\",\"@id\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450140\\\u002F\"},\"headline\":\"Управление автомобилем по CAN\",\"datePublished\":\"2019-05-13T18:56:40+03:00\",\"dateModified\":\"2019-05-14T20:45:53+03:00\",\"author\":{\"@type\":\"Person\",\"name\":\"StarLine_Smartcar\"},\"publisher\":{\"@type\":\"Organization\",\"name\":\"Habr\",\"logo\":{\"@type\":\"ImageObject\",\"url\":\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fwebt\\\u002Fa_\\\u002Flk\\\u002F9m\\\u002Fa_lk9mjkccjox-zccjrpfolmkmq.png\"}},\"description\":\"Введение Беспилотный автомобиль StarLine на платформе Lexus RX 450h &mdash; научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных сп...\",\"url\":\"https:\\\u002F\\\u002Fhabr.com\\\u002Fru\\\u002Fpost\\\u002F450140\\\u002F#post-content-body\",\"about\":[\"h_transport\",\"f_popsci\"],\"image\":[\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F1e6\\\u002F109\\\u002F0a4\\\u002F1e61090a4149347d85f1b19488b27e94.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F288\\\u002F59d\\\u002Fb2f\\\u002F28859db2fc4d7f30bb521f4e6c0a3123.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F5b7\\\u002Fb45\\\u002F063\\\u002F5b7b4506386956bd872df48432858d8c.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F6e8\\\u002F16b\\\u002Fa1b\\\u002F6e816ba1b6d687c9849321d8aac3f431.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fe9e\\\u002F2ff\\\u002Feee\\\u002Fe9e2ffeee019069421b869be9fb6d6d4.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3b5\\\u002F259\\\u002F583\\\u002F3b5259583320120b011d47f3c4517dd8.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F76f\\\u002F2a7\\\u002F159\\\u002F76f2a7159e1b5b36232ae0702079af45.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F2ac\\\u002F562\\\u002F2c8\\\u002F2ac5622c84943c61207d0ac0c17a20fa.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F147\\\u002F82e\\\u002F068\\\u002F14782e068fe5ac6bc3636603d2113cee.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F3bd\\\u002Fff5\\\u002F458\\\u002F3bdff5458f46a6de9f48598a735db625.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F360\\\u002F888\\\u002F015\\\u002F3608880153b575b2874efd8db45fe7f8.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fc0a\\\u002F85b\\\u002F1a9\\\u002Fc0a85b1a9ad409684dbcb740acfd18ed.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F712\\\u002F6ab\\\u002Fcff\\\u002F7126abcff6446d6a6477c667880747a7.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F4fc\\\u002F0a2\\\u002F042\\\u002F4fc0a20425a9718cb90eb40f4b5a127f.jpg\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Ff37\\\u002Fe3d\\\u002F9a4\\\u002Ff37e3d9a42d8164a6b5e1f21c4fba704.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F9e0\\\u002F4eb\\\u002F012\\\u002F9e04eb01233c579da82c01d623c05c40.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002F18e\\\u002F762\\\u002Fed2\\\u002F18e762ed2cf1f72b3240fe1bc3647048.gif\",\"https:\\\u002F\\\u002Fhabrastorage.org\\\u002Fgetpro\\\u002Fhabr\\\u002Fpost_images\\\u002Fbe9\\\u002Fc16\\\u002F276\\\u002Fbe9c162764819ce5e0f733c67506ac4d.gif\"]}","metaDescription":"Введение\r\nБеспилотный автомобиль StarLine на платформе Lexus RX 450h — научно-исследовательский проект, стартовавший в 2018 году. Проект открыт для амбициозных специалистов из Open Source Community....","mainImageUrl":null,"amp":false},"polls":[],"commentsEnabled":true,"rulesRemindEnabled":false,"votesEnabled":true,"status":"published","plannedPublishTime":null,"checked":null,"isEditorial":false}},"articlesIds":{},"isLoading":false,"pagesCount":{},"route":{},"reasonsList":null,"view":"cards","lastVisitedRoute":{},"ssrCommentsArticleIds":[""],"karma":{}},"authorContribution":{"authors":{}},"betaTest":{"currentAnnouncement":null,"announcements":{},"announcementCards":null,"announcementComments":{},"announcementCommentThreads":{},"announcementCommentingStatuses":{},"archivedList":[]},"authorStatistics":{"articleRefs":{},"articleIds":{},"pagesCount":{},"route":{},"viewsCount":[],"maxStatsCount":{}},"career":{"seoLandings":[],"hubs":"transport"},"comments":{"articleComments":{},"searchCommentsResults":null,"previewComment":null,"pagesCount":null,"commentAccess":{},"scrollParents":{},"pageArticleComments":{"lastViewedComment":0,"postId":null,"lastCommentTimestamp":"","moderated":[],"moderatedIds":[],"commentRoute":""}},"companies":{"companyRefs":{},"companyIds":{},"companyTopIds":{},"pagesCount":{},"companyProfiles":{},"companiesCategories":[],"companiesCategoriesTotalCount":0,"companiesWidgets":{},"companiesWorkers":{},"companiesFans":{},"route":{},"isLoading":false,"companyWorkersLoading":false,"companyFansLoading":false,"vacancies":{}},"companiesContribution":{"hubs":{},"flows":{},"companyRefs":{}},"companyHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"conversation":{"messages":[],"respondent":null,"isLoadMore":false},"conversations":{"conversations":[],"unreadCount":0,"pagesCount":0,"isLoadMore":false},"desktopState":{"desktopFl":null,"desktopHl":null,"isChecked":false,"isLoginDemanded":false},"dfp":{"slotsDict":{}},"docs":{"menu":{},"articles":{},"mainMenu":[],"loading":{"main":false,"dropdown":false,"article":false}},"feature":{"isProbablyVisible":"true"},"flows":{"flows":[{"alias":"develop","id":1,"route":{"name":"FLOW_PAGE","params":{"flowName":"develop"}}},{"alias":"admin","id":6,"route":{"name":"FLOW_PAGE","params":{"flowName":"admin"}}},{"alias":"design","id":2,"route":{"name":"FLOW_PAGE","params":{"flowName":"design"}}},{"alias":"management","id":3,"route":{"name":"FLOW_PAGE","params":{"flowName":"management"}}},{"alias":"marketing","id":4,"route":{"name":"FLOW_PAGE","params":{"flowName":"marketing"}}},{"alias":"popsci","id":7,"route":{"name":"FLOW_PAGE","params":{"flowName":"popsci"}}}]},"global":{"isPwa":false,"device":"desktop","isHabrCom":true},"hubs":{"hubRefs":{},"hubIds":{},"pagesCount":{},"isLoading":false,"route":{}},"hubsBlock":{"hubRefs":{},"hubIds":{}},"i18n":{"fl":"ru","hl":"ru"},"info":{"infoPage":{},"isLoading":true},"location":{"urlStruct":{"protocol":null,"slashes":null,"auth":null,"host":null,"port":null,"hostname":null,"hash":null,"search":null,"query":{},"pathname":null,"path":null,"href":""},"searchQuery":null},"me":{"user":null,"ppgDemanded":false,"karmaResetInfo":{"canReincarnate":null,"wasReincarnated":null,"currentScore":null},"notes":null},"mostReadingList":{"mostReadingListIds":[],"mostReadingListRefs":null,"promoPost":null},"pinnedPost":{"pinnedPost":null},"ppa":{"articles":{},"card":null,"transactions":null,"totalTransactions":null,"isAccessible":null},"projectsBlocks":{"activeBlocks":{}},"pullRefresh":{"shouldRefresh":false},"sandbox":{"articleIds":[],"articleRefs":{},"pagesCount":null,"route":{},"lastVisitedRoute":{},"isLoading":false},"settingsOther":{"inputs":{"uiLang":{"errors":[],"ref":null,"value":""},"articlesLangEnglish":{"errors":[],"ref":null,"value":false},"articlesLangRussian":{"errors":[],"ref":null,"value":false},"agreement":{"errors":[],"ref":null,"value":false},"email":{"errors":[],"ref":null,"value":true},"digest":{"errors":[],"ref":null,"value":true}}},"similarList":{"similarListIds":[],"similarListRefs":null},"ssr":{"error":null,"isDataLoaded":false,"isDataLoading":false,"isHydrationFailed":false,"isServer":false},"userHubsContribution":{"contributionRefs":{"hubRefs":{},"hubIds":{}}},"userInvites":{"availableInvites":0,"usedInvitesIds":[],"usedInvitesRefs":{},"usedInvitesPagesCount":0,"unusedInvitesIds":[],"unusedInvitesRefs":{},"unusedInvitesPagesCount":0},"users":{"authorRefs":{},"authorIds":{},"pagesCount":{},"authorProfiles":{},"userHubs":{},"userInvitations":{},"authorFollowers":{},"authorFollowed":{},"karmaStats":[],"statistics":null,"isLoading":false,"authorFollowersLoading":false,"authorFollowedLoading":false,"userHubsLoading":false,"userInvitationsLoading":false,"route":{}},"viewport":{"prevScrollY":{},"scrollY":0,"width":0},"tracker":{"items":{},"pagesCache":{},"markedViewedSilently":{},"markedRead":{},"unreadCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null},"unviewedCounters":{"applications":null,"system":null,"mentions":null,"subscribers":null,"posts_and_comments":null}}};(function(){var s;(s=document.currentScript||document.scripts[document.scripts.length-1]).parentNode.removeChild(s);}());</script>
+<script src="https://assets.habr.com/habr-web/js/chunk-vendors.c2c3fc9a.js" defer></script><script src="https://assets.habr.com/habr-web/js/app.c0af73e7.js" defer></script>
+
+
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    </script>
+  
+  <script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(24049213, "init", {
+      defer:true,
+      trackLinks:true,
+      accurateTrackBounce:true,
+      webvisor:false,
+    });
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/24049213" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  
+    <script type="text/javascript">
+      window.addEventListener('load', function () {
+        setTimeout(() => {
+          const img = new Image();
+          img.src = 'https://vk.com/rtrg?p=VK-RTRG-421343-57vKE';
+        }, 0);
+      });
+    </script>
+  
+</body>
+</html>
