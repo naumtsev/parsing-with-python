@@ -22,14 +22,12 @@ def habr_article_to_object(times, tags, habs, saved):
 
 
 def get_working_time(f, *args, **kwargs):
-    start_time = time.time()
+    start_time = time.perf_counter()
     f(*args, **kwargs)
-    end_time = time.time()
+    end_time = time.perf_counter()
     return end_time - start_time
 
 
 def get_average_working_time(f, number_launches=3):
-    sum_time = 0
-    for i in range(number_launches):
-        sum_time += f()
-    return sum_time / number_launches
+    times = [f() for i in range(number_launches)]
+    return sum(times) / len(times)

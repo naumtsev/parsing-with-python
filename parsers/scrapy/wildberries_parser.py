@@ -1,21 +1,20 @@
-from scrapy.selector import Selector
 from scrapy.http import HtmlResponse
 from parsers.utils import wildberries_product_to_object
 
 
 def parse_wildberries_html(html_source):
     response = HtmlResponse(url='habr.test', body=html_source, encoding='utf-8')
-    product_card_list = response.xpath("//div[@class='product-card-list']").get()
-    product_card = Selector(text=product_card_list).css("div.product-card__wrapper").getall()
-    for product in product_card:
-        name = Selector(text=product).xpath("//span[@class='goods-name']/text()").get()
-        prices = Selector(text=product).xpath("//div[@class='price-commission']").get()
-        img_url = Selector(text=product).css('div.product-card__img-wrap').xpath('//img/@src').get()
+    product_card_list = response.xpath("//div[@class='product-card-list']")
+    product_cards = product_card_list.xpath(".//div[@class='product-card j-card-item']")
+    for product in product_cards:
+        name = product.xpath(".//span[@class='goods-name']/text()").get()
+        prices = product.xpath(".//div[@class='price-commission']")
+        img_url = product.xpath('.//div[@class="product-card__img"]').xpath('.//img/@src').get()
         if prices:
-            current_price = Selector(text=prices).xpath("//span[@class='price-commission__current-price']/text()").get()
-            old_price = Selector(text=prices).xpath("//del[@class='price-commission__old-price']/text()").get().strip()
+            current_price = prices.xpath(".//span[@class='price-commission__current-price']/text()").get().strip()
+            old_price = prices.xpath(".//del[@class='price-commission__old-price']/text()").get().strip().strip()
         else:
-            current_price = Selector(text=product).css("span.lower-price::text").get()
+            current_price = product.xpath(".//span[@class='lower-price']/text()").get().strip()
             old_price = '0'
 
         yield wildberries_product_to_object(name, current_price, old_price, img_url)
