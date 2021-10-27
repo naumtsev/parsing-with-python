@@ -6,7 +6,7 @@ from os import path
 from random import shuffle
 from multiprocessing import Process, Manager
 
-def test(indexes, number_launches=1):
+def test(test_id, indexes, number_launches=1):
     sources = []
     for index in indexes:
         try:
@@ -15,7 +15,6 @@ def test(indexes, number_launches=1):
         except:
             pass
 
-    test_id = ','.join(list(map(str, indexes)))
     result = Manager().dict()
     result['test_id'] = f'habr_{test_id}'
 
@@ -40,6 +39,8 @@ def get_habr_results(group_size=1, number_launches=1):
     results = []
     ids = list(range(999))
     shuffle(ids)
+    i = 1
     for test_group in split_into_parts(ids, group_size):
-        results.append(test(test_group, number_launches))
+        results.append(test(i, test_group, number_launches))
+        i+=1
     return results
